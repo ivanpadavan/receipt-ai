@@ -29,7 +29,7 @@ const imagePrompt = ChatPromptTemplate.fromMessages([
 // Using Google's Gemini model for image analysis
 const model = new ChatGoogleGenerativeAI({
   temperature: 1,
-  model: "gemini-2.0-flash-lite",
+  model: "gemini-2.0-flash",
   apiKey: process.env.GOOGLE_API_KEY, // Using the Google API key
 });
 
