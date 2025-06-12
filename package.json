@@ -9,11 +9,7 @@
     "lint": "next lint",
     "format": "prettier --write \"app\"",
     "test": "jest",
-    "docker:build": "docker-compose build",
-    "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down",
-    "docker:logs": "docker-compose logs -f",
-    "docker:restart": "docker-compose restart"
+    "postinstall": "prisma generate"
   },
   "engines": {
     "node": ">=20"
@@ -86,8 +82,5 @@
     "tailwindcss": "3.3.3",
     "ts-jest": "^29.3.4",
     "typescript": "5.1.6"
-  },
-  "scripts": {
-    "postinstall": "prisma generate"
   }
 }

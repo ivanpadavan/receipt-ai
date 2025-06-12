@@ -2,7 +2,7 @@
 
 import { pageState$ } from "@/app/state";
 import { useObservableFactory } from "@/hooks/useObservableFactory";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import WebcamCapture from "@/components/WebcamCapture";
@@ -148,17 +148,9 @@ export default function ImagePastePage() {
         )}
 
         {picture.status === 'loading' && (
-          <div className="w-full max-w-xs">
-            <div className="mb-2 flex justify-between items-center">
-              <span className="text-amber-800 text-sm font-medium">Processing receipt...</span>
-              <span className="text-amber-800 text-sm">{Math.round(50)}%</span>
-            </div>
-            <div className="w-full bg-amber-200 rounded-full h-2.5">
-              <div
-                className="bg-amber-500 h-2.5 rounded-full transition-all duration-300 ease-in-out"
-                style={{ width: `${50}%` }}
-              ></div>
-            </div>
+          <div className="w-full flex flex-col items-center justify-center p-6">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mb-4"></div>
+            <span className="text-amber-800 text-sm font-medium">Processing receipt...</span>
           </div>
         )}
 
