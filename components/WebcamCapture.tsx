@@ -1,21 +1,28 @@
 "use client";
 
 import { PageState } from "@/app/state";
-import { useRef, useState } from "react";
-import Webcam from "react-webcam";
+import { useObservableFactory } from "@/hooks/useObservableFactory";
+import { use, useEffect, useMemo, useRef, useState } from "react";
+import Camera from "@/components/Camera";
 import { Button } from "@/components/ui/button";
+import { from, of } from "rxjs";
 
 type WebcamCaptureProps = {
   pageState: PageState,
 }
 
 export default function WebcamCapture({ pageState: { camera } }: WebcamCaptureProps) {
-  const webcamRef = useRef<Webcam>(null);
+  const cameraRef = useRef<Camera>(null);
   const [paused, setPaused] = useState(false);
+  const [screenshot, setScreenshot] = useState<string | null>(null);
+
+  useEffect(() => {
+    paused && cameraRef.current
+      ? cameraRef.current.getScreenshot().then(setScreenshot)
+      : setScreenshot(null)
+  }, [paused])
 
   const handleCapture = () => {
-    const screenshot = webcamRef.current?.getScreenshot();
-
     if (camera.status === 'ready' && screenshot) {
       camera.appendPicture(screenshot);
     }
@@ -23,11 +30,11 @@ export default function WebcamCapture({ pageState: { camera } }: WebcamCapturePr
 
   return (
     <div className="fixed inset-0 z-50 bg-black w-full h-full">
-      <Webcam
+      <Camera
         onCanPlayCapture={() => camera.status === 'pending' && camera.initialized()}
         onPause={() => setPaused(true)}
         onPlay={() => setPaused(false)}
-        ref={webcamRef}
+        ref={cameraRef}
         audio={false}
         screenshotFormat="image/jpeg"
         videoConstraints={{
@@ -35,12 +42,13 @@ export default function WebcamCapture({ pageState: { camera } }: WebcamCapturePr
         }}
         className="w-full h-full object-cover"
       />
+      {screenshot && (<img src={screenshot} className="w-full h-full object-cover z-0 top-0 absolute" />)}
 
-        <div className="relative bottom-10 left-0 right-0 flex justify-center gap-3">
+        <div className="relative bottom-10 left-0 right-0 flex justify-center gap-3 z-10">
           {camera.status === "ready" && !paused && (
             <>
               <Button
-                onClick={() => webcamRef.current?.video?.pause()}
+                onClick={() => cameraRef.current?.video?.pause()}
                 className="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-full shadow-md"
               >
                 Capture
@@ -55,7 +63,7 @@ export default function WebcamCapture({ pageState: { camera } }: WebcamCapturePr
           {paused && (
             <>
               <Button
-                onClick={() => webcamRef.current?.video?.play()}
+                onClick={() => cameraRef.current?.video?.play()}
                 className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full shadow-md"
               >
                 Clear Image
