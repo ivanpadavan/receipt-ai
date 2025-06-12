@@ -8,7 +8,7 @@ import { db } from "@/app/db";
 
 
 // Edge runtime is not compatible with Prisma, so we need to use the Node.js runtime
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 const imagePrompt = ChatPromptTemplate.fromMessages([
   [
