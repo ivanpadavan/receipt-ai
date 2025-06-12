@@ -1,0 +1,32 @@
+.table {
+    width: 100%;
+    overflow: hidden;
+    td, th {
+        &:not(:first-child) {
+            text-align: right;
+        }
+        &:first-child {
+            text-align: left;
+        }
+        padding: .2rem .5rem;
+    }
+    td {
+        tab-index: 0;
+        outline: bisque;
+    }
+    th {
+        padding-bottom: 1rem;
+    }
+
+    tfoot {
+        td:not(:last-child) {
+            text-align: left;
+        }
+        tr:first-child td {
+            padding-top: .5rem;
+        }
+        tr:last-child td {
+            padding-bottom: .5rem;
+        }
+    }
+}
