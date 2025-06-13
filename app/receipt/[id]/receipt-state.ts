@@ -2,16 +2,14 @@ import { FormArray } from "@/forms/form_array";
 import { FormControl } from "@/forms/form_control";
 import { FormGroup } from "@/forms/form_group";
 import { InferForm } from "@/forms/type";
-import { Observable, of, merge, finalize, startWith, EMPTY } from "rxjs";
+import { Observable, of, merge, EMPTY } from "rxjs";
 import { tap, ignoreElements } from "rxjs/operators";
 import {
   Receipt, validateReceipt, calculatePositionsTotal, calculateTotal
 } from "@/model/receipt/model";
 import {
-  nameNotEmpty,
-  quantityNotZero,
-  priceNotZero,
-  valueNotZero,
+  stringNotEmpty,
+  numberMoreThenZero,
   overallMatchesQuantityPrice,
   positionsTotalMatchesSum,
   totalMatchesCalculation
@@ -37,13 +35,13 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: (row: For
   const defaultPosition = (): InferForm<Receipt['positions'][0]> => {
     return new FormGroup({
       name: new FormControl('', {
-        validators: [nameNotEmpty]
+        validators: [stringNotEmpty]
       }),
       price: new FormControl(0, {
-        validators: [priceNotZero]
+        validators: [numberMoreThenZero]
       }),
       quantity: new FormControl(0, {
-        validators: [quantityNotZero]
+        validators: [numberMoreThenZero]
       }),
       overall: new FormControl(0, {
         validators: [overallMatchesQuantityPrice]
@@ -55,10 +53,10 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: (row: For
   const defaultModifier = (): ModifierForm['controls'][number] => {
     return new FormGroup({
       name: new FormControl('', {
-        validators: [nameNotEmpty]
+        validators: [stringNotEmpty]
       }),
       value: new FormControl(0, {
-        validators: [valueNotZero]
+        validators: [numberMoreThenZero]
       })
     });
   };

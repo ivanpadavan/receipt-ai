@@ -22,7 +22,6 @@ export const RowModal: React.FC<RowModalProps> = ({ row }) => {
     <div className="p-4">
       {errors.length > 0 && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-          <h3 className="text-sm font-medium text-red-800 mb-1">{t('validationErrors')}</h3>
           <ul className="list-disc pl-5 space-y-1">
             {errors.map(([label, fieldErrors], index) => (
               <li key={index} className="text-sm text-red-700">
@@ -52,6 +51,7 @@ export const RowModal: React.FC<RowModalProps> = ({ row }) => {
           </button>}
           <button
             type="button"
+            disabled={row.invalid}
             onClick={() => row.updateValueAndValidity()}
             className="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 transition-colors"
           >
