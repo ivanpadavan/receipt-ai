@@ -30,14 +30,13 @@ export function useObservableFactory<A extends any[], T, E>(
         if (firstEmission) {
           firstEmission = false;
         } else {
-          console.log(f);
           forceUpdate();
         }
       },
       error: setError,
       complete: setCompleted.bind(null, true)
     })
-  }, deps);
+  }, [source$, deps]);
 
   initSubscription();
 
