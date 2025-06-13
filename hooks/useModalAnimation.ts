@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
-import { defer, EMPTY, finalize, merge, Observable, of } from "rxjs";
+import { bezier } from "@/utils/animation/bezier";
+import { useCallback, useState } from "react";
+import { finalize, Observable, of } from "rxjs";
 import { createTween } from '@/utils/animation/create-tween';
-import { modalTween } from '@/utils/animation/bezier';
 import { useObservableFactory } from './useObservableFactory';
 
-// Duration of the animation in milliseconds
-const ANIMATION_DURATION = 300;
+type AnimationArgs = Parameters<typeof createTween>;
+
+const enter: AnimationArgs = [bezier(.36,.66,.04,1), 0, 1, 400];
+const leave: AnimationArgs = [bezier(.36,.66,.04,1), 1, 0, 450];
 
 /**
  * Custom hook for modal animations
@@ -17,27 +19,25 @@ export function useModalAnimation(isOpen: boolean) {
   const [isVisible, setIsVisible] = useState(false);
 
   // Create an observable factory that returns an animation tween
-  const animationFactory = (open: boolean, visible: boolean): Observable<number> => {
+  const animationFactory = useCallback((isOpen: boolean, isVisible: boolean): Observable<number> => {
     // If opening, animate from 1 (bottom) to 0 (top)
     // If closing, animate from 0 (top) to 1 (bottom)
 
-    if (open && visible) return of(0);
-    if (!open && !visible) return of(1);
+    if (isOpen && isVisible) return of(1);
+    if (!isOpen && !isVisible) return of(0);
 
-    return open
-      ? createTween(modalTween, 1, 0, ANIMATION_DURATION).pipe(
-        finalize(() => setIsVisible(true))
+    return createTween(...(isOpen ? enter : leave)).pipe(
+        finalize(() => {
+          setIsVisible(isOpen);
+        })
       )
-      : createTween(modalTween, 0, 1, ANIMATION_DURATION).pipe(
-        finalize(() => setIsVisible(false)),
-      )
-  };
+  }, []);
 
   // Subscribe to the animation observable
-  const [translateY] = useObservableFactory(animationFactory, isOpen, isVisible);
+  const [transitionState] = useObservableFactory(animationFactory, [isOpen, isVisible]);
 
   return {
-    translateY,
+    transitionState,
     isVisible: isVisible || isOpen
   };
 }
