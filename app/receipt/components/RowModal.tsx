@@ -1,5 +1,6 @@
 import { ModalContext } from "@/components/ui/modal/ModalContext";
 import { FormControl } from "@/forms/form_control";
+import { ValidationErrors } from "@/forms/validators";
 import { useObservable } from "@ngneat/react-rxjs";
 import React, { useContext, useMemo } from "react";
 import { FormGroup } from '@/forms/form_group';
@@ -12,17 +13,20 @@ interface RowModalProps {
 export const RowModal: React.FC<RowModalProps> = ({ row }) => {
   useObservable(row.valueChanges);
   const hideModal = useContext(ModalContext)?.hideModal;
-  const controls = useMemo(() => Object.entries(row.controls), [row]);
+  const controls = useMemo(() => Object.entries(row.controls), [row]) as [TranslationKey, FormControl<string | number>][];
+  const errors = row.valid ? [] : controls
+    .filter(([, errors]) => errors !== null)
+    .map(([label, { errors }]) => [label as TranslationKey, Object.values(errors as ValidationErrors)]);
 
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4 text-center">{t('editRow')}</h2>
 
       <div className="space-y-4">
-        {controls.map(([title, control], idx) => (
+        {controls.map(([label, control], idx) => (
           <FormField
             key={idx}
-            label={title as TranslationKey}
+            label={label}
             control={control}
           />
         ))}
@@ -70,12 +74,6 @@ const FormField: React.FC<{ control: FormControl<string | number>, label: Transl
             : 'border-gray-300 focus:ring-amber-500 focus:border-amber-500'
         } ${control.disabled ? 'bg-gray-100' : ''}`}
       />
-      {isInvalid && (
-        errors.map((error, idx) => (<p key={idx} className="mt-1 text-sm text-red-600">
-          {error}
-        </p>)
-        )
-      )}
     </div>
   );
 };
