@@ -26,13 +26,13 @@ export type ModifierForm = ReceiptForm['controls']['total']['controls']['additio
 export type FormScenario = { type: FormType; form: ReceiptForm };
 
 // Receipt state types
-export type ReceiptFormState = {
+export type ReceiptState = {
   scenario: FormScenario;
   onRowClick: (v: FormGroup) => void,
   proceed: () => void;
 };
 
-export const receiptFormState$ = (initialData: Receipt): Observable<ReceiptFormState> => {
+export const receiptFormState$ = (initialData: Receipt): Observable<ReceiptState> => {
   // Default position form group for adding new positions
   const defaultPosition = (): InferForm<Receipt['positions'][0]> => {
     return new FormGroup({
@@ -83,8 +83,11 @@ export const receiptFormState$ = (initialData: Receipt): Observable<ReceiptFormS
   form.patchValue(initialData, {emitEvent: false});
 
   // Determine the initial state based on validation
-  const initialState = { scenario: {
-    type: validateReceipt(initialData).isValid ? 'editing' as const : 'validation' as const, form },
+  const initialState: ReceiptState = {
+    scenario: {
+    type: validateReceipt(initialData).isValid ? 'editing' as const : 'validation' as const,
+      form
+    },
     proceed: () => void 0,
     onRowClick: (v: FormGroup) => console.log(v)
   }
