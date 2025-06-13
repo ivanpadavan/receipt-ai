@@ -39,11 +39,11 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: (row: For
       name: new FormControl('', {
         validators: [nameNotEmpty]
       }),
-      quantity: new FormControl(0, {
-        validators: [quantityNotZero]
-      }),
       price: new FormControl(0, {
         validators: [priceNotZero]
+      }),
+      quantity: new FormControl(0, {
+        validators: [quantityNotZero]
       }),
       overall: new FormControl(0, {
         validators: [overallMatchesQuantityPrice]

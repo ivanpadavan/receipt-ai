@@ -18,7 +18,7 @@ export function useObservableFactory<A extends any[], T, E>(
 
   const [error, setError] = useState();
   const [completed, setCompleted] = useState<boolean>(false);
-  const [_, forceUpdate] = useReducer(x => x + 1, 0);
+  const [f, forceUpdate] = useReducer(x => x + 1, 0);
 
   let firstEmission = true;
 
@@ -30,6 +30,7 @@ export function useObservableFactory<A extends any[], T, E>(
         if (firstEmission) {
           firstEmission = false;
         } else {
+          console.log(f);
           forceUpdate();
         }
       },

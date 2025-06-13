@@ -8,12 +8,11 @@ interface FormControlCellProps extends React.TdHTMLAttributes<HTMLTableCellEleme
 
 export const Cell: React.FC<FormControlCellProps> = ({ formControl, className = '', ...props }) => {
   const [value] = useObservableFactory(() => formControl.value$)
-  const isInvalid = formControl.invalid && formControl.errors?.length > 0;
+  const isInvalid = formControl.invalid;
 
   return (
     <td
       className={`${className} ${isInvalid ? 'text-red-500' : ''}`}
-      title={isInvalid ? formControl.errors?.join(', ') : undefined}
       {...props}
     >
       {value}

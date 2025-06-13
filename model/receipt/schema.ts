@@ -2,8 +2,8 @@ import { z } from "zod";
 
 export const positionSchema = z.object({
   name: z.string().describe("The name of the item"),
-  quantity: z.number().describe("The quantity of the item"),
   price: z.number().describe("The price per unit of the item"),
+  quantity: z.number().describe("The quantity of the item"),
   overall: z.number().describe("The total price for this item (quantity * price)")
 });
 
