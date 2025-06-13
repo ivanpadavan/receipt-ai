@@ -3,7 +3,6 @@
 import { useModal } from "@/components/ui/modal/ModalContext";
 import { FormGroup } from "@/forms/form_group";
 import { useObservableFactory } from "@/hooks/useObservableFactory";
-import { IonPage } from "@ionic/react";
 import React, { createContext, useCallback, useContext, useMemo } from "react";
 import { Receipt } from '@/model/receipt/model';
 import { ReceiptState, receiptFormState$ } from "@/app/receipt/[id]/receipt-state";
@@ -29,8 +28,6 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({ initialData })
   const { scenario: { form } } = formState;
   const discounts = useMemo(() => form.controls.total.controls.discounts.length > 0 ? form.controls.total.controls.discounts : 'placeholder', [form]);
   const additions = useMemo(() => form.controls.total.controls.additions.length > 0 ? form.controls.total.controls.additions : 'placeholder', [form]);
-
-  const onRowClick = formState?.onRowClick;
 
   return (
     <ReceiptFormContext.Provider value={formState} >
