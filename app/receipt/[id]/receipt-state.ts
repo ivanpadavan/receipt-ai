@@ -1,3 +1,4 @@
+import { copyControl } from "@/forms/copy-control";
 import { FormArray } from "@/forms/form_array";
 import { FormControl } from "@/forms/form_control";
 import { FormGroup } from "@/forms/form_group";
@@ -121,7 +122,23 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: EditFinis
   const state: ReceiptState = {
     scenario: { type, form },
     proceed: () => void 0,
-    openEditModal: (v) => v instanceof FormGroup ? openEditModal(v, () => void 0) : void 0,
+    openEditModal: (formToEdit) => {
+      if (formToEdit instanceof FormGroup) {
+        const parent = formToEdit.parent as FormArray<AppendableForm>;
+        const idx = parent.controls.findIndex(form => form === formToEdit);
+        const formToEditCopy = copyControl(formToEdit);
+        openEditModal(formToEdit, () => parent.controls.at(idx)?.patchValue(formToEditCopy.getRawValue() as any));
+      } else if (formToEdit === 'addPosition') {
+        const newPosition = defaultPosition();
+        openEditModal(newPosition, () => form.controls.positions.insert(0, newPosition));
+      } else {
+        const newModifier = defaultModifier();
+        openEditModal(newModifier as any, () => {
+          const groupName = formToEdit === 'addAddition' ? 'additions' : 'discounts';
+          form.controls.total.controls[groupName].insert(0, newModifier);
+        });
+      }
+    },
   }
 
   return of(state);
