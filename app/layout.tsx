@@ -13,6 +13,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { AppNavbar } from "@/components/AppNavbar";
 import { Providers } from "./providers";
 import { auth } from "./auth";
+import { IonPage } from "@ionic/react";
 
 const publicSans = Public_Sans({ subsets: ["latin"] });
 
