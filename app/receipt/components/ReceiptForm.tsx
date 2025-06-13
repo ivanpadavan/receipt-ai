@@ -79,7 +79,7 @@ const ReceiptFormContent: React.FC = () => {
 
   return (
     <ReceiptFormContext.Provider value={contextValue}>
-    <div className="m-3 rounded bg-white shadow-md text-black overflow-hidden max-w-fit mx-auto">
+    <div className="m-3 rounded bg-white shadow-md text-black max-w-fit w-full mx-auto overflow-auto">
       <table className={styles.table}>
         <thead>
           <tr>
