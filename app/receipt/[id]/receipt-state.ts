@@ -2,6 +2,7 @@ import { FormArray } from "@/forms/form_array";
 import { FormControl } from "@/forms/form_control";
 import { FormGroup } from "@/forms/form_group";
 import { InferForm } from "@/forms/type";
+import { ValidatorFn } from "@/forms/validators";
 import { Observable, of, merge, EMPTY } from "rxjs";
 import { tap, ignoreElements } from "rxjs/operators";
 import {
@@ -19,6 +20,8 @@ type FormType = 'validation' | 'editing' | 'quantities';
 
 export type ReceiptForm = InferForm<Receipt>;
 
+export type PositionForm = ReceiptForm['controls']['positions']['controls'][0];
+
 export type ModifierForm = ReceiptForm['controls']['total']['controls']['additions'] | ReceiptForm['controls']['total']['controls']['discounts'];
 
 export type FormScenario = { type: FormType; form: ReceiptForm };
@@ -31,8 +34,27 @@ export type ReceiptState = {
 };
 
 export const receiptFormState$ = (initialData: Receipt, openEditModal: (row: FormGroup) => void): Observable<ReceiptState> => {
+  const type = validateReceipt(initialData).isValid ? 'editing' as const : 'validation' as const;
+
+  const positionCalculator = type === 'validation'
+    ? () => null
+    : (form: PositionForm) => {
+      const { quantity, price } = form.getRawValue();
+      form.controls.overall.patchValue(quantity * price, { onlySelf: true });
+      return null;
+    }
+
+  const formCalculator = type === 'validation'
+    ? () => null
+    : (form: ReceiptForm) => {
+      const { positionsTotal, total } = form.controls.total.controls;
+      positionsTotal.patchValue(calculatePositionsTotal(form.getRawValue().positions), { onlySelf: true });
+      total.patchValue(calculateTotal(form.getRawValue()), { onlySelf: true });
+      return null;
+    }
+
   // Default position form group for adding new positions
-  const defaultPosition = (): InferForm<Receipt['positions'][0]> => {
+  const defaultPosition = (): PositionForm => {
     return new FormGroup({
       name: new FormControl('', {
         validators: [stringNotEmpty]
@@ -44,9 +66,9 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: (row: For
         validators: [numberMoreThenZero]
       }),
       overall: new FormControl(0, {
-        validators: [overallMatchesQuantityPrice]
+        validators: [overallMatchesQuantityPrice],
       })
-    });
+    }, { validators: [positionCalculator as ValidatorFn] });
   };
 
   // Default modifier form group for adding new modifiers
@@ -76,48 +98,9 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: (row: For
     })
   });
 
-  // Initialize the form with the initial data
-  form.patchValue(initialData, {emitEvent: false});
-  form.patchValue(initialData, {emitEvent: false});
+  form.addValidators(formCalculator as ValidatorFn);
 
-  // Determine the initial state based on validation
-  const state: ReceiptState = {
-    scenario: {
-    type: validateReceipt(initialData).isValid ? 'editing' as const : 'validation' as const,
-      form
-    },
-    proceed: () => void 0,
-    onRowClick: openEditModal
-  }
-
-
-  // Create the main state observable
-  const state$ = of(state);
-
-  const setNewValueIfChanged = <T>(c: FormControl<T>, newValue: T): void => {
-    if (newValue === c.value) {
-      return;
-    }
-    c.setValue(newValue);
-    c.updateValueAndValidity({ onlySelf: true });
-  }
-
-  let effect$: Observable<never> = EMPTY;
-
-  if (state.scenario.type === 'editing') {
-    effect$ = form.valueChanges.pipe(
-      tap(() => {
-        form.controls.positions.controls.forEach(position => {
-          const { quantity, price } = position.getRawValue();
-          setNewValueIfChanged(position.controls.overall, quantity * price);
-        });
-        const { positionsTotal, total } = form.controls.total.controls;
-        setNewValueIfChanged(positionsTotal, calculatePositionsTotal(form.getRawValue().positions));
-        setNewValueIfChanged(total, calculateTotal(form.getRawValue()));
-      }),
-      ignoreElements(),
-    );
-
+  if (type === 'editing') {
     form.controls.total.controls.total.disable();
     form.controls.total.controls.positionsTotal.disable();
     form.controls.positions.controls.forEach(position => {
@@ -125,9 +108,18 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: (row: For
     });
   }
 
-  // Merge the state observable with side effects
-  return merge(
-    effect$,
-    state$,
-  );
+  // Initialize the form with the initial data
+  form.patchValue(initialData, {emitEvent: false});
+  form.patchValue(initialData, {emitEvent: false});
+
+  const state: ReceiptState = {
+    scenario: { type, form },
+    proceed: () => void 0,
+    onRowClick: openEditModal
+  }
+
+  // Create the main state observable
+  const state$ = of(state);
+
+  return state$;
 };
