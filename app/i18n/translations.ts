@@ -19,7 +19,6 @@ const ru = {
   modifierValue: 'Сумма',
 
   // Form edit modal
-  editRow: 'Редактировать позицию',
   save: 'Сохранить',
   saving: 'Сохранение...',
   cancel: 'Отмена',
@@ -50,7 +49,6 @@ const en: Translations = {
   modifierValue: 'Value',
 
   // Form edit modal
-  editRow: 'Edit Item',
   save: 'Save',
   saving: 'Saving...',
   cancel: 'Cancel',
