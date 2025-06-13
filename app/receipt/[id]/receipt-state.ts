@@ -32,7 +32,7 @@ export type ReceiptState = {
   proceed: () => void;
 };
 
-export const receiptFormState$ = (initialData: Receipt): Observable<ReceiptState> => {
+export const receiptFormState$ = (initialData: Receipt, openEditModal: (row: FormGroup) => void): Observable<ReceiptState> => {
   // Default position form group for adding new positions
   const defaultPosition = (): InferForm<Receipt['positions'][0]> => {
     return new FormGroup({
@@ -89,7 +89,7 @@ export const receiptFormState$ = (initialData: Receipt): Observable<ReceiptState
       form
     },
     proceed: () => void 0,
-    onRowClick: (v: FormGroup) => console.log(v)
+    onRowClick: openEditModal
   }
 
 

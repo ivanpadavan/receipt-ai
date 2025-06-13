@@ -1,9 +1,10 @@
 "use client";
 
+import { useModal } from "@/components/ui/modal/ModalContext";
 import { FormGroup } from "@/forms/form_group";
 import { useObservableFactory } from "@/hooks/useObservableFactory";
 import { IonPage } from "@ionic/react";
-import React, { createContext, useContext, useMemo } from "react";
+import React, { createContext, useCallback, useContext, useMemo } from "react";
 import { Receipt } from '@/model/receipt/model';
 import { ReceiptState, receiptFormState$ } from "@/app/receipt/[id]/receipt-state";
 import styles from './form.module.css'
@@ -11,7 +12,6 @@ import { Modifiers } from './Modifiers';
 import { Cell } from './Cell';
 import { CellGroup } from './CellGroup';
 import { FormArrayTitle } from './FormArrayTitle';
-import { ModalProvider, useModal } from './ModalContext';
 import { RowModal } from './RowModal';
 
 interface EditableReceiptFormProps {
@@ -22,63 +22,18 @@ export const ReceiptFormContext = createContext<ReceiptState | null>(null);
 
 export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({ initialData }) => {
   // Subscribe to the receipt state
-  const [formState] = useObservableFactory(receiptFormState$, [initialData]);
-
-  return (
-    <ReceiptFormContext.Provider value={formState}>
-      <ModalProvider>
-        <ReceiptFormContent />
-      </ModalProvider>
-    </ReceiptFormContext.Provider>
-  );
-};
-
-// Inner component that uses the modal context
-const ReceiptFormContent: React.FC = () => {
-  const formState = useContext(ReceiptFormContext);
   const { showModal } = useModal();
+  const openEditModal = useCallback((row: FormGroup) => showModal(<RowModal row={row} />), [showModal]);
 
-  // We need to handle the null case in the render function to avoid conditional hooks
-  const form = formState?.scenario?.form;
+  const [formState] = useObservableFactory(receiptFormState$, [initialData, openEditModal]);
+  const { scenario: { form } } = formState;
+  const discounts = useMemo(() => form.controls.total.controls.discounts.length > 0 ? form.controls.total.controls.discounts : 'placeholder', [form]);
+  const additions = useMemo(() => form.controls.total.controls.additions.length > 0 ? form.controls.total.controls.additions : 'placeholder', [form]);
+
   const onRowClick = formState?.onRowClick;
 
-  // Handle row click to show modal
-  const handleRowClick = (row: FormGroup) => {
-    if (onRowClick) {
-      showModal(<RowModal row={row} />);
-      onRowClick(row);
-    }
-  };
-
-  // Create a new context value with the handleRowClick function
-  const contextValue = useMemo(() => {
-    if (!formState) return null;
-    return {
-      ...formState,
-      onRowClick: handleRowClick
-    };
-  }, [formState, handleRowClick]);
-
-  // Calculate derived state - these hooks will always run
-  const discounts = useMemo(() => {
-    if (!form) return 'placeholder';
-    return form.controls.total.controls.discounts.length > 0
-      ? form.controls.total.controls.discounts
-      : 'placeholder';
-  }, [form]);
-
-  const additions = useMemo(() => {
-    if (!form) return 'placeholder';
-    return form.controls.total.controls.additions.length > 0
-      ? form.controls.total.controls.additions
-      : 'placeholder';
-  }, [form]);
-
-  // If no form state, render nothing
-  if (!form || !contextValue) return null;
-
   return (
-    <ReceiptFormContext.Provider value={contextValue}>
+    <ReceiptFormContext.Provider value={formState} >
     <div className="m-3 rounded bg-white shadow-md text-black max-w-fit w-full mx-auto overflow-auto">
       <table className={styles.table}>
         <thead>
