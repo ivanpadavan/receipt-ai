@@ -1,4 +1,4 @@
-import { ModifierForm } from "@/app/receipt/[id]/state";
+import { ModifierForm } from "@/app/receipt/[id]/receipt-state";
 import { CellGroup } from "@/app/receipt/components/CellGroup";
 import React from "react";
 import { Cell } from "./Cell";
