@@ -1,22 +1,26 @@
 import { ModifierForm } from "@/app/receipt/[id]/receipt-state";
 import { CellGroup } from "@/app/receipt/components/CellGroup";
-import React from "react";
+import React, { useContext } from "react";
 import { Cell } from "./Cell";
 import { FormArrayTitle } from "./FormArrayTitle";
 import { t } from '@/app/i18n/translations';
+import { ReceiptFormContext } from "./ReceiptForm";
 
 interface ItemsSectionProps {
-  title: string;
+  type: 'discounts' | 'additions';
   items: ModifierForm | 'placeholder';
 }
 
-export const Modifiers: React.FC<ItemsSectionProps> = ({ title, items }) => {
+export const Modifiers: React.FC<ItemsSectionProps> = ({ type, items }) => {
+  const _openEditModal = useContext(ReceiptFormContext)?.openEditModal;
+  const openEditModal = () => _openEditModal && _openEditModal(type === 'discounts' ? 'addDiscount' : 'addAddition');
+
   if (items === 'placeholder') {
     return (
       <>
         <tr>
           <td>
-            <FormArrayTitle title={title} showColon={true} />
+            <FormArrayTitle title={t(type)} showColon={true} onAddClick={openEditModal} />
           </td>
           <td colSpan={3}>-</td>
         </tr>
@@ -27,11 +31,11 @@ export const Modifiers: React.FC<ItemsSectionProps> = ({ title, items }) => {
   return (
     <>
       {items.controls.map((item, index) => (
-        <CellGroup record={item} key={`${title}-${index}`} >{(props) => (<>
+        <CellGroup record={item} key={`${type}-${index}`} >{(props) => (<>
           <tr>
             {index === 0 && (
               <td rowSpan={items.length * 2}>
-                <FormArrayTitle title={title} showColon={true} />
+                <FormArrayTitle title={t(type)} showColon={true} onAddClick={openEditModal} />
               </td>
             )}
             <td {...props}>{t('modifierName')}</td>

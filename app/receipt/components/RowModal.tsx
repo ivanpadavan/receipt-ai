@@ -1,19 +1,23 @@
+import { AppendableForm, EditFinishCb } from "@/app/receipt/[id]/receipt-state";
 import { ModalContext } from "@/components/ui/modal/ModalContext";
 import { FormControl } from "@/forms/form_control";
 import { ValidationErrors } from "@/forms/validators";
 import { useObservable } from "@ngneat/react-rxjs";
 import React, { useContext, useMemo } from "react";
-import { FormGroup } from '@/forms/form_group';
 import { t, TranslationKey } from "@/app/i18n/translations";
 
 interface RowModalProps {
-  row: FormGroup<Record<TranslationKey, FormControl<string | number>>>;
+  formGroup: AppendableForm;
+  onFinish: () => void;
 }
 
-export const RowModal: React.FC<RowModalProps> = ({ row }) => {
-  useObservable(row.valueChanges);
+export const RowModal: React.FC<RowModalProps> = ({ formGroup, onFinish }) => {
+  useObservable(formGroup.valueChanges as any);
   const hideModal = useContext(ModalContext)?.hideModal;
-  const controls = useMemo(() => Object.entries(row.controls), [row]) as [TranslationKey, FormControl<string | number>][];
+  if (!hideModal) {
+    throw new Error('ModalContext not found');
+  }
+  const controls = useMemo(() => Object.entries(formGroup.controls), [formGroup]) as [TranslationKey, FormControl<string | number>][];
   const errors = controls
     .filter(([, { errors }]) => errors !== null)
     .map(([label, { errors }]) => [label, Object.values(errors as ValidationErrors)] as const);
@@ -51,10 +55,10 @@ export const RowModal: React.FC<RowModalProps> = ({ row }) => {
           </button>}
           <button
             type="button"
-            disabled={row.invalid}
-            onClick={() => row.updateValueAndValidity()}
+            disabled={formGroup.invalid}
+            onClick={() => { onFinish(); hideModal(); }}
             className={`px-4 py-2 bg-amber-500 text-white rounded transition-colors ${
-              row.invalid 
+              formGroup.invalid 
                 ? 'opacity-50 cursor-not-allowed' 
                 : 'hover:bg-amber-600'
             }`}
@@ -71,7 +75,6 @@ export const RowModal: React.FC<RowModalProps> = ({ row }) => {
 const FormField: React.FC<{ control: FormControl<string | number>, label: TranslationKey }> = ({ control, label }) => {
   const type = typeof control.getRawValue();
   const isInvalid = control.invalid;
-  const errors = control.errors ? Object.values(control.errors) : [];
 
   return (
     <div className="mb-4">
@@ -80,6 +83,7 @@ const FormField: React.FC<{ control: FormControl<string | number>, label: Transl
       </label>
       <input
         type={type}
+        inputMode={type === 'number' ? 'decimal' : 'text'}
         value={control.value}
         onChange={(event) => control.patchValue(type === 'number' ? +event.target.value : event.target.value)}
         disabled={control.disabled}

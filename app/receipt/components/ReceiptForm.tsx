@@ -5,7 +5,13 @@ import { FormGroup } from "@/forms/form_group";
 import { useObservableFactory } from "@/hooks/useObservableFactory";
 import React, { createContext, useCallback, useContext, useMemo } from "react";
 import { Receipt } from '@/model/receipt/model';
-import { ReceiptState, receiptFormState$ } from "@/app/receipt/[id]/receipt-state";
+import {
+  ReceiptState,
+  receiptFormState$,
+  ModifierForm,
+  PositionForm,
+  AppendableForm, EditFinishCb
+} from "@/app/receipt/[id]/receipt-state";
 import styles from './form.module.css'
 import { Modifiers } from './Modifiers';
 import { Cell } from './Cell';
@@ -23,10 +29,10 @@ export const ReceiptFormContext = createContext<ReceiptState | null>(null);
 export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({ initialData }) => {
   // Subscribe to the receipt state
   const { showModal } = useModal();
-  const openEditModal = useCallback((row: FormGroup) => showModal(<RowModal row={row} />), [showModal]);
+  const openEditModalCb = useCallback(((formGroup, onFinish) => showModal(<RowModal formGroup={formGroup} onFinish={onFinish} />)) as EditFinishCb, [showModal]);
+  const [formState] = useObservableFactory(receiptFormState$, [initialData, openEditModalCb]);
 
-  const [formState] = useObservableFactory(receiptFormState$, [initialData, openEditModal]);
-  const { scenario: { form } } = formState;
+  const { scenario: { form }, openEditModal } = formState;
   const discounts = useMemo(() => form.controls.total.controls.discounts.length > 0 ? form.controls.total.controls.discounts : 'placeholder', [form]);
   const additions = useMemo(() => form.controls.total.controls.additions.length > 0 ? form.controls.total.controls.additions : 'placeholder', [form]);
 
@@ -37,7 +43,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({ initialData })
         <thead>
           <tr>
             <th>
-              <FormArrayTitle title={t('name')} />
+              <FormArrayTitle title={t('name')} onAddClick={() => openEditModal('addPosition')} />
             </th>
             <th className="text-center">{t('price')}</th>
             <th className="text-center">{t('quantity')}</th>
@@ -62,8 +68,8 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({ initialData })
             <td colSpan={3}>{t('total')}</td>
             <Cell formControl={form.controls.total.controls.positionsTotal} className="font-bold" />
           </tr>
-          <Modifiers title={t('discounts')} items={discounts} />
-          <Modifiers title={t('additions')} items={additions} />
+          <Modifiers type={'discounts'} items={discounts} />
+          <Modifiers type={'additions'} items={additions} />
           <tr>
             <td colSpan={3}>{t('totalWithDiscountsAndAdditions')}</td>
             <Cell formControl={form.controls.total.controls.total} className="font-bold" />
