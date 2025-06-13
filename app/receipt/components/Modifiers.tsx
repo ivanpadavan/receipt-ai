@@ -3,6 +3,7 @@ import { CellGroup } from "@/app/receipt/components/CellGroup";
 import React from "react";
 import { Cell } from "./Cell";
 import { FormArrayTitle } from "./FormArrayTitle";
+import { t } from '@/app/i18n/translations';
 
 interface ItemsSectionProps {
   title: string;
@@ -33,11 +34,11 @@ export const Modifiers: React.FC<ItemsSectionProps> = ({ title, items }) => {
                 <FormArrayTitle title={title} showColon={true} />
               </td>
             )}
-            <td {...props}>Название</td>
+            <td {...props}>{t('modifierName')}</td>
             <Cell {...props} formControl={item.controls.name} colSpan={2} />
           </tr>
           <tr>
-            <td {...props}>Сумма</td>
+            <td {...props}>{t('modifierValue')}</td>
             <Cell {...props} formControl={item.controls.value} colSpan={2} />
           </tr>
         </>)}
