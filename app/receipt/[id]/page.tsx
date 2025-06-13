@@ -2,7 +2,7 @@ import { db } from "@/app/db";
 import { Receipt } from "@/model/receipt/model";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { EditableReceiptForm } from "../components/EditableReceiptForm";
+import { ReceiptForm } from "../components/ReceiptForm";
 
 // This is a server component that fetches the receipt data from the database
 export default async function ReceiptPage({ params }: { params: Promise<{ id: string }> }) {
@@ -40,6 +40,6 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   const receiptData = receipt.data as unknown as Receipt;
 
   return (
-    <EditableReceiptForm initialData={receiptData} />
+    <ReceiptForm initialData={receiptData} />
   );
 }

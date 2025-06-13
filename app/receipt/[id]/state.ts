@@ -28,6 +28,7 @@ export type FormScenario = { type: FormType; form: ReceiptForm };
 // Receipt state types
 export type ReceiptFormState = {
   scenario: FormScenario;
+  onRowClick: (v: FormGroup) => void,
   proceed: () => void;
 };
 
@@ -82,9 +83,11 @@ export const receiptFormState$ = (initialData: Receipt): Observable<ReceiptFormS
   form.patchValue(initialData, {emitEvent: false});
 
   // Determine the initial state based on validation
-  const initialState = validateReceipt(initialData).isValid
-    ? { scenario: { type: 'editing' as const, form }, proceed: () => void 0 }
-    : { scenario: { type: 'validation' as const, form }, proceed: () => void 0 };
+  const initialState = { scenario: {
+    type: validateReceipt(initialData).isValid ? 'editing' as const : 'validation' as const, form },
+    proceed: () => void 0,
+    onRowClick: (v: FormGroup) => console.log(v)
+  }
 
 
   // Create the main state observable
