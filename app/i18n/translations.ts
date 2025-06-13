@@ -2,7 +2,7 @@
 const ru = {
   // ReceiptForm column headers
   name: 'Наименование',
-  price: 'Сумма',
+  price: 'Цена',
   quantity: 'Количество',
   overall: 'Сумма',
 

@@ -2,7 +2,7 @@ import { FormArray } from "@/forms/form_array";
 import { FormControl } from "@/forms/form_control";
 import { FormGroup } from "@/forms/form_group";
 import { InferForm } from "@/forms/type";
-import { Observable, of, merge, finalize, startWith } from "rxjs";
+import { Observable, of, merge, finalize, startWith, EMPTY } from "rxjs";
 import { tap, ignoreElements } from "rxjs/operators";
 import {
   Receipt, validateReceipt, calculatePositionsTotal, calculateTotal
@@ -83,7 +83,7 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: (row: For
   form.patchValue(initialData, {emitEvent: false});
 
   // Determine the initial state based on validation
-  const initialState: ReceiptState = {
+  const state: ReceiptState = {
     scenario: {
     type: validateReceipt(initialData).isValid ? 'editing' as const : 'validation' as const,
       form
@@ -94,7 +94,7 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: (row: For
 
 
   // Create the main state observable
-  const state$ = of(initialState);
+  const state$ = of(state);
 
   const setNewValueIfChanged = <T>(c: FormControl<T>, newValue: T): void => {
     if (newValue === c.value) {
@@ -104,18 +104,28 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: (row: For
     c.updateValueAndValidity({ onlySelf: true });
   }
 
-  const effect$ = form.valueChanges.pipe(
-    tap(() => {
-      form.controls.positions.controls.forEach(position => {
-        const { quantity, price } = position.getRawValue();
-        setNewValueIfChanged(position.controls.overall, quantity * price);
-      });
-      const { positionsTotal, total } = form.controls.total.controls;
-      setNewValueIfChanged(positionsTotal, calculatePositionsTotal(form.getRawValue().positions));
-      setNewValueIfChanged(total, calculateTotal(form.getRawValue()));
-    }),
-    ignoreElements(),
-  );
+  let effect$: Observable<never> = EMPTY;
+
+  if (state.scenario.type === 'editing') {
+    effect$ = form.valueChanges.pipe(
+      tap(() => {
+        form.controls.positions.controls.forEach(position => {
+          const { quantity, price } = position.getRawValue();
+          setNewValueIfChanged(position.controls.overall, quantity * price);
+        });
+        const { positionsTotal, total } = form.controls.total.controls;
+        setNewValueIfChanged(positionsTotal, calculatePositionsTotal(form.getRawValue().positions));
+        setNewValueIfChanged(total, calculateTotal(form.getRawValue()));
+      }),
+      ignoreElements(),
+    );
+
+    form.controls.total.controls.total.disable();
+    form.controls.total.controls.positionsTotal.disable();
+    form.controls.positions.controls.forEach(position => {
+      position.controls.overall.disable();
+    });
+  }
 
   // Merge the state observable with side effects
   return merge(
