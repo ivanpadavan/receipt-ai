@@ -31,14 +31,6 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
         <div className="p-4">
           {children}
         </div>
-        <div className="p-4 bg-gray-50 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 transition-colors"
-          >
-            Close
-          </button>
-        </div>
       </div>
     </div>
   );
