@@ -1,21 +1,20 @@
 "use client";
 
 import { useObservableFactory } from "@/hooks/useObservableFactory";
-import { deepConvert } from "@/utils/deep-convert";
 import React, { createContext, useMemo } from "react";
 import { Receipt } from '@/model/receipt/model';
-import { ReceiptFormState, receiptFormState$ } from "@/app/receipt/[id]/state";
+import { ReceiptState, receiptFormState$ } from "@/app/receipt/[id]/receipt-state";
 import styles from './form.module.css'
 import { Modifiers } from './Modifiers';
 import { Cell } from './Cell';
 import { CellGroup } from './CellGroup';
-import { FormTitle } from './FormTitle';
+import { FormArrayTitle } from './FormArrayTitle';
 
 interface EditableReceiptFormProps {
   initialData: Receipt;
 }
 
-export const ReceiptFormContext = createContext<ReceiptFormState | null>(null);
+export const ReceiptFormContext = createContext<ReceiptState | null>(null);
 
 export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({ initialData }) => {
   // Subscribe to the receipt state
@@ -31,7 +30,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({ initialData })
           <thead>
           <tr>
             <th>
-              <FormTitle title="Наименование" />
+              <FormArrayTitle title="Наименование" />
             </th>
             <th className="text-center">Сумма</th>
             <th className="text-center">Количество</th>

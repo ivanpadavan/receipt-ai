@@ -2,7 +2,7 @@ import { ModifierForm } from "@/app/receipt/[id]/state";
 import { CellGroup } from "@/app/receipt/components/CellGroup";
 import React from "react";
 import { Cell } from "./Cell";
-import { FormTitle } from "./FormTitle";
+import { FormArrayTitle } from "./FormArrayTitle";
 
 interface ItemsSectionProps {
   title: string;
@@ -15,7 +15,7 @@ export const Modifiers: React.FC<ItemsSectionProps> = ({ title, items }) => {
       <>
         <tr>
           <td>
-            <FormTitle title={title} showColon={true} />
+            <FormArrayTitle title={title} showColon={true} />
           </td>
           <td colSpan={3}>-</td>
         </tr>
@@ -30,7 +30,7 @@ export const Modifiers: React.FC<ItemsSectionProps> = ({ title, items }) => {
           <tr>
             {index === 0 && (
               <td rowSpan={items.length * 2}>
-                <FormTitle title={title} showColon={true} />
+                <FormArrayTitle title={title} showColon={true} />
               </td>
             )}
             <td {...props}>Название</td>
