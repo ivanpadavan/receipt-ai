@@ -17,9 +17,17 @@ const ru = {
   // Modifiers field labels
   modifierName: 'Название',
   modifierValue: 'Сумма',
+
+  // Form edit modal
+  editRow: 'Редактировать позицию',
+  save: 'Сохранить',
+  saving: 'Сохранение...',
+  cancel: 'Отмена',
+  value: 'Значение',
 };
 
-export type Translations = Record<keyof typeof ru, string>;
+export type TranslationKey = keyof typeof ru;
+export type Translations = Record<TranslationKey, string>;
 
 // English translations
 const en: Translations = {
@@ -40,6 +48,13 @@ const en: Translations = {
   // Modifiers field labels
   modifierName: 'Name',
   modifierValue: 'Value',
+
+  // Form edit modal
+  editRow: 'Edit Item',
+  save: 'Save',
+  saving: 'Saving...',
+  cancel: 'Cancel',
+  value: 'Value',
 };
 
 // Available languages
