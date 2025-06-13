@@ -3,8 +3,7 @@ import { FormControl } from "@/forms/form_control";
 import { FormGroup } from "@/forms/form_group";
 import { InferForm } from "@/forms/type";
 import { ValidatorFn } from "@/forms/validators";
-import { Observable, of, merge, EMPTY } from "rxjs";
-import { tap, ignoreElements } from "rxjs/operators";
+import { Observable, of } from "rxjs";
 import {
   Receipt, validateReceipt, calculatePositionsTotal, calculateTotal
 } from "@/model/receipt/model";
@@ -24,16 +23,20 @@ export type PositionForm = ReceiptForm['controls']['positions']['controls'][0];
 
 export type ModifierForm = ReceiptForm['controls']['total']['controls']['additions'] | ReceiptForm['controls']['total']['controls']['discounts'];
 
-export type FormScenario = { type: FormType; form: ReceiptForm };
+export type AppendableForm = PositionForm | ModifierForm;
+
+export type EditFinishCb = (formGroup: AppendableForm, onFinish: () => void) => void;
+
+export type FormScenario = { type: FormType; form: ReceiptForm }
 
 // Receipt state types
 export type ReceiptState = {
   scenario: FormScenario;
-  onRowClick: (v: FormGroup) => void,
+  openEditModal: (v: AppendableForm | 'addPosition' | 'addDiscount' | 'addAddition') => void,
   proceed: () => void;
 };
 
-export const receiptFormState$ = (initialData: Receipt, openEditModal: (row: FormGroup) => void): Observable<ReceiptState> => {
+export const receiptFormState$ = (initialData: Receipt, openEditModal: EditFinishCb): Observable<ReceiptState> => {
   const type = validateReceipt(initialData).isValid ? 'editing' as const : 'validation' as const;
 
   const positionCalculator = type === 'validation'
@@ -115,11 +118,8 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: (row: For
   const state: ReceiptState = {
     scenario: { type, form },
     proceed: () => void 0,
-    onRowClick: openEditModal
+    openEditModal: (v) => v instanceof FormGroup ? openEditModal(v, () => void 0) : void 0,
   }
 
-  // Create the main state observable
-  const state$ = of(state);
-
-  return state$;
+  return of(state);
 };

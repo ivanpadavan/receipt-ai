@@ -14,7 +14,7 @@ export const CellGroup = ({ record, children }: CellGroupProps) => {
   const [hoverWithin, setHoverWithin] = useState(false);
 
   const ctx = useContext(ReceiptFormContext);
-  const onClick = useMemo(() => () => ctx?.onRowClick(record), [record, ctx]);
+  const onClick = useMemo(() => () => ctx?.openEditModal(record), [record, ctx]);
 
   const props = {
     onMouseEnter: () => setHoverWithin(true),
