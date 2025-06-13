@@ -3,7 +3,6 @@ import { FormControl } from "@/forms/form_control";
 import { useObservable } from "@ngneat/react-rxjs";
 import React, { useContext, useMemo } from "react";
 import { FormGroup } from '@/forms/form_group';
-import { useObservableFactory } from '@/hooks/useObservableFactory';
 import { t, TranslationKey } from "@/app/i18n/translations";
 
 interface RowModalProps {
@@ -11,6 +10,7 @@ interface RowModalProps {
 }
 
 export const RowModal: React.FC<RowModalProps> = ({ row }) => {
+  useObservable(row.valueChanges);
   const hideModal = useContext(ModalContext)?.hideModal;
   const controls = useMemo(() => Object.entries(row.controls), [row]);
 
@@ -50,9 +50,6 @@ export const RowModal: React.FC<RowModalProps> = ({ row }) => {
 
 // Component for rendering a single form field
 const FormField: React.FC<{ control: FormControl<string | number>, label: TranslationKey }> = ({ control, label }) => {
-  // Fixme do not work with observablefactory
-  useObservable(control.value$);
-
   const type = typeof control.getRawValue();
   const isInvalid = control.invalid;
   const errors = control.errors ? Object.values(control.errors) : [];
