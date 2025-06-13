@@ -6,7 +6,7 @@ interface ModalContextType {
   hideModal: () => void;
 }
 
-const ModalContext = createContext<ModalContextType | null>(null);
+export const ModalContext = createContext<ModalContextType | null>(null);
 
 export const useModal = () => {
   const context = useContext(ModalContext);
