@@ -12,6 +12,7 @@ import { Cell } from './Cell';
 import { CellGroup } from './CellGroup';
 import { FormArrayTitle } from './FormArrayTitle';
 import { RowModal } from './RowModal';
+import { t } from '@/app/i18n/translations';
 
 interface EditableReceiptFormProps {
   initialData: Receipt;
@@ -36,11 +37,11 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({ initialData })
         <thead>
           <tr>
             <th>
-              <FormArrayTitle title="Наименование" />
+              <FormArrayTitle title={t('name')} />
             </th>
-            <th className="text-center">Сумма</th>
-            <th className="text-center">Количество</th>
-            <th className="text-center">Сумма</th>
+            <th className="text-center">{t('price')}</th>
+            <th className="text-center">{t('quantity')}</th>
+            <th className="text-center">{t('overall')}</th>
           </tr>
         </thead>
         <tbody>
@@ -58,13 +59,13 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({ initialData })
         </tbody>
         <tfoot>
           <tr>
-            <td colSpan={3}>Итого:</td>
+            <td colSpan={3}>{t('total')}</td>
             <Cell formControl={form.controls.total.controls.positionsTotal} className="font-bold" />
           </tr>
-          <Modifiers title="Скидки" items={discounts} />
-          <Modifiers title="Сборы" items={additions} />
+          <Modifiers title={t('discounts')} items={discounts} />
+          <Modifiers title={t('additions')} items={additions} />
           <tr>
-            <td colSpan={3}>С учетом скидок и сборов:</td>
+            <td colSpan={3}>{t('totalWithDiscountsAndAdditions')}</td>
             <Cell formControl={form.controls.total.controls.total} className="font-bold" />
           </tr>
         </tfoot>
