@@ -58,7 +58,7 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: EditFinis
 
   // Default position form group for adding new positions
   const defaultPosition = (): PositionForm => {
-    return new FormGroup({
+    const result = new FormGroup({
       name: new FormControl('', {
         validators: [stringNotEmpty]
       }),
@@ -72,6 +72,12 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: EditFinis
         validators: [overallMatchesQuantityPrice],
       })
     }, { validators: [positionCalculator as ValidatorFn] });
+
+    if (type === 'editing') {
+      result.controls.overall.disable();
+    }
+
+    return result;
   };
 
   // Default modifier form group for adding new modifiers
@@ -106,9 +112,6 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: EditFinis
   if (type === 'editing') {
     form.controls.total.controls.total.disable();
     form.controls.total.controls.positionsTotal.disable();
-    form.controls.positions.controls.forEach(position => {
-      position.controls.overall.disable();
-    });
   }
 
   // Initialize the form with the initial data
