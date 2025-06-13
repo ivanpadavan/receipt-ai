@@ -9,6 +9,7 @@ import styles from './form.module.css'
 import { Modifiers } from './Modifiers';
 import { Cell } from './Cell';
 import { CellGroup } from './CellGroup';
+import { FormTitle } from './FormTitle';
 
 interface EditableReceiptFormProps {
   initialData: Receipt;
@@ -29,10 +30,12 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({ initialData })
         <table className={styles.table}>
           <thead>
           <tr>
-            <th>Наименование</th>
-            <th>Сумма</th>
-            <th>Количество</th>
-            <th>Сумма</th>
+            <th>
+              <FormTitle title="Наименование" />
+            </th>
+            <th className="text-center">Сумма</th>
+            <th className="text-center">Количество</th>
+            <th className="text-center">Сумма</th>
           </tr>
           </thead>
             <tbody>
