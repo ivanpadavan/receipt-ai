@@ -14,13 +14,24 @@ export const RowModal: React.FC<RowModalProps> = ({ row }) => {
   useObservable(row.valueChanges);
   const hideModal = useContext(ModalContext)?.hideModal;
   const controls = useMemo(() => Object.entries(row.controls), [row]) as [TranslationKey, FormControl<string | number>][];
-  const errors = row.valid ? [] : controls
-    .filter(([, errors]) => errors !== null)
-    .map(([label, { errors }]) => [label as TranslationKey, Object.values(errors as ValidationErrors)]);
+  const errors = controls
+    .filter(([, { errors }]) => errors !== null)
+    .map(([label, { errors }]) => [label, Object.values(errors as ValidationErrors)] as const);
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold mb-4 text-center">{t('editRow')}</h2>
+      {errors.length > 0 && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+          <h3 className="text-sm font-medium text-red-800 mb-1">{t('validationErrors')}</h3>
+          <ul className="list-disc pl-5 space-y-1">
+            {errors.map(([label, fieldErrors], index) => (
+              <li key={index} className="text-sm text-red-700">
+                <strong>{t(label)}:</strong> {fieldErrors.join(', ')}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="space-y-4">
         {controls.map(([label, control], idx) => (
