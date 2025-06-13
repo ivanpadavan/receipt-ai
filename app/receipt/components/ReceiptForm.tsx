@@ -6,7 +6,7 @@ import React, { createContext, useMemo } from "react";
 import { Receipt } from '@/model/receipt/model';
 import { ReceiptFormState, receiptFormState$ } from "@/app/receipt/[id]/state";
 import styles from './form.module.css'
-import { ItemsSection } from './ItemsSection';
+import { Modifiers } from './Modifiers';
 import { Cell } from './Cell';
 import { CellGroup } from './CellGroup';
 
@@ -53,8 +53,8 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({ initialData })
             <td colSpan={3}>Итого:</td>
             <Cell formControl={form.controls.total.controls.positionsTotal} className="font-bold" />
           </tr>
-          <ItemsSection title="Скидки" items={discounts} />
-          <ItemsSection title="Сборы" items={additions} />
+          <Modifiers title="Скидки" items={discounts} />
+          <Modifiers title="Сборы" items={additions} />
           <tr>
             <td colSpan={3}>С учетом скидок и сборов:</td>
             <Cell formControl={form.controls.total.controls.total} className="font-bold" />
