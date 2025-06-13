@@ -8,7 +8,7 @@ interface ItemsSectionProps {
   items: ModifierForm | 'placeholder';
 }
 
-export const ItemsSection: React.FC<ItemsSectionProps> = ({ title, items }) => {
+export const Modifiers: React.FC<ItemsSectionProps> = ({ title, items }) => {
   if (items === 'placeholder') {
     return (
       <tr>
