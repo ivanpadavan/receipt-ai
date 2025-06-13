@@ -1,11 +1,4 @@
 import "./globals.css";
-/* Core CSS required for Ionic components to work properly */
-import '@ionic/react/css/core.css';
-
-/* Basic CSS for apps built with Ionic */
-import '@ionic/react/css/normalize.css';
-import '@ionic/react/css/structure.css';
-import '@ionic/react/css/typography.css';
 
 import { Public_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
@@ -13,7 +6,6 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { AppNavbar } from "@/components/AppNavbar";
 import { Providers } from "./providers";
 import { auth } from "./auth";
-import { IonPage } from "@ionic/react";
 
 const publicSans = Public_Sans({ subsets: ["latin"] });
 

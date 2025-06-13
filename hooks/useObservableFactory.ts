@@ -4,7 +4,7 @@ import { Observable, Subscription } from "rxjs";
 
 export function useObservableFactory<A extends any[], T, E>(
   sourceFactory: (...args: A) => Observable<T>,
-  ...args: A
+  args: A = [] as unknown as A
 ): [T, { error: E | undefined, completed: boolean, subscription: Subscription | undefined }] {
   const subscriptionRef = useRef<Subscription | undefined>(undefined);
   const nextValueRef = useRef<T | undefined>(undefined);
@@ -24,10 +24,8 @@ export function useObservableFactory<A extends any[], T, E>(
 
   const initSubscription = useCallback(() => {
     if (subscriptionRef.current) {return}
-    // console.log('here');
     subscriptionRef.current = source$.subscribe({
       next(value) {
-        // console.log('there');
         nextValueRef.current = value;
         if (firstEmission) {
           firstEmission = false;

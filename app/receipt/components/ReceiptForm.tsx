@@ -22,7 +22,7 @@ export const ReceiptFormContext = createContext<ReceiptState | null>(null);
 
 export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({ initialData }) => {
   // Subscribe to the receipt state
-  const [formState] = useObservableFactory(receiptFormState$, initialData);
+  const [formState] = useObservableFactory(receiptFormState$, [initialData]);
 
   return (
     <ReceiptFormContext.Provider value={formState}>

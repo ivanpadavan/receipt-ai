@@ -114,5 +114,3 @@ export function bezier(mX1: number, mY1: number, mX2: number, mY2: number): (tim
     return calcBezier(getTForX(x), mY1, mY2);
   };
 }
-
-export const modalTween = bezier(0.175, 0, 0.825, 1);

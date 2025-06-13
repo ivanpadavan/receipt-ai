@@ -12,6 +12,15 @@ export const RowModal: React.FC<RowModalProps> = ({ row }) => {
       <p className="text-center text-gray-600">
         This modal will be enhanced in future updates to display and edit row details.
       </p>
+      <p className="text-center text-gray-600">
+        This modal will be enhanced in future updates to display and edit row details.
+      </p>
+      <p className="text-center text-gray-600">
+        This modal will be enhanced in future updates to display and edit row details.
+      </p>
+      <p className="text-center text-gray-600">
+        This modal will be enhanced in future updates to display and edit row details.
+      </p>
     </div>
   );
 };

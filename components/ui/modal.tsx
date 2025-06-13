@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { useModalAnimation } from '@/hooks/useModalAnimation';
 
 interface ModalProps {
@@ -7,21 +7,22 @@ interface ModalProps {
   children: React.ReactNode;
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
-  const { translateY, isVisible } = useModalAnimation(isOpen);
+export function Modal({ isOpen, onClose, children }: ModalProps) {
+  const { transitionState, isVisible } = useModalAnimation(isOpen);
 
   if (!isVisible) return null;
 
   return (
     <div className='fixed inset-0 z-50 flex items-end justify-center'>
       <div
-        className="fixed inset-0 bg-black bg-opacity-50"
+        className="fixed inset-0 bg-black"
+        style={{ opacity: transitionState * .5 }}
         onClick={onClose}
       />
       <div
         className="bg-white rounded-t-xl shadow-xl w-full max-h-[90vh] overflow-auto"
         style={{
-          transform: `translateY(${translateY * 100}%)`,
+          transform: `translateY(${(-transitionState + 1) * 100}%)`,
         }}
       >
         <div className="w-full py-1 flex justify-center">
