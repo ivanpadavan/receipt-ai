@@ -32,7 +32,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({ initialData })
 
   return (
     <ReceiptFormContext.Provider value={formState} >
-    <div className="m-3 rounded bg-white shadow-md text-black max-w-fit w-full mx-auto overflow-auto">
+    <div className="m-3 rounded bg-white shadow-md text-black max-w-fit w-full mx-auto overflow-auto font-mono">
       <table className={styles.table}>
         <thead>
           <tr>
