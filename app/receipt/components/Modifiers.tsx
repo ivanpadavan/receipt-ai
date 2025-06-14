@@ -1,5 +1,6 @@
 import { ModifierForm } from "@/app/receipt/[id]/receipt-state";
 import { CellGroup } from "@/app/receipt/components/CellGroup";
+import { useObservable } from "@ngneat/react-rxjs";
 import React, { useContext } from "react";
 import { Cell } from "./Cell";
 import { FormArrayTitle } from "./FormArrayTitle";
@@ -8,19 +9,20 @@ import { ReceiptFormContext } from "./ReceiptForm";
 
 interface ItemsSectionProps {
   type: 'discounts' | 'additions';
-  items: ModifierForm | 'placeholder';
+  items: ModifierForm;
 }
 
 export const Modifiers: React.FC<ItemsSectionProps> = ({ type, items }) => {
+  useObservable(items.valueChanges);
   const _openEditModal = useContext(ReceiptFormContext)?.openEditModal;
   const openEditModal = () => _openEditModal && _openEditModal(type === 'discounts' ? 'addDiscount' : 'addAddition');
 
-  if (items === 'placeholder') {
+  if (items.length === 0) {
     return (
       <>
         <tr>
           <td>
-            <FormArrayTitle title={t(type)} showColon={true} onAddClick={openEditModal} />
+            <FormArrayTitle title={t(type) + ':'} onAddClick={openEditModal} />
           </td>
           <td colSpan={3}>-</td>
         </tr>
@@ -35,7 +37,7 @@ export const Modifiers: React.FC<ItemsSectionProps> = ({ type, items }) => {
           <tr>
             {index === 0 && (
               <td rowSpan={items.length * 2}>
-                <FormArrayTitle title={t(type)} showColon={true} onAddClick={openEditModal} />
+                <FormArrayTitle title={t(type) + ':'} onAddClick={openEditModal} />
               </td>
             )}
             <td {...props}>{t('modifierName')}</td>
