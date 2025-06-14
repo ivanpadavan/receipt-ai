@@ -28,8 +28,8 @@ const ru = {
   addPosition: 'Добавить позицию',
   addDiscount: 'Добавить скидку',
   editDiscount: 'Редактировать скидку',
-  addAddition: 'Добавить сбор',
-  editAddition: 'Редактировать сбор',
+  addFee: 'Добавить сбор',
+  editFee: 'Редактировать сбор',
 };
 
 export type TranslationKey = keyof typeof ru;
@@ -45,11 +45,11 @@ const en: Translations = {
 
   // ReceiptForm footer labels
   total: 'Total:',
-  totalWithDiscountsAndAdditions: 'Total with discounts and additions:',
+  totalWithDiscountsAndAdditions: 'Grand Total:',
 
   // Modifiers section titles
   discounts: 'Discounts',
-  additions: 'Additions',
+  additions: 'Fees',
 
   // Modifiers field labels
   modifierName: 'Name',
@@ -65,8 +65,8 @@ const en: Translations = {
   addPosition: 'Add Item',
   addDiscount: 'Add Discount',
   editDiscount: 'Edit Discount',
-  addAddition: 'Add Addition',
-  editAddition: 'Edit addition',
+  addFee: 'Add Fee',
+  editFee: 'Edit Fee',
 };
 
 // Available languages
