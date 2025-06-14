@@ -91,9 +91,34 @@ export const RowDrawer: React.FC<EditModalProps> = ({ formGroup, onFinish, remov
 const FormField: React.FC<{ control: FormControl<string | number>, label: TranslationKey, hideErrorsUntilTouched: boolean }> = ({ control, label, hideErrorsUntilTouched }) => {
   const type = typeof control.getRawValue();
   const isInvalid = isInErrorState(control, hideErrorsUntilTouched);
+
+  // Sanitize numeric input to handle both dots and commas as decimal separators
+  const sanitizeNumericValue = (value: string): number => {
+    // Check if the value contains only valid characters (digits, dot, comma, minus sign)
+    const isValidFormat = /^-?[0-9]*[.,]?[0-9]*$/.test(value);
+
+    if (!isValidFormat || value === '') {
+      return NaN;
+    }
+
+    // Replace all commas with dots for proper decimal parsing
+    const sanitizedValue = value.replace(/,/g, '.');
+
+    // Parse the sanitized value to a number
+    return parseFloat(sanitizedValue);
+  };
+
   const onChange = (event: ChangeEvent<HTMLInputElement>) => {
     control.markAsTouched();
-    control.patchValue(type === 'number' ? event.target.valueAsNumber : event.target.value);
+
+    if (type === 'number') {
+      // For number inputs, use our sanitization function
+      const sanitizedValue = sanitizeNumericValue(event.target.value);
+      control.patchValue(sanitizedValue);
+    } else {
+      // For text inputs, use the value as is
+      control.patchValue(event.target.value);
+    }
   }
   return (
     <div className="mb-4">
