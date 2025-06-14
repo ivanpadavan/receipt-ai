@@ -4,6 +4,7 @@ import { FormGroup } from "@/forms/form_group";
 import { InferForm } from "@/forms/type";
 import { ValidatorFn } from "@/forms/validators";
 import { Observable, of } from "rxjs";
+import { TranslationKey } from "@/app/i18n/translations";
 import {
   Receipt, validateReceipt, calculatePositionsTotal, calculateTotal
 } from "@/model/receipt/model";
@@ -25,7 +26,14 @@ export type ModifierForm = ReceiptForm['controls']['total']['controls']['additio
 
 export type AppendableForm = PositionForm | ModifierForm;
 
-export type EditFinishCb = (formGroup: AppendableForm, onFinish: () => void, remove?: () => void) => void;
+export interface EditModalArgs {
+  formGroup: AppendableForm;
+  onFinish: () => void;
+  remove?: () => void;
+  header?: TranslationKey;
+}
+
+export type EditFinishCb = (args: EditModalArgs) => void;
 
 export type FormScenario = { type: FormType; form: ReceiptForm }
 
@@ -128,17 +136,34 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: EditFinis
       if (formToEdit instanceof FormGroup) {
         const parent = formToEdit.parent as FormArray<AppendableForm>;
         const idx = parent.controls.findIndex(form => form === formToEdit);
-        const newForm = ('overall' in formToEdit.controls ? defaultPosition() : defaultModifier()) as any;
+        const isPosition = 'overall' in formToEdit.controls;
+        const newForm = (isPosition ? defaultPosition() : defaultModifier()) as any;
+        const isAddtiton = !isPosition && parent.parent?.get('additions') == parent;
         newForm.patchValue(formToEdit.getRawValue());
-        openEditModal(newForm, () => parent.controls.at(idx)?.patchValue(newForm.getRawValue() as any), () => parent.removeAt(idx));
+        openEditModal({
+          formGroup: newForm,
+          onFinish: () => parent.controls.at(idx)?.patchValue(newForm.getRawValue() as any),
+          remove: () => parent.removeAt(idx),
+          header: isPosition ? 'editPosition' : isAddtiton ? 'editAddition' : 'editDiscount'
+        });
       } else if (formToEdit === 'addPosition') {
         const newPosition = defaultPosition();
-        openEditModal(newPosition, () => form.controls.positions.insert(0, newPosition));
+        openEditModal({
+          formGroup: newPosition,
+          onFinish: () => form.controls.positions.insert(0, newPosition),
+          header: 'addPosition'
+        });
       } else {
         const newModifier = defaultModifier();
-        openEditModal(newModifier as any, () => {
-          const groupName = formToEdit === 'addAddition' ? 'additions' : 'discounts';
-          form.controls.total.controls[groupName].insert(0, newModifier);
+        const isAddition = formToEdit === 'addAddition';
+        const header = isAddition ? 'addAddition' : 'addDiscount';
+        openEditModal({
+          formGroup: newModifier as any,
+          onFinish: () => {
+            const groupName = isAddition ? 'additions' : 'discounts';
+            form.controls.total.controls[groupName].insert(0, newModifier);
+          },
+          header: header
         });
       }
     },
