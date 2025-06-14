@@ -9,9 +9,10 @@ import { t, TranslationKey } from "@/app/i18n/translations";
 interface RowModalProps {
   formGroup: AppendableForm;
   onFinish: () => void;
+  remove?: () => void;
 }
 
-export const RowModal: React.FC<RowModalProps> = ({ formGroup, onFinish }) => {
+export const RowModal: React.FC<RowModalProps> = ({ formGroup, onFinish, remove }) => {
   useObservable(formGroup.valueChanges as any);
   const hideModal = useContext(ModalContext)?.hideModal;
   if (!hideModal) {
@@ -45,26 +46,39 @@ export const RowModal: React.FC<RowModalProps> = ({ formGroup, onFinish }) => {
           />
         ))}
 
-        <div className="flex justify-end space-x-2 mt-6">
-          {hideModal && <button
-            type="button"
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors"
-            onClick={() => hideModal()}
-          >
-            {t('cancel')}
-          </button>}
-          <button
-            type="button"
-            disabled={formGroup.invalid}
-            onClick={() => { onFinish(); hideModal(); }}
-            className={`px-4 py-2 bg-amber-500 text-white rounded transition-colors ${
-              formGroup.invalid 
-                ? 'opacity-50 cursor-not-allowed' 
-                : 'hover:bg-amber-600'
-            }`}
-          >
-            {t('save')}
-          </button>
+        <div className="flex justify-between mt-6">
+          <div>
+            {remove && (
+              <button
+                type="button"
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                onClick={() => { remove(); hideModal(); }}
+              >
+                {t('remove')}
+              </button>
+            )}
+          </div>
+          <div className="flex space-x-2">
+            {hideModal && <button
+              type="button"
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors"
+              onClick={() => hideModal()}
+            >
+              {t('cancel')}
+            </button>}
+            <button
+              type="button"
+              disabled={formGroup.invalid}
+              onClick={() => { onFinish(); hideModal(); }}
+              className={`px-4 py-2 bg-amber-500 text-white rounded transition-colors ${
+                formGroup.invalid 
+                  ? 'opacity-50 cursor-not-allowed' 
+                  : 'hover:bg-amber-600'
+              }`}
+            >
+              {t('save')}
+            </button>
+          </div>
         </div>
       </div>
     </div>
