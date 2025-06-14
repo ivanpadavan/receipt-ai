@@ -6,7 +6,7 @@ import React, { createContext, useCallback } from "react";
 import { Receipt } from '@/model/receipt/model';
 import {
   ReceiptState,
-  receiptFormState$, EditFinishCb, EditModalProps
+  receiptFormState$, EditModalProps
 } from "@/app/receipt/[id]/receipt-state";
 import styles from './form.module.css'
 import { Modifiers } from './Modifiers';
@@ -25,7 +25,7 @@ export const ReceiptFormContext = createContext<ReceiptState | null>(null);
 export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({ initialData }) => {
   // Subscribe to the receipt state
   const { showModal } = useModal();
-  const openEditModalCb = useCallback(((props: EditModalProps) => showModal(<RowModal {...props} />)) as EditFinishCb, [showModal]);
+  const openEditModalCb = useCallback(((props: EditModalProps) => showModal(<RowModal {...props} />)), [showModal]);
   const [formState] = useObservableFactory(receiptFormState$, [initialData, openEditModalCb]);
 
   const { scenario: { form }, openEditModal } = formState;

@@ -35,10 +35,9 @@ export interface EditModalProps {
 
 export type FormScenario = { type: FormType; form: ReceiptForm }
 
-// Receipt state types
 export type ReceiptState = {
   scenario: FormScenario;
-  openEditModal: (v: AppendableForm | 'addPosition' | 'addDiscount' | 'addAddition') => void,
+  openEditModal: (v: AppendableForm | 'addPosition' | 'addDiscount' | 'addFee') => void,
   proceed: () => void;
 };
 
@@ -130,7 +129,10 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: (v: EditM
   const state: ReceiptState = {
     scenario: { type, form },
     proceed: () => void 0,
-    openEditModal: (formToEdit) => {
+    openEditModal: (args) => {
+      // Handle the case where args is an object with a type property
+      const formToEdit = args instanceof Object && 'type' in args ? args.type : args;
+
       if (formToEdit instanceof FormGroup) {
         const parent = formToEdit.parent as FormArray<AppendableForm>;
         const idx = parent.controls.findIndex(form => form === formToEdit);
@@ -142,7 +144,7 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: (v: EditM
           formGroup: newForm,
           onFinish: () => parent.controls.at(idx)?.patchValue(newForm.getRawValue() as any),
           remove: () => parent.removeAt(idx),
-          header: isPosition ? 'editPosition' : isDiscount ? 'editDiscount' : 'editAddition',
+          header: isPosition ? 'editPosition' : isDiscount ? 'editDiscount' : 'editFee',
         });
       } else if (formToEdit === 'addPosition') {
         const newPosition = defaultPosition();
@@ -153,8 +155,8 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: (v: EditM
         });
       } else {
         const newModifier = defaultModifier();
-        const isAddition = formToEdit === 'addAddition';
-        const header = isAddition ? 'addAddition' : 'addDiscount';
+        const isAddition = formToEdit === 'addFee';
+        const header = isAddition ? 'addFee' : 'addDiscount';
         openEditModal({
           formGroup: newModifier as any,
           onFinish: () => {
