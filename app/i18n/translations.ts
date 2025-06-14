@@ -8,7 +8,7 @@ const ru = {
 
   // ReceiptForm footer labels
   total: 'Итого:',
-  totalWithDiscountsAndAdditions: 'С учетом скидок и сборов:',
+  grandTotal: 'С учетом скидок и сборов:',
 
   // Modifiers section titles
   discounts: 'Скидки',
@@ -45,7 +45,7 @@ const en: Translations = {
 
   // ReceiptForm footer labels
   total: 'Total:',
-  totalWithDiscountsAndAdditions: 'Grand Total:',
+  grandTotal: 'Grand Total:',
 
   // Modifiers section titles
   discounts: 'Discounts',
