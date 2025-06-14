@@ -24,6 +24,12 @@ const ru = {
   cancel: 'Отмена',
   value: 'Значение',
   remove: 'Удалить',
+  editPosition: 'Редактировать позицию',
+  addPosition: 'Добавить позицию',
+  addDiscount: 'Добавить скидку',
+  editDiscount: 'Редактировать скидку',
+  addAddition: 'Добавить сбор',
+  editAddition: 'Редактировать сбор',
 };
 
 export type TranslationKey = keyof typeof ru;
@@ -55,6 +61,12 @@ const en: Translations = {
   cancel: 'Cancel',
   value: 'Value',
   remove: 'Remove',
+  editPosition: 'Edit Item',
+  addPosition: 'Add Item',
+  addDiscount: 'Add Discount',
+  editDiscount: 'Edit Discount',
+  addAddition: 'Add Addition',
+  editAddition: 'Edit addition',
 };
 
 // Available languages

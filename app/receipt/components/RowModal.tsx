@@ -10,9 +10,10 @@ interface RowModalProps {
   formGroup: AppendableForm;
   onFinish: () => void;
   remove?: () => void;
+  header?: TranslationKey;
 }
 
-export const RowModal: React.FC<RowModalProps> = ({ formGroup, onFinish, remove }) => {
+export const RowModal: React.FC<RowModalProps> = ({ formGroup, onFinish, remove, header = 'editRow' }) => {
   useObservable(formGroup.valueChanges as any);
   const hideModal = useContext(ModalContext)?.hideModal;
   if (!hideModal) {
@@ -25,6 +26,7 @@ export const RowModal: React.FC<RowModalProps> = ({ formGroup, onFinish, remove 
 
   return (
     <div className="p-4">
+      <h2 className="text-xl font-bold mb-4 text-center">{t(header)}</h2>
       {errors.length > 0 && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
           <ul className="list-disc pl-5 space-y-1">
