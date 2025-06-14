@@ -26,14 +26,12 @@ export type ModifierForm = ReceiptForm['controls']['total']['controls']['additio
 
 export type AppendableForm = PositionForm | ModifierForm;
 
-export interface EditModalArgs {
+export interface EditModalProps {
   formGroup: AppendableForm;
   onFinish: () => void;
   remove?: () => void;
-  header?: TranslationKey;
+  header: TranslationKey;
 }
-
-export type EditFinishCb = (args: EditModalArgs) => void;
 
 export type FormScenario = { type: FormType; form: ReceiptForm }
 
@@ -44,7 +42,7 @@ export type ReceiptState = {
   proceed: () => void;
 };
 
-export const receiptFormState$ = (initialData: Receipt, openEditModal: EditFinishCb): Observable<ReceiptState> => {
+export const receiptFormState$ = (initialData: Receipt, openEditModal: (v: EditModalProps) => void): Observable<ReceiptState> => {
   const type = validateReceipt(initialData).isValid ? 'editing' as const : 'validation' as const;
 
   const positionCalculator = type === 'validation'
@@ -138,13 +136,13 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: EditFinis
         const idx = parent.controls.findIndex(form => form === formToEdit);
         const isPosition = 'overall' in formToEdit.controls;
         const newForm = (isPosition ? defaultPosition() : defaultModifier()) as any;
-        const isAddtiton = !isPosition && parent.parent?.get('additions') == parent;
+        const isDiscount = !isPosition && parent.parent?.get('discounts') == parent;
         newForm.patchValue(formToEdit.getRawValue());
         openEditModal({
           formGroup: newForm,
           onFinish: () => parent.controls.at(idx)?.patchValue(newForm.getRawValue() as any),
           remove: () => parent.removeAt(idx),
-          header: isPosition ? 'editPosition' : isAddtiton ? 'editAddition' : 'editDiscount'
+          header: isPosition ? 'editPosition' : isDiscount ? 'editDiscount' : 'editAddition',
         });
       } else if (formToEdit === 'addPosition') {
         const newPosition = defaultPosition();

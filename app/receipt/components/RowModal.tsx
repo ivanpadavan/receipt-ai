@@ -1,4 +1,4 @@
-import { AppendableForm } from "@/app/receipt/[id]/receipt-state";
+import { EditModalProps } from "@/app/receipt/[id]/receipt-state";
 import { ModalContext } from "@/components/ui/modal/ModalContext";
 import { FormControl } from "@/forms/form_control";
 import { ValidationErrors } from "@/forms/validators";
@@ -6,14 +6,7 @@ import { useObservable } from "@ngneat/react-rxjs";
 import React, { useContext, useMemo } from "react";
 import { t, TranslationKey } from "@/app/i18n/translations";
 
-interface RowModalProps {
-  formGroup: AppendableForm;
-  onFinish: () => void;
-  remove?: () => void;
-  header?: TranslationKey;
-}
-
-export const RowModal: React.FC<RowModalProps> = ({ formGroup, onFinish, remove, header = 'editRow' }) => {
+export const RowModal: React.FC<EditModalProps> = ({ formGroup, onFinish, remove, header }) => {
   useObservable(formGroup.valueChanges as any);
   const hideModal = useContext(ModalContext)?.hideModal;
   if (!hideModal) {
