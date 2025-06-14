@@ -98,7 +98,7 @@ const FormField: React.FC<{ control: FormControl<string | number>, label: Transl
       <input
         type={type}
         inputMode={type === 'number' ? 'decimal' : 'text'}
-        defaultValue={control.disabled ? undefined : control.value}
+        defaultValue={control.disabled ? undefined : type === 'number' && control.value === 0 ? '' : control.value}
         value={control.disabled ? control.value : undefined}
         onChange={(event) => control.patchValue(type === 'number' ? event.target.valueAsNumber : event.target.value)}
         disabled={control.disabled}

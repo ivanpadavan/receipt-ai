@@ -40,11 +40,11 @@ export const Modifiers: React.FC<ItemsSectionProps> = ({ type, items }) => {
                 <FormArrayTitle title={t(type) + ':'} onAddClick={openEditModal} />
               </td>
             )}
-            <td {...props}>{t('modifierName')}</td>
-            <Cell {...props} formControl={item.controls.name} colSpan={2} />
+            <td colSpan={2} {...props}>{t('modifierName')}</td>
+            <Cell {...props} formControl={item.controls.name} />
           </tr>
           <tr>
-            <td {...props}>{t('modifierValue')}</td>
+            <td colSpan={2} {...props}>{t('modifierValue')}</td>
             <Cell {...props} formControl={item.controls.value} colSpan={2} />
           </tr>
         </>)}
