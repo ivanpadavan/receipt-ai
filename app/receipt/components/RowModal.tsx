@@ -1,10 +1,15 @@
 import { EditModalProps } from "@/app/receipt/[id]/receipt-state";
 import { ModalContext } from "@/components/ui/modal/ModalContext";
+import { AbstractControl } from "@/forms/abstract_model";
 import { FormControl } from "@/forms/form_control";
 import { ValidationErrors } from "@/forms/validators";
 import { useObservable } from "@ngneat/react-rxjs";
-import React, { useContext, useMemo } from "react";
+import React, { ChangeEvent, useContext, useMemo } from "react";
 import { t, TranslationKey } from "@/app/i18n/translations";
+
+const isInErrorState = (c: AbstractControl, hideErrorsUntilTouched: boolean) => {
+  return  c.errors !== null && (hideErrorsUntilTouched ? c.touched : true);
+}
 
 export const RowModal: React.FC<EditModalProps> = ({ formGroup, onFinish, remove, header }) => {
   useObservable(formGroup.valueChanges as any);
@@ -12,9 +17,10 @@ export const RowModal: React.FC<EditModalProps> = ({ formGroup, onFinish, remove
   if (!hideModal) {
     throw new Error('ModalContext not found');
   }
+  const hideErrorsUntilTouched = !remove;
   const controls = useMemo(() => Object.entries(formGroup.controls), [formGroup]) as [TranslationKey, FormControl<string | number>][];
   const errors = controls
-    .filter(([, { errors }]) => errors !== null)
+    .filter(([, c]) => isInErrorState(c, hideErrorsUntilTouched))
     .map(([label, { errors }]) => [label, Object.values(errors as ValidationErrors)] as const);
 
   return (
@@ -38,6 +44,7 @@ export const RowModal: React.FC<EditModalProps> = ({ formGroup, onFinish, remove
             key={idx}
             label={label}
             control={control}
+            hideErrorsUntilTouched={hideErrorsUntilTouched}
           />
         ))}
 
@@ -81,10 +88,13 @@ export const RowModal: React.FC<EditModalProps> = ({ formGroup, onFinish, remove
 };
 
 // Component for rendering a single form field
-const FormField: React.FC<{ control: FormControl<string | number>, label: TranslationKey }> = ({ control, label }) => {
+const FormField: React.FC<{ control: FormControl<string | number>, label: TranslationKey, hideErrorsUntilTouched: boolean }> = ({ control, label, hideErrorsUntilTouched }) => {
   const type = typeof control.getRawValue();
-  const isInvalid = control.invalid;
-
+  const isInvalid = isInErrorState(control, hideErrorsUntilTouched);
+  const onChange = (event: ChangeEvent<HTMLInputElement>) => {
+    control.markAsTouched();
+    control.patchValue(type === 'number' ? event.target.valueAsNumber : event.target.value);
+  }
   return (
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -93,9 +103,9 @@ const FormField: React.FC<{ control: FormControl<string | number>, label: Transl
       <input
         type={type}
         inputMode={type === 'number' ? 'decimal' : 'text'}
-        defaultValue={control.disabled ? undefined : type === 'number' && control.value === 0 ? '' : control.value}
-        value={control.disabled ? control.value : undefined}
-        onChange={(event) => control.patchValue(type === 'number' ? event.target.valueAsNumber : event.target.value)}
+        defaultValue={control.disabled ? undefined : type === 'number' && (control.value === 0 || isNaN(control.value as any)) ? '' : control.value}
+        value={control.disabled ? isNaN(control.value as any) ? '' : control.value : undefined}
+        onChange={onChange}
         disabled={control.disabled}
         className={`w-full px-3 py-2 border rounded-md ${
           isInvalid

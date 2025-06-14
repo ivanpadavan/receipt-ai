@@ -1,13 +1,13 @@
 import { AbstractControl } from "@/forms/abstract_model";
 import { FormArray } from "@/forms/form_array";
-import { calculatePositionsTotal, Receipt, sumModifiers } from "@/model/receipt/model";
+import { calculatePositionsTotal, sumModifiers } from "@/model/receipt/model";
 
 // Validators
 export const stringNotEmpty = (control: AbstractControl<string>) =>
   control.value.length === 0 ? { stringEmpty: 'should not be empty' } : null;
 
 export const numberMoreThenZero = (control: AbstractControl<number>) =>
-  control.value <= 0 ? { valueZero: 'should not be equal or below zero' } : null;
+  (control.value <= 0 || isNaN(control.value)) ? { valueZero: 'should not be equal or below zero' } : null;
 
 export const overallMatchesQuantityPrice = (control: AbstractControl) => {
   const parent = control.parent;
