@@ -29,7 +29,7 @@ export const ReceiptFormContext = createContext<ReceiptState | null>(null);
 export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({ initialData }) => {
   // Subscribe to the receipt state
   const { showModal } = useModal();
-  const openEditModalCb = useCallback(((formGroup, onFinish) => showModal(<RowModal formGroup={formGroup} onFinish={onFinish} />)) as EditFinishCb, [showModal]);
+  const openEditModalCb = useCallback(((formGroup, onFinish, remove) => showModal(<RowModal formGroup={formGroup} onFinish={onFinish} remove={remove} />)) as EditFinishCb, [showModal]);
   const [formState] = useObservableFactory(receiptFormState$, [initialData, openEditModalCb]);
 
   const { scenario: { form }, openEditModal } = formState;

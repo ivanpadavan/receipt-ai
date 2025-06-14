@@ -23,6 +23,7 @@ const ru = {
   saving: 'Сохранение...',
   cancel: 'Отмена',
   value: 'Значение',
+  remove: 'Удалить',
 };
 
 export type TranslationKey = keyof typeof ru;
@@ -53,6 +54,7 @@ const en: Translations = {
   saving: 'Saving...',
   cancel: 'Cancel',
   value: 'Value',
+  remove: 'Remove',
 };
 
 // Available languages
