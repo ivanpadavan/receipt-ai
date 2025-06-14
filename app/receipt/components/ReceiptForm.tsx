@@ -1,16 +1,13 @@
 "use client";
 
 import { useModal } from "@/components/ui/modal/ModalContext";
-import { FormGroup } from "@/forms/form_group";
 import { useObservableFactory } from "@/hooks/useObservableFactory";
-import React, { createContext, useCallback, useContext, useMemo } from "react";
+import React, { createContext, useCallback } from "react";
 import { Receipt } from '@/model/receipt/model';
 import {
   ReceiptState,
   receiptFormState$,
-  ModifierForm,
-  PositionForm,
-  AppendableForm, EditFinishCb
+  EditFinishCb
 } from "@/app/receipt/[id]/receipt-state";
 import styles from './form.module.css'
 import { Modifiers } from './Modifiers';
@@ -33,8 +30,6 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({ initialData })
   const [formState] = useObservableFactory(receiptFormState$, [initialData, openEditModalCb]);
 
   const { scenario: { form }, openEditModal } = formState;
-  const discounts = useMemo(() => form.controls.total.controls.discounts.length > 0 ? form.controls.total.controls.discounts : 'placeholder', [form]);
-  const additions = useMemo(() => form.controls.total.controls.additions.length > 0 ? form.controls.total.controls.additions : 'placeholder', [form]);
 
   return (
     <ReceiptFormContext.Provider value={formState} >
@@ -68,8 +63,8 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({ initialData })
             <td colSpan={3}>{t('total')}</td>
             <Cell formControl={form.controls.total.controls.positionsTotal} className="font-bold" />
           </tr>
-          <Modifiers type={'discounts'} items={discounts} />
-          <Modifiers type={'additions'} items={additions} />
+          <Modifiers type={'discounts'} items={form.controls.total.controls.discounts} />
+          <Modifiers type={'additions'} items={form.controls.total.controls.additions} />
           <tr>
             <td colSpan={3}>{t('totalWithDiscountsAndAdditions')}</td>
             <Cell formControl={form.controls.total.controls.total} className="font-bold" />
