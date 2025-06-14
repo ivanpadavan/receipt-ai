@@ -13,7 +13,7 @@ import { Modifiers } from './Modifiers';
 import { Cell } from './Cell';
 import { CellGroup } from './CellGroup';
 import { FormArrayTitle } from './FormArrayTitle';
-import { RowModal } from './RowModal';
+import { RowDrawer } from './RowDrawer';
 import { t } from '@/app/i18n/translations';
 
 interface EditableReceiptFormProps {
@@ -25,7 +25,7 @@ export const ReceiptFormContext = createContext<ReceiptState | null>(null);
 export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({ initialData }) => {
   // Subscribe to the receipt state
   const { showModal } = useModal();
-  const openEditModalCb = useCallback(((props: EditModalProps) => showModal(<RowModal {...props} />)), [showModal]);
+  const openEditModalCb = useCallback(((props: EditModalProps) => showModal(<RowDrawer {...props} />)), [showModal]);
   const [formState] = useObservableFactory(receiptFormState$, [initialData, openEditModalCb]);
 
   const { scenario: { form }, openEditModal } = formState;
