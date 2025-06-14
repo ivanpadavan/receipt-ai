@@ -1,4 +1,3 @@
-import { copyControl } from "@/forms/copy-control";
 import { FormArray } from "@/forms/form_array";
 import { FormControl } from "@/forms/form_control";
 import { FormGroup } from "@/forms/form_group";
@@ -26,7 +25,7 @@ export type ModifierForm = ReceiptForm['controls']['total']['controls']['additio
 
 export type AppendableForm = PositionForm | ModifierForm;
 
-export type EditFinishCb = (formGroup: AppendableForm, onFinish: () => void) => void;
+export type EditFinishCb = (formGroup: AppendableForm, onFinish: () => void, remove?: () => void) => void;
 
 export type FormScenario = { type: FormType; form: ReceiptForm }
 
@@ -43,6 +42,9 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: EditFinis
   const positionCalculator = type === 'validation'
     ? () => null
     : (form: PositionForm) => {
+      if (Object.keys(form.controls).length !== 4) {
+        return null;
+      }
       const { quantity, price } = form.getRawValue();
       form.controls.overall.patchValue(quantity * price, { onlySelf: true });
       return null;
@@ -126,8 +128,9 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: EditFinis
       if (formToEdit instanceof FormGroup) {
         const parent = formToEdit.parent as FormArray<AppendableForm>;
         const idx = parent.controls.findIndex(form => form === formToEdit);
-        const formToEditCopy = copyControl(formToEdit);
-        openEditModal(formToEdit, () => parent.controls.at(idx)?.patchValue(formToEditCopy.getRawValue() as any));
+        const newForm = ('overall' in formToEdit.controls ? defaultPosition() : defaultModifier()) as any;
+        newForm.patchValue(formToEdit.getRawValue());
+        openEditModal(newForm, () => parent.controls.at(idx)?.patchValue(newForm.getRawValue() as any), () => parent.removeAt(idx));
       } else if (formToEdit === 'addPosition') {
         const newPosition = defaultPosition();
         openEditModal(newPosition, () => form.controls.positions.insert(0, newPosition));
