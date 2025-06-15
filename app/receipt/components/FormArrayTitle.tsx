@@ -13,7 +13,7 @@ export const FormArrayTitle: React.FC<FormTitleProps> = ({
   className = "",
 }) => {
   return (
-    <div className={`flex items-center ${className}`} onClick={onAddClick} >
+    <div className={`flex items-center cursor-pointer ${className}`} onClick={onAddClick} >
       <AddButton className="mr-2" />
       <span className="flex-grow">
         {title}
