@@ -51,7 +51,6 @@ const oauthProviders = [
     user = user || config.profile && await config.profile(...args);
 
     if (currentAuth.user.name === ANONYMOUS_NAME) {
-      upgradedUserIds.add(currentAuth.user.id);
       const userUpdateData = {
         isAnonymous: false,
         name: user.name || existingUser.name,
@@ -59,10 +58,6 @@ const oauthProviders = [
         email: user.email || existingUser.email,
       };
       console.log(`[auth] update scheduled`, userUpdateData);
-      db.account.findUnique({
-        where: { provider_providerAccountId: {} },
-        include: { user: true },
-      })
       db.user.update({
         where: { id: existingUser.id },
         data: userUpdateData,
@@ -109,7 +104,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     },
     async jwt({ token, user, account }) {
       console.log('[auth] jwt', { token, user, account });
-      if (!user && (upgradedUserIds.has(token.user.id || '') || true )) {
+      if (!user && (upgradedUserIds.has(token.user.id || '') )) {
         const actualUser = await db.user.findUnique({
           where: { id: token.user.id || '' },
           select: {
@@ -135,10 +130,26 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       console.log('[auth] session', { session, token });
-      // Add isAnonymous flag and user ID to the session
       session.user = token.user;
       console.log('[auth] session result', session);
       return session;
+    },
+  },
+  events: {
+    linkAccount: async (v) => {
+      console.log('[auth] link account', v);
+      if (v.user.name !== ANONYMOUS_NAME) {
+        return;
+      }
+      upgradedUserIds.add(<string>v.user.id);
+      await db.user.update({
+        where: { id: v.user.id },
+        data: {
+          name: v.profile.name,
+          email: v.profile.email,
+          image: v.profile.image,
+        }
+      });
     },
   },
   pages: {
