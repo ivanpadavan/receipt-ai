@@ -1,5 +1,5 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import NextAuth from "next-auth";
+import NextAuth, { User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import InstagramProvider from "next-auth/providers/instagram";
@@ -8,6 +8,8 @@ import YandexProvider from "next-auth/providers/yandex";
 import { db } from "@/app/db";
 
 const adapter = PrismaAdapter(db) as Required<ReturnType<typeof PrismaAdapter>>;
+
+const upgradedUserIds = new Set<string>();
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   adapter,
@@ -27,6 +29,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           emailVerified: null,
           isAnonymous: true,
         };
+        console.log(`[auth] new anonymous user created`, user);
         return adapter.createUser(user);
       },
     }),
@@ -52,74 +55,94 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     strategy: "jwt",
   },
   callbacks: {
-    async signIn({ user, account, profile }) {
-      // If this is an OAuth sign-in
-      if (account && account.provider !== "anonymous") {
-        try {
-          // Check if there's an anonymous user with the same email
-          const existingUser = await db.user.findUnique({
-            where: { email: user.email as string },
-            include: { accounts: true },
-          });
-
-          // If there's an existing anonymous user
-          if (existingUser && existingUser.isAnonymous) {
-            // Update the user to no longer be anonymous
-            await db.user.update({
-              where: { id: existingUser.id },
-              data: {
-                isAnonymous: false,
-                name: user.name || existingUser.name,
-                image: user.image || existingUser.image,
-              },
-            });
-
-            // Link the new account to the existing user
-            if (account.provider && account.providerAccountId) {
-              await db.account.create({
-                data: {
-                  userId: existingUser.id,
-                  type: account.type,
-                  provider: account.provider,
-                  providerAccountId: account.providerAccountId,
-                  refresh_token: account.refresh_token,
-                  access_token: account.access_token,
-                  expires_at: account.expires_at,
-                  token_type: account.token_type,
-                  scope: account.scope,
-                  id_token: account.id_token,
-                  session_state: null,
-                },
-              });
-            }
-
-            // Set the user ID to the existing user's ID
-            user.id = existingUser.id;
-          }
-        } catch (error) {
-          console.error("Error during account linking:", error);
-        }
+    async signIn({ user, account }) {
+      if (!account) {
+        throw new Error("No account");
       }
-      return true;
+
+      if (account.provider === "anonymous") {
+        return true;
+      }
+      const currentAuth = await auth();
+
+      if (!currentAuth) {
+        throw new Error("Not anonymous auth while using provider");
+      }
+      console.log('[auth] signin', { user, account, currentAuth });
+
+      const existingUser = currentAuth.user;
+
+      const existingLinking = await db.account.findUnique({
+        where: { provider_providerAccountId: {
+            providerAccountId: account.providerAccountId,
+            provider: account.provider },
+        },
+      });
+
+      if (existingLinking) {
+        console.log(`[auth] linking already presented. Should login to linked account.`, user);
+        return '/';
+      }
+
+      const userUpdateData = {
+        isAnonymous: false,
+        name: user.name || existingUser.name,
+        image: user.image || existingUser.image,
+        email: user.email || existingUser.email,
+      };
+      console.log(`[auth] update scheduled`, userUpdateData);
+      const [newAccount, updatedUser] = await db.$transaction([
+        db.account.create({
+          data: {
+            userId: existingUser.id,
+            type: account.type,
+            provider: account.provider,
+            providerAccountId: account.providerAccountId,
+          },
+        }),
+        db.user.update({
+          where: { id: existingUser.id },
+          data: userUpdateData,
+        }),
+      ]);
+
+      console.log(`[auth] new account linked and user updated`, { newAccount, updatedUser });
+
+      return '/'
     },
     async jwt({ token, user, account }) {
+      console.log('[auth] jwt', { token, user, account });
+      if (!user && (upgradedUserIds.has(token.user.id || '') || true )) {
+        const actualUser = await db.user.findUnique({
+          where: { id: token.user.id || '' },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+            isAnonymous: true,
+          }
+        });
+        if (actualUser) {
+          user = actualUser;
+        }
+        console.log('[auth] user update in JWT', { user });
+      }
       // Add isAnonymous flag to the token
       if (user) {
-        token.isAnonymous = (user as any).isAnonymous || false;
-        token.id = <string>user.id;
+        token.name = user.name;
+        token.email = user.email;
+        token.picture = user.image;
+        token.user = user;
       }
-
-      // If this is an OAuth sign-in, update the token to not be anonymous
-      if (account && account.provider !== "anonymous") {
-        token.isAnonymous = false;
-      }
-
+      console.log('[auth] jwt result', token);
       return token;
     },
     async session({ session, token }) {
+      console.log('[auth] session', { session, token });
       // Add isAnonymous flag and user ID to the session
-      session.user.isAnonymous = token.isAnonymous;
-      session.user.id = token.id;
+      session.user = token.user;
+      console.log('[auth] session result', session);
       return session;
     },
   },

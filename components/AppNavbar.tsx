@@ -1,6 +1,7 @@
 "use client";
 
 import { SignIn } from "@/utils/sign-in";
+import { SignOut } from "@/utils/sign-out";
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -9,7 +10,6 @@ import Logo from "@/components/Logo";
 import { Button } from "./ui/button";
 import { Menu, X, User, LogOut } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { signOut } from "@/app/auth";
 
 // Custom NavLink component with amber color scheme
 const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
@@ -33,8 +33,11 @@ const NavLink = ({ href, children }: { href: string; children: React.ReactNode }
 
 export const AppNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { data: session, status } = useSession();
-  const isAuthenticated = !session?.user?.isAnonymous || false;
+  const { data: session } = useSession();
+  let isAuthenticated = false;
+  if (session) {
+    isAuthenticated = !session.user.isAnonymous;
+  }
   const userName = session?.user?.name || "User";
 
   const toggleMenu = () => {
@@ -42,7 +45,7 @@ export const AppNavbar = () => {
   };
 
   const handleAuthAction = () => {
-    isAuthenticated ? signOut({ redirectTo: "/" }) : SignIn();
+    isAuthenticated ? SignOut({ redirectTo: "/" }) : SignIn();
   };
 
   return (

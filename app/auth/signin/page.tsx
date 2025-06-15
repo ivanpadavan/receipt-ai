@@ -1,11 +1,10 @@
 "use client";
 
-import { signIn } from "@/app/auth";
-import { useRouter } from "next/navigation";
+import { SignIn } from "@/utils/sign-in";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
-export default function SignIn() {
+export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
 
@@ -13,12 +12,11 @@ export default function SignIn() {
     setIsLoading(true);
     setLoadingProvider(provider);
     try {
-      await signIn(provider, { callbackUrl: "/" });
+      await SignIn(provider, { callbackUrl: "/" });
     } catch (error) {
-      console.error(`Error signing in with ${provider}:`, error);
-    } finally {
       setIsLoading(false);
       setLoadingProvider(null);
+      console.error(`Error signing in with ${provider}:`, error);
     }
   };
 
