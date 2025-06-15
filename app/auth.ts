@@ -1,3 +1,5 @@
+import { ANONYMOUS_NAME } from "@/utils/auth-consts";
+import { ProfileCallback } from "@auth/core/providers";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth, { User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -10,6 +12,70 @@ import { db } from "@/app/db";
 const adapter = PrismaAdapter(db) as Required<ReturnType<typeof PrismaAdapter>>;
 
 const upgradedUserIds = new Set<string>();
+
+const oauthProviders = [
+  GoogleProvider({
+    clientId: process.env.GOOGLE_CLIENT_ID as string,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+  }),
+  InstagramProvider({
+    clientId: process.env.INSTAGRAM_CLIENT_ID as string,
+    clientSecret: process.env.INSTAGRAM_CLIENT_SECRET as string,
+  }),
+  VKProvider({
+    clientId: process.env.VK_CLIENT_ID as string,
+    clientSecret: process.env.VK_CLIENT_SECRET as string,
+  }),
+  YandexProvider({
+    clientId: process.env.YANDEX_CLIENT_ID as string,
+    clientSecret: process.env.YANDEX_CLIENT_SECRET as string,
+  })
+].map((config) => {
+  const profile: ProfileCallback<any> = async (...args) => {
+    console.log('[auth] profile', { config, args });
+    let user: User;
+    if (!config.profile) {
+      console.error('oauth provider config do not have a profile callback. Fallinf back to google');
+      user = {
+        name: args[0].name,
+        email: args[0].email,
+        image: args[0].picture,
+      }
+    }
+    const currentAuth = await auth();
+    if (!currentAuth) {
+      throw new Error('oauth login can be used only after anonymous auth');
+    }
+    const existingUser = currentAuth.user;
+    // @ts-ignore
+    user = user || config.profile && await config.profile(...args);
+
+    if (currentAuth.user.name === ANONYMOUS_NAME) {
+      upgradedUserIds.add(currentAuth.user.id);
+      const userUpdateData = {
+        isAnonymous: false,
+        name: user.name || existingUser.name,
+        image: user.image || existingUser.image,
+        email: user.email || existingUser.email,
+      };
+      console.log(`[auth] update scheduled`, userUpdateData);
+      db.account.findUnique({
+        where: { provider_providerAccountId: {} },
+        include: { user: true },
+      })
+      db.user.update({
+        where: { id: existingUser.id },
+        data: userUpdateData,
+      })
+    }
+
+    return user;
+  };
+  return {
+    ...config,
+    profile
+  }
+});
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   adapter,
@@ -24,91 +90,22 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         const id = Math.random().toString().slice(2);
         const user = {
           id,
-          name: `Anonymous User`,
+          name: ANONYMOUS_NAME,
           email: `${id}@gmail.com`,
           emailVerified: null,
-          isAnonymous: true,
         };
         console.log(`[auth] new anonymous user created`, user);
         return adapter.createUser(user);
       },
     }),
-    // OAuth providers
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-    }),
-    InstagramProvider({
-      clientId: process.env.INSTAGRAM_CLIENT_ID as string,
-      clientSecret: process.env.INSTAGRAM_CLIENT_SECRET as string,
-    }),
-    VKProvider({
-      clientId: process.env.VK_CLIENT_ID as string,
-      clientSecret: process.env.VK_CLIENT_SECRET as string,
-    }),
-    YandexProvider({
-      clientId: process.env.YANDEX_CLIENT_ID as string,
-      clientSecret: process.env.YANDEX_CLIENT_SECRET as string,
-    }),
+    ...oauthProviders,
   ],
   session: {
     strategy: "jwt",
   },
   callbacks: {
     async signIn({ user, account }) {
-      if (!account) {
-        throw new Error("No account");
-      }
-
-      if (account.provider === "anonymous") {
-        return true;
-      }
-      const currentAuth = await auth();
-
-      if (!currentAuth) {
-        throw new Error("Not anonymous auth while using provider");
-      }
-      console.log('[auth] signin', { user, account, currentAuth });
-
-      const existingUser = currentAuth.user;
-
-      const existingLinking = await db.account.findUnique({
-        where: { provider_providerAccountId: {
-            providerAccountId: account.providerAccountId,
-            provider: account.provider },
-        },
-      });
-
-      if (existingLinking) {
-        console.log(`[auth] linking already presented. Should login to linked account.`, user);
-        return '/';
-      }
-
-      const userUpdateData = {
-        isAnonymous: false,
-        name: user.name || existingUser.name,
-        image: user.image || existingUser.image,
-        email: user.email || existingUser.email,
-      };
-      console.log(`[auth] update scheduled`, userUpdateData);
-      const [newAccount, updatedUser] = await db.$transaction([
-        db.account.create({
-          data: {
-            userId: existingUser.id,
-            type: account.type,
-            provider: account.provider,
-            providerAccountId: account.providerAccountId,
-          },
-        }),
-        db.user.update({
-          where: { id: existingUser.id },
-          data: userUpdateData,
-        }),
-      ]);
-
-      console.log(`[auth] new account linked and user updated`, { newAccount, updatedUser });
-
-      return '/'
+      return true;
     },
     async jwt({ token, user, account }) {
       console.log('[auth] jwt', { token, user, account });
@@ -120,7 +117,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             name: true,
             email: true,
             image: true,
-            isAnonymous: true,
           }
         });
         if (actualUser) {
@@ -128,7 +124,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         }
         console.log('[auth] user update in JWT', { user });
       }
-      // Add isAnonymous flag to the token
       if (user) {
         token.name = user.name;
         token.email = user.email;

@@ -1,5 +1,6 @@
 "use client";
 
+import { ANONYMOUS_NAME } from "@/utils/auth-consts";
 import { SignIn } from "@/utils/sign-in";
 import { SignOut } from "@/utils/sign-out";
 import { useState } from "react";
@@ -36,7 +37,7 @@ export const AppNavbar = () => {
   const { data: session } = useSession();
   let isAuthenticated = false;
   if (session) {
-    isAuthenticated = !session.user.isAnonymous;
+    isAuthenticated = session.user?.name !== ANONYMOUS_NAME;
   }
   const userName = session?.user?.name || "User";
 

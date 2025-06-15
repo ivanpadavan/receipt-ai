@@ -8,14 +8,7 @@ declare module "next-auth" {
     user: {
       /** The user's ID */
       id: string;
-      /** Whether the user is anonymous */
-      isAnonymous: boolean;
     } & DefaultSession["user"];
-  }
-
-  interface User {
-    /** Whether the user is anonymous */
-    isAnonymous?: boolean;
   }
 }
 

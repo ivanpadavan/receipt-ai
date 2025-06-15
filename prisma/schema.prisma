@@ -14,13 +14,30 @@ datasource db {
 
 // NextAuth.js Models
 model Account {
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                 String    @id @default(cuid())
+  userId             String
+  providerType       String
+  providerId         String
+  providerAccountId  String
+  refreshToken       String?
+  accessToken        String?
+  accessTokenExpires DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  user               User      @relation(fields: [userId], references: [id])
 
-  @@id([provider, providerAccountId])
+  @@unique([providerId, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  expires      DateTime
+  sessionToken String   @unique
+  accessToken  String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id])
 }
 
 model User {
@@ -29,9 +46,23 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-  isAnonymous   Boolean   @default(true)
+  // createdAt     DateTime  @default(now())
+  // updatedAt     DateTime  @updatedAt
   accounts      Account[]
+  sessions      Session[]
+  // Application user fields
   receipts      Receipt[]
+}
+
+model VerificationRequest {
+  id         String   @id @default(cuid())
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, token])
 }
 
 // Application Models
