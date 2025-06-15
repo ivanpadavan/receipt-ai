@@ -256,7 +256,7 @@ export default class Camera extends React.Component<CameraProps, WebcamState> {
       let imageSource = this.video;
 
       if ('ImageCapture' in window && this.stream) {
-        imageSource = await new (window.ImageCapture as any)(this.stream.getVideoTracks()[0]).grabFrame();
+        imageSource = await new (window.ImageCapture as any)(this.stream.getVideoTracks()[0]).takePhoto({ fillLightMode: 'flash' });
       }
 
       ctx.drawImage(imageSource, 0, 0, screenshotDimensions?.width || canvas.width, screenshotDimensions?.height || canvas.height);
