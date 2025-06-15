@@ -35,8 +35,9 @@ const oauthProviders = [
     console.log('[auth] profile', { config, args });
     let user: User;
     if (!config.profile) {
-      console.error('oauth provider config do not have a profile callback. Fallinf back to google');
+      console.error('oauth provider config do not have a profile callback. Falling back to google');
       user = {
+        id: args[0].sub,
         name: args[0].name,
         email: args[0].email,
         image: args[0].picture,
@@ -46,25 +47,8 @@ const oauthProviders = [
     if (!currentAuth) {
       throw new Error('oauth login can be used only after anonymous auth');
     }
-    const existingUser = currentAuth.user;
     // @ts-ignore
-    user = user || config.profile && await config.profile(...args);
-
-    if (currentAuth.user.name === ANONYMOUS_NAME) {
-      const userUpdateData = {
-        isAnonymous: false,
-        name: user.name || existingUser.name,
-        image: user.image || existingUser.image,
-        email: user.email || existingUser.email,
-      };
-      console.log(`[auth] update scheduled`, userUpdateData);
-      db.user.update({
-        where: { id: existingUser.id },
-        data: userUpdateData,
-      })
-    }
-
-    return user;
+    return user || config.profile && await config.profile(...args);
   };
   return {
     ...config,
@@ -99,9 +83,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     strategy: "jwt",
   },
   callbacks: {
-    async signIn({ user, account }) {
-      return true;
-    },
     async jwt({ token, user, account }) {
       console.log('[auth] jwt', { token, user, account });
       if (!user && (upgradedUserIds.has(token.user.id || '') )) {
@@ -117,21 +98,18 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         if (actualUser) {
           user = actualUser;
         }
-        console.log('[auth] user update in JWT', { user });
+        // console.log('[auth] user update in JWT', { user });
       }
       if (user) {
-        token.name = user.name;
-        token.email = user.email;
-        token.picture = user.image;
+        const partialUser = {name: user.name, email: user.email, image: user.image};
+        Object.assign(token, partialUser);
         token.user = user;
       }
-      console.log('[auth] jwt result', token);
+      // console.log('[auth] jwt result', token);
       return token;
     },
     async session({ session, token }) {
-      console.log('[auth] session', { session, token });
       session.user = token.user;
-      console.log('[auth] session result', session);
       return session;
     },
   },

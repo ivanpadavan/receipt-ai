@@ -9,7 +9,7 @@
     "lint": "next lint",
     "format": "prettier --write \"app\"",
     "test": "jest",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate && patch-package"
   },
   "engines": {
     "node": ">=20"

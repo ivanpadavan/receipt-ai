@@ -1,0 +1,44 @@
+diff --git a/node_modules/@auth/core/lib/actions/callback/handle-login.js b/node_modules/@auth/core/lib/actions/callback/handle-login.js
+index 207dea2..b853a75 100644
+--- a/node_modules/@auth/core/lib/actions/callback/handle-login.js
++++ b/node_modules/@auth/core/lib/actions/callback/handle-login.js
+@@ -100,10 +100,6 @@ export async function handleLoginOrRegister(sessionToken, _profile, _account, op
+                     const currentAccount = { ...account, userId: user.id };
+                     return { session, user, isNewUser, account: currentAccount };
+                 }
+-                // If the user is currently signed in, but the new account they are signing in
+-                // with is already associated with another user, then we cannot link them
+-                // and need to return an error.
+-                throw new AccountNotLinked("The account is already associated with another user", { provider: account.provider });
+             }
+             // If there is no active session, but the account being signed in with is already
+             // associated with a valid user then create session to sign the user in.
+@@ -182,10 +178,6 @@ export async function handleLoginOrRegister(sessionToken, _profile, _account, op
+             if (userByAccount.id === user.id) {
+                 return { session, user, isNewUser };
+             }
+-            // If the user is currently signed in, but the new account they are signing in
+-            // with is already associated with another user, then we cannot link them
+-            // and need to return an error.
+-            throw new OAuthAccountNotLinked("The account is already associated with another user", { provider: account.provider });
+         }
+         // If there is no active session, but the account being signed in with is already
+         // associated with a valid user then create session to sign the user in.
+diff --git a/node_modules/@auth/core/src/lib/actions/callback/handle-login.ts b/node_modules/@auth/core/src/lib/actions/callback/handle-login.ts
+index e053c3e..d3b26cd 100644
+--- a/node_modules/@auth/core/src/lib/actions/callback/handle-login.ts
++++ b/node_modules/@auth/core/src/lib/actions/callback/handle-login.ts
+@@ -231,13 +231,6 @@ export async function handleLoginOrRegister(
+       if (userByAccount.id === user.id) {
+         return { session, user, isNewUser }
+       }
+-      // If the user is currently signed in, but the new account they are signing in
+-      // with is already associated with another user, then we cannot link them
+-      // and need to return an error.
+-      throw new OAuthAccountNotLinked(
+-        "The account is already associated with another user",
+-        { provider: account.provider }
+-      )
+     }
+     // If there is no active session, but the account being signed in with is already
+     // associated with a valid user then create session to sign the user in.
