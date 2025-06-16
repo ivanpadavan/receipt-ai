@@ -3,10 +3,8 @@ import { ProfileCallback } from "@auth/core/providers";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth, { User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
-import InstagramProvider from "next-auth/providers/instagram";
-import VKProvider from "next-auth/providers/vk";
-import YandexProvider from "next-auth/providers/yandex";
+import Facebook from "next-auth/providers/facebook";
+import Google from "next-auth/providers/google";
 import { db } from "@/app/db";
 
 const adapter = PrismaAdapter(db) as Required<ReturnType<typeof PrismaAdapter>>;
@@ -14,22 +12,14 @@ const adapter = PrismaAdapter(db) as Required<ReturnType<typeof PrismaAdapter>>;
 const upgradedUserIds = new Set<string>();
 
 const oauthProviders = [
-  GoogleProvider({
+  Google({
     clientId: process.env.GOOGLE_CLIENT_ID as string,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
   }),
-  InstagramProvider({
-    clientId: process.env.INSTAGRAM_CLIENT_ID as string,
-    clientSecret: process.env.INSTAGRAM_CLIENT_SECRET as string,
+  Facebook({
+    clientId: process.env.FACEBOOK_CLIENT_ID,
+    clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
   }),
-  VKProvider({
-    clientId: process.env.VK_CLIENT_ID as string,
-    clientSecret: process.env.VK_CLIENT_SECRET as string,
-  }),
-  YandexProvider({
-    clientId: process.env.YANDEX_CLIENT_ID as string,
-    clientSecret: process.env.YANDEX_CLIENT_SECRET as string,
-  })
 ].map((config) => {
   const profile: ProfileCallback<any> = async (...args) => {
     console.log('[auth] profile', { config, args });
