@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { AppNavbar } from "@/components/AppNavbar";
 import { Providers } from "./providers";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { auth } from "./auth";
 
 const publicSans = Public_Sans({ subsets: ["latin"] });
@@ -57,6 +58,7 @@ export default async function RootLayout({
             <Toaster />
           </Providers>
         </NuqsAdapter>
+        <SpeedInsights/>
       </body>
     </html>
   );
