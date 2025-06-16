@@ -1,5 +1,3 @@
-import { processImage } from "@/utils/imageProcessing";
-
 /**
  * Service for handling receipt-related API calls
  */
@@ -10,7 +8,7 @@ export const apiClient = {
    * @returns Promise with the receipt data including ID
    */
   async processReceipt(imageBase64: string): Promise<{ id: string }> {
-    const image = await processImage(imageBase64);
+    const image = await import("@/utils/imageProcessing").then(({ processImage }) => processImage(imageBase64));
 
     const response = await fetch('/api/receipt', {
       method: 'POST',
