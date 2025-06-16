@@ -25,10 +25,24 @@ index 207dea2..b853a75 100644
          // If there is no active session, but the account being signed in with is already
          // associated with a valid user then create session to sign the user in.
 diff --git a/node_modules/@auth/core/src/lib/actions/callback/handle-login.ts b/node_modules/@auth/core/src/lib/actions/callback/handle-login.ts
-index e053c3e..d3b26cd 100644
+index e053c3e..eec4e14 100644
 --- a/node_modules/@auth/core/src/lib/actions/callback/handle-login.ts
 +++ b/node_modules/@auth/core/src/lib/actions/callback/handle-login.ts
-@@ -231,13 +231,6 @@ export async function handleLoginOrRegister(
+@@ -138,13 +138,6 @@ export async function handleLoginOrRegister(
+           const currentAccount: AdapterAccount = { ...account, userId: user.id }
+           return { session, user, isNewUser, account: currentAccount }
+         }
+-        // If the user is currently signed in, but the new account they are signing in
+-        // with is already associated with another user, then we cannot link them
+-        // and need to return an error.
+-        throw new AccountNotLinked(
+-          "The account is already associated with another user",
+-          { provider: account.provider }
+-        )
+       }
+       // If there is no active session, but the account being signed in with is already
+       // associated with a valid user then create session to sign the user in.
+@@ -231,13 +224,6 @@ export async function handleLoginOrRegister(
        if (userByAccount.id === user.id) {
          return { session, user, isNewUser }
        }
