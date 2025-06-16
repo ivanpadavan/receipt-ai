@@ -1,7 +1,6 @@
 import { ANONYMOUS_NAME } from "@/utils/auth-consts";
-import { ProfileCallback } from "@auth/core/providers";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import NextAuth, { User } from "next-auth";
+import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import Facebook from "next-auth/providers/facebook";
 import Google from "next-auth/providers/google";
@@ -97,7 +96,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     },
   },
   pages: {
-    signIn: "/auth/signin",
+    signIn: "/auth/sign-in",
     error: "/auth/error",
   },
 });

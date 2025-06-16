@@ -5,13 +5,15 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Receipt } from "@/model/receipt/model";
 
+export const runtime = 'edge';
+
 export default async function HistoryPage() {
   // Get the user's session
   const session = await auth();
 
   if (!session?.user) {
     // Redirect to sign-in page if not authenticated
-    redirect("/auth/signin");
+    redirect("/auth/sign-in");
   }
 
   // Fetch the user's receipts from the database
@@ -31,11 +33,6 @@ export default async function HistoryPage() {
           <h1 className="text-3xl font-bold text-amber-800">
             Receipt History
           </h1>
-          <Link href="/">
-            <Button className="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-full shadow-md">
-              Scan New
-            </Button>
-          </Link>
         </div>
 
         {receipts.length === 0 ? (

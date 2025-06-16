@@ -2,7 +2,6 @@
 
 import { ANONYMOUS_NAME } from "@/utils/auth-consts";
 import { SignIn } from "@/utils/sign-in";
-import { SignOut } from "@/utils/sign-out";
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -10,7 +9,7 @@ import { cn } from "@/utils/cn";
 import Logo from "@/components/Logo";
 import { Button } from "./ui/button";
 import { Menu, X, User, LogOut } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 
 // Custom NavLink component with amber color scheme
 const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
@@ -45,10 +44,6 @@ export const AppNavbar = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const handleAuthAction = () => {
-    isAuthenticated ? SignOut({ redirectTo: "/" }) : SignIn();
-  };
-
   return (
     <nav className="bg-white border-b border-amber-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -69,7 +64,7 @@ export const AppNavbar = () => {
                   <div className="flex items-center gap-2 ml-2">
                     <span className="text-amber-800 font-medium">{userName}</span>
                     <Button
-                      onClick={handleAuthAction}
+                      onClick={ () => signOut({ redirectTo: "/" }) }
                       variant="ghost"
                       className="text-amber-800 hover:bg-amber-100 flex items-center gap-2"
                     >
@@ -80,7 +75,7 @@ export const AppNavbar = () => {
               </>
             ) : (
               <Button
-                onClick={handleAuthAction}
+                onClick={() => SignIn()}
                 className="bg-amber-500 hover:bg-amber-600 text-white ml-4 flex items-center gap-2"
               >
                 <User className="h-4 w-4" />
@@ -137,7 +132,6 @@ export const AppNavbar = () => {
             <div className="block py-2 px-3">
               <Button
                 onClick={() => {
-                  handleAuthAction();
                   toggleMenu();
                 }}
                 className={

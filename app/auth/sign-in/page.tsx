@@ -12,7 +12,7 @@ export default function SignInPage() {
     setIsLoading(true);
     setLoadingProvider(provider);
     try {
-      await SignIn(provider, { callbackUrl: "/" });
+      await SignIn(provider, { callbackUrl: "/", redirectTo: '/' });
     } catch (error) {
       setIsLoading(false);
       setLoadingProvider(null);
