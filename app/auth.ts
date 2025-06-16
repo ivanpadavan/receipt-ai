@@ -20,31 +20,7 @@ const oauthProviders = [
     clientId: process.env.FACEBOOK_CLIENT_ID,
     clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
   }),
-].map((config) => {
-  const profile: ProfileCallback<any> = async (...args) => {
-    console.log('[auth] profile', { config, args });
-    let user: User;
-    if (!config.profile) {
-      console.error('oauth provider config do not have a profile callback. Falling back to google');
-      user = {
-        id: args[0].sub,
-        name: args[0].name,
-        email: args[0].email,
-        image: args[0].picture,
-      }
-    }
-    const currentAuth = await auth();
-    if (!currentAuth) {
-      throw new Error('oauth login can be used only after anonymous auth');
-    }
-    // @ts-ignore
-    return user || config.profile && await config.profile(...args);
-  };
-  return {
-    ...config,
-    profile
-  }
-});
+];
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   adapter,
