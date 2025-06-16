@@ -43,6 +43,28 @@ function hasGetUserMedia() {
   return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
 }
 
+function resizeImageToCover(img: { width: number, height: number }, targetWidth: number, targetHeight: number): [number, number, number, number] {
+  // Calculate aspect ratios
+  const imgAspect = img.width / img.height;
+  const targetAspect = targetWidth / targetHeight;
+
+  let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
+
+  if (imgAspect > targetAspect) {
+    // Image is wider than target - crop sides
+    drawHeight = targetHeight;
+    drawWidth = drawHeight * imgAspect;
+    offsetX = (targetWidth - drawWidth) / 2;
+  } else {
+    // Image is taller than target - crop top/bottom
+    drawWidth = targetWidth;
+    drawHeight = drawWidth / imgAspect;
+    offsetY = (targetHeight - drawHeight) / 2;
+  }
+
+  return [offsetX, offsetY, drawWidth, drawHeight];
+}
+
 interface ScreenshotDimensions {
   width: number;
   height: number;
@@ -253,12 +275,23 @@ export default class Camera extends React.Component<CameraProps, WebcamState> {
 
       ctx.imageSmoothingEnabled = props.imageSmoothing;
 
-      let imageSource = this.video;
-
-      if ('ImageCapture' in window && this.stream) {
-        imageSource = await new (window.ImageCapture as any)(this.stream.getVideoTracks()[0]).takePhoto({ fillLightMode: 'flash' });
+      let imageSource: HTMLVideoElement | ImageBitmap;
+      try {
+        if ('ImageCapture' in window && this.stream) {
+          const ic = new (window.ImageCapture as any)(this.stream.getVideoTracks()[0]);
+          const pc = await ic.getPhotoCapabilities();
+          console.log(pc);
+          const blob = await ic.takePhoto({ imageHeight: pc.imageHeight.max, imageWidth: pc.imageWidth.max, fillLightMode: 'auto' });
+          const { width, height } = getComputedStyle(this.video);
+          imageSource = await createImageBitmap(blob, ...resizeImageToCover({ width: pc.imageWidth.max, height: pc.imageHeight.max }, parseFloat(width), parseFloat(height)));
+        } else {
+          throw new Error('ImageCapture not supported');
+        }
+      } catch (e) {
+        console.error(e);
+        imageSource = this.video;
       }
-
+      // @ts-ignore
       ctx.drawImage(imageSource, 0, 0, screenshotDimensions?.width || canvas.width, screenshotDimensions?.height || canvas.height);
 
       // invert mirroring
