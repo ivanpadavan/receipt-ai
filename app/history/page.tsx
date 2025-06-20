@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Receipt } from "@/model/receipt/model";
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 export default async function HistoryPage() {
   // Get the user's session
