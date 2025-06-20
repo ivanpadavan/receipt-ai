@@ -1,5 +1,5 @@
 import { FormControl } from "@/forms/form_control";
-import { useObservableFactory } from "@/hooks/useObservableFactory";
+import { forceSync, useObservable } from "@/hooks/rx/useObservable";
 import React from "react";
 
 interface FormControlCellProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
@@ -7,7 +7,7 @@ interface FormControlCellProps extends React.TdHTMLAttributes<HTMLTableCellEleme
 }
 
 export const Cell: React.FC<FormControlCellProps> = ({ formControl, className = '', ...props }) => {
-  const [value] = useObservableFactory(() => formControl.value$)
+  const value = useObservable(formControl.value$, forceSync);
   const isInvalid = formControl.invalid;
 
   return (

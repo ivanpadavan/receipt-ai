@@ -1,6 +1,6 @@
 import { ReceiptFormContext } from "@/app/receipt/components/ReceiptForm";
 import { FormGroup } from "@/forms/form_group";
-import { useObservableFactory } from "@/hooks/useObservableFactory";
+import { forceSync, useObservable } from "@/hooks/rx/useObservable";
 import { useContext, useMemo, useState } from "react";
 
 
@@ -10,7 +10,7 @@ interface CellGroupProps {
 }
 
 export const CellGroup = ({ record, children }: CellGroupProps) => {
-  useObservableFactory(() => record.value$);
+  useObservable(record.valueChanges, forceSync);
   const [hoverWithin, setHoverWithin] = useState(false);
 
   const ctx = useContext(ReceiptFormContext);

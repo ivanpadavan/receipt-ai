@@ -1,8 +1,8 @@
 "use client";
 
 import { pageState$ } from "@/app/state";
-import { useObservableFactory } from "@/hooks/useObservableFactory";
-import { useEffect, useRef } from "react";
+import { forceSync, useObservable } from "@/hooks/rx/useObservable";
+import { useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import WebcamCapture from "@/components/WebcamCapture";
@@ -12,7 +12,7 @@ export default function ImagePastePage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [pageState] = useObservableFactory(pageState$);
+  const pageState = useObservable(useMemo(pageState$, []), forceSync);
   const { camera, picture, navigateTo, error } = pageState;
 
   useEffect(() => {

@@ -3,7 +3,7 @@ import { ModalContext } from "@/components/ui/modal/ModalContext";
 import { AbstractControl } from "@/forms/abstract_model";
 import { FormControl } from "@/forms/form_control";
 import { ValidationErrors } from "@/forms/validators";
-import { useObservable } from "@ngneat/react-rxjs";
+import { useObservable } from "@/hooks/rx/useObservable";
 import React, { ChangeEvent, useContext, useMemo } from "react";
 import { t, TranslationKey } from "@/app/i18n/translations";
 
@@ -12,7 +12,7 @@ const isInErrorState = (c: AbstractControl, hideErrorsUntilTouched: boolean) => 
 }
 
 export const RowDrawer: React.FC<EditModalProps> = ({ formGroup, onFinish, remove, header }) => {
-  useObservable(formGroup.valueChanges as any);
+  useObservable(formGroup.valueChanges);
   const hideModal = useContext(ModalContext)?.hideModal;
   if (!hideModal) {
     throw new Error('ModalContext not found');

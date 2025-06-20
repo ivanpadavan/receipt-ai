@@ -1,11 +1,9 @@
 "use client";
 
 import { PageState } from "@/app/state";
-import { useObservableFactory } from "@/hooks/useObservableFactory";
-import { use, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Camera from "@/components/Camera";
 import { Button } from "@/components/ui/button";
-import { from, of } from "rxjs";
 
 type WebcamCaptureProps = {
   pageState: PageState,
