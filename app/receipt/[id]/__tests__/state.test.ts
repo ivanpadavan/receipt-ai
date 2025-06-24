@@ -1,4 +1,4 @@
-import { ReceiptFormState, receiptFormState$ } from "../state";
+import { ReceiptState, receiptFormState$ } from "../receipt-state";
 import { Receipt } from "@/model/receipt/model";
 
 describe("Receipt Form State Management", () => {
@@ -60,7 +60,7 @@ describe("Receipt Form State Management", () => {
   it("should create a valid form state for a valid receipt", (done) => {
     const state$ = receiptFormState$(validReceipt);
 
-    state$.subscribe((state: ReceiptFormState) => {
+    state$.subscribe((state: ReceiptState) => {
       expect(state.scenario.type).toBe('editing');
       expect(state.scenario.form).toBeDefined();
 
@@ -91,7 +91,7 @@ describe("Receipt Form State Management", () => {
   it("should create a validation form state for an invalid receipt", (done) => {
     const state$ = receiptFormState$(invalidReceipt);
 
-    state$.subscribe((state: ReceiptFormState) => {
+    state$.subscribe((state: ReceiptState) => {
       expect(state.scenario.type).toBe('validation');
       expect(state.scenario.form).toBeDefined();
 
@@ -131,7 +131,7 @@ describe("Receipt Form State Management", () => {
   it("should update calculated values when form values change", (done) => {
     const state$ = receiptFormState$(validReceipt);
 
-    state$.subscribe((state: ReceiptFormState) => {
+    state$.subscribe((state: ReceiptState) => {
       const form = state.scenario.form;
 
       // Change quantity and check if overall is updated

@@ -19,12 +19,14 @@ import { RowDrawer } from "./RowDrawer";
 
 interface EditableReceiptFormProps {
   initialData: Receipt;
+  receiptId?: string;
 }
 
 export const ReceiptFormContext = createContext<ReceiptState | null>(null);
 
 export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
   initialData,
+  receiptId,
 }) => {
   // Subscribe to the receipt state
   const { showModal } = useModal();
@@ -35,8 +37,8 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
 
   const formState = useObservable(
     useMemo(
-      () => receiptFormState$(initialData, openEditModalCb),
-      [initialData, openEditModalCb],
+      () => receiptFormState$(initialData, openEditModalCb, receiptId),
+      [initialData, openEditModalCb, receiptId],
     ),
     forceSync,
   );

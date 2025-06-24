@@ -40,6 +40,6 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   const receiptData = receipt.data as unknown as Receipt;
 
   return (
-    <ReceiptForm initialData={receiptData} />
+    <ReceiptForm initialData={receiptData} receiptId={id} />
   );
 }

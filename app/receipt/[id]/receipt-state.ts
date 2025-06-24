@@ -3,11 +3,12 @@ import { FormControl } from "@/forms/form_control";
 import { FormGroup } from "@/forms/form_group";
 import { InferForm } from "@/forms/type";
 import { ValidatorFn } from "@/forms/validators";
-import { Observable, of } from "rxjs";
+import { concat, Observable, of, Subject, switchMap } from "rxjs";
 import { TranslationKey } from "@/app/i18n/translations";
 import {
   Receipt, validateReceipt, calculatePositionsTotal, calculateTotal
 } from "@/model/receipt/model";
+import { map } from "rxjs/operators";
 import {
   stringNotEmpty,
   numberMoreThenZero,
@@ -15,6 +16,7 @@ import {
   positionsTotalMatchesSum,
   totalMatchesCalculation
 } from "./validators";
+import { db } from "@/app/db";
 
 type FormType = 'validation' | 'editing' | 'quantities';
 
@@ -39,9 +41,14 @@ export type ReceiptState = {
   scenario: FormScenario;
   openEditModal: (v: AppendableForm | 'addPosition' | 'addDiscount' | 'addFee') => void,
   proceed: () => void;
+  canProceed$: Observable<boolean>;
 };
 
-export const receiptFormState$ = (initialData: Receipt, openEditModal: (v: EditModalProps) => void): Observable<ReceiptState> => {
+export const receiptFormState$ = (
+  initialData: Receipt,
+  openEditModal: (v: EditModalProps) => void,
+  receiptId: string,
+): Observable<ReceiptState> => {
   const type = validateReceipt(initialData).isValid ? 'editing' as const : 'validation' as const;
 
   const positionCalculator = type === 'validation'
@@ -126,9 +133,12 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: (v: EditM
   form.patchValue(initialData, {emitEvent: false});
   form.patchValue(initialData, {emitEvent: false});
 
+  const proceed$ = new Subject<void>();
+
   const state: ReceiptState = {
     scenario: { type, form },
-    proceed: () => void 0,
+    canProceed$: form.value$.pipe(map(() => form.valid)),
+    proceed: () => proceed$.next(),
     openEditModal: (args) => {
       // Handle the case where args is an object with a type property
       const formToEdit = args instanceof Object && 'type' in args ? args.type : args;
@@ -169,5 +179,10 @@ export const receiptFormState$ = (initialData: Receipt, openEditModal: (v: EditM
     },
   }
 
-  return of(state);
+  const nextStep$ = proceed$.pipe(switchMap(() => receiptFormState$(form.getRawValue(), openEditModal, receiptId)));
+
+  return concat(
+    of(state),
+    nextStep$,
+  );
 };
