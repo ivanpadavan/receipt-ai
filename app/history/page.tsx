@@ -54,7 +54,7 @@ export default async function HistoryPage() {
               const itemCount = receiptData.positions.length;
 
               // Get the total amount
-              const totalAmount = receiptData.total.total;
+              const totalAmount = receiptData.total.totals.total;
 
               return (
                 <Link href={`/receipt/${receipt.id}`} key={receipt.id}>

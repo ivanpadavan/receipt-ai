@@ -37,7 +37,7 @@ export const Modifiers: React.FC<ItemsSectionProps> = ({ type, items }) => {
   return (
     <>
       {items.controls.map((item, index) => (
-        <CellGroup record={item} key={`${type}-${index}`}>
+        <CellGroup record={item} key={`${type}-${index}`} canEdit={ctx.scenario.canEdit.modifierForm}>
           {(props) => (
             <>
               <tr>

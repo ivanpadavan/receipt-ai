@@ -53,7 +53,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
   );
 
   const {
-    scenario: { form },
+    scenario: { form, canEdit },
     openEditModal,
     proceed,
     canProceed$,
@@ -80,7 +80,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
           </thead>
           <tbody>
             {form.controls.positions.controls.map((position, index) => (
-              <CellGroup key={"positions" + index} record={position}>
+              <CellGroup key={"positions" + index} record={position} canEdit={canEdit.positionForm}>
                 {({ className, ...props }) => (
                   <tr className={className + " border-b border-gray-200"}>
                     <Cell {...props} formControl={position.controls.name} />
@@ -94,8 +94,8 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
           </tbody>
           <tfoot>
             <tr
-              onClick={() => formState.scenario.canEdit.totalsForm && openEditModal(form.controls.total.controls.totals)}
-              className={formState.scenario.canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""}
+              onClick={() => canEdit.totalsForm && openEditModal(form.controls.total.controls.totals)}
+              className={canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""}
             >
               <td colSpan={3}>{t("total")}</td>
               <Cell
@@ -112,8 +112,8 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
               items={form.controls.total.controls.fees}
             />
             <tr
-              onClick={() => formState.scenario.canEdit.totalsForm && openEditModal(form.controls.total.controls.totals)}
-              className={formState.scenario.canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""}
+              onClick={() => canEdit.totalsForm && openEditModal(form.controls.total.controls.totals)}
+              className={canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""}
             >
               <td colSpan={3}>{t("grandTotal")}</td>
               <Cell
