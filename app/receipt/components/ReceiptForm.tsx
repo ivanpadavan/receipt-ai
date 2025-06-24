@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useModal } from "@/components/ui/modal/ModalContext";
 import { forceSync, useObservable } from "@/hooks/rx/useObservable";
 import { Receipt } from "@/model/receipt/model";
-import React, { createContext, useCallback, useMemo } from "react";
+import React, { createContext, useCallback, useContext, useMemo } from "react";
 import { Cell } from "./Cell";
 import { CellGroup } from "./CellGroup";
 import styles from "./form.module.css";
@@ -23,7 +23,15 @@ interface EditableReceiptFormProps {
   receiptId: string;
 }
 
-export const ReceiptFormContext = createContext<ReceiptState | null>(null);
+const ReceiptFormContext = createContext<ReceiptState | null>(null);
+
+export const useReceiptState = (): ReceiptState => {
+  const ctx = useContext(ReceiptFormContext);
+  if (ctx === null) {
+    throw new Error('should be provided');
+  }
+  return ctx;
+}
 
 export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
   initialData,
@@ -85,7 +93,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
             ))}
           </tbody>
           <tfoot>
-            <tr>
+            <tr onClick={() => openEditModal(form.controls.total.controls.totals)}>
               <td colSpan={3}>{t("total")}</td>
               <Cell
                 formControl={form.controls.total.controls.totals.controls.positionsTotal}
@@ -100,7 +108,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
               type={"fees"}
               items={form.controls.total.controls.fees}
             />
-            <tr>
+            <tr onClick={() => openEditModal(form.controls.total.controls.totals)}>
               <td colSpan={3}>{t("grandTotal")}</td>
               <Cell
                 formControl={form.controls.total.controls.totals.controls.total}

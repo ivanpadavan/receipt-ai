@@ -1,6 +1,5 @@
 import { PositionForm, ReceiptForm } from "@/app/receipt/[id]/receipt-state";
 import { AbstractControl } from "@/forms/abstract_model";
-import { FormArray } from "@/forms/form_array";
 import { calculatePositionsTotal, sumModifiers } from "@/model/receipt/model";
 
 // Validators
@@ -40,7 +39,7 @@ export const positionsTotalMatchesSum = (control: AbstractControl) => {
 };
 
 export const totalMatchesCalculation = (control: AbstractControl) => {
-  const parent = control.parent?.parent as ReceiptForm;
+  const parent = control.parent?.parent?.parent as ReceiptForm;
   if (!parent) return null;
 
   const positionsTotal = parent.controls.total.controls.totals.controls.positionsTotal.value || 0;

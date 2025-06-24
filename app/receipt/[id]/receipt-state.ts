@@ -17,7 +17,7 @@ import {
   totalMatchesCalculation
 } from "./validators";
 
-type FormType = 'validation' | 'editing' | 'quantities';
+type FormType = 'validation' | 'editing';
 
 export type ReceiptForm = InferForm<Receipt>;
 
@@ -25,7 +25,9 @@ export type PositionForm = ReceiptForm['controls']['positions']['controls'][0];
 
 export type ModifierForm = ReceiptForm['controls']['total']['controls']['fees'] | ReceiptForm['controls']['total']['controls']['discounts'];
 
-export type AppendableForm = PositionForm | ModifierForm;
+export type TotalsForm = ReceiptForm['controls']['total']['controls']['totals'];
+
+export type AppendableForm = PositionForm | ModifierForm | TotalsForm;
 
 export interface EditModalProps {
   formGroup: AppendableForm;
@@ -34,7 +36,13 @@ export interface EditModalProps {
   header: TranslationKey;
 }
 
-export type FormScenario = { type: FormType; form: ReceiptForm }
+export type CanEdit = {
+  positionForm: boolean,
+  modifierForm: boolean,
+  totalsForm: boolean,
+}
+
+export type FormScenario = { type: FormType; canEdit: CanEdit, form: ReceiptForm }
 
 export type ReceiptState = {
   scenario: FormScenario;
@@ -42,6 +50,19 @@ export type ReceiptState = {
   proceed: () => void;
   canProceed$: Observable<boolean>;
 };
+
+const permissions: Record<FormType, CanEdit> = {
+  validation: {
+    positionForm: true,
+    modifierForm: true,
+    totalsForm: false,
+  },
+  editing: {
+    positionForm: true,
+    modifierForm: true,
+    totalsForm: false,
+  }
+}
 
 export const receiptFormState$ = (
   initialData: Receipt,
@@ -137,7 +158,7 @@ export const receiptFormState$ = (
     effect$ = form.value$.pipe(
       tap(() => {
         const {total, positionsTotal} = form.controls.total.controls.totals.controls;
-        [total, positionsTotal].forEach(control => control.updateValueAndValidity());
+        [total, positionsTotal].forEach(control => control.updateValueAndValidity({ onlySelf: true }));
       }),
       ignoreElements()
     );
@@ -150,26 +171,30 @@ export const receiptFormState$ = (
   const proceed$ = new Subject<void>();
 
   const state: ReceiptState = {
-    scenario: { type, form },
+    scenario: { type, form, canEdit: permissions[type] },
     canProceed$: form.value$.pipe(map(() => form.valid)),
     proceed: () => proceed$.next(),
     openEditModal: (args) => {
       // Handle the case where args is an object with a type property
-      const formToEdit = args instanceof Object && 'type' in args ? args.type : args;
+      const formToEdit = typeof args === 'object' && 'type' in args ? args.type : args;
 
       if (formToEdit instanceof FormGroup) {
-        const parent = formToEdit.parent as FormArray<AppendableForm>;
-        const idx = parent.controls.findIndex(form => form === formToEdit);
-        const isPosition = 'overall' in formToEdit.controls;
-        const newForm = (isPosition ? defaultPosition() : defaultModifier()) as any;
-        const isDiscount = !isPosition && parent.parent?.get('discounts') == parent;
-        newForm.patchValue(formToEdit.getRawValue());
-        openEditModal({
-          formGroup: newForm,
-          onFinish: () => parent.controls.at(idx)?.patchValue(newForm.getRawValue() as any),
-          remove: () => parent.removeAt(idx),
-          header: isPosition ? 'editPosition' : isDiscount ? 'editDiscount' : 'editFee',
-        });
+        if (formToEdit.parent instanceof FormArray) {
+          const parent = formToEdit.parent as FormArray<AppendableForm>;
+          const idx = parent.controls.findIndex(form => form === formToEdit);
+          const isPosition = 'overall' in formToEdit.controls;
+          const newForm = (isPosition ? defaultPosition() : defaultModifier()) as any;
+          const isDiscount = !isPosition && parent.parent?.get('discounts') == parent;
+          newForm.patchValue(formToEdit.getRawValue());
+          openEditModal({
+            formGroup: newForm,
+            onFinish: () => parent.controls.at(idx)?.patchValue(newForm.getRawValue() as any),
+            remove: () => parent.removeAt(idx),
+            header: isPosition ? 'editPosition' : isDiscount ? 'editDiscount' : 'editFee',
+          });
+        } else {
+          openEditModal({ formGroup: formToEdit, onFinish: () => void 0, header: 'overall' });
+        }
       } else if (formToEdit === 'addPosition') {
         const newPosition = defaultPosition();
         openEditModal({

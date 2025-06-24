@@ -2,10 +2,10 @@ import { t } from "@/app/i18n/translations";
 import { ModifierForm } from "@/app/receipt/[id]/receipt-state";
 import { CellGroup } from "@/app/receipt/components/CellGroup";
 import { forceSync, useObservable } from "@/hooks/rx/useObservable";
-import React, { useContext } from "react";
+import React from "react";
 import { Cell } from "./Cell";
 import { FormArrayTitle } from "./FormArrayTitle";
-import { ReceiptFormContext } from "./ReceiptForm";
+import { useReceiptState } from "./ReceiptForm";
 
 interface ItemsSectionProps {
   type: "discounts" | "fees";
@@ -14,10 +14,9 @@ interface ItemsSectionProps {
 
 export const Modifiers: React.FC<ItemsSectionProps> = ({ type, items }) => {
   useObservable(items.valueChanges, forceSync);
-  const _openEditModal = useContext(ReceiptFormContext)?.openEditModal;
+  const ctx = useReceiptState();
   const openEditModal = () =>
-    _openEditModal &&
-    _openEditModal(type === "discounts" ? "addDiscount" : "addFee");
+    ctx.openEditModal(type === "discounts" ? "addDiscount" : "addFee");
 
   if (items.length === 0) {
     return (
