@@ -6,6 +6,7 @@ import {
   receiptFormState$,
   ReceiptState,
 } from "@/app/receipt/[id]/receipt-state";
+import { Button } from "@/components/ui/button";
 import { useModal } from "@/components/ui/modal/ModalContext";
 import { forceSync, useObservable } from "@/hooks/rx/useObservable";
 import { Receipt } from "@/model/receipt/model";
@@ -46,7 +47,11 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
   const {
     scenario: { form },
     openEditModal,
+    proceed,
+    canProceed$,
   } = formState;
+
+  const canProceed = useObservable(canProceed$, forceSync);
 
   return (
     <ReceiptFormContext.Provider value={formState}>
@@ -104,6 +109,15 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
             </tr>
           </tfoot>
         </table>
+        <div className="flex justify-end mt-4 mb-2 mr-4">
+          <Button
+            onClick={proceed}
+            disabled={!canProceed}
+            className="bg-amber-500 hover:bg-amber-600 text-white"
+          >
+            {t("proceed")}
+          </Button>
+        </div>
       </div>
     </ReceiptFormContext.Provider>
   );
