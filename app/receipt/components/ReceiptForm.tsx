@@ -70,7 +70,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
               <th>
                 <FormArrayTitle
                   title={t("name")}
-                  onAddClick={() => openEditModal("addPosition")}
+                  onAddClick={formState.scenario.canEdit.positionForm ? () => openEditModal("addPosition") : undefined}
                 />
               </th>
               <th className="text-center">{t("price")}</th>
@@ -93,7 +93,10 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
             ))}
           </tbody>
           <tfoot>
-            <tr onClick={() => openEditModal(form.controls.total.controls.totals)}>
+            <tr
+              onClick={() => formState.scenario.canEdit.totalsForm && openEditModal(form.controls.total.controls.totals)}
+              className={formState.scenario.canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""}
+            >
               <td colSpan={3}>{t("total")}</td>
               <Cell
                 formControl={form.controls.total.controls.totals.controls.positionsTotal}
@@ -108,7 +111,10 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
               type={"fees"}
               items={form.controls.total.controls.fees}
             />
-            <tr onClick={() => openEditModal(form.controls.total.controls.totals)}>
+            <tr
+              onClick={() => formState.scenario.canEdit.totalsForm && openEditModal(form.controls.total.controls.totals)}
+              className={formState.scenario.canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""}
+            >
               <td colSpan={3}>{t("grandTotal")}</td>
               <Cell
                 formControl={form.controls.total.controls.totals.controls.total}

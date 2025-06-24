@@ -15,8 +15,11 @@ interface ItemsSectionProps {
 export const Modifiers: React.FC<ItemsSectionProps> = ({ type, items }) => {
   useObservable(items.valueChanges, forceSync);
   const ctx = useReceiptState();
-  const openEditModal = () =>
-    ctx.openEditModal(type === "discounts" ? "addDiscount" : "addFee");
+  const openEditModal = () => {
+    if (ctx.scenario.canEdit.modifierForm) {
+      ctx.openEditModal(type === "discounts" ? "addDiscount" : "addFee");
+    }
+  };
 
   if (items.length === 0) {
     return (

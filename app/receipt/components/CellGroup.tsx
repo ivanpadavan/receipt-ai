@@ -13,13 +13,22 @@ export const CellGroup = ({ record, children }: CellGroupProps) => {
   useObservable(record.valueChanges, forceSync);
   const [hoverWithin, setHoverWithin] = useState(false);
 
-  const { openEditModal } = useReceiptState();
+  const { openEditModal, scenario } = useReceiptState();
+
+  // Determine if this record can be edited based on its type
+  const isPositionForm = 'overall' in record.controls;
+  const isModifierForm = 'value' in record.controls;
+  const isTotalsForm = 'positionsTotal' in record.controls;
+
+  const canEdit = (isPositionForm && scenario.canEdit.positionForm) ||
+                 (isModifierForm && scenario.canEdit.modifierForm) ||
+                 (isTotalsForm && scenario.canEdit.totalsForm);
 
   const props = {
-    onMouseEnter: () => setHoverWithin(true),
-    onMouseLeave: () => setHoverWithin(false),
-    onClick: () => openEditModal(record),
-    className: (record.invalid ? 'bg-red-50 ' : '') + (hoverWithin ? 'cursor-pointer bg-gray-100 ' : ''),
+    onMouseEnter: () => canEdit && setHoverWithin(true),
+    onMouseLeave: () => canEdit && setHoverWithin(false),
+    onClick: () => canEdit && openEditModal(record),
+    className: (record.invalid ? 'bg-red-50 ' : '') + (canEdit && hoverWithin ? 'cursor-pointer bg-gray-100 ' : ''),
   };
 
   return children(props);
