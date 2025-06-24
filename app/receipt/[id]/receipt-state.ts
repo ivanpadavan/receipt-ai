@@ -55,7 +55,7 @@ const permissions: Record<FormType, CanEdit> = {
   validation: {
     positionForm: true,
     modifierForm: true,
-    totalsForm: false,
+    totalsForm: true,
   },
   editing: {
     positionForm: true,

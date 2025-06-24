@@ -52,6 +52,8 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
     forceSync,
   );
 
+  console.log(formState);
+
   const {
     scenario: { form, canEdit },
     openEditModal,
