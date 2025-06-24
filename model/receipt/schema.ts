@@ -17,11 +17,15 @@ const discountModifierSchema = z.object({
   value: z.number().describe("The value of the modifier (positive)")
 });
 
+export const receiptTotalsSchema = z.object({
+  positionsTotal: z.number().describe("The sum of all item totals before all fees and discounts"),
+  total: z.number().describe("The final total amount after all fees and discounts"),
+});
+
 export const totalSchema = z.object({
-  positionsTotal: z.number().describe("The sum of all item totals before modifiers"),
   fees: z.array(feeModifierSchema).describe("Array of modifiers that increase the total amount (e.g., tips, VAT)"),
   discounts: z.array(discountModifierSchema).describe("Array of modifiers that decrease the total amount (e.g., discounts)"),
-  total: z.number().describe("The final total amount after all modifiers")
+  totals: receiptTotalsSchema.describe("Total information including discounts and tips"),
 });
 
 export const recieptSchema = z.object({

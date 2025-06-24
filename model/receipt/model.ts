@@ -4,7 +4,6 @@ import { recieptSchema } from "./schema";
 // Infer TypeScript types from Zod schema
 export type ReceiptModifier = z.infer<typeof recieptSchema>["total"]["fees"][number] | z.infer<typeof recieptSchema>["total"]["discounts"][number];
 export type ReceiptPosition = z.infer<typeof recieptSchema>["positions"][number];
-export type ReceiptTotal = z.infer<typeof recieptSchema>["total"];
 export type Receipt = z.infer<typeof recieptSchema>;
 
 
