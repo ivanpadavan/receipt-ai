@@ -67,7 +67,7 @@ export const receiptFormState$ = (
   const formCalculator = type === 'validation'
     ? () => null
     : (form: ReceiptForm) => {
-      const { positionsTotal, total } = form.controls.total.controls;
+      const { positionsTotal, total } = form.controls.total.controls.totals.controls;
       positionsTotal.patchValue(calculatePositionsTotal(form.getRawValue().positions), { onlySelf: true });
       total.patchValue(calculateTotal(form.getRawValue()), { onlySelf: true });
       return null;
@@ -113,11 +113,13 @@ export const receiptFormState$ = (
   const form: ReceiptForm = new FormGroup({
     positions: new FormArray(initialData.positions.map(defaultPosition)),
     total: new FormGroup({
-      positionsTotal: new FormControl(initialData.total.positionsTotal, {
-        validators: [positionsTotalMatchesSum]
-      }),
-      total: new FormControl(initialData.total.total, {
-        validators: [totalMatchesCalculation]
+      totals: new FormGroup({
+        positionsTotal: new FormControl(initialData.total.totals.positionsTotal, {
+          validators: [positionsTotalMatchesSum]
+        }),
+        total: new FormControl(initialData.total.totals.total, {
+          validators: [totalMatchesCalculation]
+        })
       }),
       fees: new FormArray(initialData.total.fees.map(defaultModifier)),
       discounts: new FormArray(initialData.total.discounts.map(defaultModifier))
@@ -129,12 +131,12 @@ export const receiptFormState$ = (
   let effect$ = EMPTY;
 
   if (type === 'editing') {
-    form.controls.total.controls.total.disable();
-    form.controls.total.controls.positionsTotal.disable();
+    form.controls.total.controls.totals.controls.total.disable();
+    form.controls.total.controls.totals.controls.positionsTotal.disable();
   } else if (type === 'validation') {
     effect$ = form.value$.pipe(
       tap(() => {
-        const {total, positionsTotal} = form.controls.total.controls;
+        const {total, positionsTotal} = form.controls.total.controls.totals.controls;
         [total, positionsTotal].forEach(control => control.updateValueAndValidity());
       }),
       ignoreElements()

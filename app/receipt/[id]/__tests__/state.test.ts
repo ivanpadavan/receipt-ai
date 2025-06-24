@@ -13,7 +13,10 @@ describe("Receipt Form State Management", () => {
       }
     ],
     total: {
-      positionsTotal: 20,
+      totals: {
+        positionsTotal: 20,
+        total: 23
+      },
       fees: [
         {
           name: "Tax",
@@ -25,8 +28,7 @@ describe("Receipt Form State Management", () => {
           name: "Discount",
           value: 2
         }
-      ],
-      total: 23
+      ]
     }
   };
 
@@ -40,7 +42,10 @@ describe("Receipt Form State Management", () => {
       }
     ],
     total: {
-      positionsTotal: 25, // Incorrect positions total
+      totals: {
+        positionsTotal: 25, // Incorrect positions total
+        total: 30 // Incorrect total
+      },
       fees: [
         {
           name: "Tax",
@@ -52,8 +57,7 @@ describe("Receipt Form State Management", () => {
           name: "Discount",
           value: 2
         }
-      ],
-      total: 30 // Incorrect total
+      ]
     }
   };
 
@@ -68,8 +72,9 @@ describe("Receipt Form State Management", () => {
       const form = state.scenario.form;
       expect(form.controls.positions).toBeDefined();
       expect(form.controls.total).toBeDefined();
-      expect(form.controls.total.controls.positionsTotal).toBeDefined();
-      expect(form.controls.total.controls.total).toBeDefined();
+      expect(form.controls.total.controls.totals).toBeDefined();
+      expect(form.controls.total.controls.totals.controls.positionsTotal).toBeDefined();
+      expect(form.controls.total.controls.totals.controls.total).toBeDefined();
       expect(form.controls.total.controls.fees).toBeDefined();
       expect(form.controls.total.controls.discounts).toBeDefined();
 
@@ -78,8 +83,8 @@ describe("Receipt Form State Management", () => {
       expect(form.controls.positions.controls[0].controls.quantity.value).toBe(2);
       expect(form.controls.positions.controls[0].controls.price.value).toBe(10);
       expect(form.controls.positions.controls[0].controls.overall.value).toBe(20);
-      expect(form.controls.total.controls.positionsTotal.value).toBe(20);
-      expect(form.controls.total.controls.total.value).toBe(23);
+      expect(form.controls.total.controls.totals.controls.positionsTotal.value).toBe(20);
+      expect(form.controls.total.controls.totals.controls.total.value).toBe(23);
 
       // Check form validity
       expect(form.valid).toBe(true);
@@ -99,8 +104,9 @@ describe("Receipt Form State Management", () => {
       const form = state.scenario.form;
       expect(form.controls.positions).toBeDefined();
       expect(form.controls.total).toBeDefined();
-      expect(form.controls.total.controls.positionsTotal).toBeDefined();
-      expect(form.controls.total.controls.total).toBeDefined();
+      expect(form.controls.total.controls.totals).toBeDefined();
+      expect(form.controls.total.controls.totals.controls.positionsTotal).toBeDefined();
+      expect(form.controls.total.controls.totals.controls.total).toBeDefined();
       expect(form.controls.total.controls.fees).toBeDefined();
       expect(form.controls.total.controls.discounts).toBeDefined();
 
@@ -109,8 +115,8 @@ describe("Receipt Form State Management", () => {
       expect(form.controls.positions.controls[0].controls.quantity.value).toBe(2);
       expect(form.controls.positions.controls[0].controls.price.value).toBe(10);
       expect(form.controls.positions.controls[0].controls.overall.value).toBe(25);
-      expect(form.controls.total.controls.positionsTotal.value).toBe(25);
-      expect(form.controls.total.controls.total.value).toBe(30);
+      expect(form.controls.total.controls.totals.controls.positionsTotal.value).toBe(25);
+      expect(form.controls.total.controls.totals.controls.total.value).toBe(30);
 
       // Check form validity
       expect(form.valid).toBe(false);
@@ -120,7 +126,7 @@ describe("Receipt Form State Management", () => {
       expect(positionOverall.errors).toBeDefined();
       expect(positionOverall.errors?.['overallMismatch']).toBeDefined();
 
-      const total = form.controls.total.controls.total;
+      const total = form.controls.total.controls.totals.controls.total;
       expect(total.errors).toBeDefined();
       expect(total.errors?.['totalMismatch']).toBeDefined();
 
@@ -142,10 +148,10 @@ describe("Receipt Form State Management", () => {
       expect(positionGroup.controls.overall.value).toBe(30);
 
       // Check if positionsTotal is updated
-      expect(form.controls.total.controls.positionsTotal.value).toBe(30);
+      expect(form.controls.total.controls.totals.controls.positionsTotal.value).toBe(30);
 
       // Check if total is updated
-      expect(form.controls.total.controls.total.value).toBe(33);
+      expect(form.controls.total.controls.totals.controls.total.value).toBe(33);
 
       done();
     });

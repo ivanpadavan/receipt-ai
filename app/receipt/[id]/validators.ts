@@ -1,3 +1,4 @@
+import { PositionForm, ReceiptForm } from "@/app/receipt/[id]/receipt-state";
 import { AbstractControl } from "@/forms/abstract_model";
 import { FormArray } from "@/forms/form_array";
 import { calculatePositionsTotal, sumModifiers } from "@/model/receipt/model";
@@ -10,7 +11,7 @@ export const numberMoreThenZero = (control: AbstractControl<number>) =>
   (control.value <= 0 || isNaN(control.value)) ? { valueZero: 'should not be equal or below zero' } : null;
 
 export const overallMatchesQuantityPrice = (control: AbstractControl) => {
-  const parent = control.parent;
+  const parent = control.parent as PositionForm;
   if (!parent) return null;
 
   const quantity = parent.get('quantity')?.value || 0;
@@ -23,7 +24,7 @@ export const overallMatchesQuantityPrice = (control: AbstractControl) => {
 };
 
 export const positionsTotalMatchesSum = (control: AbstractControl) => {
-  const parent = control.parent?.parent;
+  const parent = control.parent?.parent as ReceiptForm;
   if (!parent) return null;
 
   const positionsArray = parent.get('positions') as FormArray;
@@ -44,7 +45,7 @@ export const positionsTotalMatchesSum = (control: AbstractControl) => {
 };
 
 export const totalMatchesCalculation = (control: AbstractControl) => {
-  const parent = control.parent;
+  const parent = control.parent?.parent as ReceiptForm;
   if (!parent) return null;
 
   const positionsTotal = parent.get('positionsTotal')?.value || 0;

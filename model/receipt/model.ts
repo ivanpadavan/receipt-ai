@@ -22,7 +22,7 @@ export function calculatePositionsTotal(positions: ReceiptPosition[]): number {
   return positions.reduce((sum, position) => sum + position.overall, 0);
 }
 
-export function calculateTotal({ total: { positionsTotal, discounts, fees } }: Receipt) {
+export function calculateTotal({ total: { totals: { positionsTotal }, discounts, fees } }: Receipt) {
   return positionsTotal + sumModifiers(fees) - sumModifiers(discounts);
 };
 
@@ -59,7 +59,7 @@ export function validateAllPositions(positions: ReceiptPosition[]): string[] {
  * @param positionsTotal The total value to validate
  * @returns Error message or empty string if valid
  */
-export function validatePositionsTotal({ positions, total: { positionsTotal } }: Receipt): string {
+export function validatePositionsTotal({ positions, total: { totals: { positionsTotal } } }: Receipt): string {
   const calculatedPositionsTotal = calculatePositionsTotal(positions);
 
   if (Math.abs(calculatedPositionsTotal - positionsTotal) > 0.01) {
@@ -78,7 +78,7 @@ export function validatePositionsTotal({ positions, total: { positionsTotal } }:
  * @returns Error message or empty string if valid
  */
 export function validateFinalTotal(receipt: Receipt): string {
-  const { positionsTotal, fees, discounts, total } = receipt.total;
+  const { totals: { positionsTotal, total }, fees, discounts } = receipt.total;
   const calculatedTotal = calculateTotal(receipt);
   if (Math.abs(calculatedTotal - total) > 0.01) {
     return `Final total ${total} doesn't match positionsTotal + fees - discounts (${positionsTotal} + ${sumModifiers(fees)} - ${sumModifiers(discounts)} = ${calculatedTotal})`;

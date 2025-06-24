@@ -88,7 +88,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
             <tr>
               <td colSpan={3}>{t("total")}</td>
               <Cell
-                formControl={form.controls.total.controls.positionsTotal}
+                formControl={form.controls.total.controls.totals.controls.positionsTotal}
                 className="font-bold"
               />
             </tr>
@@ -103,7 +103,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
             <tr>
               <td colSpan={3}>{t("grandTotal")}</td>
               <Cell
-                formControl={form.controls.total.controls.total}
+                formControl={form.controls.total.controls.totals.controls.total}
                 className="font-bold"
               />
             </tr>
