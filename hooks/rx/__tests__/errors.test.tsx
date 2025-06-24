@@ -2,7 +2,7 @@ import {render} from '@testing-library/react'
 import {mergeMap, of, Subject, throwError} from 'rxjs'
 import {expect, test} from 'vitest'
 
-import {useObservable} from '../useObservable.ts'
+import {useObservable} from '../useObservable'
 
 test('errors emitted by the observable should be thrown during the react render phase', () => {
   const subject = new Subject<{error: boolean; message: string}>()
