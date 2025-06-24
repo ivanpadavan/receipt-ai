@@ -14,8 +14,8 @@ export const overallMatchesQuantityPrice = (control: AbstractControl) => {
   const parent = control.parent as PositionForm;
   if (!parent) return null;
 
-  const quantity = parent.get('quantity')?.value || 0;
-  const price = parent.get('price')?.value || 0;
+  const quantity = parent.controls.quantity.value;
+  const price = parent.controls.price.value;
   const calculatedOverall = quantity * price;
 
   return Math.abs(calculatedOverall - control.value) > 0.01
@@ -27,15 +27,10 @@ export const positionsTotalMatchesSum = (control: AbstractControl) => {
   const parent = control.parent?.parent as ReceiptForm;
   if (!parent) return null;
 
-  const positionsArray = parent.get('positions') as FormArray;
+  const positionsArray = parent.controls.positions;
   if (!positionsArray) return null;
 
-  const positions = positionsArray.controls.map(control => ({
-    name: control.get('name')?.value || '',
-    quantity: control.get('quantity')?.value || 0,
-    price: control.get('price')?.value || 0,
-    overall: control.get('overall')?.value || 0
-  }));
+  const positions = positionsArray.getRawValue();
 
   const calculatedPositionsTotal = calculatePositionsTotal(positions);
 
@@ -48,18 +43,18 @@ export const totalMatchesCalculation = (control: AbstractControl) => {
   const parent = control.parent?.parent as ReceiptForm;
   if (!parent) return null;
 
-  const positionsTotal = parent.get('positionsTotal')?.value || 0;
+  const positionsTotal = parent.controls.total.controls.totals.controls.positionsTotal.value || 0;
 
-  const feesArray = parent.get('fees') as FormArray;
+  const feesArray = parent.controls.total.controls.fees;
   const fees = feesArray.controls.map(control => ({
-    name: control.get('name')?.value || '',
-    value: control.get('value')?.value || 0
+    name: control.controls.name.value || '',
+    value: control.controls.value.value || 0
   }));
 
-  const discountsArray = parent.get('discounts') as FormArray;
+  const discountsArray = parent.controls.total.controls.discounts;
   const discounts = discountsArray.controls.map(control => ({
-    name: control.get('name')?.value || '',
-    value: control.get('value')?.value || 0
+    name: control.controls.name.value || '',
+    value: control.controls.value.value || 0
   }));
 
   const feesSum = sumModifiers(fees);
