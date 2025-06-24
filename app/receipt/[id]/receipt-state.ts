@@ -3,12 +3,12 @@ import { FormControl } from "@/forms/form_control";
 import { FormGroup } from "@/forms/form_group";
 import { InferForm } from "@/forms/type";
 import { ValidatorFn } from "@/forms/validators";
-import { concat, Observable, of, Subject, switchMap } from "rxjs";
+import { concat, EMPTY, ignoreElements, merge, Observable, of, Subject, switchMap } from "rxjs";
 import { TranslationKey } from "@/app/i18n/translations";
 import {
   Receipt, validateReceipt, calculatePositionsTotal, calculateTotal
 } from "@/model/receipt/model";
-import { map } from "rxjs/operators";
+import { map, tap } from "rxjs/operators";
 import {
   stringNotEmpty,
   numberMoreThenZero,
@@ -16,7 +16,6 @@ import {
   positionsTotalMatchesSum,
   totalMatchesCalculation
 } from "./validators";
-import { db } from "@/app/db";
 
 type FormType = 'validation' | 'editing' | 'quantities';
 
@@ -52,7 +51,10 @@ export const receiptFormState$ = (
   const type = validateReceipt(initialData).isValid ? 'editing' as const : 'validation' as const;
 
   const positionCalculator = type === 'validation'
-    ? () => null
+    ? (form: PositionForm) => {
+      form.controls.overall.updateValueAndValidity({ onlySelf: true });
+      return null;
+    }
     : (form: PositionForm) => {
       if (Object.keys(form.controls).length !== 4) {
         return null;
@@ -124,9 +126,19 @@ export const receiptFormState$ = (
 
   form.addValidators(formCalculator as ValidatorFn);
 
+  let effect$ = EMPTY;
+
   if (type === 'editing') {
     form.controls.total.controls.total.disable();
     form.controls.total.controls.positionsTotal.disable();
+  } else if (type === 'validation') {
+    effect$ = form.value$.pipe(
+      tap(() => {
+        const {total, positionsTotal} = form.controls.total.controls;
+        [total, positionsTotal].forEach(control => control.updateValueAndValidity());
+      }),
+      ignoreElements()
+    );
   }
 
   // Initialize the form with the initial data
@@ -181,8 +193,11 @@ export const receiptFormState$ = (
 
   const nextStep$ = proceed$.pipe(switchMap(() => receiptFormState$(form.getRawValue(), openEditModal, receiptId)));
 
-  return concat(
-    of(state),
-    nextStep$,
+  return merge(
+    concat(
+      of(state),
+      nextStep$,
+      ),
+    effect$,
   );
 };
