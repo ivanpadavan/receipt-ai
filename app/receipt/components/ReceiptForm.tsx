@@ -19,7 +19,7 @@ import { RowDrawer } from "./RowDrawer";
 
 interface EditableReceiptFormProps {
   initialData: Receipt;
-  receiptId?: string;
+  receiptId: string;
 }
 
 export const ReceiptFormContext = createContext<ReceiptState | null>(null);
