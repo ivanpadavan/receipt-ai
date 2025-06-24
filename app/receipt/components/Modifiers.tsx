@@ -8,7 +8,7 @@ import { FormArrayTitle } from "./FormArrayTitle";
 import { ReceiptFormContext } from "./ReceiptForm";
 
 interface ItemsSectionProps {
-  type: "discounts" | "additions";
+  type: "discounts" | "fees";
   items: ModifierForm;
 }
 

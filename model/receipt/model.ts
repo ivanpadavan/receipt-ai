@@ -2,7 +2,7 @@ import { z } from "zod";
 import { recieptSchema } from "./schema";
 
 // Infer TypeScript types from Zod schema
-export type ReceiptModifier = z.infer<typeof recieptSchema>["total"]["additions"][number] | z.infer<typeof recieptSchema>["total"]["discounts"][number];
+export type ReceiptModifier = z.infer<typeof recieptSchema>["total"]["fees"][number] | z.infer<typeof recieptSchema>["total"]["discounts"][number];
 export type ReceiptPosition = z.infer<typeof recieptSchema>["positions"][number];
 export type ReceiptTotal = z.infer<typeof recieptSchema>["total"];
 export type Receipt = z.infer<typeof recieptSchema>;
@@ -23,8 +23,8 @@ export function calculatePositionsTotal(positions: ReceiptPosition[]): number {
   return positions.reduce((sum, position) => sum + position.overall, 0);
 }
 
-export function calculateTotal({ total: { positionsTotal, discounts, additions } }: Receipt) {
-  return positionsTotal + sumModifiers(additions) - sumModifiers(discounts);
+export function calculateTotal({ total: { positionsTotal, discounts, fees } }: Receipt) {
+  return positionsTotal + sumModifiers(fees) - sumModifiers(discounts);
 };
 
 
@@ -71,18 +71,18 @@ export function validatePositionsTotal({ positions, total: { positionsTotal } }:
 }
 
 /**
- * Validates that the final total equals positionsTotal + additions - discounts
+ * Validates that the final total equals positionsTotal + fees - discounts
  * @param positionsTotal The positions total value
- * @param additions Array of receipt additions
+ * @param fees Array of receipt fees
  * @param discounts Array of receipt discounts
  * @param total The final total value to validate
  * @returns Error message or empty string if valid
  */
 export function validateFinalTotal(receipt: Receipt): string {
-  const { positionsTotal, additions, discounts, total } = receipt.total;
+  const { positionsTotal, fees, discounts, total } = receipt.total;
   const calculatedTotal = calculateTotal(receipt);
   if (Math.abs(calculatedTotal - total) > 0.01) {
-    return `Final total ${total} doesn't match positionsTotal + additions - discounts (${positionsTotal} + ${sumModifiers(additions)} - ${sumModifiers(discounts)} = ${calculatedTotal})`;
+    return `Final total ${total} doesn't match positionsTotal + fees - discounts (${positionsTotal} + ${sumModifiers(fees)} - ${sumModifiers(discounts)} = ${calculatedTotal})`;
   }
 
   return '';
@@ -92,8 +92,8 @@ export function validateFinalTotal(receipt: Receipt): string {
  * Validates that a receipt's calculations are correct:
  * 1. Each position's overall value equals quantity * price
  * 2. The positionsTotal equals the sum of all position overall values
- * 3. The final total equals positionsTotal + sum of additions - sum of discounts
- * 4. The final total equals the direct sum of all position overall values + sum of additions - sum of discounts
+ * 3. The final total equals positionsTotal + sum of fees - sum of discounts
+ * 4. The final total equals the direct sum of all position overall values + sum of fees - sum of discounts
  *
  * @param receipt The receipt data to validate
  * @returns An object with isValid flag and any error messages

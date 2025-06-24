@@ -13,7 +13,7 @@ const ru = {
 
   // Modifiers section titles
   discounts: 'Скидки',
-  additions: 'Сборы',
+  fees: 'Сборы',
 
   // Modifiers field labels
   modifierName: 'Название',
@@ -51,7 +51,7 @@ const en: Translations = {
 
   // Modifiers section titles
   discounts: 'Discounts',
-  additions: 'Fees',
+  fees: 'Fees',
 
   // Modifiers field labels
   modifierName: 'Name',

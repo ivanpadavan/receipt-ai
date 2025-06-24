@@ -23,7 +23,7 @@ export type ReceiptForm = InferForm<Receipt>;
 
 export type PositionForm = ReceiptForm['controls']['positions']['controls'][0];
 
-export type ModifierForm = ReceiptForm['controls']['total']['controls']['additions'] | ReceiptForm['controls']['total']['controls']['discounts'];
+export type ModifierForm = ReceiptForm['controls']['total']['controls']['fees'] | ReceiptForm['controls']['total']['controls']['discounts'];
 
 export type AppendableForm = PositionForm | ModifierForm;
 
@@ -119,7 +119,7 @@ export const receiptFormState$ = (
       total: new FormControl(initialData.total.total, {
         validators: [totalMatchesCalculation]
       }),
-      additions: new FormArray(initialData.total.additions.map(defaultModifier)),
+      fees: new FormArray(initialData.total.fees.map(defaultModifier)),
       discounts: new FormArray(initialData.total.discounts.map(defaultModifier))
     })
   });
@@ -182,7 +182,7 @@ export const receiptFormState$ = (
         openEditModal({
           formGroup: newModifier as any,
           onFinish: () => {
-            const groupName = isAddition ? 'additions' : 'discounts';
+            const groupName = isAddition ? 'fees' : 'discounts';
             form.controls.total.controls[groupName].insert(0, newModifier);
           },
           header: header

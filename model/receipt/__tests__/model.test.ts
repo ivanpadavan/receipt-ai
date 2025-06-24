@@ -11,7 +11,7 @@ describe("validateReceipt", () => {
       ],
       total: {
         positionsTotal: 35, // 20 + 15
-        additions: [{ name: "Tax", value: 5 }],
+        fees: [{ name: "Tax", value: 5 }],
         discounts: [{ name: "Discount", value: 2 }],
         total: 38, // 35 + 5 - 2
       },
@@ -31,7 +31,7 @@ describe("validateReceipt", () => {
       ],
       total: {
         positionsTotal: 40, // Matches the sum of overall values (20 + 20)
-        additions: [],
+        fees: [],
         discounts: [],
         total: 40,
       },
@@ -55,7 +55,7 @@ describe("validateReceipt", () => {
       ],
       total: {
         positionsTotal: 40, // Incorrect (should be 35)
-        additions: [],
+        fees: [],
         discounts: [],
         total: 40,
       },
@@ -77,7 +77,7 @@ describe("validateReceipt", () => {
       ],
       total: {
         positionsTotal: 35, // Correct
-        additions: [{ name: "Tax", value: 5 }],
+        fees: [{ name: "Tax", value: 5 }],
         discounts: [{ name: "Discount", value: 2 }],
         total: 40, // Incorrect (should be 38)
       },
@@ -86,7 +86,7 @@ describe("validateReceipt", () => {
     const result = validateReceipt(receiptWithInvalidTotal);
     expect(result.isValid).toBe(false);
     expect(result.errors).toContain(
-      "Final total 40 doesn't match positionsTotal + additions - discounts (35 + 5 - 2 = 38)",
+      "Final total 40 doesn't match positionsTotal + fees - discounts (35 + 5 - 2 = 38)",
     );
   });
 
@@ -99,7 +99,7 @@ describe("validateReceipt", () => {
       ],
       total: {
         positionsTotal: 35, // Correct
-        additions: [{ name: "Tax", value: 5 }],
+        fees: [{ name: "Tax", value: 5 }],
         discounts: [{ name: "Discount", value: 2 }],
         total: 40, // Incorrect (should be 38)
       },
@@ -109,7 +109,7 @@ describe("validateReceipt", () => {
     expect(result.isValid).toBe(false);
     expect(result.errors).toMatchInlineSnapshot(`
      [
-       "Final total 40 doesn't match positionsTotal + additions - discounts (35 + 5 - 2 = 38)",
+       "Final total 40 doesn't match positionsTotal + fees - discounts (35 + 5 - 2 = 38)",
      ]
     `);
   });
@@ -123,7 +123,7 @@ describe("validateReceipt", () => {
       ],
       total: {
         positionsTotal: 45, // Incorrect (should be 40)
-        additions: [{ name: "Tax", value: 5 }],
+        fees: [{ name: "Tax", value: 5 }],
         discounts: [{ name: "Discount", value: 2 }],
         total: 50, // Incorrect (should be 43)
       },
@@ -140,7 +140,7 @@ describe("validateReceipt", () => {
       positions: [],
       total: {
         positionsTotal: 0,
-        additions: [],
+        fees: [],
         discounts: [],
         total: 0,
       },
@@ -151,19 +151,19 @@ describe("validateReceipt", () => {
     expect(result.errors).toHaveLength(0);
   });
 
-  // Test case for receipt with only additions
-  test("should handle receipt with only additions", () => {
-    const receiptWithOnlyAdditions: Receipt = {
+  // Test case for receipt with only fees
+  test("should handle receipt with only fees", () => {
+    const receiptWithOnlyfees: Receipt = {
       positions: [],
       total: {
         positionsTotal: 0,
-        additions: [{ name: "Service Fee", value: 10 }],
+        fees: [{ name: "Service Fee", value: 10 }],
         discounts: [],
         total: 10,
       },
     };
 
-    const result = validateReceipt(receiptWithOnlyAdditions);
+    const result = validateReceipt(receiptWithOnlyfees);
     expect(result.isValid).toBe(true);
     expect(result.errors).toHaveLength(0);
   });
@@ -174,7 +174,7 @@ describe("validateReceipt", () => {
       positions: [],
       total: {
         positionsTotal: 0,
-        additions: [],
+        fees: [],
         discounts: [{ name: "Promo", value: 5 }],
         total: -5,
       },

@@ -49,8 +49,8 @@ export const totalMatchesCalculation = (control: AbstractControl) => {
 
   const positionsTotal = parent.get('positionsTotal')?.value || 0;
 
-  const additionsArray = parent.get('additions') as FormArray;
-  const additions = additionsArray.controls.map(control => ({
+  const feesArray = parent.get('fees') as FormArray;
+  const fees = feesArray.controls.map(control => ({
     name: control.get('name')?.value || '',
     value: control.get('value')?.value || 0
   }));
@@ -61,11 +61,11 @@ export const totalMatchesCalculation = (control: AbstractControl) => {
     value: control.get('value')?.value || 0
   }));
 
-  const additionsSum = sumModifiers(additions);
+  const feesSum = sumModifiers(fees);
   const discountsSum = sumModifiers(discounts);
-  const calculatedTotal = positionsTotal + additionsSum - discountsSum;
+  const calculatedTotal = positionsTotal + feesSum - discountsSum;
 
   return Math.abs(calculatedTotal - control.value) > 0.01
-    ? { totalMismatch: `Final total ${control.value} doesn't match positionsTotal + additions - discounts (${positionsTotal} + ${additionsSum} - ${discountsSum} = ${calculatedTotal})` }
+    ? { totalMismatch: `Final total ${control.value} doesn't match positionsTotal + fees - discounts (${positionsTotal} + ${feesSum} - ${discountsSum} = ${calculatedTotal})` }
     : null;
 };
