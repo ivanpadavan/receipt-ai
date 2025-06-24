@@ -177,12 +177,12 @@ export const receiptFormState$ = (
         });
       } else {
         const newModifier = defaultModifier();
-        const isAddition = formToEdit === 'addFee';
-        const header = isAddition ? 'addFee' : 'addDiscount';
+        const isFee = formToEdit === 'addFee';
+        const header = isFee ? 'addFee' : 'addDiscount';
         openEditModal({
           formGroup: newModifier as any,
           onFinish: () => {
-            const groupName = isAddition ? 'fees' : 'discounts';
+            const groupName = isFee ? 'fees' : 'discounts';
             form.controls.total.controls[groupName].insert(0, newModifier);
           },
           header: header

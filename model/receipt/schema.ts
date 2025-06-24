@@ -7,7 +7,7 @@ export const positionSchema = z.object({
   overall: z.number().describe("The total price for this item (quantity * price)")
 });
 
-const additionModifierSchema = z.object({
+const feeModifierSchema = z.object({
   name: z.string().describe("The name of the modifier (e.g., 'VAT', 'Service Fee', etc)"),
   value: z.number().describe("The value of the modifier (positive)")
 });
@@ -19,7 +19,7 @@ const discountModifierSchema = z.object({
 
 export const totalSchema = z.object({
   positionsTotal: z.number().describe("The sum of all item totals before modifiers"),
-  fees: z.array(additionModifierSchema).describe("Array of modifiers that increase the total amount (e.g., tips, VAT)"),
+  fees: z.array(feeModifierSchema).describe("Array of modifiers that increase the total amount (e.g., tips, VAT)"),
   discounts: z.array(discountModifierSchema).describe("Array of modifiers that decrease the total amount (e.g., discounts)"),
   total: z.number().describe("The final total amount after all modifiers")
 });
