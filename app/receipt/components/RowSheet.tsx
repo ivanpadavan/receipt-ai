@@ -11,7 +11,7 @@ const isInErrorState = (c: AbstractControl, hideErrorsUntilTouched: boolean) => 
   return  c.errors !== null && (hideErrorsUntilTouched ? c.touched : true);
 }
 
-export const RowDrawer: React.FC<EditModalProps> = ({ formGroup, onFinish, remove, header }) => {
+export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove, header }) => {
   useObservable(formGroup.valueChanges);
   const hideModal = useContext(ModalContext)?.hideModal;
   if (!hideModal) {

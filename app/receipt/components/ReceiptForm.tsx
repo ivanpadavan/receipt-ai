@@ -16,7 +16,7 @@ import { CellGroup } from "./CellGroup";
 import styles from "./form.module.css";
 import { FormArrayTitle } from "./FormArrayTitle";
 import { Modifiers } from "./Modifiers";
-import { RowDrawer } from "./RowDrawer";
+import { RowSheet } from "./RowSheet";
 
 interface EditableReceiptFormProps {
   initialData: Receipt;
@@ -40,7 +40,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
   // Subscribe to the receipt state
   const { showModal } = useModal();
   const openEditModalCb = useCallback(
-    (props: EditModalProps) => showModal(<RowDrawer {...props} />),
+    (props: EditModalProps) => showModal(<RowSheet {...props} />),
     [showModal],
   );
 
