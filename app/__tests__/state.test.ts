@@ -1,10 +1,12 @@
-import type { apiClient } from "@/app/apiClient";
+import { apiClient } from "@/app/apiClient";
+import {describe, vi, beforeEach, test, expect} from "vitest";
 
-const mockApiClient = {
-  processReceipt: jest.fn(),
-} satisfies Pick<typeof apiClient, 'processReceipt'>;
-
-jest.mock('@/app/apiClient', () => ({ apiClient: mockApiClient }));
+vi.mock('@/app/apiClient', () => {
+  const apiClientMock = {
+      processReceipt: vi.fn(),
+    } satisfies Pick<typeof apiClient, 'processReceipt'>;
+  return { apiClient: apiClientMock };
+});
 
 import { pageState$ } from '../state';
 import { firstValueFrom } from 'rxjs';
@@ -14,7 +16,7 @@ import { take, toArray } from 'rxjs/operators';
 
 describe('pageState$', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('should initialize with correct default state', async () => {
@@ -94,7 +96,7 @@ describe('pageState$', () => {
     // Arrange
     const testImage = 'data:image/jpeg;base64,test123';
     const testReceiptId = 'test-receipt-id';
-    mockApiClient.processReceipt.mockResolvedValue({ id: testReceiptId });
+    vi.spyOn(apiClient, 'processReceipt').mockResolvedValue({ id: testReceiptId });
 
     const state$ = pageState$();
     const states = state$.pipe(take(5), toArray()).toPromise();
@@ -110,7 +112,7 @@ describe('pageState$', () => {
     const allStates = await states;
     const finalState = allStates[allStates.length - 1];
     // Assert
-    expect(mockApiClient.processReceipt).toHaveBeenCalledWith(testImage);
+    expect(apiClient.processReceipt).toHaveBeenCalledWith(testImage);
     expect(finalState.navigateTo).toBe(`/receipt/${testReceiptId}`);
   });
 
@@ -118,7 +120,7 @@ describe('pageState$', () => {
     // Arrange
     const testImage = 'data:image/jpeg;base64,test123';
     const errorMessage = 'Failed to process receipt';
-    mockApiClient.processReceipt.mockRejectedValue(new Error(errorMessage));
+    vi.spyOn(apiClient, 'processReceipt').mockRejectedValue(new Error(errorMessage));
 
     const state$ = pageState$();
     const states = state$.pipe(take(5), toArray()).toPromise();
@@ -135,7 +137,7 @@ describe('pageState$', () => {
     const finalState = allStates[allStates.length - 1];
 
     // Assert
-    expect(mockApiClient.processReceipt).toHaveBeenCalledWith(testImage);
+    expect(apiClient.processReceipt).toHaveBeenCalledWith(testImage);
     expect(finalState.error.errorMessage).toBe(errorMessage);
     expect(finalState.picture.status).toBe('picture-in');
   });
