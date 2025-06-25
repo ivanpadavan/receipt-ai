@@ -6,15 +6,15 @@ import { ValidatorFn } from "@/forms/validators";
 import { concat, EMPTY, ignoreElements, merge, Observable, of, Subject, switchMap } from "rxjs";
 import { TranslationKey } from "@/app/i18n/translations";
 import {
-  Receipt, validateReceipt, calculatePositionsTotal, calculateTotal
+  Receipt, validateReceipt, calculateTotal, calculateGrandTotal
 } from "@/model/receipt/model";
 import { map, tap } from "rxjs/operators";
 import {
   stringNotEmpty,
   numberMoreThenZero,
   overallMatchesQuantityPrice,
-  positionsTotalMatchesSum,
-  totalMatchesCalculation
+  positionsTotalMatchesSum as totalMatchesSum,
+  totalMatchesCalculation as grandTotalMatchesCalculation
 } from "./validators";
 
 type FormType = 'validation' | 'editing';
@@ -88,9 +88,9 @@ export const receiptFormState$ = (
   const formCalculator = type === 'validation'
     ? () => null
     : (form: ReceiptForm) => {
-      const { positionsTotal, total } = form.controls.total.controls.totals.controls;
-      positionsTotal.patchValue(calculatePositionsTotal(form.getRawValue().positions), { onlySelf: true });
-      total.patchValue(calculateTotal(form.getRawValue()), { onlySelf: true });
+      const { total, grandTotal } = form.controls.total.controls.totals.controls;
+      total.patchValue(calculateTotal(form.getRawValue().positions), { onlySelf: true });
+      grandTotal.patchValue(calculateGrandTotal(form.getRawValue()), { onlySelf: true });
       return null;
     }
 
@@ -135,11 +135,11 @@ export const receiptFormState$ = (
     positions: new FormArray(initialData.positions.map(defaultPosition)),
     total: new FormGroup({
       totals: new FormGroup({
-        positionsTotal: new FormControl(initialData.total.totals.positionsTotal, {
-          validators: [positionsTotalMatchesSum]
-        }),
         total: new FormControl(initialData.total.totals.total, {
-          validators: [totalMatchesCalculation]
+          validators: [totalMatchesSum]
+        }),
+        grandTotal: new FormControl(initialData.total.totals.grandTotal, {
+          validators: [grandTotalMatchesCalculation]
         })
       }),
       fees: new FormArray(initialData.total.fees.map(defaultModifier)),
@@ -152,13 +152,13 @@ export const receiptFormState$ = (
   let effect$ = EMPTY;
 
   if (type === 'editing') {
+    form.controls.total.controls.totals.controls.grandTotal.disable();
     form.controls.total.controls.totals.controls.total.disable();
-    form.controls.total.controls.totals.controls.positionsTotal.disable();
   } else if (type === 'validation') {
     effect$ = form.value$.pipe(
       tap(() => {
-        const {total, positionsTotal} = form.controls.total.controls.totals.controls;
-        [total, positionsTotal].forEach(control => control.updateValueAndValidity({ onlySelf: true }));
+        const {grandTotal, total} = form.controls.total.controls.totals.controls;
+        [grandTotal, total].forEach(control => control.updateValueAndValidity({ onlySelf: true }));
       }),
       ignoreElements()
     );

@@ -14,8 +14,8 @@ describe("Receipt Form State Management", () => {
     ],
     total: {
       totals: {
-        positionsTotal: 20,
-        total: 23
+        total: 20,
+        grandTotal: 23
       },
       fees: [
         {
@@ -43,8 +43,8 @@ describe("Receipt Form State Management", () => {
     ],
     total: {
       totals: {
-        positionsTotal: 25, // Incorrect positions total
-        total: 30 // Incorrect total
+        total: 25, // Incorrect total
+        grandTotal: 30 // Incorrect grand total
       },
       fees: [
         {
@@ -73,8 +73,8 @@ describe("Receipt Form State Management", () => {
       expect(form.controls.positions).toBeDefined();
       expect(form.controls.total).toBeDefined();
       expect(form.controls.total.controls.totals).toBeDefined();
-      expect(form.controls.total.controls.totals.controls.positionsTotal).toBeDefined();
       expect(form.controls.total.controls.totals.controls.total).toBeDefined();
+      expect(form.controls.total.controls.totals.controls.grandTotal).toBeDefined();
       expect(form.controls.total.controls.fees).toBeDefined();
       expect(form.controls.total.controls.discounts).toBeDefined();
 

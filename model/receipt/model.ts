@@ -18,12 +18,12 @@ export function validatePosition(position: ReceiptPosition): string {
  * @param positions Array of receipt positions
  * @returns The sum of all position overall values
  */
-export function calculatePositionsTotal(positions: ReceiptPosition[]): number {
+export function calculateTotal(positions: ReceiptPosition[]): number {
   return positions.reduce((sum, position) => sum + position.overall, 0);
 }
 
-export function calculateTotal({ total: { totals: { positionsTotal }, discounts, fees } }: Receipt) {
-  return positionsTotal + sumModifiers(fees) - sumModifiers(discounts);
+export function calculateGrandTotal({ total: { totals: { total }, discounts, fees } }: Receipt) {
+  return total + sumModifiers(fees) - sumModifiers(discounts);
 };
 
 
@@ -54,34 +54,34 @@ export function validateAllPositions(positions: ReceiptPosition[]): string[] {
 }
 
 /**
- * Validates that the positionsTotal equals the sum of all position overall values
+ * Validates that the total equals the sum of all position overall values
  * @param positions Array of receipt positions
- * @param positionsTotal The total value to validate
+ * @param total The total value to validate
  * @returns Error message or empty string if valid
  */
-export function validatePositionsTotal({ positions, total: { totals: { positionsTotal } } }: Receipt): string {
-  const calculatedPositionsTotal = calculatePositionsTotal(positions);
+export function validateTotal({ positions, total: { totals: { total } } }: Receipt): string {
+  const calculatedTotal = calculateTotal(positions);
 
-  if (Math.abs(calculatedPositionsTotal - positionsTotal) > 0.01) {
-    return `Positions total ${positionsTotal} doesn't match the sum of all position overall values (${calculatedPositionsTotal})`;
+  if (Math.abs(calculatedTotal - total) > 0.01) {
+    return `Total ${total} doesn't match the sum of all position overall values (${calculatedTotal})`;
   }
 
   return '';
 }
 
 /**
- * Validates that the final total equals positionsTotal + fees - discounts
- * @param positionsTotal The positions total value
+ * Validates that the final grand total equals total + fees - discounts
+ * @param total The total value
  * @param fees Array of receipt fees
  * @param discounts Array of receipt discounts
- * @param total The final total value to validate
+ * @param grandTotal The final grand total value to validate
  * @returns Error message or empty string if valid
  */
 export function validateFinalTotal(receipt: Receipt): string {
-  const { totals: { positionsTotal, total }, fees, discounts } = receipt.total;
-  const calculatedTotal = calculateTotal(receipt);
-  if (Math.abs(calculatedTotal - total) > 0.01) {
-    return `Final total ${total} doesn't match positionsTotal + fees - discounts (${positionsTotal} + ${sumModifiers(fees)} - ${sumModifiers(discounts)} = ${calculatedTotal})`;
+  const { totals: { total, grandTotal }, fees, discounts } = receipt.total;
+  const calculatedGrandTotal = calculateGrandTotal(receipt);
+  if (Math.abs(calculatedGrandTotal - grandTotal) > 0.01) {
+    return `Final grand total ${grandTotal} doesn't match total + fees - discounts (${total} + ${sumModifiers(fees)} - ${sumModifiers(discounts)} = ${calculatedGrandTotal})`;
   }
 
   return '';
@@ -90,9 +90,9 @@ export function validateFinalTotal(receipt: Receipt): string {
 /**
  * Validates that a receipt's calculations are correct:
  * 1. Each position's overall value equals quantity * price
- * 2. The positionsTotal equals the sum of all position overall values
- * 3. The final total equals positionsTotal + sum of fees - sum of discounts
- * 4. The final total equals the direct sum of all position overall values + sum of fees - sum of discounts
+ * 2. The total equals the sum of all position overall values
+ * 3. The final grand total equals total + sum of fees - sum of discounts
+ * 4. The final grand total equals the direct sum of all position overall values + sum of fees - sum of discounts
  *
  * @param receipt The receipt data to validate
  * @returns An object with isValid flag and any error messages
@@ -106,13 +106,13 @@ export function validateReceipt(receipt: Receipt): {
   // Validate each position's calculation
   errors.push(...validateAllPositions(receipt.positions));
 
-  // Validate positions total
-  const positionsTotalError = validatePositionsTotal(receipt);
-  if (positionsTotalError) {
-    errors.push(positionsTotalError);
+  // Validate total
+  const totalError = validateTotal(receipt);
+  if (totalError) {
+    errors.push(totalError);
   }
 
-  // Validate final total
+  // Validate final grand total
   const finalTotalError = validateFinalTotal(receipt);
   if (finalTotalError) {
     errors.push(finalTotalError);

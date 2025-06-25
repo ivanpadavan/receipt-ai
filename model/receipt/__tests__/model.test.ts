@@ -10,10 +10,10 @@ describe("validateReceipt", () => {
         { name: "Item 2", quantity: 1, price: 15, overall: 15 },
       ],
       total: {
-        positionsTotal: 35, // 20 + 15
+        total: 35, // 20 + 15
         fees: [{ name: "Tax", value: 5 }],
         discounts: [{ name: "Discount", value: 2 }],
-        total: 38, // 35 + 5 - 2
+        grandTotal: 38, // 35 + 5 - 2
       },
     };
 
@@ -30,10 +30,10 @@ describe("validateReceipt", () => {
         { name: "Item 2", quantity: 1, price: 15, overall: 20 }, // Incorrect (should be 15)
       ],
       total: {
-        positionsTotal: 40, // Matches the sum of overall values (20 + 20)
+        total: 40, // Matches the sum of overall values (20 + 20)
         fees: [],
         discounts: [],
-        total: 40,
+        grandTotal: 40,
       },
     };
 
@@ -46,70 +46,70 @@ describe("validateReceipt", () => {
     `);
   });
 
-  // Test case for invalid positions total
-  test("should detect invalid positions total", () => {
-    const receiptWithInvalidPositionsTotal: Receipt = {
-      positions: [
-        { name: "Item 1", quantity: 2, price: 10, overall: 20 },
-        { name: "Item 2", quantity: 1, price: 15, overall: 15 },
-      ],
-      total: {
-        positionsTotal: 40, // Incorrect (should be 35)
-        fees: [],
-        discounts: [],
-        total: 40,
-      },
-    };
-
-    const result = validateReceipt(receiptWithInvalidPositionsTotal);
-    expect(result.isValid).toBe(false);
-    expect(result.errors).toContain(
-      "Positions total 40 doesn't match the sum of all position overall values (35)",
-    );
-  });
-
-  // Test case for invalid final total calculation
-  test("should detect invalid final total calculation", () => {
+  // Test case for invalid total
+  test("should detect invalid total", () => {
     const receiptWithInvalidTotal: Receipt = {
       positions: [
         { name: "Item 1", quantity: 2, price: 10, overall: 20 },
         { name: "Item 2", quantity: 1, price: 15, overall: 15 },
       ],
       total: {
-        positionsTotal: 35, // Correct
-        fees: [{ name: "Tax", value: 5 }],
-        discounts: [{ name: "Discount", value: 2 }],
-        total: 40, // Incorrect (should be 38)
+        total: 40, // Incorrect (should be 35)
+        fees: [],
+        discounts: [],
+        grandTotal: 40,
       },
     };
 
     const result = validateReceipt(receiptWithInvalidTotal);
     expect(result.isValid).toBe(false);
     expect(result.errors).toContain(
-      "Final total 40 doesn't match positionsTotal + fees - discounts (35 + 5 - 2 = 38)",
+      "Total 40 doesn't match the sum of all position overall values (35)",
     );
   });
 
-  // Test case for invalid direct total calculation
-  test("should detect invalid direct total calculation", () => {
-    const receiptWithInvalidDirectTotal: Receipt = {
+  // Test case for invalid final grand total calculation
+  test("should detect invalid final grand total calculation", () => {
+    const receiptWithInvalidGrandTotal: Receipt = {
       positions: [
         { name: "Item 1", quantity: 2, price: 10, overall: 20 },
         { name: "Item 2", quantity: 1, price: 15, overall: 15 },
       ],
       total: {
-        positionsTotal: 35, // Correct
+        total: 35, // Correct
         fees: [{ name: "Tax", value: 5 }],
         discounts: [{ name: "Discount", value: 2 }],
-        total: 40, // Incorrect (should be 38)
+        grandTotal: 40, // Incorrect (should be 38)
       },
     };
 
-    const result = validateReceipt(receiptWithInvalidDirectTotal);
+    const result = validateReceipt(receiptWithInvalidGrandTotal);
+    expect(result.isValid).toBe(false);
+    expect(result.errors).toContain(
+      "Final grand total 40 doesn't match total + fees - discounts (35 + 5 - 2 = 38)",
+    );
+  });
+
+  // Test case for invalid direct grand total calculation
+  test("should detect invalid direct grand total calculation", () => {
+    const receiptWithInvalidDirectGrandTotal: Receipt = {
+      positions: [
+        { name: "Item 1", quantity: 2, price: 10, overall: 20 },
+        { name: "Item 2", quantity: 1, price: 15, overall: 15 },
+      ],
+      total: {
+        total: 35, // Correct
+        fees: [{ name: "Tax", value: 5 }],
+        discounts: [{ name: "Discount", value: 2 }],
+        grandTotal: 40, // Incorrect (should be 38)
+      },
+    };
+
+    const result = validateReceipt(receiptWithInvalidDirectGrandTotal);
     expect(result.isValid).toBe(false);
     expect(result.errors).toMatchInlineSnapshot(`
      [
-       "Final total 40 doesn't match positionsTotal + fees - discounts (35 + 5 - 2 = 38)",
+       "Final grand total 40 doesn't match total + fees - discounts (35 + 5 - 2 = 38)",
      ]
     `);
   });
@@ -122,10 +122,10 @@ describe("validateReceipt", () => {
         { name: "Item 2", quantity: 1, price: 15, overall: 15 }, // Correct
       ],
       total: {
-        positionsTotal: 45, // Incorrect (should be 40)
+        total: 45, // Incorrect (should be 40)
         fees: [{ name: "Tax", value: 5 }],
         discounts: [{ name: "Discount", value: 2 }],
-        total: 50, // Incorrect (should be 43)
+        grandTotal: 50, // Incorrect (should be 48)
       },
     };
 
@@ -139,10 +139,10 @@ describe("validateReceipt", () => {
     const receiptWithEmptyPositions: Receipt = {
       positions: [],
       total: {
-        positionsTotal: 0,
+        total: 0,
         fees: [],
         discounts: [],
-        total: 0,
+        grandTotal: 0,
       },
     };
 
@@ -156,10 +156,10 @@ describe("validateReceipt", () => {
     const receiptWithOnlyfees: Receipt = {
       positions: [],
       total: {
-        positionsTotal: 0,
+        total: 0,
         fees: [{ name: "Service Fee", value: 10 }],
         discounts: [],
-        total: 10,
+        grandTotal: 10,
       },
     };
 
@@ -173,10 +173,10 @@ describe("validateReceipt", () => {
     const receiptWithOnlyDiscounts: Receipt = {
       positions: [],
       total: {
-        positionsTotal: 0,
+        total: 0,
         fees: [],
         discounts: [{ name: "Promo", value: 5 }],
-        total: -5,
+        grandTotal: -5,
       },
     };
 

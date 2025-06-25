@@ -18,8 +18,8 @@ const discountModifierSchema = z.object({
 });
 
 export const receiptTotalsSchema = z.object({
-  positionsTotal: z.number().describe("The sum of all item totals before all fees and discounts"),
-  total: z.number().describe("The final total amount after all fees and discounts"),
+  total: z.number().describe("The sum of all item totals before all fees and discounts"),
+  grandTotal: z.number().describe("The final total amount after all fees and discounts"),
 });
 
 export const totalSchema = z.object({

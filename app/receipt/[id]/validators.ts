@@ -1,6 +1,6 @@
 import { PositionForm, ReceiptForm } from "@/app/receipt/[id]/receipt-state";
 import { AbstractControl } from "@/forms/abstract_model";
-import { calculatePositionsTotal, sumModifiers } from "@/model/receipt/model";
+import { calculateTotal, sumModifiers } from "@/model/receipt/model";
 
 // Validators
 export const stringNotEmpty = (control: AbstractControl<string>) =>
@@ -31,10 +31,10 @@ export const positionsTotalMatchesSum = (control: AbstractControl) => {
 
   const positions = positionsArray.getRawValue();
 
-  const calculatedPositionsTotal = calculatePositionsTotal(positions);
+  const calculatedTotal = calculateTotal(positions);
 
-  return Math.abs(calculatedPositionsTotal - control.value) > 0.01
-    ? { positionsTotalMismatch: `Positions total ${control.value} doesn't match the sum of all position overall values (${calculatedPositionsTotal})` }
+  return Math.abs(calculatedTotal - control.value) > 0.01
+    ? { totalMismatch: `Total ${control.value} doesn't match the sum of all position overall values (${calculatedTotal})` }
     : null;
 };
 
@@ -42,7 +42,7 @@ export const totalMatchesCalculation = (control: AbstractControl) => {
   const parent = control.parent?.parent?.parent as ReceiptForm;
   if (!parent) return null;
 
-  const positionsTotal = parent.controls.total.controls.totals.controls.positionsTotal.value || 0;
+  const total = parent.controls.total.controls.totals.controls.total.value || 0;
 
   const feesArray = parent.controls.total.controls.fees;
   const fees = feesArray.controls.map(control => ({
@@ -58,9 +58,9 @@ export const totalMatchesCalculation = (control: AbstractControl) => {
 
   const feesSum = sumModifiers(fees);
   const discountsSum = sumModifiers(discounts);
-  const calculatedTotal = positionsTotal + feesSum - discountsSum;
+  const calculatedGrandTotal = total + feesSum - discountsSum;
 
-  return Math.abs(calculatedTotal - control.value) > 0.01
-    ? { totalMismatch: `Final total ${control.value} doesn't match positionsTotal + fees - discounts (${positionsTotal} + ${feesSum} - ${discountsSum} = ${calculatedTotal})` }
+  return Math.abs(calculatedGrandTotal - control.value) > 0.01
+    ? { grandTotalMismatch: `Final grand total ${control.value} doesn't match total + fees - discounts (${total} + ${feesSum} - ${discountsSum} = ${calculatedGrandTotal})` }
     : null;
 };
