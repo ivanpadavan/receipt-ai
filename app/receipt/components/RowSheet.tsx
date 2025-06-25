@@ -1,5 +1,5 @@
 import { EditModalProps } from "@/app/receipt/[id]/receipt-state";
-import { ModalContext } from "@/components/ui/modal/ModalContext";
+import { ModalContext, useModal } from "@/components/ui/modal/ModalContext";
 import { AbstractControl } from "@/forms/abstract_model";
 import { FormControl } from "@/forms/form_control";
 import { ValidationErrors } from "@/forms/validators";
@@ -13,11 +13,8 @@ const isInErrorState = (c: AbstractControl, hideErrorsUntilTouched: boolean) => 
 
 export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove, header }) => {
   useObservable(formGroup.valueChanges);
-  const hideModal = useContext(ModalContext)?.hideModal;
-  if (!hideModal) {
-    throw new Error('ModalContext not found');
-  }
-  const hideErrorsUntilTouched = !remove;
+  const { hideModal } = useModal();
+  const hideErrorsUntilTouched = !remove && header !== 'overall';
   const controls = useMemo(() => Object.entries(formGroup.controls), [formGroup]) as [TranslationKey, FormControl<string | number>][];
   const errors = controls
     .filter(([, c]) => isInErrorState(c, hideErrorsUntilTouched))
