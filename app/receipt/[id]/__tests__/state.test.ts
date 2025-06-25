@@ -1,5 +1,6 @@
 import { ReceiptState, receiptFormState$ } from "../receipt-state";
 import { Receipt } from "@/model/receipt/model";
+import { describe, expect, it } from "vitest";
 
 describe("Receipt Form State Management", () => {
   // Sample receipt data for testing
@@ -61,7 +62,7 @@ describe("Receipt Form State Management", () => {
     }
   };
 
-  it("should create a valid form state for a valid receipt", (done) => {
+  it("should create a valid form state for a valid receipt", () => {
     const state$ = receiptFormState$(validReceipt);
 
     state$.subscribe((state: ReceiptState) => {
@@ -83,17 +84,15 @@ describe("Receipt Form State Management", () => {
       expect(form.controls.positions.controls[0].controls.quantity.value).toBe(2);
       expect(form.controls.positions.controls[0].controls.price.value).toBe(10);
       expect(form.controls.positions.controls[0].controls.overall.value).toBe(20);
-      expect(form.controls.total.controls.totals.controls.positionsTotal.value).toBe(20);
-      expect(form.controls.total.controls.totals.controls.total.value).toBe(23);
+      expect(form.controls.total.controls.totals.controls.total.value).toBe(20);
+      expect(form.controls.total.controls.totals.controls.grandTotal.value).toBe(23);
 
       // Check form validity
       expect(form.valid).toBe(true);
-
-      done();
     });
   });
 
-  it("should create a validation form state for an invalid receipt", (done) => {
+  it("should create a validation form state for an invalid receipt", () => {
     const state$ = receiptFormState$(invalidReceipt);
 
     state$.subscribe((state: ReceiptState) => {
@@ -105,8 +104,8 @@ describe("Receipt Form State Management", () => {
       expect(form.controls.positions).toBeDefined();
       expect(form.controls.total).toBeDefined();
       expect(form.controls.total.controls.totals).toBeDefined();
-      expect(form.controls.total.controls.totals.controls.positionsTotal).toBeDefined();
       expect(form.controls.total.controls.totals.controls.total).toBeDefined();
+      expect(form.controls.total.controls.totals.controls.grandTotal).toBeDefined();
       expect(form.controls.total.controls.fees).toBeDefined();
       expect(form.controls.total.controls.discounts).toBeDefined();
 
@@ -115,8 +114,8 @@ describe("Receipt Form State Management", () => {
       expect(form.controls.positions.controls[0].controls.quantity.value).toBe(2);
       expect(form.controls.positions.controls[0].controls.price.value).toBe(10);
       expect(form.controls.positions.controls[0].controls.overall.value).toBe(25);
-      expect(form.controls.total.controls.totals.controls.positionsTotal.value).toBe(25);
-      expect(form.controls.total.controls.totals.controls.total.value).toBe(30);
+      expect(form.controls.total.controls.totals.controls.total.value).toBe(25);
+      expect(form.controls.total.controls.totals.controls.grandTotal.value).toBe(30);
 
       // Check form validity
       expect(form.valid).toBe(false);
@@ -124,17 +123,19 @@ describe("Receipt Form State Management", () => {
       // Check specific validation errors
       const positionOverall = form.controls.positions.controls[0].controls.overall;
       expect(positionOverall.errors).toBeDefined();
-      expect(positionOverall.errors?.['overallMismatch']).toBeDefined();
+      expect(positionOverall.errors).toMatchInlineSnapshot(`
+        {
+          "overallMismatch": "Overall value 25 doesn't match quantity * price (2 * 10 = 20)",
+        }
+      `);
 
       const total = form.controls.total.controls.totals.controls.total;
       expect(total.errors).toBeDefined();
-      expect(total.errors?.['totalMismatch']).toBeDefined();
-
-      done();
+      expect(total.errors).toMatchInlineSnapshot(`null`);
     });
   });
 
-  it("should update calculated values when form values change", (done) => {
+  it("should update calculated values when form values change", () => {
     const state$ = receiptFormState$(validReceipt);
 
     state$.subscribe((state: ReceiptState) => {
@@ -148,12 +149,10 @@ describe("Receipt Form State Management", () => {
       expect(positionGroup.controls.overall.value).toBe(30);
 
       // Check if positionsTotal is updated
-      expect(form.controls.total.controls.totals.controls.positionsTotal.value).toBe(30);
+      expect(form.controls.total.controls.totals.controls.total.value).toBe(30);
 
       // Check if total is updated
-      expect(form.controls.total.controls.totals.controls.total.value).toBe(33);
-
-      done();
+      expect(form.controls.total.controls.totals.controls.grandTotal.value).toBe(33);
     });
   });
 });

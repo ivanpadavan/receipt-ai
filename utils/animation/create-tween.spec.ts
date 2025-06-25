@@ -3,6 +3,10 @@ import { lastValueFrom } from 'rxjs';
 import { tap, toArray } from 'rxjs/operators';
 
 import { createTween } from './create-tween';
+import {describe, it, expect, beforeAll,vi} from "vitest";
+
+vi.useFakeTimers({toFake:['requestAnimationFrame','cancelAnimationFrame','performance'],shouldAdvanceTime:true});
+vi.advanceTimersToNextFrame();
 
 const linear = (t: number): number => t;
 const easeOutSine = (t: number): number => Math.sin(t * (Math.PI / 2));
@@ -17,6 +21,7 @@ describe('RxJS Create Tween', () => {
 
     beforeAll(async () => {
       samples = await lastValueFrom(createTween(linear, 0, 1, 100).pipe(toArray()));
+      console.log(samples);
     });
 
     it('should exist', () => {

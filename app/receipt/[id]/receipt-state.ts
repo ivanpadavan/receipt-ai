@@ -66,8 +66,8 @@ const permissions: Record<FormType, CanEdit> = {
 
 export const receiptFormState$ = (
   initialData: Receipt,
-  openEditModal: (v: EditModalProps) => void,
-  receiptId: string,
+  openEditModal: (v: EditModalProps) => void = () => void 0,
+  receiptId: string = '',
 ): Observable<ReceiptState> => {
   const type = validateReceipt(initialData).isValid ? 'editing' as const : 'validation' as const;
 
