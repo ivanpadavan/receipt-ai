@@ -1,4 +1,4 @@
-import { apiClient } from "@/app/apiClient";
+import { apiClient } from "@/app/api-client";
 import {describe, vi, beforeEach, test, expect} from "vitest";
 
 vi.mock('@/app/apiClient', () => {

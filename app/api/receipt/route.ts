@@ -5,7 +5,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
 import { db } from "@/app/db";
-
+import { Session } from "next-auth";
+import postValidator from "@/app/api-client/receipt/post";
+import putValidator from "@/app/api-client/receipt/put";
+import { ApiValidator } from "@/app/api-client/api-validator";
 
 // Edge runtime is not compatible with Prisma, so we need to use the Node.js runtime
 export const runtime = "nodejs";
@@ -44,11 +47,7 @@ const fixErrorsChain = fixErrorsPrompt.pipe(
   model.withStructuredOutput(recieptSchema, { name: "receipt_data_extractor" })
 );
 
-/**
- * This handler initializes and calls a Google Gemini powered
- * structured output chain for receipt processing.
- */
-export async function POST(req: NextRequest) {
+async function errorWrap<T extends ApiValidator>(req: NextRequest, validator: T, cb: (v: { session: Session, body: ReturnType<T['request']['parse']> }) => Promise<NextResponse<ReturnType<T['response']['parse']>>>) {
   try {
     // Get the user's session
     const session = await auth();
@@ -60,15 +59,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const userId = session.user.id;
-    const body = await req.json();
+    const body = validator.request.parse(await req.json()) as ReturnType<T['request']['parse']>;
 
-    if (!body.image) {
-      return NextResponse.json(
-        { error: "No image provided" },
-        { status: 400 }
-      );
-    }
+    return cb({ session, body });
+  } catch (e: any) {
+    console.error("API Error:", e);
+    return NextResponse.json(
+      { error: e.message },
+      { status: e.status ?? 500 },
+    );
+  }
+}
+
+/**
+ * This handler initializes and calls a Google Gemini powered
+ * structured output chain for receipt processing.
+ */
+export async function POST(req: NextRequest) {
+  return errorWrap(req, postValidator, async ({ session, body }) => {
+    const userId = session.user.id;
 
     // Process the image
     let result: Receipt = await imageChain.invoke({ image_base64: body.image });
@@ -88,20 +97,23 @@ export async function POST(req: NextRequest) {
     const receipt = await db.receipt.create({
       data: {
         userId,
-        data: result as any, // Store the receipt data as JSON
+        data: result as Receipt, // Store the receipt data as JSON
       },
     });
 
     // Return the receipt ID instead of the full data
     return NextResponse.json({
       id: receipt.id,
-      message: "Receipt processed successfully"
     }, { status: 200 });
-  } catch (e: any) {
-    console.error("Error processing receipt:", e);
-    return NextResponse.json(
-      { error: e.message },
-      { status: e.status ?? 500 }
-    );
-  }
+  });
+}
+
+/**
+ * FIXME ability to change only for users that visited
+ */
+export async function PUT(req: NextRequest) {
+  return errorWrap(req, putValidator, async ({ body }) => {
+    await db.receipt.update({ where: { id: body.id }, data: { data: body.data } });
+    return NextResponse.json({ success: true }, { status: 200 });
+  })
 }

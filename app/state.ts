@@ -1,4 +1,4 @@
-import { apiClient } from "@/app/apiClient";
+import { apiClient } from "@/app/api-client";
 import { actions, createAction, dispatch, ofType, props } from "@ngneat/effects";
 import { createStore, emitOnce, withProps } from "@ngneat/elf";
 import { catchError, EMPTY, finalize, from, merge, switchMap } from "rxjs";
