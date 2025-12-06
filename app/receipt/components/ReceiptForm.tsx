@@ -24,6 +24,7 @@ import { Modifiers } from "./Modifiers";
 import { RowSheet } from "./RowSheet";
 import deepEqual from "deep-eql";
 import { distinctUntilChanged, Observable, startWith } from "rxjs";
+import { receiptSchema } from "@/model/receipt/schema";
 
 interface EditableReceiptFormProps {
   initialData: Receipt;
@@ -55,7 +56,13 @@ const useReceiptWithUpdates = (initialData: Receipt, receiptId: string) => {
         console.log("SSE connected");
       };
 
-      eventSource.onmessage = (event) => handler.next(JSON.parse(event.data));
+      eventSource.onmessage = (event) => {
+        const { data, success } = receiptSchema.safeParse(JSON.parse(event.data));
+        console.log(event, data, success);
+        if (success) {
+          handler.next(data);
+        }
+      }
 
       // TODO indication that connection is lost
       eventSource.onerror = () => handler.error(new Error('sse disconnected'));

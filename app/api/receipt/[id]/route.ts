@@ -35,15 +35,21 @@ export async function GET(
       await client.query(`LISTEN "${channelName}"`);
       console.log(`Listening to ${channelName}`);
       client.on('notification', async () => {
-        const { data } = await db.receipt.findUnique({
+        const res = await db.receipt.findUnique({
           where: { id: receiptId },
         });
+        if (!res) {
+          throw new Error('Receipt not found');
+        }
+        const data = res.data;
         console.log(`notify about ${channelName}`);
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
       });
       client.on('error', (err) => {
         console.error('Connection error:', err);
       });
+
+      controller.enqueue(encoder.encode(`data: "connection established"\n\n`));
 
 
       // Cleanup on close
