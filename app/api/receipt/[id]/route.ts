@@ -1,7 +1,6 @@
 import { db } from "@/app/db";
 import { NextRequest } from "next/server";
-
-export const connections = new Map<string, Set<ReadableStreamDefaultController>>();
+import { Client } from 'pg';
 
 export const runtime = "nodejs";
 
@@ -22,30 +21,42 @@ export async function GET(
 
   // Create SSE stream
   const stream = new ReadableStream({
-    start(controller) {
-      // Add this connection to the receipt's connection set
-      if (!connections.has(receiptId)) {
-        connections.set(receiptId, new Set());
-      }
-      connections.get(receiptId)!.add(controller);
-      console.log(connections.size);
-
-      // Send initial connection message
+    async start(controller) {
       const encoder = new TextEncoder();
-      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "connected" })}\n\n`));
+
+      // Add this connection to the receipt's connection set
+      const client = new Client({
+        connectionString: process.env.DATABASE_URL,
+      });
+      await client.connect();
+
+      // Подписываемся на канал
+      const channelName = `receipt-${receiptId}`
+      await client.query(`LISTEN "${channelName}"`);
+      console.log(`Listening to ${channelName}`);
+      client.on('notification', async () => {
+        const { data } = await db.receipt.findUnique({
+          where: { id: receiptId },
+        });
+        console.log(`notify about ${channelName}`);
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+      });
+      client.on('error', (err) => {
+        console.error('Connection error:', err);
+      });
+
 
       // Cleanup on close
       req.signal.addEventListener("abort", () => {
-        connections.get(receiptId)?.delete(controller);
-        if (connections.get(receiptId)?.size === 0) {
-          connections.delete(receiptId);
-        }
         try {
           controller.close();
+          client.end();
         } catch (e) {
           // Already closed
         }
       });
+
+      await new Promise(() => {});
     },
   });
 

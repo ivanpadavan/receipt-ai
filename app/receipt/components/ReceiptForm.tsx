@@ -14,7 +14,6 @@ import React, {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
 } from "react";
 import { Cell } from "./Cell";
@@ -23,6 +22,8 @@ import styles from "./form.module.css";
 import { FormArrayTitle } from "./FormArrayTitle";
 import { Modifiers } from "./Modifiers";
 import { RowSheet } from "./RowSheet";
+import deepEqual from "deep-eql";
+import { distinctUntilChanged, Observable, startWith } from "rxjs";
 
 interface EditableReceiptFormProps {
   initialData: Receipt;
@@ -39,6 +40,33 @@ export const useReceiptState = (): ReceiptState => {
   return ctx;
 }
 
+const useReceiptWithUpdates = (initialData: Receipt, receiptId: string) => {
+  return useObservable<Observable<Receipt>>(useMemo(() => {
+    return new Observable<Receipt>((handler) => {
+      if (typeof window === 'undefined') {
+        handler.next(initialData);
+        handler.complete();
+        return;
+      }
+
+      const eventSource = new EventSource(`/api/receipt/${receiptId}`);
+
+      eventSource.onopen = () => {
+        console.log("SSE connected");
+      };
+
+      eventSource.onmessage = (event) => handler.next(JSON.parse(event.data));
+
+      eventSource.onerror = () => handler.error(new Error('sse disconnected'));
+
+      return () => eventSource.close();
+    }).pipe(
+      startWith(initialData),
+      distinctUntilChanged(deepEqual),
+    )
+  }, [receiptId, initialData]), forceSync);
+}
+
 export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
   initialData,
   receiptId,
@@ -50,32 +78,12 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
     [showModal],
   );
 
-  useEffect(() => {
-    let eventSource: EventSource | null = null;
-
-    const connect = () => {
-      eventSource = new EventSource(`/api/receipt/${receiptId}`);
-
-      eventSource.onopen = () => {
-        console.log("SSE connected");
-      };
-
-      eventSource.onmessage = (event) => {
-          console.log(event.data);
-      };
-    };
-
-    connect();
-
-    return () => {
-      eventSource?.close();
-    };
-  }, [receiptId]);
+  const receipt = useReceiptWithUpdates(initialData, receiptId);
 
   const formState = useObservable(
     useMemo(
-      () => receiptFormState$(initialData, openEditModalCb, receiptId),
-      [initialData, openEditModalCb, receiptId],
+      () => receiptFormState$(receipt, openEditModalCb, receiptId),
+      [receipt, openEditModalCb, receiptId],
     ),
     forceSync,
   );
