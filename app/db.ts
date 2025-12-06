@@ -1,5 +1,5 @@
 import { PrismaClient } from "@/prisma/generated/prisma";
-import { PrismaLibSQL } from '@prisma/adapter-libsql';
+import { PrismaNeon } from '@prisma/adapter-neon';
 
 // PrismaClient is attached to the `global` object in development to prevent
 // exhausting your database connection limit.
@@ -11,9 +11,8 @@ export const db =
   globalForPrisma.prisma ||
   new PrismaClient({
     log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
-    adapter: new PrismaLibSQL({
-      url: `${process.env.TURSO_DATABASE_URL}`,
-      authToken: `${process.env.TURSO_AUTH_TOKEN}`,
+    adapter: new PrismaNeon({
+      connectionString: process.env.DATABASE_URL,
     })
   });
 
