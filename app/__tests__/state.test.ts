@@ -3,8 +3,8 @@ import {describe, vi, beforeEach, test, expect} from "vitest";
 
 vi.mock('@/app/apiClient', () => {
   const apiClientMock = {
-      processReceipt: vi.fn(),
-    } satisfies Pick<typeof apiClient, 'processReceipt'>;
+      createReceipt: vi.fn(),
+    } satisfies Pick<typeof apiClient, 'createReceipt'>;
   return { apiClient: apiClientMock };
 });
 
@@ -96,7 +96,7 @@ describe('pageState$', () => {
     // Arrange
     const testImage = 'data:image/jpeg;base64,test123';
     const testReceiptId = 'test-receipt-id';
-    vi.spyOn(apiClient, 'processReceipt').mockResolvedValue({ id: testReceiptId });
+    vi.spyOn(apiClient, 'createReceipt').mockResolvedValue({ id: testReceiptId });
 
     const state$ = pageState$();
     const states = state$.pipe(take(5), toArray()).toPromise();
@@ -112,7 +112,7 @@ describe('pageState$', () => {
     const allStates = await states;
     const finalState = allStates[allStates.length - 1];
     // Assert
-    expect(apiClient.processReceipt).toHaveBeenCalledWith(testImage);
+    expect(apiClient.createReceipt).toHaveBeenCalledWith(testImage);
     expect(finalState.navigateTo).toBe(`/receipt/${testReceiptId}`);
   });
 
@@ -120,7 +120,7 @@ describe('pageState$', () => {
     // Arrange
     const testImage = 'data:image/jpeg;base64,test123';
     const errorMessage = 'Failed to process receipt';
-    vi.spyOn(apiClient, 'processReceipt').mockRejectedValue(new Error(errorMessage));
+    vi.spyOn(apiClient, 'createReceipt').mockRejectedValue(new Error(errorMessage));
 
     const state$ = pageState$();
     const states = state$.pipe(take(5), toArray()).toPromise();
@@ -137,7 +137,7 @@ describe('pageState$', () => {
     const finalState = allStates[allStates.length - 1];
 
     // Assert
-    expect(apiClient.processReceipt).toHaveBeenCalledWith(testImage);
+    expect(apiClient.createReceipt).toHaveBeenCalledWith(testImage);
     expect(finalState.error.errorMessage).toBe(errorMessage);
     expect(finalState.picture.status).toBe('picture-in');
   });

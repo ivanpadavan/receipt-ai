@@ -1,3 +1,18 @@
+import postValidator from './receipt/post';
+import putValidator from './receipt/put';
+import { ApiValidator } from "@/app/api-client/api-validator";
+
+async function requestWrapper<T extends ApiValidator>(apiPath: string, method: 'POST' | 'PUT', validator: T, body: ReturnType<T['request']['parse']>): Promise<ReturnType<T['response']['parse']>> {
+  const response = await fetch(apiPath, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  return validator.response.parse(await response.json());
+}
 /**
  * Service for handling receipt-related API calls
  */
@@ -7,27 +22,12 @@ export const apiClient = {
    * @param imageBase64 - Base64 encoded image data
    * @returns Promise with the receipt data including ID
    */
-  async processReceipt(imageBase64: string): Promise<{ id: string }> {
+  async createReceipt(imageBase64: string) {
     const image = await import("@/utils/imageProcessing").then(({ processImage }) => processImage(imageBase64));
+    return requestWrapper('/api/receipt', 'POST', postValidator, { image });
+  },
 
-    const response = await fetch('/api/receipt', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ image }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to process receipt');
-    }
-
-    if (!data.id) {
-      throw new Error('No receipt ID returned from the server');
-    }
-
-    return data;
+  async updateReceipt(receipt: ReturnType<typeof putValidator['request']['parse']>) {
+    return requestWrapper('/api/receipt', 'PUT', putValidator, receipt);
   }
 }

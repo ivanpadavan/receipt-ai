@@ -95,7 +95,7 @@ export const pageState$ = () => {
   const parseReceipt$ = actions.pipe(
     ofType(parseReceipt),
     switchMap(({ imageBase64 }) => {
-      return from(apiClient.processReceipt(imageBase64)).pipe(
+      return from(apiClient.createReceipt(imageBase64)).pipe(
         switchMap((data) => {
           store.update((state) => ({ ...state, navigateTo: `/receipt/${data.id}` }));
           return EMPTY;

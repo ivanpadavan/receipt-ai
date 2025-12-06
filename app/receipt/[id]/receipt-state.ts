@@ -3,7 +3,18 @@ import { FormControl } from "@/forms/form_control";
 import { FormGroup } from "@/forms/form_group";
 import { InferForm } from "@/forms/type";
 import { ValidatorFn } from "@/forms/validators";
-import { concat, EMPTY, ignoreElements, merge, Observable, of, Subject, switchMap } from "rxjs";
+import {
+  concat,
+  defer,
+  EMPTY,
+  from,
+  ignoreElements,
+  merge,
+  Observable,
+  of,
+  Subject,
+  switchMap,
+} from "rxjs";
 import { TranslationKey } from "@/app/i18n/translations";
 import {
   Receipt, validateReceipt, calculateTotal, calculateGrandTotal
@@ -16,6 +27,7 @@ import {
   positionsTotalMatchesSum as totalMatchesSum,
   totalMatchesCalculation as grandTotalMatchesCalculation
 } from "./validators";
+import { apiClient } from "@/app/api-client";
 
 type FormType = 'validation' | 'editing';
 
@@ -149,16 +161,24 @@ export const receiptFormState$ = (
 
   form.addValidators(formCalculator as ValidatorFn);
 
+  const updateForm$ = defer(() => apiClient.updateReceipt({ id: receiptId, data: form.getRawValue() }))
+
   let effect$ = EMPTY;
 
   if (type === 'editing') {
     form.controls.total.controls.totals.controls.grandTotal.disable();
     form.controls.total.controls.totals.controls.total.disable();
+    effect$ = form.value$.pipe(
+      switchMap(() => updateForm$),
+      ignoreElements(),
+    );
   } else if (type === 'validation') {
     effect$ = form.value$.pipe(
-      tap(() => {
+      switchMap(() => {
         const {grandTotal, total} = form.controls.total.controls.totals.controls;
         [grandTotal, total].forEach(control => control.updateValueAndValidity({ onlySelf: true }));
+
+        return updateForm$;
       }),
       ignoreElements()
     );
