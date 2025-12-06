@@ -38,7 +38,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           email: `${id}@gmail.com`,
           emailVerified: null,
         };
-        console.log(`[auth] new anonymous user created`, user);
+        // console.log(`[auth] new anonymous user created`, user);
         return adapter.createUser(user);
       },
     }),
@@ -49,7 +49,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   },
   callbacks: {
     async jwt({ token, user, account }) {
-      console.log('[auth] jwt', { token, user, account });
+      // console.log('[auth] jwt', { token, user, account });
       if (!user && (upgradedUserIds.has(token.user.id || '') )) {
         const actualUser = await db.user.findUnique({
           where: { id: token.user.id || '' },
@@ -80,7 +80,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   },
   events: {
     linkAccount: async (v) => {
-      console.log('[auth] link account', v);
+      // console.log('[auth] link account', v);
       if (v.user.name !== ANONYMOUS_NAME) {
         return;
       }

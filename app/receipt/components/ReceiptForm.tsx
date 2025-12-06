@@ -10,7 +10,13 @@ import { Button } from "@/components/ui/button";
 import { useModal } from "@/components/ui/modal/ModalContext";
 import { forceSync, useObservable } from "@/hooks/rx/useObservable";
 import { Receipt } from "@/model/receipt/model";
-import React, { createContext, useCallback, useContext, useMemo } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+} from "react";
 import { Cell } from "./Cell";
 import { CellGroup } from "./CellGroup";
 import styles from "./form.module.css";
@@ -44,6 +50,28 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
     [showModal],
   );
 
+  useEffect(() => {
+    let eventSource: EventSource | null = null;
+
+    const connect = () => {
+      eventSource = new EventSource(`/api/receipt/${receiptId}`);
+
+      eventSource.onopen = () => {
+        console.log("SSE connected");
+      };
+
+      eventSource.onmessage = (event) => {
+          console.log(event.data);
+      };
+    };
+
+    connect();
+
+    return () => {
+      eventSource?.close();
+    };
+  }, [receiptId]);
+
   const formState = useObservable(
     useMemo(
       () => receiptFormState$(initialData, openEditModalCb, receiptId),
@@ -51,8 +79,6 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
     ),
     forceSync,
   );
-
-  console.log(formState);
 
   const {
     scenario: { form, canEdit },
