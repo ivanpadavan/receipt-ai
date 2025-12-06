@@ -28,7 +28,7 @@ export const totalSchema = z.object({
   totals: receiptTotalsSchema.describe("Total information including discounts and tips"),
 });
 
-export const recieptSchema = z.object({
+export const receiptSchema = z.object({
   positions: z.array(positionSchema).describe("Array of items in the receipt"),
   total: totalSchema.describe("Total information including discounts and tips")
 }).describe("Structured data extracted from the receipt");

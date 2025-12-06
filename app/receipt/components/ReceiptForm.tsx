@@ -57,6 +57,7 @@ const useReceiptWithUpdates = (initialData: Receipt, receiptId: string) => {
 
       eventSource.onmessage = (event) => handler.next(JSON.parse(event.data));
 
+      // TODO indication that connection is lost
       eventSource.onerror = () => handler.error(new Error('sse disconnected'));
 
       return () => eventSource.close();

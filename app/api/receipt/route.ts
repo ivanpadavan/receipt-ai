@@ -1,4 +1,4 @@
-import { recieptSchema } from "@/model/receipt/schema";
+import { receiptSchema } from "@/model/receipt/schema";
 import { Receipt, validateReceipt } from "@/model/receipt/model";
 import { auth } from "@/app/auth";
 import { NextRequest, NextResponse } from "next/server";
@@ -38,13 +38,13 @@ const model = new ChatGoogleGenerativeAI({
 
 // Create the chain
 const imageChain = imagePrompt.pipe(
-  model.withStructuredOutput(recieptSchema, { name: "receipt_data_extractor" })
+  model.withStructuredOutput(receiptSchema, { name: "receipt_data_extractor" })
 );
 
 const fixErrorsPrompt = PromptTemplate.fromTemplate(`There as result of reciept parsing: {result}. There are errors: {errors}. Fix them`);
 
 const fixErrorsChain = fixErrorsPrompt.pipe(
-  model.withStructuredOutput(recieptSchema, { name: "receipt_data_extractor" })
+  model.withStructuredOutput(receiptSchema, { name: "receipt_data_extractor" })
 );
 
 async function errorWrap<T extends ApiValidator>(req: NextRequest, validator: T, cb: (v: { session: Session, body: ReturnType<T['request']['parse']> }) => Promise<NextResponse<ReturnType<T['response']['parse']>>>) {

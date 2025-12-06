@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { recieptSchema } from "./schema";
+import { receiptSchema } from "./schema";
 
 // Infer TypeScript types from Zod schema
-export type ReceiptModifier = z.infer<typeof recieptSchema>["total"]["fees"][number] | z.infer<typeof recieptSchema>["total"]["discounts"][number];
-export type ReceiptPosition = z.infer<typeof recieptSchema>["positions"][number];
-export type Receipt = z.infer<typeof recieptSchema>;
+export type ReceiptModifier = z.infer<typeof receiptSchema>["total"]["fees"][number] | z.infer<typeof receiptSchema>["total"]["discounts"][number];
+export type ReceiptPosition = z.infer<typeof receiptSchema>["positions"][number];
+export type Receipt = z.infer<typeof receiptSchema>;
 
 
 export function validatePosition(position: ReceiptPosition): string {
