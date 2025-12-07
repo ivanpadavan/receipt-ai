@@ -5,7 +5,7 @@ import { useState } from "react";
 
 interface CellGroupProps {
   record: FormGroup;
-  canEdit: boolean;
+  canEdit: boolean | 'splitting';
   children: (value: { onMouseEnter: () => void, onMouseLeave: () => void, onClick: () => void, className: string }) => React.ReactNode;
 }
 

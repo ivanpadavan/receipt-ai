@@ -114,7 +114,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
               <th>
                 <FormArrayTitle
                   title={t("name")}
-                  onAddClick={formState.scenario.canEdit.positionForm ? () => openEditModal("addPosition") : undefined}
+                  onAddClick={formState.scenario.canEdit.positionForm === true ? () => openEditModal("addPosition") : undefined}
                 />
               </th>
               <th className="text-center">{t("price")}</th>
