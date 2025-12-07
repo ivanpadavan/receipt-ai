@@ -97,7 +97,7 @@ export const receiptFormState$ = (
       return null;
     }
     : (form: PositionForm) => {
-      if (Object.keys(form.controls).length !== 4) {
+      if (Object.keys(form.controls).length !== 5) {
         return null;
       }
       const { quantity, price } = form.getRawValue();
