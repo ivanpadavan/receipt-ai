@@ -26,7 +26,6 @@ export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove
   const { scenario: { form } } = useReceiptState();
 
   useEffect(() => {
-    console.log(form, initialValue, getFormGroupCurrentState, formGroup);
     if (!initialValue || !getFormGroupCurrentState) return;
 
     const liveControl = getFormGroupCurrentState(form);
@@ -188,10 +187,9 @@ const FormField: React.FC<{ control: FormControl<string | number>, label: Transl
         {t(label)}
       </label>
       <input
-        type={type}
+        type={type === 'number' ? 'number' : 'text'}
         inputMode={type === 'number' ? 'decimal' : 'text'}
-        defaultValue={control.disabled ? undefined : type === 'number' && (control.value === 0 || isNaN(control.value as any)) ? '' : control.value}
-        value={control.disabled ? isNaN(control.value as any) ? '' : control.value : undefined}
+        value={type === 'number' && (control.value === 0 || isNaN(control.value as any)) ? '' : control.value}
         onChange={onChange}
         disabled={control.disabled}
         className={`w-full px-3 py-2 border rounded-md ${isInvalid

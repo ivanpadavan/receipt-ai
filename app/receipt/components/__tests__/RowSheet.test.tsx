@@ -28,9 +28,7 @@ vi.mock("@/app/receipt/components/ReceiptForm", () => ({
     })
 }));
 
-vi.mock("@/hooks/rx/useObservable", () => ({
-    useObservable: vi.fn()
-}));
+
 
 describe('RowSheet Conflict Handling', () => {
     const setup = (propsOverrides: any = {}) => {
@@ -56,8 +54,6 @@ describe('RowSheet Conflict Handling', () => {
 
         return { props, formGroup, renderResult: render(<RowSheet {...props} />) };
     };
-
-
 
     it('should display error when item is deleted on server', async () => {
         setup({
@@ -103,6 +99,43 @@ describe('RowSheet Conflict Handling', () => {
             // Should NOT show modified warning
             expect(screen.queryByText(/modified by another user/i)).toBeNull();
         });
+    });
+
+    it('should update UI inputs when form auto-updates (pristine)', async () => {
+        // 1. Setup with matching initialValue and local form (Pristine)
+        const formGroup = new FormGroup({
+            id: new FormControl('123'),
+            name: new FormControl('Item 1'),
+            price: new FormControl(10),
+            quantity: new FormControl(1)
+        });
+        const initialValue = formGroup.getRawValue();
+
+        // Server update
+        const serverValue = { ...initialValue, name: 'Server Update' };
+        const serverControl = new FormGroup({
+            id: new FormControl(serverValue.id),
+            name: new FormControl(serverValue.name),
+            price: new FormControl(serverValue.price),
+            quantity: new FormControl(serverValue.quantity)
+        });
+
+        render(<RowSheet
+            formGroup={formGroup}
+            onFinish={vi.fn()}
+            header={'editPosition' as any}
+            initialValue={initialValue}
+            getFormGroupCurrentState={() => serverControl}
+        />);
+
+        // Logic check
+        expect(formGroup.controls.name.value).toBe('Server Update');
+
+        // UI Check with robust selector
+        // Bypassing association issues by finding generic textboxes and filtering by value
+        const inputs = screen.getAllByRole('textbox') as HTMLInputElement[];
+        const updatedInput = inputs.find(input => input.value === 'Server Update');
+        expect(updatedInput).toBeTruthy();
     });
 
     it('should show warning and not auto-update when local is dirty', async () => {
