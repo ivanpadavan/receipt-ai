@@ -1,10 +1,10 @@
 import { EditModalProps } from "@/app/receipt/[id]/receipt-state";
-import { ModalContext, useModal } from "@/components/ui/modal/ModalContext";
+import { useModal } from "@/components/ui/modal/ModalContext";
 import { AbstractControl } from "@/forms/abstract_model";
 import { FormControl } from "@/forms/form_control";
 import { ValidationErrors } from "@/forms/validators";
 import { useObservable } from "@/hooks/rx/useObservable";
-import React, { ChangeEvent, useContext, useMemo } from "react";
+import React, { ChangeEvent, useMemo } from "react";
 import { t, TranslationKey } from "@/app/i18n/translations";
 
 const isInErrorState = (c: AbstractControl, hideErrorsUntilTouched: boolean) => {

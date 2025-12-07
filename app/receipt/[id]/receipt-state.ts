@@ -42,6 +42,7 @@ export type AppendableForm = PositionForm | ModifierForm | TotalsForm;
 
 export interface EditModalProps {
   formGroup: AppendableForm;
+  initialValue?: ReturnType<AppendableForm['getRawValue']>;
   onFinish: () => void;
   remove?: () => void;
   header: TranslationKey;
@@ -199,25 +200,40 @@ export const receiptFormState$ = (
     canProceed$: form.value$.pipe(map(() => form.valid)),
     proceed: () => proceed$.next(),
     openEditModal: (args) => {
-      // Handle the case where args is an object with a type property
       const formToEdit = typeof args === 'object' && 'type' in args ? args.type : args;
 
       if (formToEdit instanceof FormGroup) {
         if (formToEdit.parent instanceof FormArray) {
           const parent = formToEdit.parent as FormArray<AppendableForm>;
-          const idx = parent.controls.findIndex(form => form === formToEdit);
           const isPosition = 'overall' in formToEdit.controls;
           const newForm = (isPosition ? defaultPosition() : defaultModifier()) as any;
           const isDiscount = !isPosition && parent.parent?.get('discounts') == parent;
-          newForm.patchValue(formToEdit.getRawValue());
+          const initialValue = formToEdit.getRawValue();
+          newForm.patchValue(initialValue);
+          const path = isPosition ? 'positions' : isDiscount ? 'discounts' : 'fees';
+          const header = isPosition ? 'editPosition' : isDiscount ? 'editDiscount' : 'editFee';
           openEditModal({
+            initialValue,
             formGroup: newForm,
-            onFinish: () => parent.controls.at(idx)?.patchValue(newForm.getRawValue() as any),
-            remove: () => parent.removeAt(idx),
-            header: isPosition ? 'editPosition' : isDiscount ? 'editDiscount' : 'editFee',
+            onFinish: () => {
+              console.log(form, initialValue, form.controls[path].controls);
+              form.controls[path].controls.find((v) => {
+                return v.getRawValue().id === initialValue.id
+              }).patchValue(newForm.getRawValue());
+            },
+            remove: () => {
+              form.controls[path].removeAt(form.controls[path].controls.findIndex((v) => {
+                return v.getRawValue().id === initialValue.id
+              }));
+            },
+            header,
           });
         } else {
-          openEditModal({ formGroup: formToEdit, onFinish: () => void 0, header: 'overall' });
+          openEditModal({
+            formGroup: formToEdit,
+            onFinish: () => void 0,
+            header: 'overall'
+          });
         }
       } else if (formToEdit === 'addPosition') {
         const newPosition = defaultPosition();
