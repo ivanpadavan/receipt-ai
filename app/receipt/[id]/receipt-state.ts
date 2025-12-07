@@ -43,6 +43,7 @@ export type AppendableForm = PositionForm | ModifierForm | TotalsForm;
 export interface EditModalProps {
   formGroup: AppendableForm;
   initialValue?: ReturnType<AppendableForm['getRawValue']>;
+  getFormGroupCurrentState: (formGroup: ReceiptForm) => AppendableForm | undefined;
   onFinish: (form: ReceiptForm) => void;
   remove?: (form: ReceiptForm) => void;
   header: TranslationKey;
@@ -215,15 +216,21 @@ export const receiptFormState$ = (
           newForm.patchValue(initialValue);
           const path = isPosition ? 'positions' : isDiscount ? 'discounts' : 'fees';
           const header = isPosition ? 'editPosition' : isDiscount ? 'editDiscount' : 'editFee';
+          const getFormGroupCurrentState = (form: ReceiptForm) => form.controls[path].controls.find((v) => v.getRawValue().id === initialValue.id);
           openEditModalCommand$.next({
             initialValue,
             formGroup: newForm,
+            getFormGroupCurrentState,
             onFinish: (form) => {
-              form.controls[path].controls.find((v) => {
-                return v.getRawValue().id === initialValue.id
-              }).patchValue(newForm.getRawValue());
+              getFormGroupCurrentState(form)?.patchValue(newForm.getRawValue() as any);
             },
-            remove: (form) => {
+            remove: (form)=> {
+              const current = getFormGroupCurrentState(form);
+              const parent = current?.parent;
+              if (parent instanceof FormArray) {
+                const idx = parent.controls.findIndex((f) => f === current);
+                parent.removeAt(idx);
+              }
               form.controls[path].removeAt(form.controls[path].controls.findIndex((v) => {
                 return v.getRawValue().id === initialValue.id
               }));
@@ -233,6 +240,7 @@ export const receiptFormState$ = (
         } else {
           openEditModalCommand$.next({
             formGroup: formToEdit,
+            getFormGroupCurrentState: (form) => form.controls.totals,
             onFinish: () => void 0,
             header: 'overall'
           });
@@ -241,6 +249,7 @@ export const receiptFormState$ = (
         const newPosition = defaultPosition();
         openEditModalCommand$.next({
           formGroup: newPosition,
+          getFormGroupCurrentState: () => undefined,
           onFinish: () => form.controls.positions.insert(0, newPosition),
           header: 'addPosition'
         });
@@ -250,6 +259,7 @@ export const receiptFormState$ = (
         const header = isFee ? 'addFee' : 'addDiscount';
         openEditModalCommand$.next({
           formGroup: newModifier as any,
+          getFormGroupCurrentState: () => undefined,
           onFinish: () => {
             const groupName = isFee ? 'fees' : 'discounts';
             form.controls[groupName].insert(0, newModifier);
