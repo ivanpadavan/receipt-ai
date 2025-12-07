@@ -91,13 +91,22 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
     forceSync,
   );
 
-  const { showModal } = useModal();
+  const { showModal, isOpen } = useModal();
+  const [activeModalProps, setActiveModalProps] = React.useState<null | EditModalProps>(null);
+
   useEffect(() => {
     const sub = formState.openEditModalCommand$.subscribe((props) => {
+      setActiveModalProps(props);
       showModal(<ReceiptFormContext.Provider value={formState}><RowSheet {...props} /></ReceiptFormContext.Provider>);
     });
     return () => sub.unsubscribe();
   }, [formState, showModal]);
+
+  useEffect(() => {
+    if (isOpen && activeModalProps) {
+      showModal(<ReceiptFormContext.Provider value={formState}><RowSheet {...activeModalProps} /></ReceiptFormContext.Provider>);
+    }
+  }, [formState, isOpen, activeModalProps, showModal]);
 
   const {
     scenario: { form, canEdit },

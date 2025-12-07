@@ -4,6 +4,7 @@ import { Modal } from '@/components/ui/modal/modal';
 interface ModalContextType {
   showModal: (content: React.ReactNode) => void;
   hideModal: () => void;
+  isOpen: boolean;
 }
 
 export const ModalContext = createContext<ModalContextType | null>(null);
@@ -30,7 +31,7 @@ export const ModalProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   return (
-    <ModalContext.Provider value={{ showModal, hideModal }}>
+    <ModalContext.Provider value={{ showModal, hideModal, isOpen }}>
       {children}
       <Modal isOpen={isOpen} onClose={hideModal}>
         {content}
