@@ -138,30 +138,30 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
           </tbody>
           <tfoot>
             <tr
-              onClick={() => canEdit.totalsForm && openEditModal(form.controls.total.controls.totals)}
+              onClick={() => canEdit.totalsForm && openEditModal(form.controls.totals)}
               className={canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""}
             >
               <td colSpan={3}>{t("total")}</td>
               <Cell
-                formControl={form.controls.total.controls.totals.controls.total}
+                formControl={form.controls.totals.controls.total}
                 className="font-bold"
               />
             </tr>
             <Modifiers
               type={"discounts"}
-              items={form.controls.total.controls.discounts}
+              items={form.controls.discounts}
             />
             <Modifiers
               type={"fees"}
-              items={form.controls.total.controls.fees}
+              items={form.controls.fees}
             />
             <tr
-              onClick={() => canEdit.totalsForm && openEditModal(form.controls.total.controls.totals)}
+              onClick={() => canEdit.totalsForm && openEditModal(form.controls.totals)}
               className={canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""}
             >
               <td colSpan={3}>{t("grandTotal")}</td>
               <Cell
-                formControl={form.controls.total.controls.totals.controls.grandTotal}
+                formControl={form.controls.totals.controls.grandTotal}
                 className="font-bold"
               />
             </tr>

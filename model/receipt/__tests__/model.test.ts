@@ -10,14 +10,12 @@ describe("validateReceipt", () => {
         { name: "Item 1", quantity: 2, price: 10, overall: 20 },
         { name: "Item 2", quantity: 1, price: 15, overall: 15 },
       ],
-      total: {
-        fees: [{ name: "Tax", value: 5 }],
-        discounts: [{ name: "Discount", value: 2 }],
-        totals: {
-          total: 35, // 20 + 15
-          grandTotal: 38, // 35 + 5 - 2
-        }
-      },
+      fees: [{ name: "Tax", value: 5 }],
+      discounts: [{ name: "Discount", value: 2 }],
+      totals: {
+        total: 35, // 20 + 15
+        grandTotal: 38, // 35 + 5 - 2
+      }
     };
 
     const result = validateReceipt(validReceipt);
@@ -32,14 +30,12 @@ describe("validateReceipt", () => {
         { name: "Item 1", quantity: 2, price: 10, overall: 20 }, // Correct
         { name: "Item 2", quantity: 1, price: 15, overall: 20 }, // Incorrect (should be 15)
       ],
-      total: {
-        fees: [],
-        discounts: [],
-        totals: {
-          total: 40, // Matches the sum of overall values (20 + 20)
-          grandTotal: 40,
-        }
-      },
+      fees: [],
+      discounts: [],
+      totals: {
+        total: 40, // Matches the sum of overall values (20 + 20)
+        grandTotal: 40,
+      }
     };
 
     const result = validateReceipt(receiptWithInvalidPosition);
@@ -58,14 +54,12 @@ describe("validateReceipt", () => {
         { name: "Item 1", quantity: 2, price: 10, overall: 20 },
         { name: "Item 2", quantity: 1, price: 15, overall: 15 },
       ],
-      total: {
-        fees: [],
-        discounts: [],
-        totals: {
-          total: 40, // Incorrect (should be 35)
-          grandTotal: 40,
-        }
-      },
+      fees: [],
+      discounts: [],
+      totals: {
+        total: 40, // Incorrect (should be 35)
+        grandTotal: 40,
+      }
     };
 
     const result = validateReceipt(receiptWithInvalidTotal);
@@ -82,14 +76,12 @@ describe("validateReceipt", () => {
         { name: "Item 1", quantity: 2, price: 10, overall: 20 },
         { name: "Item 2", quantity: 1, price: 15, overall: 15 },
       ],
-      total: {
-        fees: [{ name: "Tax", value: 5 }],
-        discounts: [{ name: "Discount", value: 2 }],
-        totals: {
-          total: 35, // Correct
-          grandTotal: 40, // Incorrect (should be 38)
-        }
-      },
+      fees: [{ name: "Tax", value: 5 }],
+      discounts: [{ name: "Discount", value: 2 }],
+      totals: {
+        total: 35, // Correct
+        grandTotal: 40, // Incorrect (should be 38)
+      }
     };
 
     const result = validateReceipt(receiptWithInvalidGrandTotal);
@@ -106,14 +98,12 @@ describe("validateReceipt", () => {
         { name: "Item 1", quantity: 2, price: 10, overall: 20 },
         { name: "Item 2", quantity: 1, price: 15, overall: 15 },
       ],
-      total: {
-        fees: [{ name: "Tax", value: 5 }],
-        discounts: [{ name: "Discount", value: 2 }],
-        totals: {
-          total: 35, // Correct
-          grandTotal: 40, // Incorrect (should be 38)
-        }
-      },
+      fees: [{ name: "Tax", value: 5 }],
+      discounts: [{ name: "Discount", value: 2 }],
+      totals: {
+        total: 35, // Correct
+        grandTotal: 40, // Incorrect (should be 38)
+      }
     };
 
     const result = validateReceipt(receiptWithInvalidDirectGrandTotal);
@@ -132,14 +122,12 @@ describe("validateReceipt", () => {
         { name: "Item 1", quantity: 2, price: 10, overall: 25 }, // Incorrect (should be 20)
         { name: "Item 2", quantity: 1, price: 15, overall: 15 }, // Correct
       ],
-      total: {
-        fees: [{ name: "Tax", value: 5 }],
-        discounts: [{ name: "Discount", value: 2 }],
-        totals: {
-          total: 45, // Incorrect (should be 40)
-          grandTotal: 50, // Incorrect (should be 48)
-        }
-      },
+      fees: [{ name: "Tax", value: 5 }],
+      discounts: [{ name: "Discount", value: 2 }],
+      totals: {
+        total: 45, // Incorrect (should be 40)
+        grandTotal: 50, // Incorrect (should be 48)
+      }
     };
 
     const result = validateReceipt(receiptWithMultipleErrors);
@@ -151,14 +139,12 @@ describe("validateReceipt", () => {
   test("should handle receipt with empty positions", () => {
     const receiptWithEmptyPositions: Receipt = {
       positions: [],
-      total: {
-        fees: [],
-        discounts: [],
-        totals: {
-          total: 0,
-          grandTotal: 0,
-        }
-      },
+      fees: [],
+      discounts: [],
+      totals: {
+        total: 0,
+        grandTotal: 0,
+      }
     };
 
     const result = validateReceipt(receiptWithEmptyPositions);
@@ -170,14 +156,12 @@ describe("validateReceipt", () => {
   test("should handle receipt with only fees", () => {
     const receiptWithOnlyfees: Receipt = {
       positions: [],
-      total: {
-        fees: [{ name: "Service Fee", value: 10 }],
-        discounts: [],
-        totals: {
-          total: 0,
-          grandTotal: 10,
-        }
-      },
+      fees: [{ name: "Service Fee", value: 10 }],
+      discounts: [],
+      totals: {
+        total: 0,
+        grandTotal: 10,
+      }
     };
 
     const result = validateReceipt(receiptWithOnlyfees);
@@ -189,14 +173,12 @@ describe("validateReceipt", () => {
   test("should handle receipt with only discounts", () => {
     const receiptWithOnlyDiscounts: Receipt = {
       positions: [],
-      total: {
-        fees: [],
-        discounts: [{ name: "Promo", value: 5 }],
-        totals: {
-          total: 0,
-          grandTotal: -5,
-        }
-      },
+      fees: [],
+      discounts: [{ name: "Promo", value: 5 }],
+      totals: {
+        total: 0,
+        grandTotal: -5,
+      }
     };
 
     const result = validateReceipt(receiptWithOnlyDiscounts);

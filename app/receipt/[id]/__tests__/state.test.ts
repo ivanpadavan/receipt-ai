@@ -1,6 +1,13 @@
 import { ReceiptState, receiptFormState$ } from "../receipt-state";
 import { Receipt } from "@/model/receipt/model";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/app/api-client", () => ({
+  apiClient: {
+    createReceipt: vi.fn(),
+    updateReceipt: vi.fn().mockReturnValue(Promise.resolve({})),
+  }
+}));
 
 describe("Receipt Form State Management", () => {
   // Sample receipt data for testing
@@ -13,24 +20,22 @@ describe("Receipt Form State Management", () => {
         overall: 20
       }
     ],
-    total: {
-      totals: {
-        total: 20,
-        grandTotal: 23
-      },
-      fees: [
-        {
-          name: "Tax",
-          value: 5
-        }
-      ],
-      discounts: [
-        {
-          name: "Discount",
-          value: 2
-        }
-      ]
-    }
+    totals: {
+      total: 20,
+      grandTotal: 23
+    },
+    fees: [
+      {
+        name: "Tax",
+        value: 5
+      }
+    ],
+    discounts: [
+      {
+        name: "Discount",
+        value: 2
+      }
+    ]
   };
 
   const invalidReceipt: Receipt = {
@@ -42,24 +47,22 @@ describe("Receipt Form State Management", () => {
         overall: 25 // Incorrect overall value
       }
     ],
-    total: {
-      totals: {
-        total: 25, // Incorrect total
-        grandTotal: 30 // Incorrect grand total
-      },
-      fees: [
-        {
-          name: "Tax",
-          value: 5
-        }
-      ],
-      discounts: [
-        {
-          name: "Discount",
-          value: 2
-        }
-      ]
-    }
+    totals: {
+      total: 25, // Incorrect total
+      grandTotal: 30 // Incorrect grand total
+    },
+    fees: [
+      {
+        name: "Tax",
+        value: 5
+      }
+    ],
+    discounts: [
+      {
+        name: "Discount",
+        value: 2
+      }
+    ]
   };
 
   it("should create a valid form state for a valid receipt", () => {
@@ -72,20 +75,19 @@ describe("Receipt Form State Management", () => {
       // Check form structure
       const form = state.scenario.form;
       expect(form.controls.positions).toBeDefined();
-      expect(form.controls.total).toBeDefined();
-      expect(form.controls.total.controls.totals).toBeDefined();
-      expect(form.controls.total.controls.totals.controls.total).toBeDefined();
-      expect(form.controls.total.controls.totals.controls.grandTotal).toBeDefined();
-      expect(form.controls.total.controls.fees).toBeDefined();
-      expect(form.controls.total.controls.discounts).toBeDefined();
+      expect(form.controls.totals).toBeDefined();
+      expect(form.controls.totals.controls.total).toBeDefined();
+      expect(form.controls.totals.controls.grandTotal).toBeDefined();
+      expect(form.controls.fees).toBeDefined();
+      expect(form.controls.discounts).toBeDefined();
 
       // Check form values
       expect(form.controls.positions.controls[0].controls.name.value).toBe('Item 1');
       expect(form.controls.positions.controls[0].controls.quantity.value).toBe(2);
       expect(form.controls.positions.controls[0].controls.price.value).toBe(10);
       expect(form.controls.positions.controls[0].controls.overall.value).toBe(20);
-      expect(form.controls.total.controls.totals.controls.total.value).toBe(20);
-      expect(form.controls.total.controls.totals.controls.grandTotal.value).toBe(23);
+      expect(form.controls.totals.controls.total.value).toBe(20);
+      expect(form.controls.totals.controls.grandTotal.value).toBe(23);
 
       // Check form validity
       expect(form.valid).toBe(true);
@@ -102,20 +104,19 @@ describe("Receipt Form State Management", () => {
       // Check form structure
       const form = state.scenario.form;
       expect(form.controls.positions).toBeDefined();
-      expect(form.controls.total).toBeDefined();
-      expect(form.controls.total.controls.totals).toBeDefined();
-      expect(form.controls.total.controls.totals.controls.total).toBeDefined();
-      expect(form.controls.total.controls.totals.controls.grandTotal).toBeDefined();
-      expect(form.controls.total.controls.fees).toBeDefined();
-      expect(form.controls.total.controls.discounts).toBeDefined();
+      expect(form.controls.totals).toBeDefined();
+      expect(form.controls.totals.controls.total).toBeDefined();
+      expect(form.controls.totals.controls.grandTotal).toBeDefined();
+      expect(form.controls.fees).toBeDefined();
+      expect(form.controls.discounts).toBeDefined();
 
       // Check form values
       expect(form.controls.positions.controls[0].controls.name.value).toBe('Item 1');
       expect(form.controls.positions.controls[0].controls.quantity.value).toBe(2);
       expect(form.controls.positions.controls[0].controls.price.value).toBe(10);
       expect(form.controls.positions.controls[0].controls.overall.value).toBe(25);
-      expect(form.controls.total.controls.totals.controls.total.value).toBe(25);
-      expect(form.controls.total.controls.totals.controls.grandTotal.value).toBe(30);
+      expect(form.controls.totals.controls.total.value).toBe(25);
+      expect(form.controls.totals.controls.grandTotal.value).toBe(30);
 
       // Check form validity
       expect(form.valid).toBe(false);
@@ -129,7 +130,7 @@ describe("Receipt Form State Management", () => {
         }
       `);
 
-      const total = form.controls.total.controls.totals.controls.total;
+      const total = form.controls.totals.controls.total;
       expect(total.errors).toBeDefined();
       expect(total.errors).toMatchInlineSnapshot(`null`);
     });
@@ -149,10 +150,10 @@ describe("Receipt Form State Management", () => {
       expect(positionGroup.controls.overall.value).toBe(30);
 
       // Check if positionsTotal is updated
-      expect(form.controls.total.controls.totals.controls.total.value).toBe(30);
+      expect(form.controls.totals.controls.total.value).toBe(30);
 
       // Check if total is updated
-      expect(form.controls.total.controls.totals.controls.grandTotal.value).toBe(33);
+      expect(form.controls.totals.controls.grandTotal.value).toBe(33);
     });
   });
 });

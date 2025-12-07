@@ -22,13 +22,9 @@ export const receiptTotalsSchema = z.object({
   grandTotal: z.number().describe("The final total amount after all fees and discounts"),
 });
 
-export const totalSchema = z.object({
+export const receiptSchema = z.object({
+  positions: z.array(positionSchema).describe("Array of items in the receipt"),
   fees: z.array(feeModifierSchema).describe("Array of modifiers that increase the total amount (e.g., tips, VAT)"),
   discounts: z.array(discountModifierSchema).describe("Array of modifiers that decrease the total amount (e.g., discounts)"),
   totals: receiptTotalsSchema.describe("Total information including discounts and tips"),
-});
-
-export const receiptSchema = z.object({
-  positions: z.array(positionSchema).describe("Array of items in the receipt"),
-  total: totalSchema.describe("Total information including discounts and tips")
 }).describe("Structured data extracted from the receipt");

@@ -39,18 +39,18 @@ export const positionsTotalMatchesSum = (control: AbstractControl) => {
 };
 
 export const totalMatchesCalculation = (control: AbstractControl) => {
-  const parent = control.parent?.parent?.parent as ReceiptForm;
+  const parent = control.parent?.parent as ReceiptForm;
   if (!parent) return null;
 
-  const total = parent.controls.total.controls.totals.controls.total.value || 0;
+  const total = parent.controls.totals.controls.total.value || 0;
 
-  const feesArray = parent.controls.total.controls.fees;
+  const feesArray = parent.controls.fees;
   const fees = feesArray.controls.map(control => ({
     name: control.controls.name.value || '',
     value: control.controls.value.value || 0
   }));
 
-  const discountsArray = parent.controls.total.controls.discounts;
+  const discountsArray = parent.controls.discounts;
   const discounts = discountsArray.controls.map(control => ({
     name: control.controls.name.value || '',
     value: control.controls.value.value || 0

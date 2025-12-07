@@ -21,7 +21,7 @@ async function instrumentation() {
     // Create the my_trigger to call the my_trigger_function after each insert
     await client.query(`
       CREATE OR REPLACE TRIGGER notify_on_change
-      AFTER UPDATE OR DELETE ON public."Receipt"
+      AFTER UPDATE ON public."Receipt"
       FOR EACH ROW
       EXECUTE FUNCTION notify_change();
     `);

@@ -34,9 +34,9 @@ export type ReceiptForm = InferForm<Receipt>;
 
 export type PositionForm = ReceiptForm['controls']['positions']['controls'][0];
 
-export type ModifierForm = ReceiptForm['controls']['total']['controls']['fees'] | ReceiptForm['controls']['total']['controls']['discounts'];
+export type ModifierForm = ReceiptForm['controls']['fees'] | ReceiptForm['controls']['discounts'];
 
-export type TotalsForm = ReceiptForm['controls']['total']['controls']['totals'];
+export type TotalsForm = ReceiptForm['controls']['totals'];
 
 export type AppendableForm = PositionForm | ModifierForm | TotalsForm;
 
@@ -104,7 +104,7 @@ export const receiptFormState$ = (
   const formCalculator = type === 'validation'
     ? () => null
     : (form: ReceiptForm) => {
-      const { total, grandTotal } = form.controls.total.controls.totals.controls;
+      const { total, grandTotal } = form.controls.totals.controls;
       total.patchValue(calculateTotal(form.getRawValue().positions), { onlySelf: true });
       grandTotal.patchValue(calculateGrandTotal(form.getRawValue()), { onlySelf: true });
       return null;
@@ -149,18 +149,16 @@ export const receiptFormState$ = (
   // Create the form with validation
   const form: ReceiptForm = new FormGroup({
     positions: new FormArray(initialData.positions.map(defaultPosition)),
-    total: new FormGroup({
-      totals: new FormGroup({
-        total: new FormControl(initialData.total.totals.total, {
-          validators: [totalMatchesSum]
-        }),
-        grandTotal: new FormControl(initialData.total.totals.grandTotal, {
-          validators: [grandTotalMatchesCalculation]
-        })
+    totals: new FormGroup({
+      total: new FormControl(initialData.totals.total, {
+        validators: [totalMatchesSum]
       }),
-      fees: new FormArray(initialData.total.fees.map(defaultModifier)),
-      discounts: new FormArray(initialData.total.discounts.map(defaultModifier))
-    })
+      grandTotal: new FormControl(initialData.totals.grandTotal, {
+        validators: [grandTotalMatchesCalculation]
+      })
+    }),
+    fees: new FormArray(initialData.fees.map(defaultModifier)),
+    discounts: new FormArray(initialData.discounts.map(defaultModifier))
   });
 
   form.addValidators(formCalculator as ValidatorFn);
@@ -170,8 +168,8 @@ export const receiptFormState$ = (
   let effect$ = EMPTY;
 
   if (type === 'editing') {
-    form.controls.total.controls.totals.controls.grandTotal.disable();
-    form.controls.total.controls.totals.controls.total.disable();
+    form.controls.totals.controls.grandTotal.disable();
+    form.controls.totals.controls.total.disable();
     effect$ = form.value$.pipe(
       switchMap(() => updateForm$),
       ignoreElements(),
@@ -179,7 +177,7 @@ export const receiptFormState$ = (
   } else if (type === 'validation') {
     effect$ = form.value$.pipe(
       switchMap(() => {
-        const {grandTotal, total} = form.controls.total.controls.totals.controls;
+        const { grandTotal, total } = form.controls.totals.controls;
         [grandTotal, total].forEach(control => control.updateValueAndValidity({ onlySelf: true }));
 
         return updateForm$;
@@ -189,8 +187,8 @@ export const receiptFormState$ = (
   }
 
   // Initialize the form with the initial data
-  form.patchValue(initialData, {emitEvent: false});
-  form.patchValue(initialData, {emitEvent: false});
+  form.patchValue(initialData, { emitEvent: false });
+  form.patchValue(initialData, { emitEvent: false });
 
   const proceed$ = new Subject<void>();
 
@@ -234,7 +232,7 @@ export const receiptFormState$ = (
           formGroup: newModifier as any,
           onFinish: () => {
             const groupName = isFee ? 'fees' : 'discounts';
-            form.controls.total.controls[groupName].insert(0, newModifier);
+            form.controls[groupName].insert(0, newModifier);
           },
           header: header
         });
@@ -248,7 +246,7 @@ export const receiptFormState$ = (
     concat(
       of(state),
       nextStep$,
-      ),
+    ),
     effect$,
   );
 };

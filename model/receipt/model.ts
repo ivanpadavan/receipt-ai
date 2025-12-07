@@ -2,7 +2,7 @@ import { z } from "zod";
 import { receiptSchema } from "./schema";
 
 // Infer TypeScript types from Zod schema
-export type ReceiptModifier = z.infer<typeof receiptSchema>["total"]["fees"][number] | z.infer<typeof receiptSchema>["total"]["discounts"][number];
+export type ReceiptModifier = z.infer<typeof receiptSchema>["fees"][number] | z.infer<typeof receiptSchema>["discounts"][number];
 export type ReceiptPosition = z.infer<typeof receiptSchema>["positions"][number];
 export type Receipt = z.infer<typeof receiptSchema>;
 
@@ -22,7 +22,7 @@ export function calculateTotal(positions: ReceiptPosition[]): number {
   return positions.reduce((sum, position) => sum + position.overall, 0);
 }
 
-export function calculateGrandTotal({ total: { totals: { total }, discounts, fees } }: Receipt) {
+export function calculateGrandTotal({ totals: { total }, discounts, fees }: Receipt) {
   return total + sumModifiers(fees) - sumModifiers(discounts);
 };
 
@@ -59,7 +59,7 @@ export function validateAllPositions(positions: ReceiptPosition[]): string[] {
  * @param total The total value to validate
  * @returns Error message or empty string if valid
  */
-export function validateTotal({ positions, total: { totals: { total } } }: Receipt): string {
+export function validateTotal({ positions, totals: { total } }: Receipt): string {
   const calculatedTotal = calculateTotal(positions);
 
   if (Math.abs(calculatedTotal - total) > 0.01) {
@@ -78,7 +78,7 @@ export function validateTotal({ positions, total: { totals: { total } } }: Recei
  * @returns Error message or empty string if valid
  */
 export function validateFinalTotal(receipt: Receipt): string {
-  const { totals: { total, grandTotal }, fees, discounts } = receipt.total;
+  const { totals: { total, grandTotal }, fees, discounts } = receipt;
   const calculatedGrandTotal = calculateGrandTotal(receipt);
   if (Math.abs(calculatedGrandTotal - grandTotal) > 0.01) {
     return `Final grand total ${grandTotal} doesn't match total + fees - discounts (${total} + ${sumModifiers(fees)} - ${sumModifiers(discounts)} = ${calculatedGrandTotal})`;
