@@ -7,7 +7,6 @@ import {
   concat,
   defer,
   EMPTY,
-  from,
   ignoreElements,
   merge,
   Observable,
@@ -29,7 +28,7 @@ import {
 } from "./validators";
 import { apiClient } from "@/app/api-client";
 
-type FormType = 'validation' | 'editing';
+type FormType = 'validation' | 'editing' | 'splitting';
 
 export type ReceiptForm = InferForm<Receipt>;
 
@@ -49,7 +48,7 @@ export interface EditModalProps {
 }
 
 export type CanEdit = {
-  positionForm: boolean,
+  positionForm: boolean | 'splitting',
   modifierForm: boolean,
   totalsForm: boolean,
 }
@@ -72,6 +71,11 @@ const permissions: Record<FormType, CanEdit> = {
   editing: {
     positionForm: true,
     modifierForm: true,
+    totalsForm: false,
+  },
+  splitting: {
+    positionForm: 'splitting',
+    modifierForm: false,
     totalsForm: false,
   }
 }
