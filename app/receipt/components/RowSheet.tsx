@@ -4,28 +4,91 @@ import { AbstractControl } from "@/forms/abstract_model";
 import { FormControl } from "@/forms/form_control";
 import { ValidationErrors } from "@/forms/validators";
 import { useObservable } from "@/hooks/rx/useObservable";
-import React, { ChangeEvent, useMemo } from "react";
+import React, { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { t, TranslationKey } from "@/app/i18n/translations";
 import { useReceiptState } from "@/app/receipt/components/ReceiptForm";
+import deepEqual from "deep-eql";
 
 const isInErrorState = (c: AbstractControl, hideErrorsUntilTouched: boolean) => {
-  return  c.errors !== null && (hideErrorsUntilTouched ? c.touched : true);
+  return c.errors !== null && (hideErrorsUntilTouched ? c.touched : true);
 }
 
-export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove, header }) => {
+export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove, header, initialValue, getFormGroupCurrentState }) => {
   useObservable(formGroup.valueChanges);
   const { hideModal } = useModal();
+  const [conflict, setConflict] = useState<{ type: 'deleted' | 'modified', message: string } | null>(null);
   const hideErrorsUntilTouched = !remove && header !== 'overall';
   const controls = useMemo(() => Object.entries(formGroup.controls).filter(([key]) => key !== 'id'), [formGroup]) as [TranslationKey, FormControl<string | number>][];
   const errors = controls
     .filter(([, c]) => isInErrorState(c, hideErrorsUntilTouched))
     .map(([label, { errors }]) => [label, Object.values(errors as ValidationErrors)] as const);
 
-  const { scenario: { form } }= useReceiptState();
+  const { scenario: { form } } = useReceiptState();
+
+  useEffect(() => {
+    console.log(form, initialValue, getFormGroupCurrentState, formGroup);
+    if (!initialValue || !getFormGroupCurrentState) return;
+
+    const liveControl = getFormGroupCurrentState(form);
+
+    // Case 1: Deleted
+    if (!liveControl) {
+      setConflict({ type: 'deleted', message: 'Item has been deleted by another user.' });
+      return;
+    }
+
+    const liveValue = liveControl.getRawValue();
+
+    // Case 2: Modified
+    if (!deepEqual(liveValue, initialValue)) {
+      const currentLocalValue = formGroup.getRawValue();
+
+      // Auto-update if pristine (user hasn't changed anything yet)
+      // We compare currentLocalValue with initialValue. 
+      // Note: formGroup is our local detached copy.
+      if (deepEqual(currentLocalValue, initialValue)) {
+        console.log('Auto-updating pristine form');
+        formGroup.patchValue(liveValue);
+        // Also update initialValue ref? No, initialValue is prop.
+        // But effectively we are now synced with new server state.
+        // We should probably clear any conflict if we auto-updated?
+        setConflict(null);
+      } else {
+        setConflict({ type: 'modified', message: 'Item has been modified by another user.' });
+      }
+    } else {
+      // If server state reverts to initial, clear conflict
+      setConflict(null);
+    }
+
+  }, [form, initialValue, getFormGroupCurrentState, formGroup]);
+
+  if (conflict?.type === 'deleted') {
+    return (
+      <div className="p-6 text-center">
+        <h2 className="text-xl font-bold text-red-600 mb-2">{t("error" as any)}</h2>
+        <p className="text-gray-700 mb-4">{conflict.message}</p>
+        <button
+          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+          onClick={() => hideModal()}
+        >
+          {t("close" as any)}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4 text-center">{t(header)}</h2>
+
+      {conflict?.type === 'modified' && (
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800">
+          <strong>{t("warning" as any)}:</strong> {conflict.message}
+          <div className="text-xs mt-1">Saving will overwrite the server changes.</div>
+        </div>
+      )}
+
       {errors.length > 0 && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
           <ul className="list-disc pl-5 space-y-1">
@@ -72,11 +135,10 @@ export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove
               type="button"
               disabled={formGroup.invalid}
               onClick={() => { onFinish(form); hideModal(); }}
-              className={`px-4 py-2 bg-amber-500 text-white rounded transition-colors ${
-                formGroup.invalid 
-                  ? 'opacity-50 cursor-not-allowed' 
-                  : 'hover:bg-amber-600'
-              }`}
+              className={`px-4 py-2 bg-amber-500 text-white rounded transition-colors ${formGroup.invalid
+                ? 'opacity-50 cursor-not-allowed'
+                : 'hover:bg-amber-600'
+                }`}
             >
               {t('save')}
             </button>
@@ -132,11 +194,10 @@ const FormField: React.FC<{ control: FormControl<string | number>, label: Transl
         value={control.disabled ? isNaN(control.value as any) ? '' : control.value : undefined}
         onChange={onChange}
         disabled={control.disabled}
-        className={`w-full px-3 py-2 border rounded-md ${
-          isInvalid
-            ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-            : 'border-gray-300 focus:ring-amber-500 focus:border-amber-500'
-        } ${control.disabled ? 'bg-gray-100' : ''}`}
+        className={`w-full px-3 py-2 border rounded-md ${isInvalid
+          ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+          : 'border-gray-300 focus:ring-amber-500 focus:border-amber-500'
+          } ${control.disabled ? 'bg-gray-100' : ''}`}
       />
     </div>
   );
