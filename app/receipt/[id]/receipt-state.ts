@@ -43,8 +43,8 @@ export type AppendableForm = PositionForm | ModifierForm | TotalsForm;
 export interface EditModalProps {
   formGroup: AppendableForm;
   initialValue?: ReturnType<AppendableForm['getRawValue']>;
-  onFinish: () => void;
-  remove?: () => void;
+  onFinish: (form: ReceiptForm) => void;
+  remove?: (form: ReceiptForm) => void;
   header: TranslationKey;
 }
 
@@ -61,6 +61,7 @@ export type ReceiptState = {
   openEditModal: (v: AppendableForm | 'addPosition' | 'addDiscount' | 'addFee') => void,
   proceed: () => void;
   canProceed$: Observable<boolean>;
+  openEditModalCommand$: Observable<EditModalProps>;
 };
 
 const permissions: Record<FormType, CanEdit> = {
@@ -83,9 +84,10 @@ const permissions: Record<FormType, CanEdit> = {
 
 export const receiptFormState$ = (
   initialData: Receipt,
-  openEditModal: (v: EditModalProps) => void = () => void 0,
   receiptId: string = '',
 ): Observable<ReceiptState> => {
+  const openEditModalCommand$ = new Subject<EditModalProps>();
+
   const type = validateReceipt(initialData).isValid ? 'editing' as const : 'validation' as const;
 
   const positionCalculator = type === 'validation'
@@ -196,6 +198,7 @@ export const receiptFormState$ = (
   const proceed$ = new Subject<void>();
 
   const state: ReceiptState = {
+    openEditModalCommand$,
     scenario: { type, form, canEdit: permissions[type] },
     canProceed$: form.value$.pipe(map(() => form.valid)),
     proceed: () => proceed$.next(),
@@ -212,16 +215,15 @@ export const receiptFormState$ = (
           newForm.patchValue(initialValue);
           const path = isPosition ? 'positions' : isDiscount ? 'discounts' : 'fees';
           const header = isPosition ? 'editPosition' : isDiscount ? 'editDiscount' : 'editFee';
-          openEditModal({
+          openEditModalCommand$.next({
             initialValue,
             formGroup: newForm,
-            onFinish: () => {
-              console.log(form, initialValue, form.controls[path].controls);
+            onFinish: (form) => {
               form.controls[path].controls.find((v) => {
                 return v.getRawValue().id === initialValue.id
               }).patchValue(newForm.getRawValue());
             },
-            remove: () => {
+            remove: (form) => {
               form.controls[path].removeAt(form.controls[path].controls.findIndex((v) => {
                 return v.getRawValue().id === initialValue.id
               }));
@@ -229,7 +231,7 @@ export const receiptFormState$ = (
             header,
           });
         } else {
-          openEditModal({
+          openEditModalCommand$.next({
             formGroup: formToEdit,
             onFinish: () => void 0,
             header: 'overall'
@@ -237,7 +239,7 @@ export const receiptFormState$ = (
         }
       } else if (formToEdit === 'addPosition') {
         const newPosition = defaultPosition();
-        openEditModal({
+        openEditModalCommand$.next({
           formGroup: newPosition,
           onFinish: () => form.controls.positions.insert(0, newPosition),
           header: 'addPosition'
@@ -246,7 +248,7 @@ export const receiptFormState$ = (
         const newModifier = defaultModifier();
         const isFee = formToEdit === 'addFee';
         const header = isFee ? 'addFee' : 'addDiscount';
-        openEditModal({
+        openEditModalCommand$.next({
           formGroup: newModifier as any,
           onFinish: () => {
             const groupName = isFee ? 'fees' : 'discounts';
@@ -258,7 +260,7 @@ export const receiptFormState$ = (
     },
   }
 
-  const nextStep$ = proceed$.pipe(switchMap(() => receiptFormState$(form.getRawValue(), openEditModal, receiptId)));
+  const nextStep$ = proceed$.pipe(switchMap(() => receiptFormState$(form.getRawValue(), receiptId)));
 
   return merge(
     concat(

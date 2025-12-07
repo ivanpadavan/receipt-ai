@@ -6,6 +6,7 @@ import { ValidationErrors } from "@/forms/validators";
 import { useObservable } from "@/hooks/rx/useObservable";
 import React, { ChangeEvent, useMemo } from "react";
 import { t, TranslationKey } from "@/app/i18n/translations";
+import { useReceiptState } from "@/app/receipt/components/ReceiptForm";
 
 const isInErrorState = (c: AbstractControl, hideErrorsUntilTouched: boolean) => {
   return  c.errors !== null && (hideErrorsUntilTouched ? c.touched : true);
@@ -19,6 +20,8 @@ export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove
   const errors = controls
     .filter(([, c]) => isInErrorState(c, hideErrorsUntilTouched))
     .map(([label, { errors }]) => [label, Object.values(errors as ValidationErrors)] as const);
+
+  const { scenario: { form } }= useReceiptState();
 
   return (
     <div className="p-4">
@@ -51,7 +54,7 @@ export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove
               <button
                 type="button"
                 className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                onClick={() => { remove(); hideModal(); }}
+                onClick={() => { remove(form); hideModal(); }}
               >
                 {t('remove')}
               </button>
@@ -68,7 +71,7 @@ export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove
             <button
               type="button"
               disabled={formGroup.invalid}
-              onClick={() => { onFinish(); hideModal(); }}
+              onClick={() => { onFinish(form); hideModal(); }}
               className={`px-4 py-2 bg-amber-500 text-white rounded transition-colors ${
                 formGroup.invalid 
                   ? 'opacity-50 cursor-not-allowed' 

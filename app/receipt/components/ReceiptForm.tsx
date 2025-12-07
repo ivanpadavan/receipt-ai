@@ -12,8 +12,8 @@ import { forceSync, useObservable } from "@/hooks/rx/useObservable";
 import { Receipt } from "@/model/receipt/model";
 import React, {
   createContext,
-  useCallback,
   useContext,
+  useEffect,
   useMemo,
 } from "react";
 import { Cell } from "./Cell";
@@ -80,21 +80,24 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
   receiptId,
 }) => {
   // Subscribe to the receipt state
-  const { showModal } = useModal();
-  const openEditModalCb = useCallback(
-    (props: EditModalProps) => showModal(<RowSheet {...props} />),
-    [showModal],
-  );
 
   const receipt = useReceiptWithUpdates(initialData, receiptId);
 
   const formState = useObservable(
     useMemo(
-      () => receiptFormState$(receipt, openEditModalCb, receiptId),
-      [receipt, openEditModalCb, receiptId],
+      () => receiptFormState$(receipt, receiptId),
+      [receipt, receiptId],
     ),
     forceSync,
   );
+
+  const { showModal } = useModal();
+  useEffect(() => {
+    const sub = formState.openEditModalCommand$.subscribe((props) => {
+      showModal(<ReceiptFormContext.Provider value={formState}><RowSheet {...props} /></ReceiptFormContext.Provider>);
+    });
+    return () => sub.unsubscribe();
+  }, [formState, showModal]);
 
   const {
     scenario: { form, canEdit },
