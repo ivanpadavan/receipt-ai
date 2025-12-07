@@ -113,6 +113,7 @@ export const receiptFormState$ = (
   // Default position form group for adding new positions
   const defaultPosition = (): PositionForm => {
     const result = new FormGroup({
+      id: new FormControl(crypto.randomUUID()),
       name: new FormControl('', {
         validators: [stringNotEmpty]
       }),
@@ -137,6 +138,7 @@ export const receiptFormState$ = (
   // Default modifier form group for adding new modifiers
   const defaultModifier = (): ModifierForm['controls'][number] => {
     return new FormGroup({
+      id: new FormControl(crypto.randomUUID()),
       name: new FormControl('', {
         validators: [stringNotEmpty]
       }),

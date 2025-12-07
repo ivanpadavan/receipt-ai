@@ -15,7 +15,7 @@ export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove
   useObservable(formGroup.valueChanges);
   const { hideModal } = useModal();
   const hideErrorsUntilTouched = !remove && header !== 'overall';
-  const controls = useMemo(() => Object.entries(formGroup.controls), [formGroup]) as [TranslationKey, FormControl<string | number>][];
+  const controls = useMemo(() => Object.entries(formGroup.controls).filter(([key]) => key !== 'id'), [formGroup]) as [TranslationKey, FormControl<string | number>][];
   const errors = controls
     .filter(([, c]) => isInErrorState(c, hideErrorsUntilTouched))
     .map(([label, { errors }]) => [label, Object.values(errors as ValidationErrors)] as const);

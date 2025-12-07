@@ -1,5 +1,5 @@
-import { receiptSchema } from "@/model/receipt/schema";
-import { Receipt, validateReceipt } from "@/model/receipt/model";
+import { receiptAiSchema, receiptSchema } from "@/model/receipt/schema";
+import { Receipt, ReceiptNoId, validateReceipt } from "@/model/receipt/model";
 import { auth } from "@/app/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
@@ -38,14 +38,27 @@ const model = new ChatGoogleGenerativeAI({
 
 // Create the chain
 const imageChain = imagePrompt.pipe(
-  model.withStructuredOutput(receiptSchema, { name: "receipt_data_extractor" })
+  model.withStructuredOutput(receiptAiSchema, { name: "receipt_data_extractor" })
 );
 
 const fixErrorsPrompt = PromptTemplate.fromTemplate(`There as result of reciept parsing: {result}. There are errors: {errors}. Fix them`);
 
 const fixErrorsChain = fixErrorsPrompt.pipe(
-  model.withStructuredOutput(receiptSchema, { name: "receipt_data_extractor" })
+  model.withStructuredOutput(receiptAiSchema, { name: "receipt_data_extractor" })
 );
+
+function appendIdsToArr<T>(v: T[]): (T & { id: string })[] {
+  return v.map((v) => ({ ...v, id: crypto.randomUUID() }));
+}
+
+function appendIds(receipt: ReceiptNoId): Receipt {
+  return {
+    ...receipt,
+    positions: appendIdsToArr(receipt.positions),
+    fees: appendIdsToArr(receipt.fees),
+    discounts: appendIdsToArr(receipt.discounts),
+  }
+}
 
 async function errorWrap<T extends ApiValidator>(req: NextRequest, validator: T, cb: (v: { session: Session, body: ReturnType<T['request']['parse']> }) => Promise<NextResponse<ReturnType<T['response']['parse']>>>) {
   try {
@@ -80,7 +93,7 @@ export async function POST(req: NextRequest) {
     const userId = session.user.id;
 
     // Process the image
-    let result: Receipt = await imageChain.invoke({ image_base64: body.image });
+    let result = await imageChain.invoke({ image_base64: body.image });
 
     let i = 0;
     while (i < 3) {
@@ -93,11 +106,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    appendIds(result);
+
     // Save the receipt to the database
     const receipt = await db.receipt.create({
       data: {
         userId,
-        data: result as Receipt, // Store the receipt data as JSON
+        data: result, // Store the receipt data as JSON
       },
     });
 

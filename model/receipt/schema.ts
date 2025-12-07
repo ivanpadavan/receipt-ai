@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z, ZodObject, ZodRawShape } from "zod";
 
 export const positionSchema = z.object({
   name: z.string().describe("The name of the item"),
@@ -22,9 +22,21 @@ export const receiptTotalsSchema = z.object({
   grandTotal: z.number().describe("The final total amount after all fees and discounts"),
 });
 
-export const receiptSchema = z.object({
+export const receiptAiSchema = z.object({
   positions: z.array(positionSchema).describe("Array of items in the receipt"),
   fees: z.array(feeModifierSchema).describe("Array of modifiers that increase the total amount (e.g., tips, VAT)"),
   discounts: z.array(discountModifierSchema).describe("Array of modifiers that decrease the total amount (e.g., discounts)"),
+  totals: receiptTotalsSchema.describe("Total information including discounts and tips"),
+}).describe("Structured data extracted from the receipt");
+
+const withId = <T extends ZodObject<ZodRawShape>>(initial: T) => z.intersection(
+  initial,
+  z.object({ id: z.string() }),
+);
+
+export const receiptSchema = z.object({
+  positions: z.array(withId(positionSchema)),
+  fees: z.array(withId(feeModifierSchema)),
+  discounts: z.array(withId(discountModifierSchema)),
   totals: receiptTotalsSchema.describe("Total information including discounts and tips"),
 }).describe("Structured data extracted from the receipt");
