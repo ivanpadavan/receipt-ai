@@ -15,23 +15,26 @@ vi.mock("@/app/i18n/translations", () => ({
 }));
 
 // Mock useReceiptState 
-const mockGlobalForm = {
-    controls: {
-        positions: { controls: [] as any[] }
-    },
-    getRawValue: vi.fn()
-};
+const mockUseReceiptState = vi.fn();
 
 vi.mock("@/app/receipt/components/ReceiptForm", () => ({
-    useReceiptState: () => ({
-        scenario: { form: mockGlobalForm }
-    })
+    useReceiptState: mockUseReceiptState
 }));
 
 
-
 describe('RowSheet Conflict Handling', () => {
-    const setup = (propsOverrides: any = {}) => {
+    const setup = (propsOverrides: any = {}, receiptFormMock?: any) => {
+        // Configure mockUseReceiptState
+        const defaultReceiptFormMock = receiptFormMock || {
+            controls: {
+                positions: { controls: [] as any[] }
+            },
+            getRawValue: vi.fn()
+        };
+        mockUseReceiptState.mockReturnValue({
+            scenario: { form: defaultReceiptFormMock }
+        });
+
         const formGroup = new FormGroup({
             id: new FormControl('123'),
             name: new FormControl('Item 1'),
@@ -48,11 +51,13 @@ describe('RowSheet Conflict Handling', () => {
             remove: vi.fn(),
             header: 'editPosition' as any,
             initialValue,
-            getFormGroupCurrentState: vi.fn(), // Default mock
+            getFormGroupCurrentState: vi.fn(),
             ...propsOverrides
         };
 
-        return { props, formGroup, renderResult: render(<RowSheet {...props} />) };
+        const renderResult = render(<RowSheet {...props} />);
+
+        return { props, formGroup, ...renderResult };
     };
 
     it('should display error when item is deleted on server', async () => {
@@ -170,6 +175,139 @@ describe('RowSheet Conflict Handling', () => {
             expect(patchValueSpy).not.toHaveBeenCalled();
             // Should show modified warning
             expect(screen.queryByText(/modified by another user/i)).toBeTruthy();
+        });
+    });
+
+    it('should clear warning if server reverts to initial state', async () => {
+        // 1. Setup dirty local state
+        const localForm = new FormGroup({
+            id: new FormControl('123'),
+            name: new FormControl('User Edit'), // Initial was 'Item 1'
+            price: new FormControl(10),
+            quantity: new FormControl(1)
+        });
+
+        // 2. Define Initial State
+        const initialValue = { id: '123', name: 'Item 1', price: 10, quantity: 1 };
+
+        // 3. Define Server State = Conflict ('Server Update')
+        const conflictServerControl = new FormGroup({
+            id: new FormControl('123'),
+            name: new FormControl('Server Update'),
+            price: new FormControl(10),
+            quantity: new FormControl(1)
+        });
+
+        // 4. Define Server State = Revert ('Item 1' - matches initial)
+        const revertedServerControl = new FormGroup({
+            id: new FormControl('123'),
+            name: new FormControl('Item 1'),
+            price: new FormControl(10),
+            quantity: new FormControl(1)
+        });
+
+        const getFormGroupCurrentState = vi.fn();
+
+        // Start with conflict
+        const { rerender } = setup(
+            { formGroup: localForm, initialValue, getFormGroupCurrentState },
+            { controls: {}, getRawValue: () => conflictServerControl.getRawValue() } // Mock Form State
+        );
+
+        // Mock getFormGroupCurrentState to return conflict
+        getFormGroupCurrentState.mockReturnValue(conflictServerControl);
+
+        // Wait for effect
+        await waitFor(() => {
+            expect(screen.getByText(/Modified/i)).toBeTruthy();
+        });
+
+        // 5. Update Server State to Reverted
+        // We need to trigger a re-render with new form state context
+
+        // Re-configure mock to return new state
+        mockUseReceiptState.mockReturnValue({
+            scenario: { form: { controls: {}, getRawValue: () => revertedServerControl.getRawValue() } }
+        });
+        getFormGroupCurrentState.mockReturnValue(revertedServerControl);
+
+        // Rerender component (trigger effect)
+        rerender(
+            <RowSheet
+                header="editPosition"
+                formGroup={localForm}
+                initialValue={initialValue}
+                onFinish={vi.fn()}
+                remove={vi.fn()}
+                getFormGroupCurrentState={getFormGroupCurrentState}
+            />
+        );
+
+        await waitFor(() => {
+            expect(screen.queryByText(/Modified/i)).toBeNull();
+        });
+    });
+
+    it('should clear warning if server updates to match local user state', async () => {
+        // 1. Setup dirty local state
+        const localForm = new FormGroup({
+            id: new FormControl('123'),
+            name: new FormControl('User Edit'),
+            price: new FormControl(10),
+            quantity: new FormControl(1)
+        });
+
+        // 2. Define Initial State
+        const initialValue = { id: '123', name: 'Item 1', price: 10, quantity: 1 };
+
+        // 3. Define Server State = Conflict ('Server Update')
+        const conflictServerControl = new FormGroup({
+            id: new FormControl('123'),
+            name: new FormControl('Server Update'),
+            price: new FormControl(10),
+            quantity: new FormControl(1)
+        });
+
+        // 4. Define Server State = Match User ('User Edit')
+        const matchingServerControl = new FormGroup({
+            id: new FormControl('123'),
+            name: new FormControl('User Edit'),
+            price: new FormControl(10),
+            quantity: new FormControl(1)
+        });
+
+        const getFormGroupCurrentState = vi.fn();
+
+        // Start with conflict
+        const { rerender } = setup(
+            { formGroup: localForm, initialValue, getFormGroupCurrentState },
+            { controls: {}, getRawValue: () => conflictServerControl.getRawValue() }
+        );
+        getFormGroupCurrentState.mockReturnValue(conflictServerControl);
+
+        await waitFor(() => {
+            expect(screen.getByText(/Modified/i)).toBeTruthy();
+        });
+
+        // 5. Update Server to Match User
+        mockUseReceiptState.mockReturnValue({
+            scenario: { form: { controls: {}, getRawValue: () => matchingServerControl.getRawValue() } }
+        });
+        getFormGroupCurrentState.mockReturnValue(matchingServerControl);
+
+        rerender(
+            <RowSheet
+                header="editPosition"
+                formGroup={localForm}
+                initialValue={initialValue}
+                onFinish={vi.fn()}
+                remove={vi.fn()}
+                getFormGroupCurrentState={getFormGroupCurrentState}
+            />
+        );
+
+        await waitFor(() => {
+            expect(screen.queryByText(/Modified/i)).toBeNull();
         });
     });
 });

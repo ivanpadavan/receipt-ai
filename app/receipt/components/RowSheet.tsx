@@ -52,6 +52,9 @@ export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove
         // But effectively we are now synced with new server state.
         // We should probably clear any conflict if we auto-updated?
         setConflict(null);
+      } else if (deepEqual(currentLocalValue, liveValue)) {
+        // Server state matches local user changes. Conflict is resolved.
+        setConflict(null);
       } else {
         setConflict({ type: 'modified', message: 'Item has been modified by another user.' });
       }
