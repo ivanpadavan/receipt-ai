@@ -4,10 +4,10 @@ import { AbstractControl } from "@/forms/abstract_model";
 import { FormControl } from "@/forms/form_control";
 import { ValidationErrors } from "@/forms/validators";
 import { useObservable } from "@/hooks/rx/useObservable";
-import React, { ChangeEvent, useEffect, useMemo, useState } from "react";
+import React, { ChangeEvent, useMemo } from "react";
 import { t, TranslationKey } from "@/app/i18n/translations";
 import { useReceiptState } from "@/app/receipt/components/ReceiptForm";
-import deepEqual from "deep-eql";
+import { useRowConflict } from "@/app/receipt/hooks/useRowConflict";
 
 const isInErrorState = (c: AbstractControl, hideErrorsUntilTouched: boolean) => {
   return c.errors !== null && (hideErrorsUntilTouched ? c.touched : true);
@@ -16,7 +16,6 @@ const isInErrorState = (c: AbstractControl, hideErrorsUntilTouched: boolean) => 
 export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove, header, initialValue, getFormGroupCurrentState }) => {
   useObservable(formGroup.valueChanges);
   const { hideModal } = useModal();
-  const [conflict, setConflict] = useState<{ type: 'deleted' | 'modified', message: string } | null>(null);
   const hideErrorsUntilTouched = !remove && header !== 'overall';
   const controls = useMemo(() => Object.entries(formGroup.controls).filter(([key]) => key !== 'id'), [formGroup]) as [TranslationKey, FormControl<string | number>][];
   const errors = controls
@@ -25,56 +24,23 @@ export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove
 
   const { scenario: { form } } = useReceiptState();
 
-  useEffect(() => {
-    if (!initialValue || !getFormGroupCurrentState) return;
-
-    const liveControl = getFormGroupCurrentState(form);
-
-    // Case 1: Deleted
-    if (!liveControl) {
-      setConflict({ type: 'deleted', message: 'Item has been deleted by another user.' });
-      return;
-    }
-
-    const liveValue = liveControl.getRawValue();
-
-    // Case 2: Modified
-    if (!deepEqual(liveValue, initialValue)) {
-      const currentLocalValue = formGroup.getRawValue();
-
-      // Auto-update if pristine (user hasn't changed anything yet)
-      // We compare currentLocalValue with initialValue. 
-      // Note: formGroup is our local detached copy.
-      if (deepEqual(currentLocalValue, initialValue)) {
-        console.log('Auto-updating pristine form');
-        formGroup.patchValue(liveValue);
-        // Also update initialValue ref? No, initialValue is prop.
-        // But effectively we are now synced with new server state.
-        // We should probably clear any conflict if we auto-updated?
-        setConflict(null);
-      } else if (deepEqual(currentLocalValue, liveValue)) {
-        // Server state matches local user changes. Conflict is resolved.
-        setConflict(null);
-      } else {
-        setConflict({ type: 'modified', message: 'Item has been modified by another user.' });
-      }
-    } else {
-      // If server state reverts to initial, clear conflict
-      setConflict(null);
-    }
-
-  }, [form, initialValue, getFormGroupCurrentState, formGroup]);
+  const { conflict, resolveConflict } = useRowConflict({
+    formGroup,
+    initialValue,
+    getFormGroupCurrentState,
+    form
+  });
 
   if (conflict?.type === 'deleted') {
     return (
       <div className="p-6 text-center">
-        <h2 className="text-xl font-bold text-red-600 mb-2">{t("error" as any)}</h2>
+        <h2 className="text-xl font-bold text-red-600 mb-2">{t("error")}</h2>
         <p className="text-gray-700 mb-4">{conflict.message}</p>
         <button
           className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
           onClick={() => hideModal()}
         >
-          {t("close" as any)}
+          {t("close")}
         </button>
       </div>
     );
@@ -85,9 +51,31 @@ export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove
       <h2 className="text-xl font-bold mb-4 text-center">{t(header)}</h2>
 
       {conflict?.type === 'modified' && (
-        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800">
-          <strong>{t("warning" as any)}:</strong> {conflict.message}
-          <div className="text-xs mt-1">Saving will overwrite the server changes.</div>
+        <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-900">
+          <div className="flex items-start justify-between">
+            <div>
+              <h3 className="font-bold text-sm mb-1">{t("warning")}: {conflict.message}</h3>
+              <p className="text-xs mb-3 text-yellow-800">
+                The server has a different version of this item. You can accept the server's changes or keep your local edit.
+              </p>
+            </div>
+          </div>
+          <div className="flex space-x-3 mt-1">
+            <button
+              type="button"
+              onClick={() => resolveConflict('accept')}
+              className="px-3 py-1.5 text-xs font-medium bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded border border-yellow-300 transition-colors"
+            >
+              Accept Server Update
+            </button>
+            <button
+              type="button"
+              onClick={() => resolveConflict('keep')}
+              className="px-3 py-1.5 text-xs font-medium bg-white hover:bg-gray-50 text-gray-700 rounded border border-gray-300 transition-colors"
+            >
+              Keep My Version
+            </button>
+          </div>
         </div>
       )}
 

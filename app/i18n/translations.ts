@@ -31,6 +31,9 @@ const ru = {
   editDiscount: 'Редактировать скидку',
   addFee: 'Добавить сбор',
   editFee: 'Редактировать сбор',
+  warning: 'Предупреждение',
+  error: 'Ошибка',
+  close: 'Закрыть',
 };
 
 export type TranslationKey = keyof typeof ru;
@@ -69,6 +72,9 @@ const en: Translations = {
   editDiscount: 'Edit Discount',
   addFee: 'Add Fee',
   editFee: 'Edit Fee',
+  warning: 'Warning',
+  error: 'Error',
+  close: 'Close',
 };
 
 // Available languages

@@ -1,28 +1,34 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import { RowSheet } from '../RowSheet';
-import { vi, describe, it, expect } from 'vitest';
+import { vi, describe, it, expect, afterEach } from 'vitest';
 import { FormGroup } from '@/forms/form_group';
 import { FormControl } from '@/forms/form_control';
 
 // Mock dependencies
-const mockHideModal = vi.fn();
+const mocks = vi.hoisted(() => ({
+    hideModal: vi.fn(),
+    useReceiptState: vi.fn()
+}));
+
 vi.mock("@/components/ui/modal/ModalContext", () => ({
-    useModal: () => ({ hideModal: mockHideModal })
+    useModal: () => ({ hideModal: mocks.hideModal })
 }));
 
 vi.mock("@/app/i18n/translations", () => ({
     t: (key: string) => key,
 }));
 
-// Mock useReceiptState 
-const mockUseReceiptState = vi.fn();
-
 vi.mock("@/app/receipt/components/ReceiptForm", () => ({
-    useReceiptState: mockUseReceiptState
+    useReceiptState: mocks.useReceiptState
 }));
+
+const mockHideModal = mocks.hideModal;
+const mockUseReceiptState = mocks.useReceiptState;
 
 
 describe('RowSheet Conflict Handling', () => {
+    afterEach(() => cleanup());
+
     const setup = (propsOverrides: any = {}, receiptFormMock?: any) => {
         // Configure mockUseReceiptState
         const defaultReceiptFormMock = receiptFormMock || {
@@ -143,7 +149,7 @@ describe('RowSheet Conflict Handling', () => {
         expect(updatedInput).toBeTruthy();
     });
 
-    it('should show warning and not auto-update when local is dirty', async () => {
+    it('should show conflict resolution options when local is dirty', async () => {
         const formGroup = new FormGroup({
             id: new FormControl('123'),
             name: new FormControl('User Edit'), // User changed this
@@ -171,10 +177,98 @@ describe('RowSheet Conflict Handling', () => {
         />);
 
         await waitFor(() => {
+            // Check for conflict resolution UI
+            expect(screen.getByText(/The server has a different version/i)).toBeTruthy();
+            expect(screen.getByText('Accept Server Update')).toBeTruthy();
+            expect(screen.getByText('Keep My Version')).toBeTruthy();
+
             // Should NOT auto-update
             expect(patchValueSpy).not.toHaveBeenCalled();
-            // Should show modified warning
-            expect(screen.queryByText(/modified by another user/i)).toBeTruthy();
+            // Local value should remain user's edit
+            expect(formGroup.controls.name.value).toBe('User Edit');
+        });
+    });
+
+    it('should update form and clear conflict when accepting server update', async () => {
+        const localForm = new FormGroup({
+            id: new FormControl('123'),
+            name: new FormControl('User Edit'),
+            price: new FormControl(10),
+            quantity: new FormControl(1)
+        });
+        const initialValue = { id: '123', name: 'Item 1', price: 10, quantity: 1 };
+        const serverControl = new FormGroup({
+            id: new FormControl('123'),
+            name: new FormControl('Server Update'),
+            price: new FormControl(10),
+            quantity: new FormControl(1)
+        });
+
+        const updateSpy = vi.spyOn(localForm, 'patchValue');
+
+        setup({
+            formGroup: localForm,
+            initialValue: initialValue,
+            getFormGroupCurrentState: () => serverControl
+        });
+
+        // Wait for buttons
+        const acceptButton = await screen.findByText('Accept Server Update');
+
+        // Click Accept
+        acceptButton.click();
+
+        // Verify update happened
+        expect(updateSpy).toHaveBeenCalledWith({
+            id: '123',
+            name: 'Server Update',
+            price: 10,
+            quantity: 1
+        });
+        expect(localForm.controls.name.value).toBe('Server Update');
+
+        // Verify conflict UI gone
+        await waitFor(() => {
+            expect(screen.queryByText(/The server has a different version/i)).toBeNull();
+        });
+    });
+
+    it('should clear conflict when keeping local version', async () => {
+        const localForm = new FormGroup({
+            id: new FormControl('123'),
+            name: new FormControl('User Edit'),
+            price: new FormControl(10),
+            quantity: new FormControl(1)
+        });
+        const initialValue = { id: '123', name: 'Item 1', price: 10, quantity: 1 };
+        const serverControl = new FormGroup({
+            id: new FormControl('123'),
+            name: new FormControl('Server Update'),
+            price: new FormControl(10),
+            quantity: new FormControl(1)
+        });
+
+        const updateSpy = vi.spyOn(localForm, 'patchValue');
+
+        setup({
+            formGroup: localForm,
+            initialValue: initialValue,
+            getFormGroupCurrentState: () => serverControl
+        });
+
+        // Wait for buttons
+        const keepButton = await screen.findByText('Keep My Version');
+
+        // Click Keep
+        keepButton.click();
+
+        // Verify NO update
+        expect(updateSpy).not.toHaveBeenCalled();
+        expect(localForm.controls.name.value).toBe('User Edit');
+
+        // Verify conflict UI gone
+        await waitFor(() => {
+            expect(screen.queryByText(/The server has a different version/i)).toBeNull();
         });
     });
 
@@ -206,7 +300,8 @@ describe('RowSheet Conflict Handling', () => {
             quantity: new FormControl(1)
         });
 
-        const getFormGroupCurrentState = vi.fn();
+        // Mock getFormGroupCurrentState to return conflict
+        const getFormGroupCurrentState = vi.fn().mockReturnValue(conflictServerControl);
 
         // Start with conflict
         const { rerender } = setup(
@@ -214,12 +309,11 @@ describe('RowSheet Conflict Handling', () => {
             { controls: {}, getRawValue: () => conflictServerControl.getRawValue() } // Mock Form State
         );
 
-        // Mock getFormGroupCurrentState to return conflict
         getFormGroupCurrentState.mockReturnValue(conflictServerControl);
 
         // Wait for effect
         await waitFor(() => {
-            expect(screen.getByText(/Modified/i)).toBeTruthy();
+            expect(screen.getByText(/modified/i)).toBeTruthy();
         });
 
         // 5. Update Server State to Reverted
@@ -276,14 +370,13 @@ describe('RowSheet Conflict Handling', () => {
             quantity: new FormControl(1)
         });
 
-        const getFormGroupCurrentState = vi.fn();
+        const getFormGroupCurrentState = vi.fn().mockReturnValue(conflictServerControl);;
 
         // Start with conflict
         const { rerender } = setup(
             { formGroup: localForm, initialValue, getFormGroupCurrentState },
             { controls: {}, getRawValue: () => conflictServerControl.getRawValue() }
         );
-        getFormGroupCurrentState.mockReturnValue(conflictServerControl);
 
         await waitFor(() => {
             expect(screen.getByText(/Modified/i)).toBeTruthy();
