@@ -21,7 +21,7 @@ import { CellGroup } from "./CellGroup";
 import styles from "./form.module.css";
 import { FormArrayTitle } from "./FormArrayTitle";
 import { Modifiers } from "./Modifiers";
-import { RowSheet } from "./RowSheet";
+import { RowSheet } from "./RowSheet/RowSheet";
 import deepEqual from "deep-eql";
 import { distinctUntilChanged, Observable, startWith } from "rxjs";
 import { receiptSchema } from "@/model/receipt/schema";

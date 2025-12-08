@@ -1,5 +1,5 @@
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
-import { RowSheet } from '../RowSheet';
+import { RowSheet } from './RowSheet';
 import { vi, describe, it, expect, afterEach } from 'vitest';
 import { FormGroup } from '@/forms/form_group';
 import { FormControl } from '@/forms/form_control';

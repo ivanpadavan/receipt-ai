@@ -7,7 +7,7 @@ import { useObservable } from "@/hooks/rx/useObservable";
 import React, { ChangeEvent, useMemo } from "react";
 import { t, TranslationKey } from "@/app/i18n/translations";
 import { useReceiptState } from "@/app/receipt/components/ReceiptForm";
-import { useRowConflict } from "@/app/receipt/hooks/useRowConflict";
+import { useRowConflict } from "@/app/receipt/components/RowSheet/useRowConflict";
 
 const isInErrorState = (c: AbstractControl, hideErrorsUntilTouched: boolean) => {
   return c.errors !== null && (hideErrorsUntilTouched ? c.touched : true);
