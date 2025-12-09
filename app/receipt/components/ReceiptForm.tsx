@@ -7,7 +7,7 @@ import {
   ReceiptState,
 } from "@/app/receipt/[id]/receipt-state";
 import { Button } from "@/components/ui/button";
-import { useModal } from "@/components/ui/modal/ModalContext";
+import { ModalRefContext, useModal } from "@/components/ui/modal/ModalContext";
 import { forceSync, useObservable } from "@/hooks/rx/useObservable";
 import { Receipt } from "@/model/receipt/model";
 import React, {
@@ -91,22 +91,20 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
     forceSync,
   );
 
-  const { showModal, isOpen } = useModal();
+  const { showModal } = useModal();
+
   const [activeModalProps, setActiveModalProps] = React.useState<null | EditModalProps>(null);
 
   useEffect(() => {
-    const sub = formState.openEditModalCommand$.subscribe((props) => {
-      setActiveModalProps(props);
-      showModal(<ReceiptFormContext.Provider value={formState}><RowSheet {...props} /></ReceiptFormContext.Provider>);
-    });
+    const sub = formState.openEditModalCommand$.subscribe((props) => setActiveModalProps(props));
     return () => sub.unsubscribe();
   }, [formState, showModal]);
 
-  useEffect(() => {
-    if (isOpen && activeModalProps) {
-      showModal(<ReceiptFormContext.Provider value={formState}><RowSheet {...activeModalProps} /></ReceiptFormContext.Provider>);
-    }
-  }, [formState, isOpen, activeModalProps, showModal]);
+  const modalRef = showModal(activeModalProps ? <ReceiptFormContext.Provider value={formState}><RowSheet {...activeModalProps} /></ReceiptFormContext.Provider> : undefined, 'edit');
+  console.log(modalRef);
+  if (modalRef?.isOpen === false && !!activeModalProps) {
+    setActiveModalProps(null);
+  }
 
   const {
     scenario: { form, canEdit },

@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/components/ui/modal/ModalContext", () => ({
-    useModal: () => ({ hideModal: mocks.hideModal })
+    useModalRef: () => ({ hideModal: mocks.hideModal })
 }));
 
 vi.mock("@/app/i18n/translations", () => ({

@@ -1,23 +1,27 @@
-import React from 'react';
+import React, { useEffect } from "react";
 import { useModalAnimation } from '@/hooks/useModalAnimation';
+import { useModalRef } from "@/components/ui/modal/ModalContext";
 
 interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
   children: React.ReactNode;
 }
 
-export function Modal({ isOpen, onClose, children }: ModalProps) {
-  const { transitionState, isVisible } = useModalAnimation(isOpen);
+export function Modal({ children }: ModalProps) {
+  const { isOpen, hidingCompleted, hideModal } = useModalRef();
+  const { transitionState, isVisible } = useModalAnimation(isOpen === 'hiding' ? false : isOpen);
 
-  if (!isVisible) return null;
+  useEffect(() => {
+    if (!isVisible) {
+      hidingCompleted();
+    }
+  }, [isVisible, hidingCompleted]);
 
   return (
     <div className='fixed inset-0 z-50 flex items-end justify-center'>
       <div
         className="fixed inset-0 bg-black"
         style={{ opacity: transitionState * .5 }}
-        onClick={onClose}
+        onClick={() => hideModal()}
       />
       <div
         className="bg-white rounded-t-xl shadow-xl w-full max-h-[90vh] overflow-auto"
