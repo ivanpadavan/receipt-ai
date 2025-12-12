@@ -34,17 +34,12 @@ export const useModalRef = () => {
 
 export const ModalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [refContexts, setRefContexts] = useState<Array<ModalRefContext & { content: React.ReactNode }>>([]);
-  const pendingUpdates = useRef(new Set<string>());
+  const pendingUpdates = useRef<Array<() => void>>([]);
 
   const showModal = useCallback((content?: React.ReactNode, id?: string) => {
-    if (pendingUpdates.current.has(id || '')) {
-      return null;
-    }
     const ourCtxIdx = refContexts.findIndex(ctx => ctx.id === id);
     if (content === undefined && !!id && ourCtxIdx !== -1) {
-      pendingUpdates.current.add(id);
-      queueMicrotask(() => setRefContexts(refContexts => {
-        pendingUpdates.current.delete(id);
+      pendingUpdates.current.push(() => setRefContexts(refContexts => {
         return refContexts.splice(ourCtxIdx, 1);
       }));
       return null;
@@ -54,6 +49,12 @@ export const ModalProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     const curIdx = refContexts.findIndex((ref) => ref.id === id);
     if (curIdx !== -1) {
+      if (content !== refContexts[curIdx].content) {
+        pendingUpdates.current.push(() => setRefContexts(refContexts => {
+          refContexts[curIdx].content = content;
+          return [...refContexts];
+        }));
+      }
       return refContexts[curIdx];
     }
 
@@ -79,15 +80,19 @@ export const ModalProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       },
     };
 
-    pendingUpdates.current.add(id);
-    queueMicrotask(() => setRefContexts(refContexts => {
+    pendingUpdates.current.push(() => setRefContexts(refContexts => {
       refContexts.push(ctrl);
-      pendingUpdates.current.delete(id);
       return [...refContexts];
     }));
-
+    console.log(pendingUpdates.current);
     return null;
   }, [refContexts]);
+
+  useEffect(() => {
+    console.log(pendingUpdates.current);
+    pendingUpdates.current.forEach((cb) => cb());
+    pendingUpdates.current = [];
+  });
 
   return (
     <ModalContext.Provider value={{ showModal, openedModals: refContexts }}>

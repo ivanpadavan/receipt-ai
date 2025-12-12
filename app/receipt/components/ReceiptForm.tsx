@@ -100,7 +100,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
     return () => sub.unsubscribe();
   }, [formState, showModal]);
 
-  const modalRef = showModal(activeModalProps ? <ReceiptFormContext.Provider value={formState}><RowSheet {...activeModalProps} /></ReceiptFormContext.Provider> : undefined, 'edit');
+  const modalRef = showModal(useMemo(() => activeModalProps ? <ReceiptFormContext.Provider value={formState}><RowSheet {...activeModalProps} /></ReceiptFormContext.Provider> : undefined, [formState, activeModalProps]), 'edit');
   console.log(modalRef);
   if (modalRef?.isOpen === false && !!activeModalProps) {
     setActiveModalProps(null);
