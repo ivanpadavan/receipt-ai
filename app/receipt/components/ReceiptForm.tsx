@@ -7,7 +7,6 @@ import {
   ReceiptState,
 } from "@/app/receipt/[id]/receipt-state";
 import { Button } from "@/components/ui/button";
-import { ModalRefContext, useModal } from "@/components/ui/modal/ModalContext";
 import { forceSync, useObservable } from "@/hooks/rx/useObservable";
 import { Receipt } from "@/model/receipt/model";
 import React, {
@@ -15,6 +14,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useState,
 } from "react";
 import { Cell } from "./Cell";
 import { CellGroup } from "./CellGroup";
@@ -25,6 +25,7 @@ import { RowSheet } from "./RowSheet/RowSheet";
 import deepEqual from "deep-eql";
 import { distinctUntilChanged, Observable, startWith } from "rxjs";
 import { receiptSchema } from "@/model/receipt/schema";
+import { Drawer } from "@/components/ui/drawer";
 
 interface EditableReceiptFormProps {
   initialData: Receipt;
@@ -91,20 +92,12 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
     forceSync,
   );
 
-  const { showModal } = useModal();
-
   const [activeModalProps, setActiveModalProps] = React.useState<null | EditModalProps>(null);
 
   useEffect(() => {
     const sub = formState.openEditModalCommand$.subscribe((props) => setActiveModalProps(props));
     return () => sub.unsubscribe();
-  }, [formState, showModal]);
-
-  const modalRef = showModal(useMemo(() => activeModalProps ? <ReceiptFormContext.Provider value={formState}><RowSheet {...activeModalProps} /></ReceiptFormContext.Provider> : undefined, [formState, activeModalProps]), 'edit');
-  console.log(modalRef);
-  if (modalRef?.isOpen === false && !!activeModalProps) {
-    setActiveModalProps(null);
-  }
+  }, [formState]);
 
   const {
     scenario: { form, canEdit },
@@ -117,6 +110,9 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
 
   return (
     <ReceiptFormContext.Provider value={formState}>
+      <Drawer onCloseAnimationEnd={() => setActiveModalProps(null)} open={!!activeModalProps}>
+        {activeModalProps && <RowSheet {...activeModalProps} />}
+      </Drawer>
       <div className="m-3 rounded bg-white shadow-md text-black max-w-fit w-full mx-auto overflow-auto font-mono">
         <table className={styles.table}>
           <thead>

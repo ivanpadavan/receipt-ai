@@ -1,5 +1,4 @@
 import { EditModalProps } from "@/app/receipt/[id]/receipt-state";
-import { useModal, useModalRef } from "@/components/ui/modal/ModalContext";
 import { AbstractControl } from "@/forms/abstract_model";
 import { FormControl } from "@/forms/form_control";
 import { ValidationErrors } from "@/forms/validators";
@@ -8,6 +7,12 @@ import React, { ChangeEvent, useMemo } from "react";
 import { t, TranslationKey } from "@/app/i18n/translations";
 import { useReceiptState } from "@/app/receipt/components/ReceiptForm";
 import { useRowConflict } from "@/app/receipt/components/RowSheet/useRowConflict";
+import {
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 
 const isInErrorState = (c: AbstractControl, hideErrorsUntilTouched: boolean) => {
   return c.errors !== null && (hideErrorsUntilTouched ? c.touched : true);
@@ -15,7 +20,6 @@ const isInErrorState = (c: AbstractControl, hideErrorsUntilTouched: boolean) => 
 
 export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove, header, initialValue, getFormGroupCurrentState }) => {
   useObservable(formGroup.valueChanges);
-  const { hideModal } = useModalRef();
   const hideErrorsUntilTouched = !remove && header !== 'overall';
   const controls = useMemo(() => Object.entries(formGroup.controls).filter(([key]) => key !== 'id'), [formGroup]) as [TranslationKey, FormControl<string | number>][];
   const errors = controls
@@ -33,109 +37,115 @@ export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove
 
   if (conflict?.type === 'deleted') {
     return (
-      <div className="p-6 text-center">
-        <h2 className="text-xl font-bold text-red-600 mb-2">{t("error")}</h2>
+      <DrawerContent>
+        <DrawerTitle className={'p-4 pt-4 text-center'}>{t("error")}</DrawerTitle>
         <p className="text-gray-700 mb-4">{conflict.message}</p>
-        <button
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          onClick={() => hideModal()}
-        >
-          {t("close")}
-        </button>
-      </div>
+        <DrawerClose asChild>
+          <button
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+          >
+            {t("close")}
+          </button>
+        </DrawerClose>
+      </DrawerContent>
     );
   }
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4 text-center">{t(header)}</h2>
+      <DrawerContent>
+        <DrawerTitle className={'px-4 pt-4 text-center'}>{t(header)}</DrawerTitle>
+        <div className={'p-4'}>
+          {conflict?.type === 'modified' && (
+            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-900">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-bold text-sm mb-1">{t("warning")}: {conflict.message}</h3>
+                  <p className="text-xs mb-3 text-yellow-800">
+                    The server has a different version of this item. You can accept the server's changes or keep your local edit.
+                  </p>
+                </div>
+              </div>
+              <div className="flex space-x-3 mt-1">
+                <button
+                  type="button"
+                  onClick={() => resolveConflict('accept')}
+                  className="px-3 py-1.5 text-xs font-medium bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded border border-yellow-300 transition-colors"
+                >
+                  Accept Server Update
+                </button>
+                <button
+                  type="button"
+                  onClick={() => resolveConflict('keep')}
+                  className="px-3 py-1.5 text-xs font-medium bg-white hover:bg-gray-50 text-gray-700 rounded border border-gray-300 transition-colors"
+                >
+                  Keep My Version
+                </button>
+              </div>
+            </div>
+          )}
 
-      {conflict?.type === 'modified' && (
-        <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-900">
-          <div className="flex items-start justify-between">
+          {errors.length > 0 && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <ul className="list-disc pl-5 space-y-1">
+                {errors.map(([label, fieldErrors], index) => (
+                  <li key={index} className="text-sm text-red-700">
+                    <strong>{t(label)}:</strong> {fieldErrors.join(', ')}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="space-y-4">
+            {controls.map(([label, control], idx) => (
+              <FormField
+                key={idx}
+                label={label}
+                control={control}
+                hideErrorsUntilTouched={hideErrorsUntilTouched}
+              />
+            ))}
+          </div>
+        </div>
+        <DrawerFooter>
+          <div className="flex justify-between">
             <div>
-              <h3 className="font-bold text-sm mb-1">{t("warning")}: {conflict.message}</h3>
-              <p className="text-xs mb-3 text-yellow-800">
-                The server has a different version of this item. You can accept the server's changes or keep your local edit.
-              </p>
+              {remove && (
+                <DrawerClose asChild>
+                  <button
+                    type="button"
+                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                    onClick={() => { remove(form); }}
+                  >
+                    {t('remove')}
+                  </button>
+                </DrawerClose>
+              )}
+            </div>
+            <div className="flex space-x-2">
+              <DrawerClose asChild>
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors"
+                >{t('cancel')}</button>
+              </DrawerClose>
+              <DrawerClose asChild>
+                <button
+                  type="button"
+                  disabled={formGroup.invalid}
+                  onClick={() => { onFinish(form); }}
+                  className={`px-4 py-2 bg-amber-500 text-white rounded transition-colors ${formGroup.invalid
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-amber-600'
+                  }`}
+                >
+                  {t('save')}
+                </button>
+              </DrawerClose>
             </div>
           </div>
-          <div className="flex space-x-3 mt-1">
-            <button
-              type="button"
-              onClick={() => resolveConflict('accept')}
-              className="px-3 py-1.5 text-xs font-medium bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded border border-yellow-300 transition-colors"
-            >
-              Accept Server Update
-            </button>
-            <button
-              type="button"
-              onClick={() => resolveConflict('keep')}
-              className="px-3 py-1.5 text-xs font-medium bg-white hover:bg-gray-50 text-gray-700 rounded border border-gray-300 transition-colors"
-            >
-              Keep My Version
-            </button>
-          </div>
-        </div>
-      )}
-
-      {errors.length > 0 && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-          <ul className="list-disc pl-5 space-y-1">
-            {errors.map(([label, fieldErrors], index) => (
-              <li key={index} className="text-sm text-red-700">
-                <strong>{t(label)}:</strong> {fieldErrors.join(', ')}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <div className="space-y-4">
-        {controls.map(([label, control], idx) => (
-          <FormField
-            key={idx}
-            label={label}
-            control={control}
-            hideErrorsUntilTouched={hideErrorsUntilTouched}
-          />
-        ))}
-
-        <div className="flex justify-between mt-6">
-          <div>
-            {remove && (
-              <button
-                type="button"
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                onClick={() => { remove(form); hideModal(); }}
-              >
-                {t('remove')}
-              </button>
-            )}
-          </div>
-          <div className="flex space-x-2">
-            {hideModal && <button
-              type="button"
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors"
-              onClick={() => hideModal()}
-            >
-              {t('cancel')}
-            </button>}
-            <button
-              type="button"
-              disabled={formGroup.invalid}
-              onClick={() => { onFinish(form); hideModal(); }}
-              className={`px-4 py-2 bg-amber-500 text-white rounded transition-colors ${formGroup.invalid
-                ? 'opacity-50 cursor-not-allowed'
-                : 'hover:bg-amber-600'
-                }`}
-            >
-              {t('save')}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+        </DrawerFooter>
+      </DrawerContent>
   );
 };
 

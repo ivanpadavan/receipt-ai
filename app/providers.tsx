@@ -1,6 +1,5 @@
 "use client";
 
-import { ModalProvider } from "@/components/ui/modal/ModalContext";
 import { setupIonicReact } from "@ionic/react";
 import { initEffects } from "@ngneat/effects";
 import { Session } from "next-auth";
@@ -16,7 +15,5 @@ export function Providers({ children, session }: { children: ReactNode, session:
     setupIonicReact({ mode: 'ios' });
   }, []);
 
-  return <ModalProvider>
-    <SessionProvider session={session}>{children}</SessionProvider>
-  </ModalProvider>;
+  return (<SessionProvider session={session}>{children}</SessionProvider>);
 }
