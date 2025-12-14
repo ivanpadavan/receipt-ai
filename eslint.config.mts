@@ -3,6 +3,7 @@
 import eslint from '@eslint/js';
 import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
+import nextVitals from 'eslint-config-next/core-web-vitals'
 
 export default defineConfig(
   {
@@ -21,6 +22,7 @@ export default defineConfig(
   eslint.configs.recommended,
   tseslint.configs.strict,
   tseslint.configs.stylistic,
+  ...nextVitals,
   {
     rules: {
       '@typescript-eslint/no-unused-expressions': 'off',

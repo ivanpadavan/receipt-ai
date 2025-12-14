@@ -82,7 +82,7 @@
     "@vitejs/plugin-react": "^4.6.0",
     "autoprefixer": "10.4.14",
     "eslint": "9.39.2",
-    "eslint-config-next": "13.4.12",
+    "eslint-config-next": "16.0.10",
     "jsdom": "^26.1.0",
     "patch-package": "^8.0.0",
     "postcss": "8.4.27",
