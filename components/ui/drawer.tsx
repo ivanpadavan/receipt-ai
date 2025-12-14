@@ -2,12 +2,26 @@ import * as React from "react"
 import { Drawer as DrawerPrimitive } from "vaul"
 
 import { cn } from "@/utils/cn"
-import { useEffect, useState } from "react";
+import { createContext, useContext, useState } from "react";
+
+type WithinDrawerState = { closing: boolean };
+
+const WithinDrawerContext = createContext<WithinDrawerState | null>(null);
+
+export const useWithinDrawerContext = (): WithinDrawerState => {
+  const ctx = useContext(WithinDrawerContext);
+  if (ctx === null) {
+    throw new Error('should be provided');
+  }
+  return ctx;
+}
+
 
 const Drawer = ({
   shouldScaleBackground = true,
   onAnimationEnd,
   open,
+  children,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Root> & { onCloseAnimationEnd?: () => void }) => {
   const [closing, setClosing] = useState(false);
@@ -27,7 +41,7 @@ const Drawer = ({
     } }
     shouldScaleBackground={shouldScaleBackground}
     {...props}
-  />
+  ><WithinDrawerContext.Provider value={{ closing }}>{children}</WithinDrawerContext.Provider></DrawerPrimitive.Root>
 }
 Drawer.displayName = "Drawer"
 
@@ -52,10 +66,21 @@ DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, onPointerDownOutside, ...props }, ref) => (
   <DrawerPortal>
     <DrawerOverlay />
     <DrawerPrimitive.Content
+      onPointerDownOutside={(e) => {
+        // don't dismiss dialog when clicking inside the toast
+        if (
+          e.target instanceof Element &&
+          e.target.closest("[data-sonner-toast]")
+        ) {
+          e.preventDefault();
+        }
+
+        onPointerDownOutside?.(e);
+      }}
       ref={ref}
       className={cn(
         "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",

@@ -14,7 +14,6 @@ import React, {
   useContext,
   useEffect,
   useMemo,
-  useState,
 } from "react";
 import { Cell } from "./Cell";
 import { CellGroup } from "./CellGroup";
@@ -110,7 +109,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
 
   return (
     <ReceiptFormContext.Provider value={formState}>
-      <Drawer onCloseAnimationEnd={() => setActiveModalProps(null)} open={!!activeModalProps}>
+      <Drawer  onCloseAnimationEnd={() => setActiveModalProps(null)} open={!!activeModalProps}>
         {activeModalProps && <RowSheet {...activeModalProps} />}
       </Drawer>
       <div className="m-3 rounded bg-white shadow-md text-black max-w-fit w-full mx-auto overflow-auto font-mono">

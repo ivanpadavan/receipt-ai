@@ -6,6 +6,7 @@ import { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { ReactNode, useEffect } from "react";
 import { devTools } from '@ngneat/elf-devtools';
+import { Toaster } from "@/components/ui/sonner";
 
 export function Providers({ children, session }: { children: ReactNode, session: Session | null }) {
 
@@ -15,5 +16,8 @@ export function Providers({ children, session }: { children: ReactNode, session:
     setupIonicReact({ mode: 'ios' });
   }, []);
 
-  return (<SessionProvider session={session}>{children}</SessionProvider>);
+  return (<>
+    <Toaster style={{ pointerEvents:'auto' }} position={'top-center'} richColors={true} visibleToasts={1} />
+    <SessionProvider session={session}>{children}</SessionProvider>
+  </>);
 }

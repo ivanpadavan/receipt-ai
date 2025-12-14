@@ -56,7 +56,6 @@ export default async function RootLayout({
                 {children}
               </main>
             </div>
-            <Toaster />
           </Providers>
         </NuqsAdapter>
         <SpeedInsights/>

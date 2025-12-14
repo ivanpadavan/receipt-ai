@@ -3,7 +3,7 @@ import { AbstractControl } from "@/forms/abstract_model";
 import { FormControl } from "@/forms/form_control";
 import { ValidationErrors } from "@/forms/validators";
 import { useObservable } from "@/hooks/rx/useObservable";
-import React, { ChangeEvent, useMemo } from "react";
+import React, { ChangeEvent, useEffect, useMemo, useRef } from "react";
 import { t, TranslationKey } from "@/app/i18n/translations";
 import { useReceiptState } from "@/app/receipt/components/ReceiptForm";
 import { useRowConflict } from "@/app/receipt/components/RowSheet/useRowConflict";
@@ -11,8 +11,9 @@ import {
   DrawerClose,
   DrawerContent,
   DrawerFooter,
-  DrawerTitle,
+  DrawerTitle, useWithinDrawerContext,
 } from "@/components/ui/drawer";
+import { toast } from "sonner";
 
 const isInErrorState = (c: AbstractControl, hideErrorsUntilTouched: boolean) => {
   return c.errors !== null && (hideErrorsUntilTouched ? c.touched : true);
@@ -35,6 +36,30 @@ export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove
     form
   });
 
+  const toastId = useRef<string | number | undefined>();
+  useEffect(() => {
+    if (conflict?.type === 'modified') {
+      toastId.current = toast(conflict.message, {
+        id: 'conflict',
+        description:
+          "The server has a different version of this item. You can accept the server's changes or keep your local edit.",
+        action: {
+          label: 'Accept Server Update',
+          onClick: () => resolveConflict('accept'),
+        },
+        cancel: {
+          label: 'Keep My Version',
+          onClick: () => resolveConflict('keep')
+        },
+        duration: 1e7,
+      });
+    }
+  }, [conflict, resolveConflict]);
+
+  const { closing } = useWithinDrawerContext();
+
+  useEffect(() => (closing && toast.dismiss(toastId.current), void 0), [closing]);
+
   if (conflict?.type === 'deleted') {
     return (
       <DrawerContent>
@@ -55,35 +80,6 @@ export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove
       <DrawerContent>
         <DrawerTitle className={'px-4 pt-4 text-center'}>{t(header)}</DrawerTitle>
         <div className={'p-4'}>
-          {conflict?.type === 'modified' && (
-            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-900">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-bold text-sm mb-1">{t("warning")}: {conflict.message}</h3>
-                  <p className="text-xs mb-3 text-yellow-800">
-                    The server has a different version of this item. You can accept the server's changes or keep your local edit.
-                  </p>
-                </div>
-              </div>
-              <div className="flex space-x-3 mt-1">
-                <button
-                  type="button"
-                  onClick={() => resolveConflict('accept')}
-                  className="px-3 py-1.5 text-xs font-medium bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded border border-yellow-300 transition-colors"
-                >
-                  Accept Server Update
-                </button>
-                <button
-                  type="button"
-                  onClick={() => resolveConflict('keep')}
-                  className="px-3 py-1.5 text-xs font-medium bg-white hover:bg-gray-50 text-gray-700 rounded border border-gray-300 transition-colors"
-                >
-                  Keep My Version
-                </button>
-              </div>
-            </div>
-          )}
-
           {errors.length > 0 && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
               <ul className="list-disc pl-5 space-y-1">
