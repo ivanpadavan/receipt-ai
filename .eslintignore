@@ -1,0 +1,6 @@
+prisma/generated/*
+postcss.config.js
+next.config.js
+tailwind.config.js
+babel.config.js
+next-env.d.ts

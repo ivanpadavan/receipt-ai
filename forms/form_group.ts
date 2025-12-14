@@ -506,7 +506,7 @@ export class FormGroup<TControl extends {[K in keyof TControl]: AbstractControl<
 
   /** @internal */
   override _syncPendingControls(): boolean {
-    let subtreeUpdated = this._reduceChildren(false, (updated: boolean, child) => {
+    const subtreeUpdated = this._reduceChildren(false, (updated: boolean, child) => {
       return child._syncPendingControls() ? true : updated;
     });
     if (subtreeUpdated) this.updateValueAndValidity({onlySelf: true});
@@ -549,7 +549,7 @@ export class FormGroup<TControl extends {[K in keyof TControl]: AbstractControl<
 
   /** @internal */
   _reduceValue(): Partial<TControl> {
-    let acc: Partial<TControl> = {};
+    const acc: Partial<TControl> = {};
     return this._reduceChildren(acc, (acc, control, name) => {
       if (control.enabled || this.disabled) {
         acc[name] = control.value;

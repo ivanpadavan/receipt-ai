@@ -29,7 +29,7 @@ export function calculateTotal(positions: ReceiptPositionNoId[]): number {
 
 export function calculateGrandTotal({ totals: { total }, discounts, fees }: ReceiptNoId) {
   return total + sumModifiers(fees) - sumModifiers(discounts);
-};
+}
 
 
 /**

@@ -2,7 +2,7 @@ import { forceSync, useObservable } from "@/hooks/rx/useObservable";
 import { bezier } from "@/utils/animation/bezier";
 import { createTween } from "@/utils/animation/create-tween";
 import { useMemo, useState } from "react";
-import { finalize, Observable, of, startWith } from "rxjs";
+import { finalize, Observable, of } from "rxjs";
 
 type AnimationArgs = Parameters<typeof createTween>;
 

@@ -22,7 +22,6 @@ vi.mock("@/app/receipt/components/ReceiptForm", () => ({
     useReceiptState: mocks.useReceiptState
 }));
 
-const mockHideModal = mocks.hideModal;
 const mockUseReceiptState = mocks.useReceiptState;
 
 
@@ -370,7 +369,7 @@ describe('RowSheet Conflict Handling', () => {
             quantity: new FormControl(1)
         });
 
-        const getFormGroupCurrentState = vi.fn().mockReturnValue(conflictServerControl);;
+        const getFormGroupCurrentState = vi.fn().mockReturnValue(conflictServerControl);
 
         // Start with conflict
         const { rerender } = setup(

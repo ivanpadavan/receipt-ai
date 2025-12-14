@@ -57,7 +57,7 @@ export async function GET(
         try {
           controller.close();
           client.end();
-        } catch (e) {
+        } catch {
           // Already closed
         }
       });
