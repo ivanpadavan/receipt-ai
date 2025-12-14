@@ -186,7 +186,7 @@ const FormField: React.FC<{ control: FormControl<string | number>, label: Transl
       <input
         type={type === 'number' ? 'number' : 'text'}
         inputMode={type === 'number' ? 'decimal' : 'text'}
-        value={type === 'number' && (control.value === 0 || isNaN(control.value as any)) ? '' : control.value}
+        value={type === 'number' && (control.value === 0 || isNaN(control.value as number)) ? '' : control.value}
         onChange={onChange}
         disabled={control.disabled}
         className={`w-full px-3 py-2 border rounded-md ${isInvalid

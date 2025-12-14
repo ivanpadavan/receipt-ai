@@ -28,9 +28,9 @@ type PictureState = {
   imageBase64: string;
 }
 
-type ErrorState = { errorMessage: string, setError: (errorMessage: string) => void };
+interface ErrorState { errorMessage: string, setError: (errorMessage: string) => void }
 
-export type PageState = { camera: CameraState, picture: PictureState, error: ErrorState, navigateTo: null | string };
+export interface PageState { camera: CameraState, picture: PictureState, error: ErrorState, navigateTo: null | string }
 
 const parseReceipt = createAction('parseReceipt', props<{ imageBase64: string }>())
 

@@ -468,7 +468,7 @@ export class FormArray<TControl extends AbstractControl<any> = any> extends Abst
 
   /** @internal */
   override _syncPendingControls(): boolean {
-    const subtreeUpdated = (this.controls as any).reduce((updated: any, child: any) => {
+    let subtreeUpdated = (this.controls as any).reduce((updated: any, child: any) => {
       return child._syncPendingControls() ? true : updated;
     }, false);
     if (subtreeUpdated) this.updateValueAndValidity({onlySelf: true});

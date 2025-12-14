@@ -360,7 +360,7 @@ export default class Camera extends React.Component<CameraProps, WebcamState> {
         throw new Error("Invalid deviceId constraint");
       };
 
-      // @ts-ignore: deprecated api
+      // @ts-expect-error: deprecated api
       MediaStreamTrack.getSources(sources => {
         let audioSource: string | null = null;
         let videoSource: string | null = null;
@@ -423,17 +423,7 @@ export default class Camera extends React.Component<CameraProps, WebcamState> {
 
     const {
       audio,
-      forceScreenshotSourceSize,
       disablePictureInPicture,
-      onUserMedia,
-      onUserMediaError,
-      screenshotFormat,
-      screenshotQuality,
-      minScreenshotWidth,
-      minScreenshotHeight,
-      audioConstraints,
-      videoConstraints,
-      imageSmoothing,
       mirrored,
       style = {},
       children,

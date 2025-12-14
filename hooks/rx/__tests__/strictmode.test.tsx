@@ -62,7 +62,7 @@ test('Strict mode should unsubscribe the source observable on unmount', async ()
 })
 
 test('Strict mode should unsubscribe the source observable on unmount if its created in a useMemo', async () => {
-  let subscriberCount: number = 0
+  let subscriberCount = 0
   const getObservable = () =>
     new Observable(() => {
       subscriberCount++

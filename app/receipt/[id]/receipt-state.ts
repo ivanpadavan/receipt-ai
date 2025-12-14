@@ -18,7 +18,7 @@ import { TranslationKey } from "@/app/i18n/translations";
 import {
   Receipt, validateReceipt, calculateTotal, calculateGrandTotal
 } from "@/model/receipt/model";
-import { map, tap } from "rxjs/operators";
+import { map } from "rxjs/operators";
 import {
   stringNotEmpty,
   numberMoreThenZero,
@@ -49,21 +49,21 @@ export interface EditModalProps {
   header: TranslationKey;
 }
 
-export type CanEdit = {
+export interface CanEdit {
   positionForm: boolean | 'splitting',
   modifierForm: boolean,
   totalsForm: boolean,
 }
 
-export type FormScenario = { type: FormType; canEdit: CanEdit, form: ReceiptForm }
+export interface FormScenario { type: FormType; canEdit: CanEdit, form: ReceiptForm }
 
-export type ReceiptState = {
+export interface ReceiptState {
   scenario: FormScenario;
   openEditModal: (v: AppendableForm | 'addPosition' | 'addDiscount' | 'addFee') => void,
   proceed: () => void;
   canProceed$: Observable<boolean>;
   openEditModalCommand$: Observable<EditModalProps>;
-};
+}
 
 const permissions: Record<FormType, CanEdit> = {
   validation: {
@@ -85,7 +85,7 @@ const permissions: Record<FormType, CanEdit> = {
 
 export const receiptFormState$ = (
   initialData: Receipt,
-  receiptId: string = '',
+  receiptId = '',
 ): Observable<ReceiptState> => {
   const openEditModalCommand$ = new Subject<EditModalProps>();
 

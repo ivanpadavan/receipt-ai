@@ -84,7 +84,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       if (v.user.name !== ANONYMOUS_NAME) {
         return;
       }
-      upgradedUserIds.add(<string>v.user.id);
+      upgradedUserIds.add((v.user.id as string));
       await db.user.update({
         where: { id: v.user.id },
         data: {

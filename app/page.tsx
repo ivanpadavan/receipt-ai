@@ -20,9 +20,9 @@ export default function ImagePastePage() {
       const items = e.clipboardData?.items;
       if (!items || picture.status !== 'idle') return;
 
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf("image") !== -1) {
-          const blob = items[i].getAsFile();
+      for (const item of items) {
+        if (item.type.indexOf("image") !== -1) {
+          const blob = item.getAsFile();
           if (!blob) continue;
 
           const reader = new FileReader();

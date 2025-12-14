@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import Camera from "@/components/Camera";
 import { Button } from "@/components/ui/button";
 
-type WebcamCaptureProps = {
+interface WebcamCaptureProps {
   pageState: PageState,
 }
 

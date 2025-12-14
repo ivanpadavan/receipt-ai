@@ -3,10 +3,10 @@ import {Subscribable} from 'rxjs';
 /**
  * Determine if the argument is shaped like a Promise
  */
-export function isPromise<T = unknown>(obj: {}): obj is Promise<T> {
+export function isPromise<T = any>(obj: any): obj is Promise<T> {
   // allow any Promise/A+ compliant thenable.
   // It's up to the caller to ensure that obj.then conforms to the spec
-  return !!obj && 'then' in obj && typeof obj.then === 'function';
+  return !!obj && typeof obj.then === 'function';
 }
 
 /**
@@ -60,7 +60,7 @@ function formatRuntimeError<T extends number = RuntimeErrorCode>(
   // We also prepend `0` to non-compile-time errors.
   const fullCode = `NG0${Math.abs(code)}`;
 
-  const errorMessage = `${fullCode}${message ? ': ' + message : ''}`;
+  let errorMessage = `${fullCode}${message ? ': ' + message : ''}`;
   return errorMessage;
 }
 

@@ -4,7 +4,7 @@ import { Drawer as DrawerPrimitive } from "vaul"
 import { cn } from "@/utils/cn"
 import { createContext, useContext, useState } from "react";
 
-type WithinDrawerState = { closing: boolean };
+interface WithinDrawerState { closing: boolean }
 
 const WithinDrawerContext = createContext<WithinDrawerState | null>(null);
 
