@@ -48,7 +48,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     strategy: "jwt",
   },
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       // console.log('[auth] jwt', { token, user, account });
       if (!user && (upgradedUserIds.has(token.user.id || '') )) {
         const actualUser = await db.user.findUnique({

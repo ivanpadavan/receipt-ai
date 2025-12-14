@@ -7,6 +7,7 @@ import tseslint from 'typescript-eslint';
 export default defineConfig(
   {
     ignores: [
+      '.next/*',
       'prisma/generated/*',
       'forms/*',
       'hooks/rx',

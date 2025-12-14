@@ -1,4 +1,4 @@
-import { receiptAiSchema, receiptSchema } from "@/model/receipt/schema";
+import { receiptAiSchema } from "@/model/receipt/schema";
 import { Receipt, ReceiptNoId, validateReceipt } from "@/model/receipt/model";
 import { auth } from "@/app/auth";
 import { NextRequest, NextResponse } from "next/server";
@@ -32,6 +32,7 @@ const imagePrompt = ChatPromptTemplate.fromMessages([
 // Using Google's Gemini model for image analysis
 const model = new ChatGoogleGenerativeAI({
   temperature: 1,
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   model: process.env.GOOGLE_API_MODEL!,
   apiKey: process.env.GOOGLE_API_KEY, // Using the Google API key
 });
@@ -75,7 +76,7 @@ async function errorWrap<T extends ApiValidator>(req: NextRequest, validator: T,
     const body = validator.request.parse(await req.json()) as ReturnType<T['request']['parse']>;
 
     return cb({ session, body });
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("API Error:", e);
     return NextResponse.json(
       { error: e.message },
