@@ -34,16 +34,18 @@ export type ReceiptForm = InferForm<Receipt>;
 
 export type PositionForm = ReceiptForm['controls']['positions']['controls'][0];
 
-export type ModifierForm = ReceiptForm['controls']['fees'] | ReceiptForm['controls']['discounts'];
+export type ModifierForm =
+  | ReceiptForm["controls"]["fees"]["controls"][0]
+  | ReceiptForm["controls"]["discounts"]["controls"][0];
 
 export type TotalsForm = ReceiptForm['controls']['totals'];
 
-export type AppendableForm = PositionForm | ModifierForm | TotalsForm;
+export type EditableForm = PositionForm | ModifierForm | TotalsForm;
 
 export interface EditModalProps {
-  formGroup: AppendableForm;
-  initialValue?: ReturnType<AppendableForm['getRawValue']>;
-  getFormGroupCurrentState: (formGroup: ReceiptForm) => AppendableForm | undefined;
+  formGroup: EditableForm;
+  initialValue?: ReturnType<EditableForm['getRawValue']>;
+  getFormGroupCurrentState: (formGroup: ReceiptForm) => EditableForm | undefined;
   onFinish: (form: ReceiptForm) => void;
   remove?: (form: ReceiptForm) => void;
   header: TranslationKey;
@@ -59,7 +61,7 @@ export interface FormScenario { type: FormType; canEdit: CanEdit, form: ReceiptF
 
 export interface ReceiptState {
   scenario: FormScenario;
-  openEditModal: (v: AppendableForm | 'addPosition' | 'addDiscount' | 'addFee') => void,
+  openEditModal: (v: EditableForm | 'addPosition' | 'addDiscount' | 'addFee') => void,
   proceed: () => void;
   canProceed$: Observable<boolean>;
   openEditModalCommand$: Observable<EditModalProps>;
@@ -140,7 +142,7 @@ export const receiptFormState$ = (
   };
 
   // Default modifier form group for adding new modifiers
-  const defaultModifier = (): ModifierForm['controls'][number] => {
+  const defaultModifier = (): ModifierForm => {
     return new FormGroup({
       id: new FormControl(crypto.randomUUID()),
       name: new FormControl('', {
@@ -208,21 +210,26 @@ export const receiptFormState$ = (
 
       if (formToEdit instanceof FormGroup) {
         if (formToEdit.parent instanceof FormArray) {
-          const parent = formToEdit.parent as FormArray<AppendableForm>;
+          const parent = formToEdit.parent as FormArray<EditableForm>;
           const isPosition = 'overall' in formToEdit.controls;
-          const newForm = (isPosition ? defaultPosition() : defaultModifier()) as any;
+          const newForm = (isPosition ? defaultPosition() : defaultModifier()) as unknown as EditableForm;
           const isDiscount = !isPosition && parent.parent?.get('discounts') == parent;
           const initialValue = formToEdit.getRawValue();
           newForm.patchValue(initialValue);
           const path = isPosition ? 'positions' : isDiscount ? 'discounts' : 'fees';
           const header = isPosition ? 'editPosition' : isDiscount ? 'editDiscount' : 'editFee';
-          const getFormGroupCurrentState = (form: ReceiptForm) => form.controls[path].controls.find((v) => v.getRawValue().id === initialValue.id);
+          const getFormGroupCurrentState = (form: ReceiptForm) => {
+            const arr = form.controls[path].controls;
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            return arr.find((v: PositionForm | ModifierForm) => v.getRawValue().id === initialValue.id);
+          }
           openEditModalCommand$.next({
             initialValue,
             formGroup: newForm,
             getFormGroupCurrentState,
             onFinish: (form) => {
-              getFormGroupCurrentState(form)?.patchValue(newForm.getRawValue() as any);
+              getFormGroupCurrentState(form)?.patchValue(newForm.getRawValue() as unknown);
             },
             remove: (form)=> {
               const current = getFormGroupCurrentState(form);
@@ -258,7 +265,7 @@ export const receiptFormState$ = (
         const isFee = formToEdit === 'addFee';
         const header = isFee ? 'addFee' : 'addDiscount';
         openEditModalCommand$.next({
-          formGroup: newModifier as any,
+          formGroup: newModifier as unknown as EditableForm,
           getFormGroupCurrentState: () => undefined,
           onFinish: () => {
             const groupName = isFee ? 'fees' : 'discounts';

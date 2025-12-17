@@ -45,7 +45,7 @@ export async function GET(
         console.log(`notify about ${channelName}`);
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
       });
-      client.on('error', (err) => {
+      client.on('error', (err: unknown) => {
         console.error('Connection error:', err);
       });
 
@@ -62,7 +62,7 @@ export async function GET(
         }
       });
 
-      await new Promise(() => {});
+      await Promise.resolve();
     },
   });
 

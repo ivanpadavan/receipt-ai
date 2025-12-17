@@ -21,10 +21,10 @@ import styles from "./form.module.css";
 import { FormArrayTitle } from "./FormArrayTitle";
 import { Modifiers } from "./Modifiers";
 import { RowSheet } from "./RowSheet/RowSheet";
-import deepEqual from "deep-eql";
 import { distinctUntilChanged, Observable, startWith } from "rxjs";
 import { receiptSchema } from "@/model/receipt/schema";
 import { Drawer } from "@/components/ui/drawer";
+import { isEqual } from "lodash-es";
 
 interface EditableReceiptFormProps {
   initialData: Receipt;
@@ -70,7 +70,7 @@ const useReceiptWithUpdates = (initialData: Receipt, receiptId: string) => {
       return () => eventSource.close();
     }).pipe(
       startWith(initialData),
-      distinctUntilChanged(deepEqual),
+      distinctUntilChanged(isEqual),
     )
   }, [receiptId, initialData]), forceSync);
 }

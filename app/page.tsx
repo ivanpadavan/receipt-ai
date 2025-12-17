@@ -12,6 +12,7 @@ export default function ImagePastePage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // eslint-disable-next-line react-hooks/use-memo
   const pageState = useObservable(useMemo(pageState$, []), forceSync);
   const { camera, picture, navigateTo, error } = pageState;
 

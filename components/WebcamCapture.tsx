@@ -17,6 +17,7 @@ export default function WebcamCapture({ pageState: { camera } }: WebcamCapturePr
   useEffect(() => {
     paused && cameraRef.current
       ? cameraRef.current.getScreenshot().then(setScreenshot)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       : setScreenshot(null)
   }, [paused])
 

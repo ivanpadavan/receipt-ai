@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import { RowSheet } from './RowSheet';
 import { vi, describe, it, expect, afterEach } from 'vitest';

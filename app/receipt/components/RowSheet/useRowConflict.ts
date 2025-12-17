@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import deepEqual from "deep-eql";
-import { AppendableForm, ReceiptForm } from "@/app/receipt/[id]/receipt-state";
+import { EditableForm, ReceiptForm } from "@/app/receipt/[id]/receipt-state";
+import { isEqual } from "lodash-es";
 
 interface UseRowConflictProps {
-    formGroup: AppendableForm;
-    initialValue: ReturnType<AppendableForm['getRawValue']> | undefined;
-    getFormGroupCurrentState: (form: ReceiptForm) => AppendableForm | undefined;
+    formGroup: EditableForm;
+    initialValue: ReturnType<EditableForm['getRawValue']> | undefined;
+    getFormGroupCurrentState: (form: ReceiptForm) => EditableForm | undefined;
     form: ReceiptForm;
 }
 
@@ -14,7 +14,7 @@ export type ConflictType = 'deleted' | 'modified';
 export interface ConflictState {
     type: ConflictType;
     message: string;
-    serverValue?: ReturnType<AppendableForm['getRawValue']>;
+    serverValue?: ReturnType<EditableForm['getRawValue']>;
 }
 
 export const useRowConflict = ({
@@ -42,6 +42,7 @@ export const useRowConflict = ({
 
         // Case 1: Deleted
         if (!liveControl) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
             setConflict({ type: 'deleted', message: 'Item has been deleted by another user.' });
             return;
         }
@@ -50,26 +51,28 @@ export const useRowConflict = ({
         const currentLocalValue = formGroup.getRawValue();
         console.log('HOOK DEBUG:', { liveValue, initialValue, currentLocalValue });
         // Case 2: Modified
-        if (!deepEqual(liveValue, initialValue) && !deepEqual(liveValue, currentLocalValue)) {
-
-            // Auto-update if pristine
-            if (deepEqual(currentLocalValue, initialValue)) {
-                console.log('Auto-updating pristine form');
-                formGroup.patchValue(liveValue);
-                setConflict(null);
-            } else if (deepEqual(currentLocalValue, liveValue)) {
-                // Server state matches local user changes. Conflict is resolved.
-                setConflict(null);
-            } else {
-                setConflict({
-                    type: 'modified',
-                    message: 'Item has been modified by another user.',
-                    serverValue: liveValue
-                });
-            }
-        } else {
-            // If server state reverts to initial, clear conflict
+        if (
+          !isEqual(liveValue, initialValue) &&
+          !isEqual(liveValue, currentLocalValue)
+        ) {
+          // Auto-update if pristine
+          if (isEqual(currentLocalValue, initialValue)) {
+            console.log("Auto-updating pristine form");
+            formGroup.patchValue(liveValue);
             setConflict(null);
+          } else if (isEqual(currentLocalValue, liveValue)) {
+            // Server state matches local user changes. Conflict is resolved.
+            setConflict(null);
+          } else {
+            setConflict({
+              type: "modified",
+              message: "Item has been modified by another user.",
+              serverValue: liveValue,
+            });
+          }
+        } else {
+          // If server state reverts to initial, clear conflict
+          setConflict(null);
         }
 
     }, [form, initialValue, getFormGroupCurrentState, formGroup]);

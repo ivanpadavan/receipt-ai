@@ -6,10 +6,11 @@ import React from "react";
 import { Cell } from "./Cell";
 import { FormArrayTitle } from "./FormArrayTitle";
 import { useReceiptState } from "./ReceiptForm";
+import { FormArray } from "@/forms/form_array";
 
 interface ItemsSectionProps {
   type: "discounts" | "fees";
-  items: ModifierForm;
+  items: FormArray<ModifierForm>;
 }
 
 export const Modifiers: React.FC<ItemsSectionProps> = ({ type, items }) => {

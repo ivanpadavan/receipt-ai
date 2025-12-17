@@ -78,9 +78,15 @@ async function errorWrap<T extends ApiValidator>(req: NextRequest, validator: T,
     return cb({ session, body });
   } catch (e: unknown) {
     console.error("API Error:", e);
+    if (typeof e !== 'object' || e == null) {
+      return NextResponse.json(
+        { error: 'unknown' },
+        { status: 500 },
+      );
+    }
     return NextResponse.json(
-      { error: e.message },
-      { status: e.status ?? 500 },
+      { error: 'message' in e && e.message },
+      { status: 'status' in e && typeof e.status === 'number' ? e.status : 500 },
     );
   }
 }
