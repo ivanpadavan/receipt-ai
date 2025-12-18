@@ -1,7 +1,7 @@
 import { auth, signIn } from "@/app/auth";
 import { NextResponse } from 'next/server';
 
-export const proxy = auth(async (req) => {
+export const middleware = auth(async (req) => {
   if (!req.auth) {
     await signIn("anonymous", { redirect: false });
   }
@@ -21,5 +21,5 @@ export const config = {
      */
     "/((?!_next/static|_next/image|favicon.ico|images|auth|api/auth).*)",
   ],
-  runtime: "edge",
+  runtime: "experimental-edge",
 };
