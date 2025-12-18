@@ -36,7 +36,7 @@ export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove
     form
   });
 
-  const toastId = useRef<string | number | undefined>();
+  const toastId = useRef<string | number | undefined>(undefined);
   useEffect(() => {
     if (conflict?.type === 'modified') {
       toastId.current = toast(conflict.message, {

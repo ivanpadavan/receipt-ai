@@ -1,6 +1,5 @@
 "use client";
 
-import { setupIonicReact } from "@ionic/react";
 import { initEffects } from "@ngneat/effects";
 import { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
@@ -13,7 +12,6 @@ export function Providers({ children, session }: { children: ReactNode, session:
   useEffect(() => {
     devTools();
     initEffects();
-    setupIonicReact({ mode: 'ios' });
   }, []);
 
   return (<>

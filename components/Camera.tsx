@@ -1,6 +1,8 @@
 /* eslint-disable */
 import * as React from "react";
 
+import type { JSX } from "react";
+
 // polyfill based on https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
 (function polyfillGetUserMedia() {
   if (typeof window === 'undefined') {
@@ -341,7 +343,9 @@ export default class Camera extends React.Component<CameraProps, WebcamState> {
     if ("mediaDevices" in navigator) {
       sourceSelected(props.audioConstraints, props.videoConstraints);
     } else {
-      const optionalSource = (id: string | null) => ({ optional: [{ sourceId: id }] }) as MediaTrackConstraints;
+      const optionalSource = (id: string | null) => (({
+        optional: [{ sourceId: id }]
+      }) as MediaTrackConstraints);
 
       const constraintToSourceId = (constraint: MediaTrackConstraints) => {
         const { deviceId } = constraint;
