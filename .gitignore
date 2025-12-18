@@ -43,5 +43,6 @@ next-env.d.ts
 !.yarn/sdks
 !.yarn/versions
 .env
+`.env.production
 
 /prisma/generated
