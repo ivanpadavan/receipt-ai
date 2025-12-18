@@ -19,6 +19,7 @@ export const config = {
      * - images (public images folder)
      * - api/auth (auth API routes)
      */
-    '/((?!_next/static|_next/image|favicon.ico|images|auth|api/auth).*)',
+    "/((?!_next/static|_next/image|favicon.ico|images|auth|api/auth).*)",
   ],
+  runtime: "edge",
 };
