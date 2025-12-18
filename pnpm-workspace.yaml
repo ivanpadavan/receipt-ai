@@ -1,0 +1,2 @@
+patchedDependencies:
+  '@auth/core@0.39.1': patches/@auth__core@0.39.1.patch
