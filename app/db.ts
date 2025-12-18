@@ -1,4 +1,4 @@
-import { PrismaClient } from "@/prisma/generated/prisma";
+import { PrismaClient } from "@/prisma/generated/prisma/client";
 import { PrismaNeon } from '@prisma/adapter-neon';
 
 // PrismaClient is attached to the `global` object in development to prevent
