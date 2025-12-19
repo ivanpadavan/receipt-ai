@@ -4,9 +4,9 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 // @ts-check
 
 /** @type {import('next').NextConfig} */
-const nextConfig = withBundleAnalyzer({
+const nextConfig = {
   output: "standalone",
-  serverExternalPackages: ["@libsql/client", "@prisma/adapter-libsql"],
-});
+  serverExternalPackages: ["@prisma/adapter-neon"],
+};
 
 module.exports = nextConfig;

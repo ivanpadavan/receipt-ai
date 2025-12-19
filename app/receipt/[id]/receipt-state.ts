@@ -212,7 +212,7 @@ export const receiptFormState$ = (
         if (formToEdit.parent instanceof FormArray) {
           const parent = formToEdit.parent as FormArray<EditableForm>;
           const isPosition = 'overall' in formToEdit.controls;
-          const newForm = (isPosition ? defaultPosition() : defaultModifier()) as unknown as EditableForm;
+          const newForm = (isPosition ? defaultPosition() : defaultModifier());
           const isDiscount = !isPosition && parent.parent?.get('discounts') == parent;
           const initialValue = formToEdit.getRawValue();
           newForm.patchValue(initialValue);
@@ -220,16 +220,14 @@ export const receiptFormState$ = (
           const header = isPosition ? 'editPosition' : isDiscount ? 'editDiscount' : 'editFee';
           const getFormGroupCurrentState = (form: ReceiptForm) => {
             const arr = form.controls[path].controls;
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            return arr.find((v: PositionForm | ModifierForm) => v.getRawValue().id === initialValue.id);
+            return arr.find((v) => v.getRawValue().id === initialValue.id);
           }
           openEditModalCommand$.next({
             initialValue,
             formGroup: newForm,
             getFormGroupCurrentState,
             onFinish: (form) => {
-              getFormGroupCurrentState(form)?.patchValue(newForm.getRawValue() as unknown);
+              getFormGroupCurrentState(form)?.patchValue(newForm.getRawValue());
             },
             remove: (form)=> {
               const current = getFormGroupCurrentState(form);
@@ -256,7 +254,7 @@ export const receiptFormState$ = (
         const newPosition = defaultPosition();
         openEditModalCommand$.next({
           formGroup: newPosition,
-          getFormGroupCurrentState: () => undefined,
+          getFormGroupCurrentState: () => void 0,
           onFinish: () => form.controls.positions.insert(0, newPosition),
           header: 'addPosition'
         });
@@ -265,7 +263,7 @@ export const receiptFormState$ = (
         const isFee = formToEdit === 'addFee';
         const header = isFee ? 'addFee' : 'addDiscount';
         openEditModalCommand$.next({
-          formGroup: newModifier as unknown as EditableForm,
+          formGroup: newModifier,
           getFormGroupCurrentState: () => undefined,
           onFinish: () => {
             const groupName = isFee ? 'fees' : 'discounts';
