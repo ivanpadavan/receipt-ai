@@ -40,21 +40,28 @@ export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove
 
   const toastId = useRef<string | number | undefined>(undefined);
   useEffect(() => {
+    console.log('RowSheet Effect. Conflict:', conflict?.type, 'ToastId:', toastId.current);
     if (conflict?.type === 'modified') {
-      toastId.current = toast(conflict.message, {
-        id: 'conflict',
-        description:
-          "The server has a different version of this item. You can accept the server's changes or keep your local edit.",
-        action: {
-          label: 'Accept Server Update',
-          onClick: () => resolveConflict('accept'),
-        },
-        cancel: {
-          label: 'Keep My Version',
-          onClick: () => resolveConflict('keep')
-        },
-        duration: 1e7,
-      });
+      if (!toastId.current) {
+        toastId.current = toast(conflict.message, {
+          id: 'conflict',
+          description:
+            "The server has a different version of this item. You can accept the server's changes or keep your local edit.",
+          action: {
+            label: 'Accept Server Update',
+            onClick: () => resolveConflict('accept'),
+          },
+          cancel: {
+            label: 'Keep My Version',
+            onClick: () => resolveConflict('keep')
+          },
+          duration: 1e7,
+        });
+      }
+    }
+    else if (!conflict && toastId.current) {
+      toast.dismiss(toastId.current);
+      toastId.current = undefined;
     }
   }, [conflict, resolveConflict]);
 

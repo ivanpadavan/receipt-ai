@@ -5,6 +5,44 @@ import { vi, describe, it, expect, afterEach } from 'vitest';
 import { FormGroup } from '@/forms/form_group';
 import { FormControl } from '@/forms/form_control';
 
+
+vi.mock("sonner", () => {
+    let idCounter = 0;
+    const toastFn = (message: string, options: any) => {
+        const id = `toast-${idCounter++}`;
+        const div = document.createElement('div');
+        div.className = 'mock-toast';
+        div.id = id;
+        div.innerHTML = `
+            <div data-testid="toast-message">${message}</div>
+            ${options?.description ? `<div data-testid="toast-description">${options.description}</div>` : ''}
+            ${options?.action ? `<button>${options.action.label}</button>` : ''}
+            ${options?.cancel ? `<button>${options.cancel.label}</button>` : ''}
+        `;
+        // Bind clicks
+        if (options?.action) {
+            const btn = div.querySelectorAll('button')[0];
+            btn.onclick = options.action.onClick;
+        }
+        if (options?.cancel) {
+            const btn = div.querySelectorAll('button')[1];
+            btn.onclick = options.cancel.onClick;
+        }
+        document.body.appendChild(div);
+        return id;
+    };
+    toastFn.dismiss = (id: string) => {
+        console.log('Mock Dismiss called with ID:', id);
+        const el = document.getElementById(id);
+        console.log('Element found:', el ? 'YES' : 'NO');
+        if (el) el.remove();
+    };
+    return {
+        Toaster: () => null,
+        toast: toastFn
+    };
+});
+
 // Mock dependencies
 const mocks = vi.hoisted(() => ({
     hideModal: vi.fn(),
@@ -23,11 +61,27 @@ vi.mock("@/app/receipt/components/ReceiptForm", () => ({
     useReceiptState: mocks.useReceiptState
 }));
 
+vi.mock("@/components/ui/drawer", async () => {
+    return {
+        useWithinDrawerContext: () => ({ closing: false }),
+        Drawer: ({ children }: any) => <div>{children}</div>,
+        DrawerContent: ({ children }: any) => <div>{children}</div>,
+        DrawerHeader: ({ children }: any) => <div>{children}</div>,
+        DrawerFooter: ({ children }: any) => <div>{children}</div>,
+        DrawerTitle: ({ children }: any) => <div>{children}</div>,
+        DrawerDescription: ({ children }: any) => <div>{children}</div>,
+        DrawerClose: ({ children }: any) => <div>{children}</div>,
+    };
+});
+
 const mockUseReceiptState = mocks.useReceiptState;
 
 
 describe('RowSheet Conflict Handling', () => {
-    afterEach(() => cleanup());
+    afterEach(() => {
+        cleanup();
+        document.querySelectorAll('.mock-toast').forEach(e => e.remove());
+    });
 
     const setup = (propsOverrides: any = {}, receiptFormMock?: any) => {
         // Configure mockUseReceiptState
@@ -45,7 +99,8 @@ describe('RowSheet Conflict Handling', () => {
             id: new FormControl('123'),
             name: new FormControl('Item 1'),
             price: new FormControl(10),
-            quantity: new FormControl(1)
+            quantity: new FormControl(1),
+            overall: new FormControl(0)
         });
 
         // Default initial value matches formGroup
@@ -61,7 +116,13 @@ describe('RowSheet Conflict Handling', () => {
             ...propsOverrides
         };
 
-        const renderResult = render(<RowSheet {...props} />);
+
+
+        const renderResult = render(
+            <>
+                <RowSheet {...props} />
+            </>
+        );
 
         return { props, formGroup, ...renderResult };
     };
@@ -83,7 +144,8 @@ describe('RowSheet Conflict Handling', () => {
             id: new FormControl('123'),
             name: new FormControl('Item 1'),
             price: new FormControl(10),
-            quantity: new FormControl(1)
+            quantity: new FormControl(1),
+            overall: new FormControl(0)
         });
         const patchValueSpy = vi.spyOn(formGroup, 'patchValue');
         const initialValue = formGroup.getRawValue();
@@ -93,16 +155,25 @@ describe('RowSheet Conflict Handling', () => {
             id: new FormControl(serverValue.id),
             name: new FormControl(serverValue.name),
             price: new FormControl(serverValue.price),
-            quantity: new FormControl(serverValue.quantity)
+            quantity: new FormControl(serverValue.quantity),
+            overall: new FormControl(serverValue.overall),
         });
 
-        render(<RowSheet
+        const { rerender } = render(<RowSheet
             formGroup={formGroup}
             onFinish={vi.fn()}
             header={'editPosition' as any}
             initialValue={initialValue}
-            getFormGroupCurrentState={() => serverControl}
+            getFormGroupCurrentState={() => formGroup}
         />);
+
+        rerender(<RowSheet
+          formGroup={formGroup}
+          onFinish={vi.fn()}
+          header={'editPosition' as any}
+          initialValue={initialValue}
+          getFormGroupCurrentState={() => serverControl}
+      />)
 
         await waitFor(() => {
             // Should have called patchValue with server data
@@ -118,7 +189,8 @@ describe('RowSheet Conflict Handling', () => {
             id: new FormControl('123'),
             name: new FormControl('Item 1'),
             price: new FormControl(10),
-            quantity: new FormControl(1)
+            quantity: new FormControl(1),
+            overall: new FormControl(0)
         });
         const initialValue = formGroup.getRawValue();
 
@@ -154,18 +226,20 @@ describe('RowSheet Conflict Handling', () => {
             id: new FormControl('123'),
             name: new FormControl('User Edit'), // User changed this
             price: new FormControl(10),
-            quantity: new FormControl(1)
+            quantity: new FormControl(1),
+            overall: new FormControl(0)
         });
         const patchValueSpy = vi.spyOn(formGroup, 'patchValue');
         // Initial value was different
-        const initialValue = { ...formGroup.getRawValue(), name: 'Item 1' };
+        const initialValue = { ...formGroup.getRawValue(), name: 'Item 1', overall: 0 };
 
         const serverValue = { ...initialValue, name: 'Server Update' };
         const serverControl = new FormGroup({
             id: new FormControl(serverValue.id),
             name: new FormControl(serverValue.name),
             price: new FormControl(serverValue.price),
-            quantity: new FormControl(serverValue.quantity)
+            quantity: new FormControl(serverValue.quantity),
+            overall: new FormControl(0)
         });
 
         render(<RowSheet
@@ -194,14 +268,16 @@ describe('RowSheet Conflict Handling', () => {
             id: new FormControl('123'),
             name: new FormControl('User Edit'),
             price: new FormControl(10),
-            quantity: new FormControl(1)
+            quantity: new FormControl(1),
+            overall: new FormControl(0)
         });
-        const initialValue = { id: '123', name: 'Item 1', price: 10, quantity: 1 };
+        const initialValue = { id: '123', name: 'Item 1', price: 10, quantity: 1, overall: 0 };
         const serverControl = new FormGroup({
             id: new FormControl('123'),
             name: new FormControl('Server Update'),
             price: new FormControl(10),
-            quantity: new FormControl(1)
+            quantity: new FormControl(1),
+            overall: new FormControl(0)
         });
 
         const updateSpy = vi.spyOn(localForm, 'patchValue');
@@ -223,7 +299,8 @@ describe('RowSheet Conflict Handling', () => {
             id: '123',
             name: 'Server Update',
             price: 10,
-            quantity: 1
+            quantity: 1,
+            overall: 0
         });
         expect(localForm.controls.name.value).toBe('Server Update');
 
@@ -238,14 +315,16 @@ describe('RowSheet Conflict Handling', () => {
             id: new FormControl('123'),
             name: new FormControl('User Edit'),
             price: new FormControl(10),
-            quantity: new FormControl(1)
+            quantity: new FormControl(1),
+            overall: new FormControl(0)
         });
-        const initialValue = { id: '123', name: 'Item 1', price: 10, quantity: 1 };
+        const initialValue = { id: '123', name: 'Item 1', price: 10, quantity: 1, overall: 0 };
         const serverControl = new FormGroup({
             id: new FormControl('123'),
             name: new FormControl('Server Update'),
             price: new FormControl(10),
-            quantity: new FormControl(1)
+            quantity: new FormControl(1),
+            overall: new FormControl(0)
         });
 
         const updateSpy = vi.spyOn(localForm, 'patchValue');
@@ -278,18 +357,20 @@ describe('RowSheet Conflict Handling', () => {
             id: new FormControl('123'),
             name: new FormControl('User Edit'), // Initial was 'Item 1'
             price: new FormControl(10),
-            quantity: new FormControl(1)
+            quantity: new FormControl(1),
+            overall: new FormControl(0)
         });
 
         // 2. Define Initial State
-        const initialValue = { id: '123', name: 'Item 1', price: 10, quantity: 1 };
+        const initialValue = { id: '123', name: 'Item 1', price: 10, quantity: 1, overall: 0 };
 
         // 3. Define Server State = Conflict ('Server Update')
         const conflictServerControl = new FormGroup({
             id: new FormControl('123'),
             name: new FormControl('Server Update'),
             price: new FormControl(10),
-            quantity: new FormControl(1)
+            quantity: new FormControl(1),
+            overall: new FormControl(0)
         });
 
         // 4. Define Server State = Revert ('Item 1' - matches initial)
@@ -297,7 +378,8 @@ describe('RowSheet Conflict Handling', () => {
             id: new FormControl('123'),
             name: new FormControl('Item 1'),
             price: new FormControl(10),
-            quantity: new FormControl(1)
+            quantity: new FormControl(1),
+            overall: new FormControl(0)
         });
 
         // Mock getFormGroupCurrentState to return conflict
@@ -348,18 +430,20 @@ describe('RowSheet Conflict Handling', () => {
             id: new FormControl('123'),
             name: new FormControl('User Edit'),
             price: new FormControl(10),
-            quantity: new FormControl(1)
+            quantity: new FormControl(1),
+            overall: new FormControl(0)
         });
 
         // 2. Define Initial State
-        const initialValue = { id: '123', name: 'Item 1', price: 10, quantity: 1 };
+        const initialValue = { id: '123', name: 'Item 1', price: 10, quantity: 1, overall: 0 };
 
         // 3. Define Server State = Conflict ('Server Update')
         const conflictServerControl = new FormGroup({
             id: new FormControl('123'),
             name: new FormControl('Server Update'),
             price: new FormControl(10),
-            quantity: new FormControl(1)
+            quantity: new FormControl(1),
+            overall: new FormControl(0)
         });
 
         // 4. Define Server State = Match User ('User Edit')
@@ -367,7 +451,8 @@ describe('RowSheet Conflict Handling', () => {
             id: new FormControl('123'),
             name: new FormControl('User Edit'),
             price: new FormControl(10),
-            quantity: new FormControl(1)
+            quantity: new FormControl(1),
+            overall: new FormControl(0)
         });
 
         const getFormGroupCurrentState = vi.fn().mockReturnValue(conflictServerControl);

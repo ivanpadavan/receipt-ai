@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { bezier } from './bezier';
 
 const identity = (x: number): number => x;
