@@ -10,19 +10,13 @@
     "lint": "next lint",
     "format": "prettier --write \"app\"",
     "test": "vitest",
-    "postinstall": "prisma generate",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "cloudflare-build": "opennextjs-cloudflare build",
-    "cloudflare-deploy": "opennextjs-cloudflare deploy --minify",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy --minify",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
+    "postinstall": "prisma generate"
   },
   "engines": {
     "node": "24.3.0",
     "pnpm": "10.25.0"
   },
   "resolutions": {
-    "@libsql/client": "^0.14",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "@auth/core": "0.41.1"
@@ -40,7 +34,6 @@
     "@ngneat/effects-hooks": "^1.1.0",
     "@ngneat/elf": "^2.5.1",
     "@ngneat/elf-devtools": "^1.3.0",
-    "@opennextjs/cloudflare": "^1.14.6",
     "@prisma/adapter-neon": "7.2.0",
     "@prisma/client": "7.2.0",
     "@radix-ui/react-checkbox": "^1.1.3",
@@ -56,7 +49,6 @@
     "ai": "^3.1.37",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "deep-eql": "^5.0.2",
     "dotenv": "^16.5.0",
     "jimp": "^1.6.0",
     "langchain": "^0.3.19",
@@ -102,7 +94,6 @@
     "typescript": "5.4.5",
     "typescript-eslint": "^8.49.0",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.2.4",
-    "wrangler": "^4.55.0"
+    "vitest": "^3.2.4"
   }
 }
