@@ -43,39 +43,41 @@ export default function WebcamCapture({ pageState: { camera } }: WebcamCapturePr
       />
       {screenshot && (<img src={screenshot} className="w-full h-full object-cover z-0 top-0 absolute" />)}
 
-        <div className="relative bottom-10 left-0 right-0 flex justify-center gap-3 z-10">
-          {camera.status === "ready" && !paused && (
-            <>
-              <Button
-                onClick={() => cameraRef.current?.video?.pause()}
-                className="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-full shadow-md"
-              >
-                Capture
-              </Button>
-              <Button
-                onClick={camera.close}
-                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full shadow-md"
-              >
-                Cancel
-              </Button></>
-          )}
-          {paused && (
-            <>
-              <Button
-                onClick={() => cameraRef.current?.video?.play()}
-                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full shadow-md"
-              >
-                Clear Image
-              </Button>
-              <Button
-                onClick={handleCapture}
-                className="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-full shadow-md"
-              >
-                Extract Receipt Data
-              </Button>
-            </>
-          )}
-        </div>
+      <div className="relative bottom-10 left-0 right-0 flex justify-center gap-3 z-10">
+        {camera.status === "ready" && !paused && (
+          <>
+            <Button
+              onClick={() => cameraRef.current?.video?.pause()}
+              className="font-bold py-2 px-4 rounded-full shadow-md"
+            >
+              Capture
+            </Button>
+            <Button
+              onClick={camera.close}
+              variant="secondary"
+              className="font-bold py-2 px-4 rounded-full shadow-md"
+            >
+              Cancel
+            </Button></>
+        )}
+        {paused && (
+          <>
+            <Button
+              onClick={() => cameraRef.current?.video?.play()}
+              variant="destructive"
+              className="font-bold py-2 px-4 rounded-full shadow-md"
+            >
+              Clear Image
+            </Button>
+            <Button
+              onClick={handleCapture}
+              className="font-bold py-2 px-4 rounded-full shadow-md"
+            >
+              Extract Receipt Data
+            </Button>
+          </>
+        )}
+      </div>
     </div>
   );
 }

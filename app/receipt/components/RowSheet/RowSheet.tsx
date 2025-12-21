@@ -14,6 +14,8 @@ import {
   DrawerTitle, useWithinDrawerContext,
 } from "@/components/ui/drawer";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const isInErrorState = (c: AbstractControl, hideErrorsUntilTouched: boolean) => {
   return c.errors !== null && (hideErrorsUntilTouched ? c.touched : true);
@@ -66,82 +68,78 @@ export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove
         <DrawerTitle className={'p-4 pt-4 text-center'}>{t("error")}</DrawerTitle>
         <p className="text-gray-700 mb-4">{conflict.message}</p>
         <DrawerClose asChild>
-          <button
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+          <Button
+            variant="secondary"
           >
             {t("close")}
-          </button>
+          </Button>
         </DrawerClose>
       </DrawerContent>
     );
   }
 
   return (
-      <DrawerContent>
-        <DrawerTitle className={'px-4 pt-4 text-center'}>{t(header)}</DrawerTitle>
-        <div className={'p-4'}>
-          {errors.length > 0 && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <ul className="list-disc pl-5 space-y-1">
-                {errors.map(([label, fieldErrors], index) => (
-                  <li key={index} className="text-sm text-red-700">
-                    <strong>{t(label)}:</strong> {fieldErrors.join(', ')}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+    <DrawerContent>
+      <DrawerTitle className={'px-4 pt-4 text-center'}>{t(header)}</DrawerTitle>
+      <div className={'p-4'}>
+        {errors.length > 0 && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+            <ul className="list-disc pl-5 space-y-1">
+              {errors.map(([label, fieldErrors], index) => (
+                <li key={index} className="text-sm text-red-700">
+                  <strong>{t(label)}:</strong> {fieldErrors.join(', ')}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
-          <div className="space-y-4">
-            {controls.map(([label, control], idx) => (
-              <FormField
-                key={idx}
-                label={label}
-                control={control}
-                hideErrorsUntilTouched={hideErrorsUntilTouched}
-              />
-            ))}
+        <div className="space-y-4">
+          {controls.map(([label, control], idx) => (
+            <FormField
+              key={idx}
+              label={label}
+              control={control}
+              hideErrorsUntilTouched={hideErrorsUntilTouched}
+            />
+          ))}
+        </div>
+      </div>
+      <DrawerFooter>
+        <div className="flex justify-between">
+          <div>
+            {remove && (
+              <DrawerClose asChild>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => { remove(form); }}
+                >
+                  {t('remove')}
+                </Button>
+              </DrawerClose>
+            )}
+          </div>
+          <div className="flex space-x-2">
+            <DrawerClose asChild>
+              <Button
+                type="button"
+                variant="secondary"
+              >{t('cancel')}</Button>
+            </DrawerClose>
+            <DrawerClose asChild>
+              <Button
+                type="button"
+                disabled={formGroup.invalid}
+                onClick={() => { onFinish(form); }}
+              >
+                {t('save')}
+              </Button>
+            </DrawerClose>
           </div>
         </div>
-        <DrawerFooter>
-          <div className="flex justify-between">
-            <div>
-              {remove && (
-                <DrawerClose asChild>
-                  <button
-                    type="button"
-                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                    onClick={() => { remove(form); }}
-                  >
-                    {t('remove')}
-                  </button>
-                </DrawerClose>
-              )}
-            </div>
-            <div className="flex space-x-2">
-              <DrawerClose asChild>
-                <button
-                  type="button"
-                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors"
-                >{t('cancel')}</button>
-              </DrawerClose>
-              <DrawerClose asChild>
-                <button
-                  type="button"
-                  disabled={formGroup.invalid}
-                  onClick={() => { onFinish(form); }}
-                  className={`px-4 py-2 bg-amber-500 text-white rounded transition-colors ${formGroup.invalid
-                    ? 'opacity-50 cursor-not-allowed'
-                    : 'hover:bg-amber-600'
-                  }`}
-                >
-                  {t('save')}
-                </button>
-              </DrawerClose>
-            </div>
-          </div>
-        </DrawerFooter>
-      </DrawerContent>
+      </DrawerFooter>
+    </DrawerContent>
   );
 };
 
@@ -180,19 +178,16 @@ const FormField: React.FC<{ control: FormControl<string | number>, label: Transl
   }
   return (
     <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+      <label className="block text-sm font-medium text-foreground mb-1">
         {t(label)}
       </label>
-      <input
+      <Input
         type={type === 'number' ? 'number' : 'text'}
         inputMode={type === 'number' ? 'decimal' : 'text'}
         value={type === 'number' && (control.value === 0 || isNaN(control.value as number)) ? '' : control.value}
         onChange={onChange}
         disabled={control.disabled}
-        className={`w-full px-3 py-2 border rounded-md ${isInvalid
-          ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-          : 'border-gray-300 focus:ring-amber-500 focus:border-amber-500'
-          } ${control.disabled ? 'bg-gray-100' : ''}`}
+        className={isInvalid ? "border-destructive focus-visible:ring-destructive" : ""}
       />
     </div>
   );

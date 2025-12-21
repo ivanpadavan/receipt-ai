@@ -31,8 +31,8 @@ const NavLink = ({
       className={cn(
         "px-4 py-2 rounded-[18px] whitespace-nowrap flex items-center gap-2 text-sm transition-all",
         isActive
-          ? "bg-amber-500 text-white"
-          : "text-amber-800 hover:bg-amber-100"
+          ? "bg-primary text-primary-foreground"
+          : "text-foreground hover:bg-accent hover:text-accent-foreground"
       )}
     >
       {children}
@@ -58,7 +58,7 @@ export const AppNavbar = () => {
   };
 
   return (
-    <nav className="bg-white border-b border-amber-200 shadow-sm">
+    <nav className="bg-background border-b shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -71,7 +71,7 @@ export const AppNavbar = () => {
           <div className="flex items-center md:hidden">
             <Button
               variant="ghost"
-              className="text-amber-800 hover:bg-amber-100"
+              className="text-foreground hover:bg-accent hover:text-accent-foreground"
               onClick={toggleMenu}
             >
               {isMenuOpen ? (
@@ -85,8 +85,8 @@ export const AppNavbar = () => {
           {/* Unified navigation menu - styled differently for mobile/desktop */}
           <div
             className={cn(
-              "flex flex-col md:flex-row items-start md:items-center md:space-x-4 bg-white",
-              "absolute md:static left-0 right-0 top-16 md:top-auto border-t md:border-t-0 border-amber-200",
+              "flex flex-col md:flex-row items-start md:items-center md:space-x-4 bg-background",
+              "absolute md:static left-0 right-0 top-16 md:top-auto border-t md:border-t-0",
               "md:flex",
               isMenuOpen ? "flex" : "hidden"
             )}
@@ -108,7 +108,7 @@ export const AppNavbar = () => {
 
               {isAuthenticated && (
                 <div className="block md:hidden py-2 px-3 text-center">
-                  <span className="text-amber-800 font-medium">{userName}</span>
+                  <span className="text-foreground font-medium">{userName}</span>
                 </div>
               )}
 
@@ -118,11 +118,7 @@ export const AppNavbar = () => {
                     closeMenu();
                     isAuthenticated ? signOut({ redirectTo: "/" }) : SignIn();
                   }}
-                  className={
-                    isAuthenticated
-                      ? "border border-amber-300 text-amber-800 hover:bg-amber-100 w-full flex items-center justify-center gap-2"
-                      : "bg-amber-500 hover:bg-amber-600 text-white w-full flex items-center justify-center gap-2"
-                  }
+                  className="w-full flex items-center justify-center gap-2"
                   variant={isAuthenticated ? "outline" : "default"}
                 >
                   {isAuthenticated ? (
@@ -143,11 +139,11 @@ export const AppNavbar = () => {
             {/* User info and auth buttons - only visible on desktop */}
             {isAuthenticated ? (
               <div className="hidden md:flex items-center gap-2 ml-2">
-                <span className="text-amber-800 font-medium">{userName}</span>
+                <span className="text-foreground font-medium">{userName}</span>
                 <Button
                   onClick={() => signOut({ redirectTo: "/" })}
                   variant="ghost"
-                  className="text-amber-800 hover:bg-amber-100 flex items-center gap-2"
+                  className="flex items-center gap-2"
                 >
                   <LogOut className="h-4 w-4" />
                   Sign Out
@@ -156,7 +152,7 @@ export const AppNavbar = () => {
             ) : (
               <Button
                 onClick={() => SignIn()}
-                className="hidden md:flex bg-amber-500 hover:bg-amber-600 text-white ml-4 items-center gap-2"
+                className="hidden md:flex ml-4 items-center gap-2"
               >
                 <User className="h-4 w-4" />
                 Sign In
