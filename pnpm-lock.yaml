@@ -10,6 +10,11 @@ overrides:
   '@types/react-dom': 19.2.3
   '@auth/core': 0.41.1
 
+patchedDependencies:
+  '@auth/core':
+    hash: 2649ae1ea308ff0625e18a565143cbf49b05d71b92c6e6cc84bc3d9bed33bd4a
+    path: patches/@auth__core.patch
+
 importers:
 
   .:
@@ -7194,7 +7199,7 @@ snapshots:
       '@ast-grep/napi-win32-ia32-msvc': 0.40.0
       '@ast-grep/napi-win32-x64-msvc': 0.40.0
 
-  '@auth/core@0.41.1':
+  '@auth/core@0.41.1(patch_hash=2649ae1ea308ff0625e18a565143cbf49b05d71b92c6e6cc84bc3d9bed33bd4a)':
     dependencies:
       '@panva/hkdf': 1.2.1
       jose: 6.1.3
@@ -7204,7 +7209,7 @@ snapshots:
 
   '@auth/prisma-adapter@2.11.1(@prisma/client@7.2.0(prisma@7.2.0(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.4.5))(typescript@5.4.5))':
     dependencies:
-      '@auth/core': 0.41.1
+      '@auth/core': 0.41.1(patch_hash=2649ae1ea308ff0625e18a565143cbf49b05d71b92c6e6cc84bc3d9bed33bd4a)
       '@prisma/client': 7.2.0(prisma@7.2.0(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.4.5))(typescript@5.4.5)
     transitivePeerDependencies:
       - '@simplewebauthn/browser'
@@ -12925,7 +12930,7 @@ snapshots:
 
   next-auth@5.0.0-beta.30(next@16.1.0(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3):
     dependencies:
-      '@auth/core': 0.41.1
+      '@auth/core': 0.41.1(patch_hash=2649ae1ea308ff0625e18a565143cbf49b05d71b92c6e6cc84bc3d9bed33bd4a)
       next: 16.1.0(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react: 19.2.3
 
