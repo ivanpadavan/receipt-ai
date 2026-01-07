@@ -1,6 +1,6 @@
 import { db } from "@/app/db";
 import { NextRequest } from "next/server";
-import { supabase } from "@/app/supabase";
+import { supabase } from "@/utils/supabase/client";
 
 export const runtime = "nodejs";
 

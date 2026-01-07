@@ -7,7 +7,7 @@ import { db } from "@/app/db";
 import postValidator from "@/app/api-client/receipt/post";
 import putValidator from "@/app/api-client/receipt/put";
 import { ApiValidator } from "@/app/api-client/api-validator";
-import { createClient, getUser } from "@/utils/supabase/server";
+import { serverSupabase, getUser } from "@/utils/supabase/server";
 
 // Edge runtime is not compatible with Prisma, so we need to use the Node.js runtime
 export const runtime = "nodejs";
@@ -68,7 +68,7 @@ async function uploadImage(image: string, userId: string) {
   const buffer = Buffer.from(base64Data, "base64");
   const fileName = `${userId}/${crypto.randomUUID()}.${extension}`;
 
-  const supabase = await createClient();
+  const supabase = await serverSupabase();
   const { data, error } = await supabase.storage
     .from("receipts")
     .upload(fileName, buffer, {
