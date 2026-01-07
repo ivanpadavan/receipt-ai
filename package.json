@@ -34,7 +34,7 @@
     "@ngneat/effects-hooks": "^1.1.0",
     "@ngneat/elf": "^2.5.1",
     "@ngneat/elf-devtools": "^1.3.0",
-    "@prisma/adapter-neon": "7.2.0",
+    "@prisma/adapter-pg": "7.2.0",
     "@prisma/client": "7.2.0",
     "@radix-ui/react-checkbox": "^1.1.3",
     "@radix-ui/react-dialog": "^1.1.4",

@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 
 const captureSupported =
-  !!document && document.createElement("input").capture != undefined;
+  typeof document === 'object' && document.createElement("input").capture != undefined;
 
 export default function ImagePastePage() {
   const router = useRouter();

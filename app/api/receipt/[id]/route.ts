@@ -1,6 +1,6 @@
 import { db } from "@/app/db";
 import { NextRequest } from "next/server";
-import { Client } from 'pg';
+import { supabase } from "@/app/supabase";
 
 export const runtime = "nodejs";
 
@@ -25,29 +25,27 @@ export async function GET(
       const encoder = new TextEncoder();
 
       // Add this connection to the receipt's connection set
-      const client = new Client({
-        connectionString: process.env.DATABASE_URL,
-      });
-      await client.connect();
+      const channelName = `topic:${receiptId}`;
+      const channel = supabase.channel(channelName);
 
-      // Подписываемся на канал
-      const channelName = `receipt-${receiptId}`
-      await client.query(`LISTEN "${channelName}"`);
-      console.log(`Listening to ${channelName}`);
-      client.on('notification', async () => {
-        const res = await db.receipt.findUnique({
-          where: { id: receiptId },
-        });
-        if (!res) {
-          throw new Error('Receipt not found');
-        }
-        const data = res.data;
-        console.log(`notify about ${channelName}`);
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
-      });
-      client.on('error', (err: unknown) => {
-        console.error('Connection error:', err);
-      });
+      channel.on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "Receipt", filter: `id=eq.${receiptId}` },
+        async () => {
+          const res = await db.receipt.findUnique({
+            where: { id: receiptId },
+          });
+          if (!res) {
+            throw new Error("Receipt not found");
+          }
+          const data = res.data;
+          console.log(`notify about ${channelName}`);
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify(data)}\n\n`),
+          );
+        },
+      )
+        .subscribe();
 
       controller.enqueue(encoder.encode(`data: "connection established"\n\n`));
 
@@ -56,7 +54,7 @@ export async function GET(
       req.signal.addEventListener("abort", () => {
         try {
           controller.close();
-          client.end();
+          channel.unsubscribe();
         } catch {
           // Already closed
         }
