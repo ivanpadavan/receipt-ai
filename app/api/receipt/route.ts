@@ -9,6 +9,7 @@ import { Session } from "next-auth";
 import postValidator from "@/app/api-client/receipt/post";
 import putValidator from "@/app/api-client/receipt/put";
 import { ApiValidator } from "@/app/api-client/api-validator";
+import { supabase, supabaseAdmin } from "@/app/supabase";
 
 // Edge runtime is not compatible with Prisma, so we need to use the Node.js runtime
 export const runtime = "nodejs";
@@ -115,10 +116,30 @@ export async function POST(req: NextRequest) {
 
     appendIds(result);
 
+    const match = body.image.match(/^data:(image\/\w+);base64,/);
+    const mimeType = match ? match[1] : "image/jpeg";
+    const extension = mimeType.split("/")[1] || "jpg";
+
+    const base64Data = body.image.replace(/^data:image\/\w+;base64,/, "");
+    const buffer = Buffer.from(base64Data, "base64");
+    const fileName = `${userId}/${crypto.randomUUID()}.${extension}`;
+
+    const { data, error } = await supabaseAdmin.storage
+      .from("receipts")
+      .upload(fileName, buffer, {
+        contentType: mimeType,
+        upsert: true,
+      });
+
+    if (error) {
+      throw new Error("Supabase storage upload error:", error);
+    }
+    const imageUrl = data.fullPath;
     // Save the receipt to the database
     const receipt = await db.receipt.create({
       data: {
         userId,
+        imageUrl,
         data: result, // Store the receipt data as JSON
       },
     });

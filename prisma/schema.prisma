@@ -71,5 +71,6 @@ model Receipt {
   version   Int      @default(1)
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  imageUrl  String
   data      Json // Store the entire receipt data as JSON
 }
