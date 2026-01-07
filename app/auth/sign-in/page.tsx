@@ -1,18 +1,23 @@
 "use client";
 
-import { SignIn } from "@/utils/sign-in";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/utils/supabase/client";
 
 export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
 
-  const handleProviderSignIn = async (provider: string) => {
+  const handleProviderSignIn = async (provider: 'google' | 'facebook') => {
     setIsLoading(true);
     setLoadingProvider(provider);
     try {
-      await SignIn(provider, { callbackUrl: "/", redirectTo: '/' });
+      await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/api/auth/callback`,
+        },
+      });
     } catch (error) {
       setIsLoading(false);
       setLoadingProvider(null);

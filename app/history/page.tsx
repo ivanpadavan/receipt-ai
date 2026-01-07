@@ -1,5 +1,5 @@
 import { db } from "@/app/db";
-import { auth } from "@/app/auth";
+import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -9,9 +9,10 @@ import { Receipt } from "@/model/receipt/model";
 
 export default async function HistoryPage() {
   // Get the user's session
-  const session = await auth();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session?.user) {
+  if (!user) {
     // Redirect to sign-in page if not authenticated
     redirect("/auth/sign-in");
   }
@@ -19,7 +20,7 @@ export default async function HistoryPage() {
   // Fetch the user's receipts from the database
   const receipts = await db.receipt.findMany({
     where: {
-      userId: session.user.id,
+      userId: user.id,
     },
     orderBy: {
       createdAt: "desc",

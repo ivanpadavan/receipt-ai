@@ -1,15 +1,14 @@
 "use client";
 
-import { ANONYMOUS_NAME } from "@/utils/auth-consts";
-import { SignIn } from "@/utils/sign-in";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/utils/cn";
 import Logo from "@/components/Logo";
 import { Button } from "./ui/button";
 import { Menu, X, User, LogOut } from "lucide-react";
-import { useSession, signOut } from "next-auth/react";
+import { supabase } from "@/utils/supabase/client";
+import { User as SupabaseUser, AuthChangeEvent, Session } from "@supabase/supabase-js";
 
 // Custom NavLink component with amber color scheme
 const NavLink = ({
@@ -42,12 +41,23 @@ const NavLink = ({
 
 export const AppNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { data: session } = useSession();
-  let isAuthenticated = false;
-  if (session) {
-    isAuthenticated = session.user?.name !== ANONYMOUS_NAME;
-  }
-  const userName = session?.user?.name || "User";
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [])
+
+  const isAuthenticated = user && !user.is_anonymous;
+  const userName = user?.user_metadata?.name || user?.email || "User";
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -56,6 +66,11 @@ export const AppNavbar = () => {
   const closeMenu = () => {
     setIsMenuOpen(false);
   };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.reload();
+  }
 
   return (
     <nav className="bg-background border-b shadow-sm">
@@ -116,7 +131,7 @@ export const AppNavbar = () => {
                 <Button
                   onClick={() => {
                     closeMenu();
-                    isAuthenticated ? signOut({ redirectTo: "/" }) : SignIn();
+                    isAuthenticated ? handleSignOut() : window.location.href = '/auth/sign-in';
                   }}
                   className="w-full flex items-center justify-center gap-2"
                   variant={isAuthenticated ? "outline" : "default"}
@@ -141,7 +156,7 @@ export const AppNavbar = () => {
               <div className="hidden md:flex items-center gap-2 ml-2">
                 <span className="text-foreground font-medium">{userName}</span>
                 <Button
-                  onClick={() => signOut({ redirectTo: "/" })}
+                  onClick={handleSignOut}
                   variant="ghost"
                   className="flex items-center gap-2"
                 >
@@ -150,13 +165,14 @@ export const AppNavbar = () => {
                 </Button>
               </div>
             ) : (
-              <Button
-                onClick={() => SignIn()}
-                className="hidden md:flex ml-4 items-center gap-2"
-              >
-                <User className="h-4 w-4" />
-                Sign In
-              </Button>
+              <Link href="/auth/sign-in">
+                <Button
+                  className="hidden md:flex ml-4 items-center gap-2"
+                >
+                  <User className="h-4 w-4" />
+                  Sign In
+                </Button>
+              </Link>
             )}
           </div>
         </div>
@@ -164,3 +180,4 @@ export const AppNavbar = () => {
     </nav>
   );
 };
+

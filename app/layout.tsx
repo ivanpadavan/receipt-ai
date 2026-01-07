@@ -1,21 +1,18 @@
+// app/layout.tsx
 import "./globals.css";
 
 import { Public_Sans } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { AppNavbar } from "@/components/AppNavbar";
 import { Providers } from "./providers";
-import { auth } from "./auth";
 
 const publicSans = Public_Sans({ subsets: ["latin"] });
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Get the session from the server
-  const session = await auth();
-
   return (
     <html lang="en">
       <head>
@@ -46,7 +43,7 @@ export default async function RootLayout({
       </head>
       <body className={publicSans.className}>
         <NuqsAdapter>
-          <Providers session={session}>
+          <Providers>
             <div className="bg-amber-50 min-h-[100dvh] flex flex-col">
               <AppNavbar />
               <main className="flex-1 flex flex-col">
@@ -59,3 +56,4 @@ export default async function RootLayout({
     </html>
   );
 }
+

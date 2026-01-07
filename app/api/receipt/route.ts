@@ -1,15 +1,13 @@
 import { receiptAiSchema } from "@/model/receipt/schema";
 import { Receipt, ReceiptNoId, validateReceipt } from "@/model/receipt/model";
-import { auth } from "@/app/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
 import { db } from "@/app/db";
-import { Session } from "next-auth";
 import postValidator from "@/app/api-client/receipt/post";
 import putValidator from "@/app/api-client/receipt/put";
 import { ApiValidator } from "@/app/api-client/api-validator";
-import { supabase } from "@/app/supabase";
+import { createClient } from "@/utils/supabase/server";
 
 // Edge runtime is not compatible with Prisma, so we need to use the Node.js runtime
 export const runtime = "nodejs";
@@ -62,12 +60,12 @@ function appendIds(receipt: ReceiptNoId): Receipt {
   }
 }
 
-async function errorWrap<T extends ApiValidator>(req: NextRequest, validator: T, cb: (v: { session: Session, body: ReturnType<T['request']['parse']> }) => Promise<NextResponse<ReturnType<T['response']['parse']>>>) {
+async function errorWrap<T extends ApiValidator>(req: NextRequest, validator: T, cb: (v: { session: any, body: ReturnType<T['request']['parse']> }) => Promise<NextResponse<ReturnType<T['response']['parse']>>>) {
   try {
-    // Get the user's session
-    const session = await auth();
+    const supabase = await createClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (error || !user) {
       return NextResponse.json(
         { error: "Unauthorized. Please sign in." },
         { status: 401 }
@@ -76,7 +74,7 @@ async function errorWrap<T extends ApiValidator>(req: NextRequest, validator: T,
 
     const body = validator.request.parse(await req.json()) as ReturnType<T['request']['parse']>;
 
-    return cb({ session, body });
+    return cb({ session: { user }, body });
   } catch (e: unknown) {
     console.error("API Error:", e);
     if (typeof e !== 'object' || e == null) {
@@ -124,6 +122,7 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(base64Data, "base64");
     const fileName = `${userId}/${crypto.randomUUID()}.${extension}`;
 
+    const supabase = await createClient();
     const { data, error } = await supabase.storage
       .from("receipts")
       .upload(fileName, buffer, {
@@ -132,9 +131,10 @@ export async function POST(req: NextRequest) {
       });
 
     if (error) {
-      throw new Error("Supabase storage upload error:", error);
+      throw new Error(`Supabase storage upload error: ${error.message}`);
     }
     const imageUrl = data.fullPath;
+
     // Save the receipt to the database
     const receipt = await db.receipt.create({
       data: {
