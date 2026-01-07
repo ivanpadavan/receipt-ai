@@ -86,13 +86,6 @@ async function errorWrap<T extends ApiValidator>(req: NextRequest, validator: T,
   try {
     const user = await getUser();
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "Unauthorized. Please sign in." },
-        { status: 401 }
-      );
-    }
-
     const body = validator.request.parse(await req.json()) as ReturnType<T['request']['parse']>;
 
     return await cb({ session: { user }, body });

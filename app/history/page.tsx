@@ -11,11 +11,6 @@ export default async function HistoryPage() {
   // Get the user's session
   const user = await getUser();
 
-  if (!user) {
-    // Redirect to sign-in page if not authenticated
-    redirect("/auth/sign-in");
-  }
-
   // Fetch the user's receipts from the database
   const receipts = await db.receipt.findMany({
     where: {
