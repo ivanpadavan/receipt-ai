@@ -7,9 +7,6 @@ async function instrumentation() {
   try {
     // Connect to Postgres
     await client.connect();
-    // Define the my_trigger_function function to send notifications
-    // Enable Realtime by adding the table to the publication
-
     // allow realtime
     await client.query(`
       alter publication supabase_realtime add table "Receipt";
