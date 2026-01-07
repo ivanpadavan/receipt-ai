@@ -5,7 +5,7 @@ import { InferForm } from "@/forms/type";
 import { ValidatorFn } from "@/forms/validators";
 import {
   concat,
-  defer,
+  defer, distinctUntilChanged,
   EMPTY,
   ignoreElements,
   merge,
@@ -27,6 +27,7 @@ import {
   totalMatchesCalculation as grandTotalMatchesCalculation
 } from "./validators";
 import { apiClient } from "@/app/api-client";
+import { isEqual } from "lodash-es";
 
 type FormType = 'validation' | 'editing' | 'splitting';
 
@@ -179,6 +180,7 @@ export const receiptFormState$ = (
     form.controls.totals.controls.grandTotal.disable();
     form.controls.totals.controls.total.disable();
     effect$ = form.value$.pipe(
+      distinctUntilChanged(isEqual),
       switchMap(() => updateForm$),
       ignoreElements(),
     );

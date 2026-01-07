@@ -1,7 +1,6 @@
 import postValidator from './receipt/post';
 import putValidator from './receipt/put';
 import { ApiValidator } from "@/app/api-client/api-validator";
-import js from "@eslint/js";
 
 async function requestWrapper<T extends ApiValidator>(apiPath: string, method: 'POST' | 'PUT', validator: T, body: ReturnType<T['request']['parse']>): Promise<ReturnType<T['response']['parse']>> {
   const response = await fetch(apiPath, {

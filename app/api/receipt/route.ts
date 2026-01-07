@@ -120,9 +120,7 @@ export async function POST(req: NextRequest) {
     const userId = session.user.id;
 
     // FIXME violates smth
-    const imageUrl = "";
-    // imageUrl = await uploadImage(body.image, userId);
-    throw new Error('here');
+    const imageUrl = await uploadImage(body.image, userId);
 
     // Process the image
     let result = await imageChain.invoke({ image_base64: body.image });

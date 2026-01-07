@@ -1,6 +1,7 @@
 import { db } from "@/app/db";
 import { NextRequest } from "next/server";
 import { supabase } from "@/utils/supabase/client";
+import { isEqual } from "lodash-es";
 
 export const runtime = "nodejs";
 
@@ -11,7 +12,7 @@ export async function GET(
   const { id: receiptId } = await params;
 
   // Verify receipt exists
-  const receipt = await db.receipt.findUnique({
+  let receipt = await db.receipt.findUnique({
     where: { id: receiptId },
   });
 
@@ -40,6 +41,10 @@ export async function GET(
           }
           const data = res.data;
           console.log(`notify about ${channelName}`);
+          if (isEqual(data, receipt)) {
+            return;
+          }
+          receipt = data as unknown as typeof receipt;
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify(data)}\n\n`),
           );
