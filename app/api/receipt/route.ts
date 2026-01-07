@@ -95,7 +95,7 @@ async function errorWrap<T extends ApiValidator>(req: NextRequest, validator: T,
 
     const body = validator.request.parse(await req.json()) as ReturnType<T['request']['parse']>;
 
-    return cb({ session: { user }, body });
+    return await cb({ session: { user }, body });
   } catch (e: unknown) {
     console.error("API Error:", e);
     if (typeof e !== 'object' || e == null) {

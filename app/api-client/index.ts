@@ -1,6 +1,7 @@
 import postValidator from './receipt/post';
 import putValidator from './receipt/put';
 import { ApiValidator } from "@/app/api-client/api-validator";
+import js from "@eslint/js";
 
 async function requestWrapper<T extends ApiValidator>(apiPath: string, method: 'POST' | 'PUT', validator: T, body: ReturnType<T['request']['parse']>): Promise<ReturnType<T['response']['parse']>> {
   const response = await fetch(apiPath, {
@@ -11,7 +12,16 @@ async function requestWrapper<T extends ApiValidator>(apiPath: string, method: '
     body: JSON.stringify(body),
   });
 
-  return validator.response.parse(await response.json());
+  const json = await response.json();
+
+  if (response.status !== 200) {
+    if (typeof json === 'object' && json !== null && 'error' in json && typeof json.error === 'string') {
+      throw new Error(json.error);
+    } else {
+      throw Error('Something went wrong. Please try again later');
+    }
+  }
+  return validator.response.parse(json);
 }
 /**
  * Service for handling receipt-related API calls
