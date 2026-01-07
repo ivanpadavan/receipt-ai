@@ -14,7 +14,7 @@ model Receipt {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   version   Int      @default(1)
-  userId    String
+  userId    String   @db.Uuid
   user      users    @relation(fields: [userId], references: [id], onDelete: Cascade)
   imageUrl  String
   data      Json
