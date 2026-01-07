@@ -1,2 +1,0 @@
-patchedDependencies:
-  '@auth/core': patches/@auth__core.patch
