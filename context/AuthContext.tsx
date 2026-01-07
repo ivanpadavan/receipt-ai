@@ -5,7 +5,7 @@ import { User, Session, AuthChangeEvent } from "@supabase/supabase-js";
 import { supabase } from "@/utils/supabase/client";
 
 interface AuthContextType {
-    user: User;
+    user: User | null;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -15,7 +15,7 @@ export const AuthProvider = ({
     initialUser,
 }: {
     children: React.ReactNode;
-    initialUser: User
+    initialUser: User | null
 }) => {
     const [user, setUser] = useState(initialUser);
 
@@ -25,11 +25,7 @@ export const AuthProvider = ({
             data: { subscription },
         } = supabase.auth.onAuthStateChange(
             (_: AuthChangeEvent, session: Session | null) => {
-                if (session?.user) {
-                  setUser(session.user);
-                } else {
-                  window.location.reload();
-                }
+              setUser(session?.user ?? null);
             }
         );
 

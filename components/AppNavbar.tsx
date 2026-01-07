@@ -43,8 +43,8 @@ export const AppNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user } = useUser();
 
-  const isAuthenticated = user && !user.is_anonymous;
-  const userName = user?.user_metadata?.name || user?.email || "User";
+  const isAuthenticated = !!user && !user.is_anonymous;
+  const userName = user?.user_metadata?.name || user?.email || "Anonymous";
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);

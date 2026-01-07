@@ -34,7 +34,7 @@ export async function getUser() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      throw new Error('no user');
+      return null;
     }
     return user;
 }

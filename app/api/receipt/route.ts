@@ -60,6 +60,28 @@ function appendIds(receipt: ReceiptNoId): Receipt {
   }
 }
 
+async function uploadImage(image: string, userId: string) {
+  const match = image.match(/^data:(image\/\w+);base64,/);
+  const mimeType = match ? match[1] : "image/jpeg";
+  const extension = mimeType.split("/")[1] || "jpg";
+  const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
+  const buffer = Buffer.from(base64Data, "base64");
+  const fileName = `${userId}/${crypto.randomUUID()}.${extension}`;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.storage
+    .from("receipts")
+    .upload(fileName, buffer, {
+      contentType: mimeType,
+      upsert: true,
+    });
+
+  if (error) {
+    throw new Error(`Supabase storage upload error: ${error.message}`);
+  }
+  return data.fullPath;
+}
+
 async function errorWrap<T extends ApiValidator>(req: NextRequest, validator: T, cb: (v: { session: any, body: ReturnType<T['request']['parse']> }) => Promise<NextResponse<ReturnType<T['response']['parse']>>>) {
   try {
     const user = await getUser();
@@ -97,6 +119,11 @@ export async function POST(req: NextRequest) {
   return errorWrap(req, postValidator, async ({ session, body }) => {
     const userId = session.user.id;
 
+    // FIXME violates smth
+    const imageUrl = "";
+    // imageUrl = await uploadImage(body.image, userId);
+    throw new Error('here');
+
     // Process the image
     let result = await imageChain.invoke({ image_base64: body.image });
 
@@ -113,27 +140,6 @@ export async function POST(req: NextRequest) {
 
     appendIds(result);
 
-    const match = body.image.match(/^data:(image\/\w+);base64,/);
-    const mimeType = match ? match[1] : "image/jpeg";
-    const extension = mimeType.split("/")[1] || "jpg";
-
-    const base64Data = body.image.replace(/^data:image\/\w+;base64,/, "");
-    const buffer = Buffer.from(base64Data, "base64");
-    const fileName = `${userId}/${crypto.randomUUID()}.${extension}`;
-
-    const supabase = await createClient();
-    const { data, error } = await supabase.storage
-      .from("receipts")
-      .upload(fileName, buffer, {
-        contentType: mimeType,
-        upsert: true,
-      });
-
-    if (error) {
-      throw new Error(`Supabase storage upload error: ${error.message}`);
-    }
-    const imageUrl = data.fullPath;
-
     // Save the receipt to the database
     const receipt = await db.receipt.create({
       data: {
@@ -144,9 +150,12 @@ export async function POST(req: NextRequest) {
     });
 
     // Return the receipt ID instead of the full data
-    return NextResponse.json({
-      id: receipt.id,
-    }, { status: 200 });
+    return NextResponse.json(
+      {
+        id: receipt.id,
+      },
+      { status: 200 },
+    );
   });
 }
 

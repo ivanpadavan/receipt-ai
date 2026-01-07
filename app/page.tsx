@@ -6,12 +6,15 @@ import { useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/context/AuthContext";
+import { supabase } from "@/utils/supabase/client";
 
 const captureSupported =
   typeof document === 'object' && document.createElement("input").capture != undefined;
 
 export default function ImagePastePage() {
   const router = useRouter();
+  const { user } = useUser();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -114,7 +117,13 @@ export default function ImagePastePage() {
                 >
                   Clear Image
                 </Button>
-                <Button onClick={picture.proceed} className="shadow-md">
+                <Button onClick={async () => {
+                  if (!user) {
+                    await supabase.auth.signInAnonymously();
+                  }
+                  picture.proceed();
+                }}
+                  className="shadow-md">
                   Extract Receipt Data
                 </Button>
               </div>
