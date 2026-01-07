@@ -1,5 +1,5 @@
 import { db } from "@/app/db";
-import { createClient } from "@/utils/supabase/server";
+import { getUser } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -9,8 +9,7 @@ import { Receipt } from "@/model/receipt/model";
 
 export default async function HistoryPage() {
   // Get the user's session
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getUser();
 
   if (!user) {
     // Redirect to sign-in page if not authenticated

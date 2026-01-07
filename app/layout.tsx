@@ -5,14 +5,18 @@ import { Public_Sans } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { AppNavbar } from "@/components/AppNavbar";
 import { Providers } from "./providers";
+import { AuthProvider } from "@/context/AuthContext";
+import { getUser } from "@/utils/supabase/server";
 
 const publicSans = Public_Sans({ subsets: ["latin"] });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const user = await getUser();
+
   return (
     <html lang="en">
       <head>
@@ -44,12 +48,14 @@ export default function RootLayout({
       <body className={publicSans.className}>
         <NuqsAdapter>
           <Providers>
-            <div className="bg-amber-50 min-h-[100dvh] flex flex-col">
-              <AppNavbar />
-              <main className="flex-1 flex flex-col">
-                {children}
-              </main>
-            </div>
+            <AuthProvider initialUser={user}>
+              <div className="bg-amber-50 min-h-[100dvh] flex flex-col">
+                <AppNavbar />
+                <main className="flex-1 flex flex-col">
+                  {children}
+                </main>
+              </div>
+            </AuthProvider>
           </Providers>
         </NuqsAdapter>
       </body>

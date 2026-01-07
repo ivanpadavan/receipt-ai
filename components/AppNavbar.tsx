@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/utils/cn";
@@ -8,7 +8,7 @@ import Logo from "@/components/Logo";
 import { Button } from "./ui/button";
 import { Menu, X, User, LogOut } from "lucide-react";
 import { supabase } from "@/utils/supabase/client";
-import { User as SupabaseUser, AuthChangeEvent, Session } from "@supabase/supabase-js";
+import { useUser } from "@/context/AuthContext";
 
 // Custom NavLink component with amber color scheme
 const NavLink = ({
@@ -41,20 +41,7 @@ const NavLink = ({
 
 export const AppNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState<SupabaseUser | null>(null);
-
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-    })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [])
+  const { user } = useUser();
 
   const isAuthenticated = user && !user.is_anonymous;
   const userName = user?.user_metadata?.name || user?.email || "User";

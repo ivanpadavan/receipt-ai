@@ -7,7 +7,7 @@ import { db } from "@/app/db";
 import postValidator from "@/app/api-client/receipt/post";
 import putValidator from "@/app/api-client/receipt/put";
 import { ApiValidator } from "@/app/api-client/api-validator";
-import { createClient } from "@/utils/supabase/server";
+import { createClient, getUser } from "@/utils/supabase/server";
 
 // Edge runtime is not compatible with Prisma, so we need to use the Node.js runtime
 export const runtime = "nodejs";
@@ -62,10 +62,9 @@ function appendIds(receipt: ReceiptNoId): Receipt {
 
 async function errorWrap<T extends ApiValidator>(req: NextRequest, validator: T, cb: (v: { session: any, body: ReturnType<T['request']['parse']> }) => Promise<NextResponse<ReturnType<T['response']['parse']>>>) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const user = await getUser();
 
-    if (error || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: "Unauthorized. Please sign in." },
         { status: 401 }
