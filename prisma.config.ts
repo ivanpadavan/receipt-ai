@@ -7,4 +7,17 @@ export default defineConfig({
   datasource: {
     url: env("DATABASE_URL"),
   },
+  experimental: {
+    externalTables: true,
+  },
+  tables: {
+    external: ["auth.users"],
+  },
+  migrations: {
+    path: "prisma/migrations",
+    // setup the users table for the shadow database
+    initShadowDb: `
+      CREATE TABLE auth.users (id SERIAL PRIMARY KEY);
+    `,
+  },
 });
