@@ -12,7 +12,7 @@ export const supabase =
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     process.env.SUPABASE_URL!,
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    process.env.SUPABASE_PUBLISHABLE_KEY!,
+    process.env.SUPABASE_SECRET_KEY!,
   );
 
 if (process.env.NODE_ENV !== "production") globalForSupabase.supabase = supabase;
