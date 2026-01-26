@@ -1,26 +1,29 @@
-# Use Node.js 18 as the base image for the build stage
-FROM node:20-alpine AS builder
+# Use Node.js 24 as the base image for the build stage
+FROM node:24-alpine AS builder
 
 # Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+# Install pnpm
+RUN npm install -g pnpm@10.25.0
+
+# Copy package.json and pnpm-lock.yaml
+COPY package.json pnpm-lock.yaml ./
 
 # Install dependencies
-RUN yarn install
+RUN pnpm install --frozen-lockfile
 
 # Copy the rest of the application code
 COPY . .
 
 # Generate Prisma client
-RUN yarn prisma generate
+RUN pnpm prisma generate
 
 # Build the Next.js application
-RUN yarn run build
+RUN pnpm build
 
-# Use Node.js 18 for the production stage
-FROM node:20-alpine AS runner
+# Use Node.js 24 for the production stage
+FROM node:24-alpine AS runner
 
 # Set working directory
 WORKDIR /app
