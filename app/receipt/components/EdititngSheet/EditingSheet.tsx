@@ -18,6 +18,7 @@ import {
   ReceiptModifier,
   Receipt,
 } from "@/model/receipt/model";
+import { useReceiptState } from "../ReceiptForm";
 
 type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
 
@@ -33,16 +34,20 @@ const isModifier = (v: EditableValue): v is ReceiptModifier =>
 const isTotals = (v: EditableValue): v is Receipt["totals"] =>
   "total" in v && "grandTotal" in v;
 
-// Get editable fields based on value type
+// Get editable fields based on value type and mode
 const getEditableFields = (
-  value: EditableValue
-): { key: string; label: TranslationKey; type: "string" | "number" }[] => {
+  value: EditableValue,
+  mode: "editing" | "validation" | "splitting"
+): { key: string; label: TranslationKey; type: "string" | "number"; disabled?: boolean }[] => {
   if (isPosition(value)) {
+    // In editing mode, overall is computed and should be disabled
+    // In validation mode, overall is editable
+    const isOverallDisabled = mode === "editing";
     return [
       { key: "name", label: "name", type: "string" },
       { key: "price", label: "price", type: "number" },
       { key: "quantity", label: "quantity", type: "number" },
-      { key: "overall", label: "overall", type: "number" },
+      { key: "overall", label: "overall", type: "number", disabled: isOverallDisabled },
     ];
   } else if (isModifier(value)) {
     return [
@@ -65,6 +70,9 @@ export const EditingSheet: React.FC<EditModalProps> = ({
   onSave,
   onRemove,
 }) => {
+  // Get current mode from context
+  const { scenario: { type: mode } } = useReceiptState();
+
   // Local state - работаем с копией данных
   const [localValue, setLocalValue] = useState<EditableValue>(() =>
     structuredClone(initialValue)
@@ -82,7 +90,7 @@ export const EditingSheet: React.FC<EditModalProps> = ({
   );
 
   // Get editable fields for this value type
-  const fields = getEditableFields(localValue);
+  const fields = getEditableFields(localValue, mode);
 
   // Validation
   const validate = useCallback((value: EditableValue): Record<string, string> => {
@@ -115,7 +123,7 @@ export const EditingSheet: React.FC<EditModalProps> = ({
     setErrors(validate(localValue));
   }, [localValue, validate]);
 
-  // Handle field change
+  // Handle field change with auto-calculation for positions
   const handleChange = (key: string, rawValue: string, type: "string" | "number") => {
     setTouched((prev) => new Set(prev).add(key));
 
@@ -128,6 +136,13 @@ export const EditingSheet: React.FC<EditModalProps> = ({
       newValue[key] = isNaN(parsed) ? 0 : parsed;
     } else {
       newValue[key] = rawValue;
+    }
+
+    // Auto-calculate overall for positions in editing mode
+    if (isPosition(localValue) && mode === "editing" && (key === "price" || key === "quantity")) {
+      const price = key === "price" ? (newValue.price as number) : (localValue.price as number);
+      const quantity = key === "quantity" ? (newValue.quantity as number) : (localValue.quantity as number);
+      newValue.overall = price * quantity;
     }
 
     setLocalValue(newValue as EditableValue);
@@ -175,6 +190,7 @@ export const EditingSheet: React.FC<EditModalProps> = ({
               label={field.label}
               value={(localValue as Record<string, unknown>)[field.key]}
               type={field.type}
+              disabled={field.disabled}
               hasError={
                 errors[field.key] !== undefined &&
                 (!hideErrorsUntilTouched || touched.has(field.key))
@@ -223,6 +239,7 @@ interface FormFieldProps {
   value: unknown;
   type: "string" | "number";
   hasError: boolean;
+  disabled?: boolean;
   onChange: (value: string) => void;
 }
 
@@ -231,6 +248,7 @@ const FormField: React.FC<FormFieldProps> = ({
   value,
   type,
   hasError,
+  disabled,
   onChange,
 }) => {
   const displayValue =
@@ -248,7 +266,8 @@ const FormField: React.FC<FormFieldProps> = ({
         inputMode={type === "number" ? "decimal" : "text"}
         value={displayValue}
         onChange={(e) => onChange(e.target.value)}
-        className={hasError ? "border-destructive focus-visible:ring-destructive" : ""}
+        disabled={disabled}
+        className={`${hasError ? "border-destructive focus-visible:ring-destructive" : ""} ${disabled ? "bg-muted text-muted-foreground" : ""}`}
       />
     </div>
   );

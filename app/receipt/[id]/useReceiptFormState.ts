@@ -177,6 +177,16 @@ export function useReceiptFormState(
     const participantsField = useFieldArray({ control, name: "participants" });
 
     // -------------------------------------------------------------------------
+    // 3.5. Initial validation trigger (для validation режима)
+    // -------------------------------------------------------------------------
+    useEffect(() => {
+        if (type === "validation") {
+            // Trigger validation immediately to show errors
+            form.trigger();
+        }
+    }, [type, form]);
+
+    // -------------------------------------------------------------------------
     // 4. Auto-calculation (для editing/splitting режимов)
     // -------------------------------------------------------------------------
     useEffect(() => {
@@ -256,7 +266,21 @@ export function useReceiptFormState(
     }, [type, receiptId, watch]);
 
     // -------------------------------------------------------------------------
-    // 6. Modal state
+    // 6. Helper to recalculate totals after manual updates
+    // -------------------------------------------------------------------------
+    const recalculateTotals = useCallback(() => {
+        if (type === "validation") return; // Don't auto-calc in validation mode
+
+        const data = getValues();
+        const total = calculateTotal(data.positions);
+        const grandTotal = calculateGrandTotal(data);
+
+        setValue("totals.total", total, { shouldValidate: true });
+        setValue("totals.grandTotal", grandTotal, { shouldValidate: true });
+    }, [type, getValues, setValue]);
+
+    // -------------------------------------------------------------------------
+    // 7. Modal state
     // -------------------------------------------------------------------------
     const openEditModalCommand$ = useMemo(
         () => new Subject<EditModalProps>(),
@@ -283,6 +307,7 @@ export function useReceiptFormState(
                         header: "editPosition",
                         onSave: (data) => {
                             setValue(`positions.${idx}`, data as ReceiptPosition, { shouldValidate: true });
+                            recalculateTotals();
                         },
                         onRemove: () => {
                             positionsField.remove(idx);
@@ -299,6 +324,7 @@ export function useReceiptFormState(
                         header: modType === "fees" ? "editFee" : "editDiscount",
                         onSave: (data) => {
                             setValue(`${modType}.${idx}`, data as ReceiptModifier, { shouldValidate: true });
+                            recalculateTotals();
                         },
                         onRemove: () => {
                             if (modType === "fees") {
@@ -327,6 +353,7 @@ export function useReceiptFormState(
                     header: "addPosition",
                     onSave: (data) => {
                         positionsField.prepend(data as ReceiptPosition);
+                        recalculateTotals();
                     },
                 });
             } else if (args === "addFee") {
@@ -338,6 +365,7 @@ export function useReceiptFormState(
                     header: "addFee",
                     onSave: (data) => {
                         feesField.prepend(data as ReceiptModifier);
+                        recalculateTotals();
                     },
                 });
             } else if (args === "addDiscount") {
@@ -349,6 +377,7 @@ export function useReceiptFormState(
                     header: "addDiscount",
                     onSave: (data) => {
                         discountsField.prepend(data as ReceiptModifier);
+                        recalculateTotals();
                     },
                 });
             }
