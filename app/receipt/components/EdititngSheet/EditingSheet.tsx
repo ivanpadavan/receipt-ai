@@ -1,100 +1,167 @@
-import { EditModalProps } from "@/app/receipt/[id]/receipt-state";
-import { AbstractControl } from "@/forms/abstract_model";
-import { FormControl } from "@/forms/form_control";
-import { ValidationErrors } from "@/forms/validators";
-import { useObservable } from "@/hooks/rx/useObservable";
-import React, { ChangeEvent, useEffect, useMemo, useRef } from "react";
+"use client";
+
+import { EditModalProps } from "@/app/receipt/[id]/useReceiptFormState";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { t, TranslationKey } from "@/app/i18n/translations";
-import { useReceiptState } from "@/app/receipt/components/ReceiptForm";
-import { useRowConflict } from "@/app/receipt/components/EdititngSheet/useRowConflict";
 import {
   DrawerClose,
   DrawerContent,
   DrawerFooter,
-  DrawerTitle, useWithinDrawerContext,
+  DrawerTitle,
+  useWithinDrawerContext,
 } from "@/components/ui/drawer";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  ReceiptPosition,
+  ReceiptModifier,
+  Receipt,
+} from "@/model/receipt/model";
 
-const isInErrorState = (c: AbstractControl, hideErrorsUntilTouched: boolean) => {
-  return c.errors !== null && (hideErrorsUntilTouched ? c.touched : true);
-}
+type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
 
-export const EditingSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove, header, initialValue, getFormGroupCurrentState }) => {
-  useObservable(formGroup.valueChanges);
-  const hideErrorsUntilTouched = !remove && header !== 'overall';
-  const controls = useMemo(() => Object.entries(formGroup.controls).filter(([key]) => key !== 'id' && key !== 'claims'), [formGroup]) as [TranslationKey, FormControl<string | number>][];
-  const errors = controls
-    .filter(([, c]) => isInErrorState(c, hideErrorsUntilTouched))
-    .map(([label, { errors }]) => [label, Object.values(errors as ValidationErrors)] as const);
+// Helper to check if value is position
+const isPosition = (v: EditableValue): v is ReceiptPosition =>
+  "quantity" in v && "price" in v;
 
-  const { scenario: { form } } = useReceiptState();
+// Helper to check if value is modifier
+const isModifier = (v: EditableValue): v is ReceiptModifier =>
+  "value" in v && "name" in v && !("total" in v);
 
-  const { conflict, resolveConflict } = useRowConflict({
-    formGroup,
-    initialValue,
-    getFormGroupCurrentState,
-    form
-  });
+// Helper to check if value is totals
+const isTotals = (v: EditableValue): v is Receipt["totals"] =>
+  "total" in v && "grandTotal" in v;
+
+// Get editable fields based on value type
+const getEditableFields = (
+  value: EditableValue
+): { key: string; label: TranslationKey; type: "string" | "number" }[] => {
+  if (isPosition(value)) {
+    return [
+      { key: "name", label: "name", type: "string" },
+      { key: "price", label: "price", type: "number" },
+      { key: "quantity", label: "quantity", type: "number" },
+      { key: "overall", label: "overall", type: "number" },
+    ];
+  } else if (isModifier(value)) {
+    return [
+      { key: "name", label: "modifierName", type: "string" },
+      { key: "value", label: "modifierValue", type: "number" },
+    ];
+  } else if (isTotals(value)) {
+    return [
+      { key: "total", label: "total", type: "number" },
+      { key: "grandTotal", label: "grandTotal", type: "number" },
+    ];
+  }
+  return [];
+};
+
+export const EditingSheet: React.FC<EditModalProps> = ({
+  fieldType,
+  initialValue,
+  header,
+  onSave,
+  onRemove,
+}) => {
+  // Local state - работаем с копией данных
+  const [localValue, setLocalValue] = useState<EditableValue>(() =>
+    structuredClone(initialValue)
+  );
+  const [touched, setTouched] = useState<Set<string>>(new Set());
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const toastId = useRef<string | number | undefined>(undefined);
-  useEffect(() => {
-    console.log('RowSheet Effect. Conflict:', conflict?.type, 'ToastId:', toastId.current);
-    if (conflict?.type === 'modified') {
-      if (!toastId.current) {
-        toastId.current = toast(conflict.message, {
-          id: 'conflict',
-          description:
-            "The server has a different version of this item. You can accept the server's changes or keep your local edit.",
-          action: {
-            label: 'Accept Server Update',
-            onClick: () => resolveConflict('accept'),
-          },
-          cancel: {
-            label: 'Keep My Version',
-            onClick: () => resolveConflict('keep')
-          },
-          duration: 1e7,
-        });
-      }
-    }
-    else if (!conflict && toastId.current) {
-      toast.dismiss(toastId.current);
-      toastId.current = undefined;
-    }
-  }, [conflict, resolveConflict]);
-
   const { closing } = useWithinDrawerContext();
 
-  useEffect(() => (closing && toast.dismiss(toastId.current), void 0), [closing]);
+  // Dismiss toast on closing
+  useEffect(
+    () => (closing && toast.dismiss(toastId.current), void 0),
+    [closing]
+  );
 
-  if (conflict?.type === 'deleted') {
-    return (
-      <DrawerContent>
-        <DrawerTitle className={'p-4 pt-4 text-center'}>{t("error")}</DrawerTitle>
-        <p className="text-gray-700 mb-4">{conflict.message}</p>
-        <DrawerClose asChild>
-          <Button
-            variant="secondary"
-          >
-            {t("close")}
-          </Button>
-        </DrawerClose>
-      </DrawerContent>
-    );
-  }
+  // Get editable fields for this value type
+  const fields = getEditableFields(localValue);
+
+  // Validation
+  const validate = useCallback((value: EditableValue): Record<string, string> => {
+    const errs: Record<string, string> = {};
+
+    if (isPosition(value)) {
+      if (!value.name || value.name.trim() === "") {
+        errs.name = "Name should not be empty";
+      }
+      if (value.price <= 0 || isNaN(value.price)) {
+        errs.price = "Price should be greater than 0";
+      }
+      if (value.quantity <= 0 || isNaN(value.quantity)) {
+        errs.quantity = "Quantity should be greater than 0";
+      }
+    } else if (isModifier(value)) {
+      if (!value.name || value.name.trim() === "") {
+        errs.name = "Name should not be empty";
+      }
+      if (value.value <= 0 || isNaN(value.value)) {
+        errs.value = "Value should be greater than 0";
+      }
+    }
+
+    return errs;
+  }, []);
+
+  // Update validation on value change
+  useEffect(() => {
+    setErrors(validate(localValue));
+  }, [localValue, validate]);
+
+  // Handle field change
+  const handleChange = (key: string, rawValue: string, type: "string" | "number") => {
+    setTouched((prev) => new Set(prev).add(key));
+
+    const newValue = { ...localValue } as Record<string, unknown>;
+
+    if (type === "number") {
+      // Sanitize numeric input
+      const sanitized = rawValue.replace(/,/g, ".");
+      const parsed = parseFloat(sanitized);
+      newValue[key] = isNaN(parsed) ? 0 : parsed;
+    } else {
+      newValue[key] = rawValue;
+    }
+
+    setLocalValue(newValue as EditableValue);
+  };
+
+  // Check if form is valid
+  const isValid = Object.keys(errors).length === 0;
+
+  // Show errors only for touched fields (except for existing items)
+  const hideErrorsUntilTouched = !onRemove;
+  const visibleErrors = Object.entries(errors).filter(
+    ([key]) => !hideErrorsUntilTouched || touched.has(key)
+  );
+
+  // Handle save
+  const handleSave = () => {
+    onSave(localValue);
+  };
+
+  // Handle remove
+  const handleRemove = () => {
+    onRemove?.();
+  };
 
   return (
     <DrawerContent>
-      <DrawerTitle className={'px-4 pt-4 text-center'}>{t(header)}</DrawerTitle>
-      <div className={'p-4'}>
-        {errors.length > 0 && (
+      <DrawerTitle className={"px-4 pt-4 text-center"}>{t(header)}</DrawerTitle>
+      <div className={"p-4"}>
+        {visibleErrors.length > 0 && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
             <ul className="list-disc pl-5 space-y-1">
-              {errors.map(([label, fieldErrors], index) => (
+              {visibleErrors.map(([key, error], index) => (
                 <li key={index} className="text-sm text-red-700">
-                  <strong>{t(label)}:</strong> {fieldErrors.join(', ')}
+                  <strong>{t(key as TranslationKey)}:</strong> {error}
                 </li>
               ))}
             </ul>
@@ -102,12 +169,17 @@ export const EditingSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, re
         )}
 
         <div className="space-y-4">
-          {controls.map(([label, control], idx) => (
+          {fields.map((field) => (
             <FormField
-              key={idx}
-              label={label}
-              control={control}
-              hideErrorsUntilTouched={hideErrorsUntilTouched}
+              key={field.key}
+              label={field.label}
+              value={(localValue as Record<string, unknown>)[field.key]}
+              type={field.type}
+              hasError={
+                errors[field.key] !== undefined &&
+                (!hideErrorsUntilTouched || touched.has(field.key))
+              }
+              onChange={(val) => handleChange(field.key, val, field.type)}
             />
           ))}
         </div>
@@ -115,32 +187,27 @@ export const EditingSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, re
       <DrawerFooter>
         <div className="flex justify-between">
           <div>
-            {remove && (
+            {onRemove && (
               <DrawerClose asChild>
                 <Button
                   type="button"
                   variant="destructive"
-                  onClick={() => { remove(form); }}
+                  onClick={handleRemove}
                 >
-                  {t('remove')}
+                  {t("remove")}
                 </Button>
               </DrawerClose>
             )}
           </div>
           <div className="flex space-x-2">
             <DrawerClose asChild>
-              <Button
-                type="button"
-                variant="secondary"
-              >{t('cancel')}</Button>
+              <Button type="button" variant="secondary">
+                {t("cancel")}
+              </Button>
             </DrawerClose>
             <DrawerClose asChild>
-              <Button
-                type="button"
-                disabled={formGroup.invalid}
-                onClick={() => { onFinish(form); }}
-              >
-                {t('save')}
+              <Button type="button" disabled={!isValid} onClick={handleSave}>
+                {t("save")}
               </Button>
             </DrawerClose>
           </div>
@@ -151,50 +218,37 @@ export const EditingSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, re
 };
 
 // Component for rendering a single form field
-const FormField: React.FC<{ control: FormControl<string | number>, label: TranslationKey, hideErrorsUntilTouched: boolean }> = ({ control, label, hideErrorsUntilTouched }) => {
-  const type = typeof control.getRawValue();
-  const isInvalid = isInErrorState(control, hideErrorsUntilTouched);
+interface FormFieldProps {
+  label: TranslationKey;
+  value: unknown;
+  type: "string" | "number";
+  hasError: boolean;
+  onChange: (value: string) => void;
+}
 
-  // Sanitize numeric input to handle both dots and commas as decimal separators
-  const sanitizeNumericValue = (value: string): number => {
-    // Check if the value contains only valid characters (digits, dot, comma, minus sign)
-    const isValidFormat = /^-?[0-9]*[.,]?[0-9]*$/.test(value);
+const FormField: React.FC<FormFieldProps> = ({
+  label,
+  value,
+  type,
+  hasError,
+  onChange,
+}) => {
+  const displayValue =
+    type === "number" && (value === 0 || isNaN(value as number))
+      ? ""
+      : String(value ?? "");
 
-    if (!isValidFormat || value === '') {
-      return NaN;
-    }
-
-    // Replace all commas with dots for proper decimal parsing
-    const sanitizedValue = value.replace(/,/g, '.');
-
-    // Parse the sanitized value to a number
-    return parseFloat(sanitizedValue);
-  };
-
-  const onChange = (event: ChangeEvent<HTMLInputElement>) => {
-    control.markAsTouched();
-
-    if (type === 'number') {
-      // For number inputs, use our sanitization function
-      const sanitizedValue = sanitizeNumericValue(event.target.value);
-      control.patchValue(sanitizedValue);
-    } else {
-      // For text inputs, use the value as is
-      control.patchValue(event.target.value);
-    }
-  }
   return (
     <div className="mb-4">
       <label className="block text-sm font-medium text-foreground mb-1">
         {t(label)}
       </label>
       <Input
-        type={type === 'number' ? 'number' : 'text'}
-        inputMode={type === 'number' ? 'decimal' : 'text'}
-        value={type === 'number' && (control.value === 0 || isNaN(control.value as number)) ? '' : control.value}
-        onChange={onChange}
-        disabled={control.disabled}
-        className={isInvalid ? "border-destructive focus-visible:ring-destructive" : ""}
+        type={type === "number" ? "number" : "text"}
+        inputMode={type === "number" ? "decimal" : "text"}
+        value={displayValue}
+        onChange={(e) => onChange(e.target.value)}
+        className={hasError ? "border-destructive focus-visible:ring-destructive" : ""}
       />
     </div>
   );

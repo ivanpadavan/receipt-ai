@@ -1,12 +1,13 @@
 import React from 'react';
 import { useReceiptState } from "../ReceiptForm";
-import { useObservable } from "@/hooks/rx/useObservable";
 import { cn } from "@/utils/cn";
+import { useWatch } from "react-hook-form";
 
 import {
   Receipt,
   ReceiptPosition,
   ReceiptPositionClaim,
+  ReceiptParticipant,
 } from "@/model/receipt/model";
 
 type DistributionData = ReceiptPositionClaim | ReceiptPosition | Receipt;
@@ -35,8 +36,8 @@ export const DistributionBar = ({
     scenario: { form },
   } = useReceiptState();
 
-  useObservable(form.controls.participants.valueChanges);
-  const participants = form.controls.participants.getRawValue();
+  // Use react-hook-form's useWatch instead of RxJS observable
+  const participants = useWatch({ control: form.control, name: "participants" }) as ReceiptParticipant[];
 
   // Aggregate amounts per participant
   const participantAmounts = new Map<string, number>();
@@ -77,18 +78,18 @@ export const DistributionBar = ({
 
   // Convert to array.
   // We respect the order of participants (usually "Me" is first), so the current user's segment appears first.
-  const bars = participants
-    .map((p) => ({
+  const bars = (participants || [])
+    .map((p: ReceiptParticipant) => ({
       ...p,
       amount: participantAmounts.get(p.id) || 0,
     }))
-    .filter((p) => p.amount > 0);
+    .filter((p: ReceiptParticipant & { amount: number }) => p.amount > 0);
 
   return (
     <div
       className={cn("w-full bg-secondary overflow-hidden flex relative", className)}
     >
-      {bars.map((bar, i) => {
+      {bars.map((bar: ReceiptParticipant & { amount: number }, i: number) => {
         const style: React.CSSProperties = {
           backgroundColor: bar.color,
         };

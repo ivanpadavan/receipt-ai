@@ -20,13 +20,12 @@ import { CellGroup } from "./CellGroup";
 import styles from "./form.module.css";
 import { FormArrayTitle } from "./FormArrayTitle";
 import { Modifiers } from "./Modifiers";
-// TODO: Update Sheet components for RHF
-// import { EditingSheet } from "@/app/receipt/components/EdititngSheet/EditingSheet";
+import { EditingSheet } from "@/app/receipt/components/EdititngSheet/EditingSheet";
 import { distinctUntilChanged, Observable, startWith } from "rxjs";
 import { receiptSchema } from "@/model/receipt/schema";
 import { Drawer } from "@/components/ui/drawer";
 import { isEqual } from "lodash-es";
-// import { SplittingSheet } from "@/app/receipt/components/SplittingSheet/SplittingSheet";
+import { SplittingSheet } from "@/app/receipt/components/SplittingSheet/SplittingSheet";
 import { FormProvider, useFieldArray } from "react-hook-form";
 
 interface EditableReceiptFormProps {
@@ -123,12 +122,12 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
           onCloseAnimationEnd={() => setActiveModalProps(null)}
           open={!!activeModalProps}
         >
-          {/* TODO: Update Sheet components for RHF interface */}
           {activeModalProps && (
-            <div className="p-4 text-center">
-              <p>Sheet: {activeModalProps.fieldType}</p>
-              <p>Header: {activeModalProps.header}</p>
-            </div>
+            scenarioType === "splitting" ? (
+              <SplittingSheet {...activeModalProps} />
+            ) : (
+              <EditingSheet {...activeModalProps} />
+            )
           )}
         </Drawer>
         <div className="m-3 rounded bg-white shadow-md text-black max-w-fit w-full mx-auto overflow-auto font-mono">
