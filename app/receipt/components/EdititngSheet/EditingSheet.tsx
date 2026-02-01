@@ -24,7 +24,7 @@ const isInErrorState = (c: AbstractControl, hideErrorsUntilTouched: boolean) => 
 export const EditingSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove, header, initialValue, getFormGroupCurrentState }) => {
   useObservable(formGroup.valueChanges);
   const hideErrorsUntilTouched = !remove && header !== 'overall';
-  const controls = useMemo(() => Object.entries(formGroup.controls).filter(([key]) => key !== 'id'), [formGroup]) as [TranslationKey, FormControl<string | number>][];
+  const controls = useMemo(() => Object.entries(formGroup.controls).filter(([key]) => key !== 'id' && key !== 'claims'), [formGroup]) as [TranslationKey, FormControl<string | number>][];
   const errors = controls
     .filter(([, c]) => isInErrorState(c, hideErrorsUntilTouched))
     .map(([label, { errors }]) => [label, Object.values(errors as ValidationErrors)] as const);
