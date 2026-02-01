@@ -32,13 +32,16 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
   // Watch for changes in the specific position and participants to re-render the global distribution bar
   useObservable(
-    merge(formGroup.valueChanges, form.controls.participants.valueChanges),
+    merge(positionFormGroup.valueChanges, form.controls.participants.valueChanges),
   );
 
   const position = positionFormGroup.getRawValue();
   const claims = positionFormGroup.controls.claims.getRawValue();
 
   const totalClaimed = claims.reduce((acc, claim) => {
+    if (!claim.participantIds || claim.participantIds.length === 0) {
+      return acc;
+    }
     if (claim.type === "quantity") {
       return acc + claim.value * position.price;
     }
@@ -112,9 +115,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         {/* Global Distribution Bar */}
         <div className="p-6 pt-2 border-t bg-background mt-auto">
           <DistributionBar
-            claims={positionFormGroup.controls.claims.getRawValue()}
-            total={position.overall}
-            price={position.price}
+            data={positionFormGroup.getRawValue()}
             className="h-12 rounded-xl ring-1 ring-black/5 text-lg font-bold"
           >
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -227,8 +228,7 @@ const ClaimRow = ({
         {/* Mini Distribution Bar */}
         <div className="pt-2">
           <DistributionBar
-            claims={val}
-            price={price}
+            data={val}
             className="h-2 rounded-full ring-1 ring-black/5"
           />
         </div>
@@ -263,7 +263,7 @@ const AddClaimForm = ({
         <Button
           size="sm"
           onClick={() => onSave(form)}
-          disabled={!form.getRawValue().value}
+          disabled={form.invalid}
         >
           {t("save")}
         </Button>

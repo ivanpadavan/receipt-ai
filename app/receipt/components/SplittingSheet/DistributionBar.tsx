@@ -2,23 +2,32 @@ import React from 'react';
 import { useReceiptState } from "../ReceiptForm";
 import { useObservable } from "@/hooks/rx/useObservable";
 import { cn } from "@/utils/cn";
-import { ClaimForm } from "@/app/receipt/[id]/receipt-state";
 
-type ClaimValue = ReturnType<ClaimForm['getRawValue']>;
+import {
+  Receipt,
+  ReceiptPosition,
+  ReceiptPositionClaim,
+} from "@/model/receipt/model";
+
+type DistributionData = ReceiptPositionClaim | ReceiptPosition | Receipt;
 
 interface DistributionBarProps {
-  claims: ClaimValue | ClaimValue[];
-  total?: number; // Total value to calculate percentages against.
-  price: number; // Price of the position, needed for quantity -> amount conversion
+  data: DistributionData;
   className?: string;
   children?: React.ReactNode;
 }
 
+const isReceipt = (data: DistributionData): data is Receipt => {
+  return 'positions' in data && Array.isArray(data.positions);
+}
+
+const isPosition = (data: DistributionData): data is ReceiptPosition => {
+  return 'claims' in data && Array.isArray(data.claims) && 'price' in data;
+}
+
 
 export const DistributionBar = ({
-  claims,
-  total,
-  price,
+  data,
   className,
   children,
 }: DistributionBarProps) => {
@@ -29,54 +38,79 @@ export const DistributionBar = ({
   useObservable(form.controls.participants.valueChanges);
   const participants = form.controls.participants.getRawValue();
 
-  const claimList = Array.isArray(claims) ? claims : [claims];
+  // Aggregate amounts per participant
+  const participantAmounts = new Map<string, number>();
+  let calculatedTotal = 0;
+
+  const processClaim = (claim: ReceiptPositionClaim, itemPrice: number) => {
+    // If we don't have price (itemPrice=1), we just calculate based on value (quantity or amount).
+    // This is fine for single-claim bars where relative proportions matter, not absolute currency.
+    const amount = claim.type === "quantity" ? claim.value * itemPrice : claim.value;
+    const pIds = claim.participantIds || [];
+
+    if (pIds.length > 0) {
+      const splitAmount = amount / pIds.length;
+      pIds.forEach((pid) => {
+        participantAmounts.set(pid, (participantAmounts.get(pid) || 0) + splitAmount);
+      });
+    }
+    return amount; // Return the total amount for this claim
+  };
+
+  if (isReceipt(data)) {
+    calculatedTotal = data.totals.total;
+    data.positions.forEach((pos) => {
+      pos.claims.forEach((c) => processClaim(c, pos.price));
+    });
+  } else if (isPosition(data)) {
+    calculatedTotal = data.overall;
+    data.claims.forEach((c) => processClaim(c, data.price));
+  } else {
+    // Single Claim
+    // For a single claim, the "total" is just its own calculated amount.
+    // We use price=1 effectively treating quantity as the unit for visualization if needed,
+    // or if the claim is 'amount' type it works directly.
+    // Since we only care about the split ratios in the mini-bar, the price multiplier cancels out 
+    // (a * p / (N * a * p) = 1/N).
+    calculatedTotal = processClaim(data, 1);
+  }
+
+  // Convert to array.
+  // We respect the order of participants (usually "Me" is first), so the current user's segment appears first.
+  const bars = participants
+    .map((p) => ({
+      ...p,
+      amount: participantAmounts.get(p.id) || 0,
+    }))
+    .filter((p) => p.amount > 0);
 
   return (
     <div
       className={cn("w-full bg-secondary overflow-hidden flex relative", className)}
     >
-      {claimList.map((claim, i) => {
-        const amount =
-          claim.type === "quantity" ? claim.value * price : claim.value;
-        const pIds = claim.participantIds || [];
-
-        // Resolve color
-        // If multiple participants, we currently only show the first one's color
-        // This matches the previous logic of the "separate row" bar.
-        const color =
-          pIds.length > 0
-            ? participants.find((p) => p.id === pIds[0])?.color
-            : undefined;
-
-        // Fallback color for empty claims: slate-200 (#e2e8f0)
-        const backgroundColor = color || "#e2e8f0";
-
-        // Resolve width
+      {bars.map((bar, i) => {
         const style: React.CSSProperties = {
-          backgroundColor,
+          backgroundColor: bar.color,
         };
 
-        if (total) {
-          // Global bar mode: calculate percentage
-          const percent = (amount / total) * 100;
+        if (calculatedTotal > 0) {
+          const percent = (bar.amount / calculatedTotal) * 100;
           style.width = `${percent}%`;
         } else {
-          // Local bar mode: fill available space (flex-1)
+          // If no total allowed, this mode is weird for aggregated view. 
+          // Usually total is passed for the footer bar.
+          // If used in row, total might be missing.
+          // If used in row (mini bar), we usually just want to fill.
           style.flex = 1;
         }
 
-        const tooltip = pIds
-          .map((id) => participants.find((p) => p.id === id)?.name)
-          .filter(Boolean)
-          .join(", ");
-
         return (
           <div
-            key={i}
+            key={bar.id}
             style={style}
-            title={tooltip}
+            title={`${bar.name}: ${bar.amount.toFixed(2)}`}
             className="h-full transition-all flex items-center justify-center relative overflow-hidden"
-          ></div>
+          />
         );
       })}
       {children}

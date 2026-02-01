@@ -4,6 +4,7 @@ import { receiptAiSchema, receiptSchema } from "./schema";
 // Infer TypeScript types from Zod schema
 export type ReceiptModifier = z.infer<typeof receiptSchema>["fees"][number] | z.infer<typeof receiptSchema>["discounts"][number];
 export type ReceiptPosition = z.infer<typeof receiptSchema>["positions"][number];
+export type ReceiptPositionClaim = z.infer<typeof receiptSchema>["positions"][number]["claims"][number];
 export type ReceiptParticipant = z.infer<typeof receiptSchema>["participants"][number];
 export type Receipt = z.infer<typeof receiptSchema>;
 
