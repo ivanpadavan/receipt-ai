@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/utils/cn";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ReceiptParticipant } from "@/model/receipt/model";
 import { merge } from "rxjs";
 import {
   DropdownMenu,
@@ -30,6 +29,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
     scenario: { form },
   } = useReceiptState();
 
+  // Watch for changes in the specific position and participants to re-render the global distribution bar
   useObservable(
     merge(formGroup.valueChanges, form.controls.participants.valueChanges),
   );
@@ -60,10 +60,6 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
     setIsAdding(false);
   };
 
-  // Distribution calculation
-  // We need to visualize the distribution bar
-  // Segments: each claim has a segment. + Remainder segment.
-
   const getParticipantColor = (id: string) => {
     const p = participants.find((p) => p.id === id);
     return p?.color || "gray"; // Fallback color
@@ -87,7 +83,6 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
                 <ClaimRow
                   key={index}
                   control={claimControl}
-                  participants={participants}
                   onRemove={() =>
                     positionFormGroup.controls.claims.removeAt(index)
                   }
@@ -161,20 +156,24 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
 const ClaimRow = ({
   control,
-  participants,
   onRemove,
   price,
 }: {
   control: ClaimForm;
-  participants: ReceiptParticipant[];
   onRemove: () => void;
   price: number;
 }) => {
   useObservable(control.valueChanges);
+
+  const {
+    scenario: { form },
+  } = useReceiptState();
+  // Subscribe to participants changes to update colors dynamically
+  useObservable(form.controls.participants.valueChanges);
+  const participants = form.controls.participants.getRawValue();
+
   const val = control.getRawValue();
   const [isEditing, setIsEditing] = useState(false);
-
-  // Auto remove empty claims if value matches 0? No, let user delete.
 
   const amount = val.type === "quantity" ? val.value * price : val.value;
   const isAmount = val.type === "amount";
@@ -236,7 +235,6 @@ const ClaimRow = ({
       {/* Participants Selector for this Row */}
       <div>
         <ParticipantsSelector
-          participants={participants}
           selectedIds={val.participantIds}
           onChange={(ids) => control.patchValue({ participantIds: ids })}
         />
@@ -356,14 +354,18 @@ const EditClaimContent = ({
 };
 
 const ParticipantsSelector = ({
-  participants,
   selectedIds,
   onChange,
 }: {
-  participants: ReceiptParticipant[];
   selectedIds: string[];
   onChange: (ids: string[]) => void;
 }) => {
+  const {
+    scenario: { form },
+  } = useReceiptState();
+  useObservable(form.controls.participants.valueChanges);
+  const participants = form.controls.participants.getRawValue();
+
   const handleToggle = (id: string) => {
     if (selectedIds.includes(id)) {
       onChange(selectedIds.filter((i) => i !== id));
