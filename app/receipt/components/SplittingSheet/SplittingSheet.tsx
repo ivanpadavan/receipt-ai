@@ -5,7 +5,7 @@ import { t } from "@/app/i18n/translations";
 import { DrawerClose, DrawerContent, DrawerFooter, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { useReceiptState } from "../ReceiptForm";
-import { Check, Pencil, Plus, Trash2 } from "lucide-react";
+import { Check, Pencil, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/utils/cn";
@@ -37,7 +37,6 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
   const position = positionFormGroup.getRawValue();
   const claims = positionFormGroup.controls.claims.getRawValue();
-  const participants = form.controls.participants.getRawValue();
 
   const totalClaimed = claims.reduce((acc, claim) => {
     if (claim.type === "quantity") {
@@ -66,16 +65,20 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
   return (
     <DrawerContent className="max-h-[90vh]">
       <div className="mx-auto w-full max-w-sm">
-        <DrawerTitle className="p-4 text-center border-b pt-6">
-          <div className="text-lg font-semibold">{position.name}</div>
-          <div className="text-sm text-muted-foreground">
-            {position.quantity} x {position.price} = {position.overall}
+        <DrawerTitle className="px-6 pt-6 pb-4 text-center border-b bg-muted/10">
+          <div className="text-xl font-bold tracking-tight">{position.name}</div>
+          <div className="text-sm font-medium text-muted-foreground mt-1 flex justify-center items-center gap-2">
+            <span className="bg-muted px-2 py-0.5 rounded-md">{position.quantity} {t("pcs")}</span>
+            <span>x</span>
+            <span>{position.price.toFixed(2)} ₽</span>
+            <span>=</span>
+            <span className="text-primary font-bold">{position.overall.toFixed(2)} ₽</span>
           </div>
         </DrawerTitle>
 
-        <div className="p-4 space-y-6 overflow-y-auto max-h-[60vh] scrollbar-hide">
+        <div className="px-4 py-6 space-y-4 overflow-y-auto max-h-[60vh] scrollbar-hide bg-muted/5">
           {/* Existing Claims List */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             {positionFormGroup.controls.claims.controls.map(
               (claimControl, index) => (
                 <ClaimRow
@@ -101,39 +104,34 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
             <Button
               variant="outline"
               className="w-full border-dashed"
-              onClick={handleAddClaim}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              {t("addMore")}
+              onClick={handleAddClaim}>
             </Button>
           )}
         </div>
 
         {/* Global Distribution Bar */}
-        <div className="p-4 pt-0">
+        <div className="p-6 pt-2 border-t bg-background mt-auto">
           <DistributionBar
             claims={positionFormGroup.controls.claims.getRawValue()}
             total={position.overall}
             price={position.price}
-            className="h-4 rounded-full"
-          />
-          <div className="flex justify-between text-xs text-muted-foreground mt-1">
-            <span>
-              {t("distributed")}: {totalClaimed.toFixed(2)}
-            </span>
-            <span>
-              {t("total")}: {position.overall}
-            </span>
-          </div>
+            className="h-12 rounded-xl ring-1 ring-black/5 text-lg font-bold"
+          >
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span className="bg-black/20 backdrop-blur-[2px] rounded-full px-2 py-0.5 text-white text-xs font-bold shadow-sm">
+                {((totalClaimed / position.overall) * 100).toFixed(0)}%
+              </span>
+            </div>
+          </DistributionBar>
         </div>
 
-        <DrawerFooter>
+        <DrawerFooter className="px-6 pb-6 pt-2">
           <DrawerClose asChild>
             <Button onClick={() => onFinish(form)}>{t("done")}</Button>
           </DrawerClose>
         </DrawerFooter>
       </div>
-    </DrawerContent>
+    </DrawerContent >
   );
 };
 
@@ -153,7 +151,6 @@ const ClaimRow = ({
   } = useReceiptState();
   // Subscribe to participants changes to update colors dynamically
   useObservable(form.controls.participants.valueChanges);
-  const participants = form.controls.participants.getRawValue();
 
   const val = control.getRawValue();
   const [isEditing, setIsEditing] = useState(false);
@@ -174,61 +171,68 @@ const ClaimRow = ({
   }
 
   return (
-    <div className="border rounded-md p-3 space-y-3 bg-white shadow-sm relative group">
-      <div className="flex justify-between items-center">
-        <div className="font-medium text-lg flex items-baseline gap-1">
-          {val.value}{" "}
-          <span className="text-sm font-normal text-muted-foreground">
-            {isAmount ? "₽" : t("pcs")}
-          </span>
-          {!isAmount && (
-            <span className="text-sm text-muted-foreground ml-2">
-              ({amount.toFixed(2)} ₽)
+    <div className="bg-card rounded-xl border p-4 shadow-sm transition-all hover:shadow-md relative group space-y-4">
+      <div className="flex justify-between items-start">
+        <div className="flex flex-col">
+          <div className="flex items-baseline gap-2">
+            <span className="font-bold text-2xl tracking-tight text-foreground">
+              {val.value}
             </span>
-          )}
+            <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              {isAmount ? "₽" : t("pcs")}
+            </span>
+            {!isAmount && (
+              <span className="text-xs font-medium text-muted-foreground bg-secondary px-1.5 py-0.5 rounded ml-1">
+                {amount.toFixed(2)} ₽
+              </span>
+            )}
+          </div>
         </div>
-        <div className="flex gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground"
-              >
-                <MoreVertical className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                <Pencil className="w-4 h-4 mr-2" />
-                {t("editPosition")}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={onRemove}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                {t("remove")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground -mr-2 -mt-2"
+            >
+              <MoreVertical className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setIsEditing(true)}>
+              <Pencil className="w-4 h-4 mr-2" />
+              {t("editPosition")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={onRemove}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              {t("remove")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      {/* Participants Selector for this Row */}
-      <div>
-        <ParticipantsSelector
-          selectedIds={val.participantIds}
-          onChange={(ids) => control.patchValue({ participantIds: ids })}
-        />
-      </div>
+      <div className="space-y-3">
+        {/* Participants Selector */}
+        <div className="flex items-center gap-2">
+          <ParticipantsSelector
+            selectedIds={val.participantIds}
+            onChange={(ids) => control.patchValue({ participantIds: ids })}
+          />
+        </div>
 
-      {/* Mini Distribution Bar for this Row */}
-      <DistributionBar
-        claims={val}
-        price={price}
-        className="h-1.5 rounded-full"
-      />
+        {/* Mini Distribution Bar */}
+        <div className="pt-2">
+          <DistributionBar
+            claims={val}
+            price={price}
+            className="h-2 rounded-full ring-1 ring-black/5"
+          />
+        </div>
+      </div>
     </div>
   );
 };
@@ -246,15 +250,22 @@ const AddClaimForm = ({
   useObservable(form.valueChanges);
 
   return (
-    <div className="border rounded-md p-3 space-y-3 bg-white shadow-sm animate-in fade-in slide-in-from-bottom-2">
+    <div className="bg-card rounded-xl border p-4 shadow-sm animate-in fade-in slide-in-from-bottom-2">
       <EditClaimContent
         control={form}
         onSave={() => onSave(form)}
         price={price}
       />
-      <div className="flex justify-end gap-2 mt-2">
+      <div className="flex justify-end gap-2 mt-4 pt-2 border-t border-dashed">
         <Button variant="ghost" size="sm" onClick={onCancel}>
           {t("cancel")}
+        </Button>
+        <Button
+          size="sm"
+          onClick={() => onSave(form)}
+          disabled={!form.getRawValue().value}
+        >
+          {t("save")}
         </Button>
       </div>
     </div>
@@ -367,11 +378,6 @@ const ParticipantsSelector = ({
             }}
           >
             <ParticipantAvatar participant={p} className="h-8 w-8" />
-            {isSelected && (
-              <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5 border border-white">
-                <Check className="w-2 h-2 text-white" />
-              </div>
-            )}
           </button>
         );
       })}
