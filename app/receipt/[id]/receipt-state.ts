@@ -6,7 +6,7 @@ import { ValidatorFn } from "@/forms/validators";
 import {
   concat,
   defer, distinctUntilChanged,
-  EMPTY,
+  EMPTY, from,
   ignoreElements,
   merge,
   Observable,
@@ -96,7 +96,11 @@ export const receiptFormState$ = (
 ): Observable<ReceiptState> => {
   const openEditModalCommand$ = new Subject<EditModalProps>();
 
-  const type = validateReceipt(initialData).isValid ? 'editing' as const : 'validation' as const;
+  const type = validateReceipt(initialData).isValid
+    ? initialData.editingFinished
+      ? 'splitting' as const
+      : 'editing' as const
+    : 'validation' as const;
 
   const positionCalculator = type === 'validation'
     ? (form: PositionForm) => {
@@ -206,6 +210,7 @@ export const receiptFormState$ = (
     form.controls.totals.controls.grandTotal.disable();
     form.controls.totals.controls.total.disable();
     effect$ = form.value$.pipe(
+      // this is buggy
       distinctUntilChanged(isEqual),
       switchMap(() => updateForm$),
       ignoreElements(),
@@ -303,13 +308,21 @@ export const receiptFormState$ = (
     },
   }
 
-  const nextStep$ = proceed$.pipe(switchMap(() => receiptFormState$(form.getRawValue(), receiptId)));
+  const nextStep$ = proceed$.pipe(switchMap(() => {
+    if (form.valid && type === 'editing') {
+      return merge(
+        from(apiClient.updateReceipt({
+          id: receiptId,
+          data: { ...form.getRawValue(), editingFinished: true },
+        })).pipe(ignoreElements()),
+        receiptFormState$(form.getRawValue(), receiptId),
+      );
+    }
+    return receiptFormState$(
+      { ...form.getRawValue(), editingFinished: true },
+      receiptId,
+    );
+  }));
 
-  return merge(
-    concat(
-      of(state),
-      nextStep$,
-    ),
-    effect$,
-  );
+  return merge(concat(of(state), nextStep$), effect$);
 };
