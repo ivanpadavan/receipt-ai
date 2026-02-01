@@ -9,6 +9,7 @@ import putValidator from "@/app/api-client/receipt/put";
 import { ApiValidator } from "@/app/api-client/api-validator";
 import { serverSupabase, getUser } from "@/utils/supabase/server";
 import type { User } from "@supabase/supabase-js";
+import { getUserName } from "@/utils/getUserName";
 
 // Edge runtime is not compatible with Prisma, so we need to use the Node.js runtime
 export const runtime = "nodejs";
@@ -52,13 +53,13 @@ function appendIdsToArr<T>(v: T[]): (T & { id: string })[] {
   return v.map((v) => ({ ...v, id: crypto.randomUUID() }));
 }
 
-function appendIds(receipt: ReceiptNoId): Receipt {
+function appendIdsAndUser(receipt: ReceiptNoId, user: User): Receipt {
   return {
     ...receipt,
     positions: appendIdsToArr(receipt.positions).map((v) => ({ ...v, claims: [] })),
     fees: appendIdsToArr(receipt.fees),
     discounts: appendIdsToArr(receipt.discounts),
-    participants: [],
+    participants: [{ id: user.id, name: getUserName(user), color: '#F00' }],
   }
 }
 
@@ -136,7 +137,7 @@ export async function POST(req: NextRequest) {
       data: {
         userId,
         imageUrl,
-        data: appendIds(result), // Store the receipt data as JSON
+        data: appendIdsAndUser(result, session.user), // Store the receipt data as JSON
       },
     });
 

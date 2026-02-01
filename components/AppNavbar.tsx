@@ -8,6 +8,7 @@ import Logo from "@/components/Logo";
 import { Button } from "./ui/button";
 import { Menu, X, User, LogOut } from "lucide-react";
 import { supabase } from "@/utils/supabase/client";
+import { getUserName } from "@/utils/getUserName";
 import { useUser } from "@/context/AuthContext";
 
 // Custom NavLink component with amber color scheme
@@ -44,7 +45,7 @@ export const AppNavbar = () => {
   const { user } = useUser();
 
   const isAuthenticated = !!user && !user.is_anonymous;
-  const userName = user?.user_metadata?.name || user?.email || "Anonymous";
+  const userName = getUserName(user);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
