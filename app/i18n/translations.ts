@@ -48,6 +48,8 @@ const ru = {
   unclaimed: 'Не распределено',
   distribution: 'Распределено',
   back: 'Назад',
+  distributed: 'Распределено',
+  done: 'Готово',
 };
 
 export type TranslationKey = keyof typeof ru;
@@ -103,6 +105,8 @@ const en: Translations = {
   unclaimed: 'Unclaimed',
   distribution: 'Distribution',
   back: 'Back',
+  distributed: 'Distributed',
+  done: 'Done',
 };
 
 // Available languages

@@ -9,9 +9,16 @@ import { Check, Pencil, Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/utils/cn";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ReceiptParticipant } from "@/model/receipt/model";
 import { merge } from "rxjs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical } from "lucide-react";
 
 export const SplittingSheet: React.FC<EditModalProps> = ({
   formGroup,
@@ -190,7 +197,7 @@ const ClaimRow = ({
         <div className="font-medium text-lg flex items-baseline gap-1">
           {val.value}{" "}
           <span className="text-sm font-normal text-muted-foreground">
-            {isAmount ? "₽" : "шт"}
+            {isAmount ? "₽" : t("pcs")}
           </span>
           {!isAmount && (
             <span className="text-sm text-muted-foreground ml-2">
@@ -199,23 +206,30 @@ const ClaimRow = ({
           )}
         </div>
         <div className="flex gap-2">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8 text-muted-foreground"
-            onClick={() => setIsEditing(true)}
-          >
-            <Pencil className="w-4 h-4" />
-          </Button>
-          {/* Do not show delete for the automated helper? No, allow delete always. */}
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8 text-destructive"
-            onClick={onRemove}
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground"
+              >
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                <Pencil className="w-4 h-4 mr-2" />
+                {t("editPosition")}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={onRemove}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                {t("remove")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -379,7 +393,6 @@ const ParticipantsSelector = ({
           >
             <Avatar className="h-8 w-8">
               {/* Mock avatar for now if p.avatarUrl is missing, or use letters */}
-              <AvatarImage src={p.avatarUrl} />
               <AvatarFallback
                 style={{ backgroundColor: p.color + "20", color: p.color }}
               >
