@@ -3,9 +3,9 @@
 import { t } from "@/app/i18n/translations";
 import {
   EditModalProps,
-  receiptFormState$,
+  useReceiptFormState,
   ReceiptState,
-} from "@/app/receipt/[id]/receipt-state";
+} from "@/app/receipt/[id]/useReceiptFormState";
 import { Button } from "@/components/ui/button";
 import { forceSync, useObservable } from "@/hooks/rx/useObservable";
 import { Receipt } from "@/model/receipt/model";
@@ -20,12 +20,14 @@ import { CellGroup } from "./CellGroup";
 import styles from "./form.module.css";
 import { FormArrayTitle } from "./FormArrayTitle";
 import { Modifiers } from "./Modifiers";
-import { EditingSheet } from "@/app/receipt/components/EdititngSheet/EditingSheet";
+// TODO: Update Sheet components for RHF
+// import { EditingSheet } from "@/app/receipt/components/EdititngSheet/EditingSheet";
 import { distinctUntilChanged, Observable, startWith } from "rxjs";
 import { receiptSchema } from "@/model/receipt/schema";
 import { Drawer } from "@/components/ui/drawer";
 import { isEqual } from "lodash-es";
-import { SplittingSheet } from "@/app/receipt/components/SplittingSheet/SplittingSheet";
+// import { SplittingSheet } from "@/app/receipt/components/SplittingSheet/SplittingSheet";
+import { FormProvider, useFieldArray } from "react-hook-form";
 
 interface EditableReceiptFormProps {
   initialData: Receipt;
@@ -37,70 +39,70 @@ const ReceiptFormContext = createContext<ReceiptState | null>(null);
 export const useReceiptState = (): ReceiptState => {
   const ctx = useContext(ReceiptFormContext);
   if (ctx === null) {
-    throw new Error('should be provided');
+    throw new Error("should be provided");
   }
   return ctx;
-}
+};
 
 const useReceiptWithUpdates = (initialData: Receipt, receiptId: string) => {
-  return useObservable<Observable<Receipt>>(useMemo(() => {
-    return new Observable<Receipt>((handler) => {
-      if (typeof window === 'undefined') {
-        handler.next(initialData);
-        handler.complete();
-        return;
-      }
-
-      const eventSource = new EventSource(`/api/receipt/${receiptId}`);
-
-      eventSource.onopen = () => {
-        console.log("SSE connected");
-      };
-
-      eventSource.onmessage = (event) => {
-        const { data, success } = receiptSchema.safeParse(JSON.parse(event.data));
-        console.log(event, data, success);
-        if (success) {
-          handler.next(data);
+  return useObservable<Observable<Receipt>>(
+    useMemo(() => {
+      return new Observable<Receipt>((handler) => {
+        if (typeof window === "undefined") {
+          handler.next(initialData);
+          handler.complete();
+          return;
         }
-      }
 
-      // TODO indication that connection is lost
-      eventSource.onerror = () => handler.error(new Error('sse disconnected'));
+        const eventSource = new EventSource(`/api/receipt/${receiptId}`);
 
-      return () => eventSource.close();
-    }).pipe(
-      startWith(initialData),
-      distinctUntilChanged(isEqual),
-    )
-  }, [receiptId, initialData]), forceSync);
-}
+        eventSource.onopen = () => {
+          console.log("SSE connected");
+        };
+
+        eventSource.onmessage = (event) => {
+          const { data, success } = receiptSchema.safeParse(
+            JSON.parse(event.data)
+          );
+          console.log(event, data, success);
+          if (success) {
+            handler.next(data);
+          }
+        };
+
+        // TODO indication that connection is lost
+        eventSource.onerror = () =>
+          handler.error(new Error("sse disconnected"));
+
+        return () => eventSource.close();
+      }).pipe(startWith(initialData), distinctUntilChanged(isEqual));
+    }, [receiptId, initialData]),
+    forceSync
+  );
+};
 
 export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
   initialData,
   receiptId,
 }) => {
-  // Subscribe to the receipt state
-
+  // Subscribe to the receipt state with SSE updates
   const receipt = useReceiptWithUpdates(initialData, receiptId);
 
-  const formState = useObservable(
-    useMemo(
-      () => receiptFormState$(receipt, receiptId),
-      [receipt, receiptId],
-    ),
-    forceSync,
-  );
+  // Use the new react-hook-form based state
+  const formState = useReceiptFormState(receipt, receiptId);
 
-  const [activeModalProps, setActiveModalProps] = React.useState<null | EditModalProps>(null);
+  const [activeModalProps, setActiveModalProps] =
+    React.useState<null | EditModalProps>(null);
 
   useEffect(() => {
-    const sub = formState.openEditModalCommand$.subscribe((props) => setActiveModalProps(props));
+    const sub = formState.openEditModalCommand$.subscribe((props) =>
+      setActiveModalProps(props)
+    );
     return () => sub.unsubscribe();
-  }, [formState]);
+  }, [formState.openEditModalCommand$]);
 
   const {
-    scenario: { form, canEdit },
+    scenario: { form, canEdit, type: scenarioType },
     openEditModal,
     proceed,
     canProceed$,
@@ -108,90 +110,96 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
 
   const canProceed = useObservable(canProceed$, forceSync);
 
+  // Get field array for positions
+  const { fields: positionFields } = useFieldArray({
+    control: form.control,
+    name: "positions",
+  });
+
   return (
     <ReceiptFormContext.Provider value={formState}>
-      <Drawer
-        onCloseAnimationEnd={() => setActiveModalProps(null)}
-        open={!!activeModalProps}
-      >
-        {activeModalProps && (formState.scenario.type === "splitting" ? <SplittingSheet {...activeModalProps} /> : <EditingSheet {...activeModalProps} />)}
-      </Drawer>
-      <div className="m-3 rounded bg-white shadow-md text-black max-w-fit w-full mx-auto overflow-auto font-mono">
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>
-                <FormArrayTitle
-                  title={t("name")}
-                  onAddClick={
-                    formState.scenario.canEdit.positionForm === true
-                      ? () => openEditModal("addPosition")
-                      : undefined
-                  }
-                />
-              </th>
-              <th className="text-center">{t("price")}</th>
-              <th className="text-center">{t("quantity")}</th>
-              <th className="text-center">{t("overall")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {form.controls.positions.controls.map((position, index) => (
-              <CellGroup
-                key={"positions" + index}
-                record={position}
-                canEdit={canEdit.positionForm}
+      <FormProvider {...form}>
+        <Drawer
+          onCloseAnimationEnd={() => setActiveModalProps(null)}
+          open={!!activeModalProps}
+        >
+          {/* TODO: Update Sheet components for RHF interface */}
+          {activeModalProps && (
+            <div className="p-4 text-center">
+              <p>Sheet: {activeModalProps.fieldType}</p>
+              <p>Header: {activeModalProps.header}</p>
+            </div>
+          )}
+        </Drawer>
+        <div className="m-3 rounded bg-white shadow-md text-black max-w-fit w-full mx-auto overflow-auto font-mono">
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>
+                  <FormArrayTitle
+                    title={t("name")}
+                    onAddClick={
+                      canEdit.positionForm === true
+                        ? () => openEditModal("addPosition")
+                        : undefined
+                    }
+                  />
+                </th>
+                <th className="text-center">{t("price")}</th>
+                <th className="text-center">{t("quantity")}</th>
+                <th className="text-center">{t("overall")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {positionFields.map((field, index) => (
+                <CellGroup
+                  key={field.id}
+                  fieldPath={`positions.${index}`}
+                  index={index}
+                  type="position"
+                  canEdit={canEdit.positionForm}
+                >
+                  {({ className, ...props }) => (
+                    <tr className={className + " border-b border-gray-200"}>
+                      <Cell {...props} name={`positions.${index}.name`} />
+                      <Cell {...props} name={`positions.${index}.price`} />
+                      <Cell {...props} name={`positions.${index}.quantity`} />
+                      <Cell {...props} name={`positions.${index}.overall`} />
+                    </tr>
+                  )}
+                </CellGroup>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr
+                onClick={() => canEdit.totalsForm && openEditModal({ type: "totals" })}
+                className={
+                  canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""
+                }
               >
-                {({ className, ...props }) => (
-                  <tr className={className + " border-b border-gray-200"}>
-                    <Cell {...props} formControl={position.controls.name} />
-                    <Cell {...props} formControl={position.controls.price} />
-                    <Cell {...props} formControl={position.controls.quantity} />
-                    <Cell {...props} formControl={position.controls.overall} />
-                  </tr>
-                )}
-              </CellGroup>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr
-              onClick={() =>
-                canEdit.totalsForm && openEditModal(form.controls.totals)
-              }
-              className={
-                canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""
-              }
-            >
-              <td colSpan={3}>{t("total")}</td>
-              <Cell
-                formControl={form.controls.totals.controls.total}
-                className="font-bold"
-              />
-            </tr>
-            <Modifiers type={"discounts"} items={form.controls.discounts} />
-            <Modifiers type={"fees"} items={form.controls.fees} />
-            <tr
-              onClick={() =>
-                canEdit.totalsForm && openEditModal(form.controls.totals)
-              }
-              className={
-                canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""
-              }
-            >
-              <td colSpan={3}>{t("grandTotal")}</td>
-              <Cell
-                formControl={form.controls.totals.controls.grandTotal}
-                className="font-bold"
-              />
-            </tr>
-          </tfoot>
-        </table>
-        <div className="flex justify-end mt-4 mb-2 mr-4">
-          <Button onClick={proceed} disabled={!canProceed} className="">
-            {t("proceed")}
-          </Button>
+                <td colSpan={3}>{t("total")}</td>
+                <Cell name="totals.total" className="font-bold" />
+              </tr>
+              <Modifiers type="discounts" />
+              <Modifiers type="fees" />
+              <tr
+                onClick={() => canEdit.totalsForm && openEditModal({ type: "totals" })}
+                className={
+                  canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""
+                }
+              >
+                <td colSpan={3}>{t("grandTotal")}</td>
+                <Cell name="totals.grandTotal" className="font-bold" />
+              </tr>
+            </tfoot>
+          </table>
+          <div className="flex justify-end mt-4 mb-2 mr-4">
+            <Button onClick={proceed} disabled={!canProceed} className="">
+              {t("proceed")}
+            </Button>
+          </div>
         </div>
-      </div>
+      </FormProvider>
     </ReceiptFormContext.Provider>
   );
 };

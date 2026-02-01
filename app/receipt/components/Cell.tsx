@@ -1,21 +1,34 @@
-import { FormControl } from "@/forms/form_control";
-import { forceSync, useObservable } from "@/hooks/rx/useObservable";
-import React from "react";
+"use client";
 
-interface FormControlCellProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
-  formControl: FormControl;
+import React from "react";
+import { useFormContext, useWatch, FieldPath } from "react-hook-form";
+import { Receipt } from "@/model/receipt/model";
+
+interface CellProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
+  name: FieldPath<Receipt>;
 }
 
-export const Cell: React.FC<FormControlCellProps> = ({ formControl, className = '', ...props }) => {
-  const value = useObservable(formControl.value$, forceSync);
-  const isInvalid = formControl.invalid;
+/**
+ * Cell component that displays a value from react-hook-form.
+ */
+export const Cell: React.FC<CellProps> = ({ name, className = "", ...props }) => {
+  const { formState } = useFormContext<Receipt>();
+  const value = useWatch<Receipt>({ name });
+
+  // Check if this field has errors
+  const hasError = name.split(".").reduce((obj: unknown, key) => {
+    if (obj && typeof obj === "object") {
+      return (obj as Record<string, unknown>)[key];
+    }
+    return undefined;
+  }, formState.errors) !== undefined;
+
+  // Format value for display
+  const displayValue = typeof value === "object" ? JSON.stringify(value) : value;
 
   return (
-    <td
-      className={`${className} ${isInvalid ? 'text-red-500' : ''}`}
-      {...props}
-    >
-      {value}
+    <td className={`${className} ${hasError ? "text-red-500" : ""}`} {...props}>
+      {displayValue}
     </td>
   );
 };

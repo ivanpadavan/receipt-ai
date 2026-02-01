@@ -171,7 +171,8 @@ describe("useReceiptFormState", () => {
         act(() => {
             result.current.openEditModal("addPosition");
         });
-        delete emittedProps.initialValue.id;
+        const props = emittedProps as { initialValue: { id?: string; name: string } };
+        delete props.initialValue.id;
         expect(emittedProps).toMatchInlineSnapshot(`
           {
             "fieldType": "position",

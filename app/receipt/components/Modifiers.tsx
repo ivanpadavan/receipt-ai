@@ -1,26 +1,28 @@
+"use client";
+
 import { t } from "@/app/i18n/translations";
-import { ModifierForm } from "@/app/receipt/[id]/receipt-state";
 import { CellGroup } from "@/app/receipt/components/CellGroup";
-import { forceSync, useObservable } from "@/hooks/rx/useObservable";
 import React from "react";
 import { Cell } from "./Cell";
 import { FormArrayTitle } from "./FormArrayTitle";
 import { useReceiptState } from "./ReceiptForm";
-import { FormArray } from "@/forms/form_array";
+import { useFieldArray, useFormContext } from "react-hook-form";
+import { Receipt } from "@/model/receipt/model";
 
-interface ItemsSectionProps {
+interface ModifiersProps {
   type: "discounts" | "fees";
-  items: FormArray<ModifierForm>;
 }
 
-export const Modifiers: React.FC<ItemsSectionProps> = ({ type, items }) => {
-  useObservable(items.valueChanges, forceSync);
+export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
+  const { control } = useFormContext<Receipt>();
+  const { fields } = useFieldArray({ control, name: type });
   const ctx = useReceiptState();
+
   const openEditModal = ctx.scenario.canEdit.modifierForm
     ? () => ctx.openEditModal(type === "discounts" ? "addDiscount" : "addFee")
     : undefined;
 
-  if (items.length === 0) {
+  if (fields.length === 0) {
     return (
       <>
         <tr>
@@ -35,13 +37,20 @@ export const Modifiers: React.FC<ItemsSectionProps> = ({ type, items }) => {
 
   return (
     <>
-      {items.controls.map((item, index) => (
-        <CellGroup record={item} key={`${type}-${index}`} canEdit={ctx.scenario.canEdit.modifierForm}>
+      {fields.map((field, index) => (
+        <CellGroup
+          key={field.id}
+          fieldPath={`${type}.${index}` as const}
+          index={index}
+          type="modifier"
+          modifierType={type}
+          canEdit={ctx.scenario.canEdit.modifierForm}
+        >
           {(props) => (
             <>
               <tr>
                 {index === 0 && (
-                  <td rowSpan={items.length * 2}>
+                  <td rowSpan={fields.length * 2}>
                     <FormArrayTitle
                       title={t(type) + ":"}
                       onAddClick={openEditModal}
@@ -51,7 +60,7 @@ export const Modifiers: React.FC<ItemsSectionProps> = ({ type, items }) => {
                 <td colSpan={2} {...props}>
                   {t("modifierName")}
                 </td>
-                <Cell {...props} formControl={item.controls.name} />
+                <Cell {...props} name={`${type}.${index}.name` as const} />
               </tr>
               <tr>
                 <td colSpan={2} {...props}>
@@ -59,7 +68,7 @@ export const Modifiers: React.FC<ItemsSectionProps> = ({ type, items }) => {
                 </td>
                 <Cell
                   {...props}
-                  formControl={item.controls.value}
+                  name={`${type}.${index}.value` as const}
                   colSpan={2}
                 />
               </tr>

@@ -58,8 +58,10 @@ export const validateGrandTotalMatchesCalculation = (
 // React Hook Form Resolver
 // ============================================================================
 
-type FieldError = { type: string; message: string };
-type ErrorRecord = Record<string, FieldError | ErrorRecord>;
+interface FieldError { type: string; message: string }
+ 
+// type ErrorRecord = Record<string, FieldError | ErrorRecord>;
+type ErrorRecord = Record<string, any>;
 
 export const createReceiptResolver = (
     context: ReceiptValidationContext
