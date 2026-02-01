@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Detailed UX design for claim sheet with 4 states: empty, adding by sum, adding by quantity, and filled. Includes distribution indicators and interaction patterns.",
+  "updatedAt": "2026-02-01T02:53:19.296827Z",
+  "version": "3"
+}
