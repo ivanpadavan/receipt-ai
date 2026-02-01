@@ -90,6 +90,16 @@ const permissions: Record<FormType, CanEdit> = {
   }
 }
 
+export const defaultClaim = (): ClaimForm => {
+  return new FormGroup({
+    value: new FormControl(NaN),
+    type: new FormControl<"quantity" | "amount">("quantity") as
+      | FormControl<"amount">
+      | FormControl<"quantity">,
+    participantIds: new FormControl<string[]>([]),
+  });
+};
+
 export const receiptFormState$ = (
   initialData: Receipt,
   receiptId = '',
@@ -125,13 +135,7 @@ export const receiptFormState$ = (
       return null;
     }
 
-  const defaultClaim = (): ClaimForm => {
-    return new FormGroup({
-      value: new FormControl(NaN),
-      type: new FormControl<"quantity" | "amount">("quantity") as (FormControl<'amount'> | FormControl<'quantity'>),
-      participantIds: new FormControl<string[]>([]),
-    });
-  }
+
 
   // Default position form group for adding new positions
   const defaultPosition = (numberOfClaims: number): PositionForm => {
