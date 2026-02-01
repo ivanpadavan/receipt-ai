@@ -9,7 +9,7 @@ import { Check, Pencil, Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/utils/cn";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ParticipantAvatar } from "@/components/ui/participant-avatar";
 import { merge } from "rxjs";
 import {
   DropdownMenu,
@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreVertical } from "lucide-react";
+import { DistributionBar } from "./DistributionBar";
 
 export const SplittingSheet: React.FC<EditModalProps> = ({
   formGroup,
@@ -60,10 +61,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
     setIsAdding(false);
   };
 
-  const getParticipantColor = (id: string) => {
-    const p = participants.find((p) => p.id === id);
-    return p?.color || "gray"; // Fallback color
-  };
+
 
   return (
     <DrawerContent className="max-h-[90vh]">
@@ -113,27 +111,12 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
         {/* Global Distribution Bar */}
         <div className="p-4 pt-0">
-          <div className="h-4 w-full rounded-full bg-secondary overflow-hidden flex">
-            {positionFormGroup.controls.claims.controls.map((claim, i) => {
-              const val = claim.getRawValue();
-              const amount =
-                val.type === "quantity"
-                  ? val.value * position.price
-                  : val.value;
-              const percent = (amount / position.overall) * 100;
-              const pIds = val.participantIds || [];
-              const color =
-                pIds.length > 0 ? getParticipantColor(pIds[0]) : "#cbd5e1";
-
-              return (
-                <div
-                  key={i}
-                  style={{ width: `${percent}%`, backgroundColor: color }}
-                  title={pIds.join(", ")}
-                />
-              );
-            })}
-          </div>
+          <DistributionBar
+            claims={positionFormGroup.controls.claims.getRawValue()}
+            total={position.overall}
+            price={position.price}
+            className="h-4 rounded-full"
+          />
           <div className="flex justify-between text-xs text-muted-foreground mt-1">
             <span>
               {t("distributed")}: {totalClaimed.toFixed(2)}
@@ -241,21 +224,11 @@ const ClaimRow = ({
       </div>
 
       {/* Mini Distribution Bar for this Row */}
-      <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden flex">
-        {/* Solid bar if valid. */}
-        {val.participantIds.length > 0 ? (
-          <div
-            className="h-full w-full"
-            style={{
-              backgroundColor: participants.find(
-                (p) => p.id === val.participantIds[0],
-              )?.color,
-            }}
-          />
-        ) : (
-          <div className="h-full w-full bg-slate-200" />
-        )}
-      </div>
+      <DistributionBar
+        claims={val}
+        price={price}
+        className="h-1.5 rounded-full"
+      />
     </div>
   );
 };
@@ -393,14 +366,7 @@ const ParticipantsSelector = ({
               backgroundColor: isSelected ? "white" : "transparent",
             }}
           >
-            <Avatar className="h-8 w-8">
-              {/* Mock avatar for now if p.avatarUrl is missing, or use letters */}
-              <AvatarFallback
-                style={{ backgroundColor: p.color + "20", color: p.color }}
-              >
-                {p.name.substring(0, 1).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <ParticipantAvatar participant={p} className="h-8 w-8" />
             {isSelected && (
               <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5 border border-white">
                 <Check className="w-2 h-2 text-white" />
