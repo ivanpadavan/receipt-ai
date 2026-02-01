@@ -234,6 +234,7 @@ export function useReceiptFormState(
     // -------------------------------------------------------------------------
     const updateReceiptRef = useRef<Subject<Receipt>>(new Subject<Receipt>());
 
+    // Setup auto-save pipeline
     useEffect(() => {
         if (type !== "editing" || !receiptId) return;
 
@@ -247,23 +248,27 @@ export function useReceiptFormState(
                     )
                 )
             )
-            .subscribe();
+            .subscribe({
+                error: (err) => console.error("Auto-save error:", err),
+            });
 
         return () => subscription.unsubscribe();
     }, [type, receiptId]);
 
-    // Подписка на изменения формы для auto-save
+    // Watch for form changes and trigger auto-save
     useEffect(() => {
         if (type !== "editing" || !receiptId) return;
 
-        const subscription = watch((data) => {
-            if (data && updateReceiptRef.current) {
-                updateReceiptRef.current.next(data as Receipt);
+        const subscription = watch(() => {
+            // Use getValues() to get complete form data instead of partial watch data
+            const completeData = getValues();
+            if (completeData && updateReceiptRef.current) {
+                updateReceiptRef.current.next(completeData);
             }
         });
 
         return () => subscription.unsubscribe();
-    }, [type, receiptId, watch]);
+    }, [type, receiptId, watch, getValues]);
 
     // -------------------------------------------------------------------------
     // 6. Helper to recalculate totals after manual updates
