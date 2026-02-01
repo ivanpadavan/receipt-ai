@@ -41,6 +41,10 @@ export type ModifierForm =
 
 export type TotalsForm = ReceiptForm['controls']['totals'];
 
+export type ClaimForm = PositionForm['controls']['claims']['controls'][0];
+
+export type ParticipantForm = ReceiptForm["controls"]["participants"]["controls"][0];
+
 export type EditableForm = PositionForm | ModifierForm | TotalsForm;
 
 export interface EditModalProps {
@@ -117,8 +121,16 @@ export const receiptFormState$ = (
       return null;
     }
 
+  const defaultClaim = (): ClaimForm => {
+    return new FormGroup({
+      value: new FormControl(NaN),
+      type: new FormControl<"quantity" | "amount">("quantity") as (FormControl<'amount'> | FormControl<'quantity'>),
+      participantIds: new FormControl<string[]>([]),
+    });
+  }
+
   // Default position form group for adding new positions
-  const defaultPosition = (): PositionForm => {
+  const defaultPosition = (numberOfClaims: number): PositionForm => {
     const result = new FormGroup({
       id: new FormControl(crypto.randomUUID()),
       name: new FormControl('', {
@@ -132,10 +144,11 @@ export const receiptFormState$ = (
       }),
       overall: new FormControl(0, {
         validators: [overallMatchesQuantityPrice],
-      })
+      }),
+      claims: new FormArray([...new Array(numberOfClaims)].map(defaultClaim)),
     }, { validators: [positionCalculator as ValidatorFn] });
 
-    if (type === 'editing') {
+    if (type !== 'validation') {
       result.controls.overall.disable();
     }
 
@@ -155,9 +168,21 @@ export const receiptFormState$ = (
     });
   };
 
+  const defaultParticipant = (): ParticipantForm => {
+    return new FormGroup({
+      id: new FormControl(crypto.randomUUID()),
+      name: new FormControl("", {
+        validators: [stringNotEmpty],
+      }),
+      color: new FormControl("", {
+        validators: [stringNotEmpty],
+      }),
+    });
+  }
+
   // Create the form with validation
   const form: ReceiptForm = new FormGroup({
-    positions: new FormArray(initialData.positions.map(defaultPosition)),
+    positions: new FormArray(initialData.positions.map(v => defaultPosition(v.claims.length))),
     totals: new FormGroup({
       total: new FormControl(initialData.totals.total, {
         validators: [totalMatchesSum]
@@ -167,7 +192,8 @@ export const receiptFormState$ = (
       })
     }),
     fees: new FormArray(initialData.fees.map(defaultModifier)),
-    discounts: new FormArray(initialData.discounts.map(defaultModifier))
+    discounts: new FormArray(initialData.discounts.map(defaultModifier)),
+    participants: new FormArray(initialData.participants.map(defaultParticipant)),
   });
 
   form.addValidators(formCalculator as ValidatorFn);
@@ -214,7 +240,7 @@ export const receiptFormState$ = (
         if (formToEdit.parent instanceof FormArray) {
           const parent = formToEdit.parent as FormArray<EditableForm>;
           const isPosition = 'overall' in formToEdit.controls;
-          const newForm = (isPosition ? defaultPosition() : defaultModifier());
+          const newForm = (isPosition ? defaultPosition(0) : defaultModifier());
           const isDiscount = !isPosition && parent.parent?.get('discounts') == parent;
           const initialValue = formToEdit.getRawValue();
           newForm.patchValue(initialValue);
@@ -253,7 +279,7 @@ export const receiptFormState$ = (
           });
         }
       } else if (formToEdit === 'addPosition') {
-        const newPosition = defaultPosition();
+        const newPosition = defaultPosition(0);
         openEditModalCommand$.next({
           formGroup: newPosition,
           getFormGroupCurrentState: () => void 0,

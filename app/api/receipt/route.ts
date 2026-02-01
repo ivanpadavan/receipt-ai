@@ -8,6 +8,7 @@ import postValidator from "@/app/api-client/receipt/post";
 import putValidator from "@/app/api-client/receipt/put";
 import { ApiValidator } from "@/app/api-client/api-validator";
 import { serverSupabase, getUser } from "@/utils/supabase/server";
+import type { User } from "@supabase/supabase-js";
 
 // Edge runtime is not compatible with Prisma, so we need to use the Node.js runtime
 export const runtime = "nodejs";
@@ -54,9 +55,10 @@ function appendIdsToArr<T>(v: T[]): (T & { id: string })[] {
 function appendIds(receipt: ReceiptNoId): Receipt {
   return {
     ...receipt,
-    positions: appendIdsToArr(receipt.positions),
+    positions: appendIdsToArr(receipt.positions).map((v) => ({ ...v, claims: [] })),
     fees: appendIdsToArr(receipt.fees),
     discounts: appendIdsToArr(receipt.discounts),
+    participants: [],
   }
 }
 
@@ -82,7 +84,7 @@ async function uploadImage(image: string, userId: string) {
   return data.fullPath;
 }
 
-async function errorWrap<T extends ApiValidator>(req: NextRequest, validator: T, cb: (v: { session: any, body: ReturnType<T['request']['parse']> }) => Promise<NextResponse<ReturnType<T['response']['parse']>>>) {
+async function errorWrap<T extends ApiValidator>(req: NextRequest, validator: T, cb: (v: { session: { user: User }, body: ReturnType<T['request']['parse']> }) => Promise<NextResponse<ReturnType<T['response']['parse']>>>) {
   try {
     const user = await getUser();
 
@@ -129,14 +131,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    appendIds(result);
-
     // Save the receipt to the database
     const receipt = await db.receipt.create({
       data: {
         userId,
         imageUrl,
-        data: result, // Store the receipt data as JSON
+        data: appendIds(result), // Store the receipt data as JSON
       },
     });
 

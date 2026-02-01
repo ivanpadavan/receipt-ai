@@ -34,9 +34,31 @@ const withId = <T extends ZodObject<ZodRawShape>>(initial: T) => z.intersection(
   z.object({ id: z.string() }),
 );
 
-export const receiptSchema = z.object({
-  positions: z.array(withId(positionSchema)),
-  fees: z.array(withId(feeModifierSchema)),
-  discounts: z.array(withId(discountModifierSchema)),
-  totals: receiptTotalsSchema.describe("Total information including discounts and tips"),
-}).describe("Structured data extracted from the receipt");
+const claimSchema = z.object({
+  participantIds: z.array(z.string()),
+  type: z.enum(["quantity", "amount"]),
+  value: z.number(),
+});
+
+const participantSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  color: z.string(), // hex color for badge
+});
+
+export const receiptSchema = z
+  .object({
+    positions: z.array(
+      z.intersection(
+        withId(positionSchema),
+        z.object({ claims: z.array(claimSchema) }),
+      ),
+    ),
+    fees: z.array(withId(feeModifierSchema)),
+    discounts: z.array(withId(discountModifierSchema)),
+    totals: receiptTotalsSchema.describe(
+      "Total information including discounts and tips",
+    ),
+    participants: z.array(participantSchema),
+  })
+  .describe("Structured data extracted from the receipt");

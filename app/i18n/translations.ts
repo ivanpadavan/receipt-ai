@@ -34,6 +34,20 @@ const ru = {
   warning: 'Предупреждение',
   error: 'Ошибка',
   close: 'Закрыть',
+
+  // Splitting mode
+  splitEvenly: 'Поделить поровну',
+  addMore: 'Добавить ещё',
+  amount: 'Сумма',
+  pcs: 'шт',
+  participants: 'Участники',
+  addParticipant: 'Добавить участника',
+  toSummary: 'К итогам',
+  share: 'Поделиться',
+  yourShare: 'Ваша доля',
+  unclaimed: 'Не распределено',
+  distribution: 'Распределено',
+  back: 'Назад',
 };
 
 export type TranslationKey = keyof typeof ru;
@@ -75,6 +89,20 @@ const en: Translations = {
   warning: 'Warning',
   error: 'Error',
   close: 'Close',
+
+  // Splitting mode
+  splitEvenly: 'Split evenly',
+  addMore: 'Add more',
+  amount: 'Amount',
+  pcs: 'pcs',
+  participants: 'Participants',
+  addParticipant: 'Add participant',
+  toSummary: 'To Summary',
+  share: 'Share',
+  yourShare: 'Your share',
+  unclaimed: 'Unclaimed',
+  distribution: 'Distribution',
+  back: 'Back',
 };
 
 // Available languages
