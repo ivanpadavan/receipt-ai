@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
-import { RowSheet } from './RowSheet';
+import { EditingSheet } from './EditingSheet';
 import { vi, describe, it, expect, afterEach } from 'vitest';
 import { FormGroup } from '@/forms/form_group';
 import { FormControl } from '@/forms/form_control';
@@ -120,7 +120,7 @@ describe('RowSheet Conflict Handling', () => {
 
         const renderResult = render(
             <>
-                <RowSheet {...props} />
+                <EditingSheet {...props} />
             </>
         );
 
@@ -159,7 +159,7 @@ describe('RowSheet Conflict Handling', () => {
             overall: new FormControl(serverValue.overall),
         });
 
-        const { rerender } = render(<RowSheet
+        const { rerender } = render(<EditingSheet
             formGroup={formGroup}
             onFinish={vi.fn()}
             header={'editPosition' as any}
@@ -167,7 +167,7 @@ describe('RowSheet Conflict Handling', () => {
             getFormGroupCurrentState={() => formGroup}
         />);
 
-        rerender(<RowSheet
+        rerender(<EditingSheet
           formGroup={formGroup}
           onFinish={vi.fn()}
           header={'editPosition' as any}
@@ -203,7 +203,7 @@ describe('RowSheet Conflict Handling', () => {
             quantity: new FormControl(serverValue.quantity)
         });
 
-        render(<RowSheet
+        render(<EditingSheet
             formGroup={formGroup}
             onFinish={vi.fn()}
             header={'editPosition' as any}
@@ -242,7 +242,7 @@ describe('RowSheet Conflict Handling', () => {
             overall: new FormControl(0)
         });
 
-        render(<RowSheet
+        render(<EditingSheet
             formGroup={formGroup}
             onFinish={vi.fn()}
             header={'editPosition' as any}
@@ -409,7 +409,7 @@ describe('RowSheet Conflict Handling', () => {
 
         // Rerender component (trigger effect)
         rerender(
-            <RowSheet
+            <EditingSheet
                 header="editPosition"
                 formGroup={localForm}
                 initialValue={initialValue}
@@ -474,7 +474,7 @@ describe('RowSheet Conflict Handling', () => {
         getFormGroupCurrentState.mockReturnValue(matchingServerControl);
 
         rerender(
-            <RowSheet
+            <EditingSheet
                 header="editPosition"
                 formGroup={localForm}
                 initialValue={initialValue}

@@ -6,7 +6,7 @@ import { useObservable } from "@/hooks/rx/useObservable";
 import React, { ChangeEvent, useEffect, useMemo, useRef } from "react";
 import { t, TranslationKey } from "@/app/i18n/translations";
 import { useReceiptState } from "@/app/receipt/components/ReceiptForm";
-import { useRowConflict } from "@/app/receipt/components/RowSheet/useRowConflict";
+import { useRowConflict } from "@/app/receipt/components/EdititngSheet/useRowConflict";
 import {
   DrawerClose,
   DrawerContent,
@@ -21,7 +21,7 @@ const isInErrorState = (c: AbstractControl, hideErrorsUntilTouched: boolean) => 
   return c.errors !== null && (hideErrorsUntilTouched ? c.touched : true);
 }
 
-export const RowSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove, header, initialValue, getFormGroupCurrentState }) => {
+export const EditingSheet: React.FC<EditModalProps> = ({ formGroup, onFinish, remove, header, initialValue, getFormGroupCurrentState }) => {
   useObservable(formGroup.valueChanges);
   const hideErrorsUntilTouched = !remove && header !== 'overall';
   const controls = useMemo(() => Object.entries(formGroup.controls).filter(([key]) => key !== 'id'), [formGroup]) as [TranslationKey, FormControl<string | number>][];

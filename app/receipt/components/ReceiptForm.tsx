@@ -20,11 +20,12 @@ import { CellGroup } from "./CellGroup";
 import styles from "./form.module.css";
 import { FormArrayTitle } from "./FormArrayTitle";
 import { Modifiers } from "./Modifiers";
-import { RowSheet } from "./RowSheet/RowSheet";
+import { EditingSheet } from "@/app/receipt/components/EdititngSheet/EditingSheet";
 import { distinctUntilChanged, Observable, startWith } from "rxjs";
 import { receiptSchema } from "@/model/receipt/schema";
 import { Drawer } from "@/components/ui/drawer";
 import { isEqual } from "lodash-es";
+import { SplittingSheet } from "@/app/receipt/components/SplittingSheet/SplittingSheet";
 
 interface EditableReceiptFormProps {
   initialData: Receipt;
@@ -109,8 +110,11 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
 
   return (
     <ReceiptFormContext.Provider value={formState}>
-      <Drawer onCloseAnimationEnd={() => setActiveModalProps(null)} open={!!activeModalProps}>
-        {activeModalProps && <RowSheet {...activeModalProps} />}
+      <Drawer
+        onCloseAnimationEnd={() => setActiveModalProps(null)}
+        open={!!activeModalProps}
+      >
+        {activeModalProps && (formState.scenario.type === "splitting" ? <SplittingSheet {...activeModalProps} /> : <EditingSheet {...activeModalProps} />)}
       </Drawer>
       <div className="m-3 rounded bg-white shadow-md text-black max-w-fit w-full mx-auto overflow-auto font-mono">
         <table className={styles.table}>
@@ -119,7 +123,11 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
               <th>
                 <FormArrayTitle
                   title={t("name")}
-                  onAddClick={formState.scenario.canEdit.positionForm === true ? () => openEditModal("addPosition") : undefined}
+                  onAddClick={
+                    formState.scenario.canEdit.positionForm === true
+                      ? () => openEditModal("addPosition")
+                      : undefined
+                  }
                 />
               </th>
               <th className="text-center">{t("price")}</th>
@@ -129,7 +137,11 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
           </thead>
           <tbody>
             {form.controls.positions.controls.map((position, index) => (
-              <CellGroup key={"positions" + index} record={position} canEdit={canEdit.positionForm}>
+              <CellGroup
+                key={"positions" + index}
+                record={position}
+                canEdit={canEdit.positionForm}
+              >
                 {({ className, ...props }) => (
                   <tr className={className + " border-b border-gray-200"}>
                     <Cell {...props} formControl={position.controls.name} />
@@ -143,8 +155,12 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
           </tbody>
           <tfoot>
             <tr
-              onClick={() => canEdit.totalsForm && openEditModal(form.controls.totals)}
-              className={canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""}
+              onClick={() =>
+                canEdit.totalsForm && openEditModal(form.controls.totals)
+              }
+              className={
+                canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""
+              }
             >
               <td colSpan={3}>{t("total")}</td>
               <Cell
@@ -152,17 +168,15 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
                 className="font-bold"
               />
             </tr>
-            <Modifiers
-              type={"discounts"}
-              items={form.controls.discounts}
-            />
-            <Modifiers
-              type={"fees"}
-              items={form.controls.fees}
-            />
+            <Modifiers type={"discounts"} items={form.controls.discounts} />
+            <Modifiers type={"fees"} items={form.controls.fees} />
             <tr
-              onClick={() => canEdit.totalsForm && openEditModal(form.controls.totals)}
-              className={canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""}
+              onClick={() =>
+                canEdit.totalsForm && openEditModal(form.controls.totals)
+              }
+              className={
+                canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""
+              }
             >
               <td colSpan={3}>{t("grandTotal")}</td>
               <Cell
@@ -173,11 +187,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
           </tfoot>
         </table>
         <div className="flex justify-end mt-4 mb-2 mr-4">
-          <Button
-            onClick={proceed}
-            disabled={!canProceed}
-            className=""
-          >
+          <Button onClick={proceed} disabled={!canProceed} className="">
             {t("proceed")}
           </Button>
         </div>
