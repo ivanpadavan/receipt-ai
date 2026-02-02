@@ -1,7 +1,7 @@
 "use client";
 
 import { EditModalProps } from "@/app/receipt/[id]/useReceiptFormState";
-import React, { useState, useCallback } from "react";
+import React, { useState, useMemo } from "react";
 import { t } from "@/app/i18n/translations";
 import {
   DrawerClose,
@@ -59,50 +59,112 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
   onSave,
 }) => {
   const position = initialValue as ReceiptPosition;
+  const { scenario: { form } } = useReceiptState();
+  const participants = useWatch({ control: form.control, name: "participants" });
+  const { user } = useUser();
 
   const [localPosition, setLocalPosition] = useState<ReceiptPosition>(() =>
     structuredClone(position)
   );
-
-  const { scenario: { form } } = useReceiptState();
-  const participants = useWatch({ control: form.control, name: "participants" });
-
-  const claims = localPosition.claims;
-
-  const totalClaimed = claims.reduce((acc, claim) => {
-    if (!claim.participantIds || claim.participantIds.length === 0) return acc;
-    if (claim.type === "quantity") return acc + claim.value * localPosition.price;
-    return acc + claim.value;
-  }, 0);
-
-  const { user } = useUser();
 
   // Find current user's participant ID
   const currentUserParticipantId = participants?.find(
     (p) => p.name === user?.email?.split("@")[0] || p.id === user?.id
   )?.id;
 
-  const [isAdding, setIsAdding] = useState(true);  // Start in adding mode
+  // Initialize draft claim (null initially or 'new' depending on UX, user wants it open on entry)
+  // "Надо чтоб она была при входе." -> default to 'new'
+  const [draftClaim, setDraftClaim] = useState<{
+    index: number | "new";
+    claim: Claim;
+  } | null>(() => ({
+    index: "new",
+    claim: {
+      ...createDefaultClaim(),
+      participantIds: currentUserParticipantId ? [currentUserParticipantId] : [],
+    },
+  }));
 
-  const handleSaveClaim = (claim: Claim) => {
-    setLocalPosition((prev) => ({
-      ...prev,
-      claims: [...prev.claims, claim],
-    }));
-    setIsAdding(false);
+  // Create an effective position that includes the draft changes for live preview
+  const effectivePosition = useMemo(() => {
+    // Clone local position deeply to avoid mutation
+    const pos = JSON.parse(JSON.stringify(localPosition)) as ReceiptPosition;
+
+    if (draftClaim) {
+      if (draftClaim.index === "new") {
+        // Only add if it has some value, otherwise bar might look weird or it's just 0 size
+        // But to show "potential" distribution we should add it.
+        pos.claims.push(draftClaim.claim);
+      } else {
+        // Update existing
+        if (pos.claims[draftClaim.index as number]) {
+          pos.claims[draftClaim.index as number] = draftClaim.claim;
+        }
+      }
+    }
+    return pos;
+  }, [localPosition, draftClaim]);
+
+  // Calculate total claimed based on effective position (live updates)
+  const totalClaimed = effectivePosition.claims.reduce((acc, claim) => {
+    if (!claim.participantIds || claim.participantIds.length === 0) return acc;
+    if (claim.type === "quantity") return acc + claim.value * effectivePosition.price;
+    return acc + claim.value;
+  }, 0);
+
+  const startAdding = () => {
+    setDraftClaim({
+      index: "new",
+      claim: {
+        ...createDefaultClaim(),
+        participantIds: currentUserParticipantId ? [currentUserParticipantId] : [],
+      }
+    });
   };
 
+  const handleSaveDraft = () => {
+    if (!draftClaim) return;
+
+    if (draftClaim.index === "new") {
+      if (draftClaim.claim.value > 0) {
+        setLocalPosition(prev => ({ ...prev, claims: [...prev.claims, draftClaim.claim] }));
+      }
+    } else {
+      // Update existing
+      const idx = draftClaim.index as number;
+      setLocalPosition(prev => ({
+        ...prev,
+        claims: prev.claims.map((c, i) => i === idx ? draftClaim.claim : c)
+      }));
+    }
+    // Close draft mode
+    setDraftClaim(null);
+  };
+
+  const handleCancelDraft = () => {
+    setDraftClaim(null);
+  };
+
+  const handleDeleteClaim = (index: number) => {
+    setLocalPosition((prev) => ({
+      ...prev,
+      claims: prev.claims.filter((_, i) => i !== index),
+    }));
+    // If we were editing this one, close draft
+    if (draftClaim && draftClaim.index === index) {
+      setDraftClaim(null);
+    }
+  };
+
+  const handleEditClick = (index: number, claim: Claim) => {
+    setDraftClaim({ index, claim });
+  };
+
+  // Helper for quick updates from view mode (if we allow changing participants directly)
   const handleUpdateClaim = (index: number, updatedClaim: Claim) => {
     setLocalPosition((prev) => ({
       ...prev,
       claims: prev.claims.map((c, i) => (i === index ? updatedClaim : c)),
-    }));
-  };
-
-  const handleRemoveClaim = (index: number) => {
-    setLocalPosition((prev) => ({
-      ...prev,
-      claims: prev.claims.filter((_, i) => i !== index),
     }));
   };
 
@@ -122,13 +184,13 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         <span className="font-semibold text-foreground">{localPosition.overall} ₽</span>
       </div>
 
-      {/* Add Button on top */}
-      {!isAdding && (
+      {/* Add Button on top (visible only if NOT adding new) */}
+      {(!draftClaim || draftClaim.index !== "new") && (
         <div className="px-4 pb-3">
           <Button
             variant="outline"
             className="w-full border-dashed"
-            onClick={() => setIsAdding(true)}
+            onClick={startAdding}
           >
             + {t("addShare")}
           </Button>
@@ -137,30 +199,52 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
       {/* Scrollable content area */}
       <div className="flex-1 overflow-y-auto px-4 space-y-3">
-        {/* Add Form (when adding) */}
-        {isAdding && (
-          <AddClaimForm
-            onSave={handleSaveClaim}
-            onCancel={() => setIsAdding(false)}
+        {/* Add Form (only if adding new) */}
+        {draftClaim && draftClaim.index === "new" && (
+          <ClaimEditRow
+            claim={draftClaim.claim}
             price={localPosition.price}
             participants={participants}
-            defaultParticipantId={currentUserParticipantId}
+            onChange={(c) => setDraftClaim({ ...draftClaim, claim: c })}
+            onSave={handleSaveDraft}
+            onCancel={handleCancelDraft}
+            isNew={true}
           />
         )}
 
         {/* Claims List */}
         <Accordion type="multiple" className="space-y-3">
-          {claims.map((claim, index) => (
-            <ClaimRow
-              key={index}
-              index={index}
-              claim={claim}
-              price={localPosition.price}
-              participants={participants}
-              onUpdate={(updated) => handleUpdateClaim(index, updated)}
-              onRemove={() => handleRemoveClaim(index)}
-            />
-          ))}
+          {localPosition.claims.map((claim, index) => {
+            // If this claim is being edited, show EditRow
+            if (draftClaim && draftClaim.index === index) {
+              return (
+                <div key={index} className="py-1">
+                  <ClaimEditRow
+                    claim={draftClaim.claim}
+                    price={localPosition.price}
+                    participants={participants}
+                    onChange={(c) => setDraftClaim({ ...draftClaim, claim: c })}
+                    onSave={handleSaveDraft}
+                    onCancel={handleCancelDraft}
+                    isNew={false}
+                  />
+                </div>
+              );
+            }
+            // Otherwise show ViewRow
+            return (
+              <ClaimRow
+                key={index}
+                index={index}
+                claim={claim}
+                price={localPosition.price}
+                participants={participants}
+                onUpdate={(updated) => handleUpdateClaim(index, updated)}
+                onEdit={() => handleEditClick(index, claim)}
+                onRemove={() => handleDeleteClaim(index)}
+              />
+            );
+          })}
         </Accordion>
       </div>
 
@@ -173,7 +257,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
               {totalClaimed.toFixed(0)} / {localPosition.overall} ₽
             </span>
           </div>
-          <DistributionBar data={localPosition} className="h-3 rounded-full" />
+          <DistributionBar data={effectivePosition} className="h-3 rounded-full" />
         </div>
 
         <DrawerFooter className="pt-2">
@@ -191,6 +275,7 @@ interface ClaimRowProps {
   claim: Claim;
   price: number;
   participants: { id: string; name: string; color: string }[];
+  onEdit: () => void;
   onUpdate: (claim: Claim) => void;
   onRemove: () => void;
 }
@@ -200,32 +285,14 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
   claim,
   price,
   participants,
+  onEdit,
   onUpdate,
   onRemove,
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
   const amount = claim.type === "quantity" ? claim.value * price : claim.value;
-
-  // Get selected participants for stacked avatars
   const selectedParticipants = participants.filter((p) =>
     claim.participantIds.includes(p.id)
   );
-
-  if (isEditing) {
-    return (
-      <div className="border rounded-md p-3 space-y-3">
-        <EditClaimContent
-          claim={claim}
-          price={price}
-          participants={participants}
-          onSave={(updated) => {
-            onUpdate(updated);
-            setIsEditing(false);
-          }}
-        />
-      </div>
-    );
-  }
 
   return (
     <AccordionItem
@@ -250,7 +317,7 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
               )}
             </div>
 
-            {/* Stacked avatars with colored ring - inside trigger (right aligned) */}
+            {/* Stacked avatars */}
             <div className="flex -space-x-2 mr-2">
               {selectedParticipants.length > 0 ? (
                 selectedParticipants.slice(0, 4).map((p, idx) => (
@@ -285,7 +352,7 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setIsEditing(true)}>
+              <DropdownMenuItem onClick={onEdit}>
                 <Pencil className="h-4 w-4 mr-2" />
                 {t("edit")}
               </DropdownMenuItem>
@@ -316,86 +383,68 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
   );
 };
 
-interface AddClaimFormProps {
-  onSave: (claim: Claim) => void;
-  onCancel: () => void;
-  price: number;
-  participants: { id: string; name: string; color: string }[];
-  defaultParticipantId?: string;
-}
-
-const AddClaimForm: React.FC<AddClaimFormProps> = ({
-  onSave,
-  onCancel,
-  price,
-  participants,
-  defaultParticipantId,
-}) => {
-  const [claim, setClaim] = useState<Claim>(() => ({
-    ...createDefaultClaim(),
-    participantIds: defaultParticipantId ? [defaultParticipantId] : [],
-  }));
-  const isValid = claim.value > 0;
-
-  return (
-    <div className="border rounded-md p-3 space-y-3">
-      <EditClaimContent
-        claim={claim}
-        price={price}
-        participants={participants}
-        onSave={onSave}
-        onChange={setClaim}
-      />
-      <div className="flex justify-end gap-2 pt-2 border-t">
-        <Button variant="ghost" size="sm" onClick={onCancel}>
-          {t("cancel")}
-        </Button>
-        <Button size="sm" onClick={() => onSave(claim)} disabled={!isValid}>
-          {t("save")}
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-interface EditClaimContentProps {
+interface ClaimEditRowProps {
   claim: Claim;
   price: number;
   participants: { id: string; name: string; color: string }[];
-  onSave: (claim: Claim) => void;
-  onChange?: (claim: Claim) => void;
+  onChange: (claim: Claim) => void;
+  onSave: () => void;
+  onCancel: () => void;
+  isNew: boolean;
 }
 
-const EditClaimContent: React.FC<EditClaimContentProps> = ({
+const ClaimEditRow: React.FC<ClaimEditRowProps> = ({
   claim,
   price,
-  onSave,
+  participants,
   onChange,
+  onSave,
+  onCancel,
+  isNew
 }) => {
-  const [localClaim, setLocalClaim] = useState<Claim>(claim);
-
-  const handleChange = useCallback(
-    (updates: Partial<Claim>) => {
-      const updated = { ...localClaim, ...updates };
-      setLocalClaim(updated);
-      onChange?.(updated);
-    },
-    [localClaim, onChange]
-  );
-
-  const displayAmount =
-    localClaim.type === "quantity"
-      ? localClaim.value * price
-      : localClaim.value;
-
   return (
-    <div className="space-y-2">
-      <div className="flex gap-2 items-center">
-        <Select
-          value={localClaim.type}
-          onValueChange={(v: "quantity" | "amount") => handleChange({ type: v })}
+    <div className="border rounded-md overflow-hidden bg-background">
+      <div className="flex items-center gap-2 p-3 border-b bg-muted/20">
+        {/* Actions (Left) */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+          onClick={onCancel}
         >
-          <SelectTrigger className="w-[110px]">
+          <Trash2 className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+          onClick={onSave}
+          disabled={claim.value <= 0}
+        >
+          <Check className="h-5 w-5" />
+        </Button>
+
+        {/* Input Value */}
+        <Input
+          type="number"
+          className="flex-1 h-9 bg-background"
+          value={claim.value || ""}
+          onChange={(e) => onChange({ ...claim, value: parseFloat(e.target.value) || 0 })}
+          placeholder="0"
+          autoFocus
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && claim.value > 0) {
+              onSave();
+            }
+          }}
+        />
+
+        {/* Type Select */}
+        <Select
+          value={claim.type}
+          onValueChange={(v: "quantity" | "amount") => onChange({ ...claim, type: v })}
+        >
+          <SelectTrigger className="w-[100px] h-9 bg-background">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -403,35 +452,19 @@ const EditClaimContent: React.FC<EditClaimContentProps> = ({
             <SelectItem value="amount">{t("amount")}</SelectItem>
           </SelectContent>
         </Select>
+      </div>
 
-        <Input
-          type="number"
-          className="flex-1"
-          value={localClaim.value || ""}
-          onChange={(e) => handleChange({ value: parseFloat(e.target.value) || 0 })}
-          placeholder="0"
-          autoFocus
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && localClaim.value) {
-              onSave(localClaim);
-            }
-          }}
+      {/* Participants Selector */}
+      <div className="px-3 py-2 bg-background">
+        <ParticipantsSelector
+          selectedIds={claim.participantIds}
+          participants={participants}
+          onChange={(ids) => onChange({ ...claim, participantIds: ids })}
         />
-
-        <Button
-          size="icon"
-          variant="ghost"
-          className="shrink-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-          onClick={() => onSave(localClaim)}
-          disabled={!localClaim.value}
-        >
-          <Check className="w-5 h-5" />
-        </Button>
       </div>
 
-      <div className="text-sm text-right text-muted-foreground">
-        = {displayAmount.toFixed(0)} ₽
-      </div>
+      {/* Live Distribution Bar */}
+      <DistributionBar data={claim} className="h-2" />
     </div>
   );
 };
