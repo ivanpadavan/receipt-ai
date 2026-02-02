@@ -195,14 +195,10 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
       {/* Scrollable content area */}
       <div className="flex-1 overflow-y-auto px-4 space-y-3">
-        <Accordion
-          type="multiple"
-          className="space-y-3"
-        >
+
           {/* Add View (only if adding new) */}
           {draftClaim && draftClaim.index === "new" && (
             <ClaimRow
-              value="new-claim"
               claim={draftClaim.claim}
               price={localPosition.price}
               participants={participants}
@@ -222,13 +218,12 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
             return (
               <ClaimRow
                 key={index}
-                value={`claim-${index}`}
                 claim={currentClaim}
                 price={localPosition.price}
                 participants={participants}
                 isEditing={isEditing}
                 onUpdate={(c) => isEditing
-                  ? setDraftClaim({ ...draftClaim!, claim: c }) // Update draft
+                  ? setDraftClaim({ ...draftClaim, claim: c }) // Update draft
                   : handleUpdateClaim(index, c)                 // Update live
                 }
                 onEditStart={() => handleEditClick(index, claim)}
@@ -238,7 +233,6 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
               />
             );
           })}
-        </Accordion>
       </div>
 
       {/* Footer - Distribution + Done button */}
@@ -264,7 +258,6 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 };
 
 interface ClaimRowProps {
-  value: string;
   claim: Claim;
   price: number;
   participants: { id: string; name: string; color: string }[];
@@ -278,7 +271,6 @@ interface ClaimRowProps {
 }
 
 const ClaimRow: React.FC<ClaimRowProps> = ({
-  value,
   claim,
   price,
   participants,
@@ -295,8 +287,9 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
   );
 
   return (
+    <Accordion type={'single'}>
     <AccordionItem
-      value={value}
+      value={'1'}
       className="border rounded-md overflow-hidden data-[state=open]:bg-muted/50"
     >
       <AccordionHeader className="flex items-stretch hover:bg-muted/30 transition-colors bg-background">
@@ -436,6 +429,7 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
 
       <DistributionBar data={claim} className="h-2" />
     </AccordionItem>
+    </Accordion>
   );
 };
 
