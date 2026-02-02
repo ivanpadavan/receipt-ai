@@ -64,7 +64,6 @@ const getEditableFields = (
 };
 
 export const EditingSheet: React.FC<EditModalProps> = ({
-  fieldType,
   initialValue,
   header,
   onSave,
