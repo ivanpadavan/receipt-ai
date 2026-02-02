@@ -123,20 +123,22 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       },
       wasOpen: true
     });
+    // Ensure new item is open for adding participants
+    setOpenItems(prev => [...prev, "new-claim"]);
   };
 
   const restoreAccordionState = (draft: NonNullable<typeof draftClaim>) => {
     // If we were editing an existing item, restore its state
     if (draft.index !== "new") {
       const id = `claim-${draft.index}`;
-      // If the user explicitly expanded/collapsed during edit, we might want to respect that?
-      // But requirement says "if it was closed at that moment". 
-      // Current logic: restore to what it was BEFORE edit.
       if (draft.wasOpen) {
         setOpenItems(prev => Array.from(new Set([...prev, id])));
       } else {
         setOpenItems(prev => prev.filter(i => i !== id));
       }
+    } else {
+      // If it was 'new', we remove the temporary 'new-claim' id
+      setOpenItems(prev => prev.filter(i => i !== "new-claim"));
     }
   };
 
@@ -147,6 +149,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       if (draftClaim.claim.value > 0) {
         setLocalPosition(prev => ({ ...prev, claims: [...prev.claims, draftClaim.claim] }));
       }
+      // Remove "new-claim" from openItems
+      setOpenItems(prev => prev.filter(i => i !== "new-claim"));
     } else {
       // Update existing
       const idx = draftClaim.index as number;
@@ -222,55 +226,47 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
       {/* Scrollable content area */}
       <div className="flex-1 overflow-y-auto px-4 space-y-3">
-        {/* Add Form (only if adding new) */}
-        {draftClaim && draftClaim.index === "new" && (
-          <ClaimEditRow
-            claim={draftClaim.claim}
-            price={localPosition.price}
-            participants={participants}
-            onChange={(c) => setDraftClaim({ ...draftClaim, claim: c })}
-            onSave={handleSaveDraft}
-            onCancel={handleCancelDraft}
-            isNew={true}
-            defaultOpen={true}
-          />
-        )}
-
-        {/* Claims List */}
         <Accordion
           type="multiple"
           className="space-y-3"
           value={openItems}
           onValueChange={setOpenItems}
         >
+          {/* Add View (only if adding new) */}
+          {draftClaim && draftClaim.index === "new" && (
+            <ClaimRow
+              value="new-claim"
+              claim={draftClaim.claim}
+              price={localPosition.price}
+              participants={participants}
+              isEditing={true}
+              onUpdate={(c) => setDraftClaim({ ...draftClaim, claim: c })}
+              onEditSave={handleSaveDraft}
+              onEditCancel={handleCancelDraft}
+            />
+          )}
+
+          {/* Claims List */}
           {localPosition.claims.map((claim, index) => {
-            // If this claim is being edited, show EditRow
-            if (draftClaim && draftClaim.index === index) {
-              return (
-                <div key={index} className="py-1">
-                  <ClaimEditRow
-                    claim={draftClaim.claim}
-                    price={localPosition.price}
-                    participants={participants}
-                    onChange={(c) => setDraftClaim({ ...draftClaim, claim: c })}
-                    onSave={handleSaveDraft}
-                    onCancel={handleCancelDraft}
-                    isNew={false}
-                    defaultOpen={!!draftClaim.wasOpen}
-                  />
-                </div>
-              );
-            }
-            // Otherwise show ViewRow
+            const isEditing = draftClaim?.index === index;
+            // Use draft claim if editing
+            const currentClaim = isEditing && draftClaim ? draftClaim.claim : claim;
+
             return (
               <ClaimRow
                 key={index}
-                index={index}
-                claim={claim}
+                value={`claim-${index}`}
+                claim={currentClaim}
                 price={localPosition.price}
                 participants={participants}
-                onUpdate={(updated) => handleUpdateClaim(index, updated)}
-                onEdit={() => handleEditClick(index, claim)}
+                isEditing={isEditing}
+                onUpdate={(c) => isEditing
+                  ? setDraftClaim({ ...draftClaim!, claim: c }) // Update draft
+                  : handleUpdateClaim(index, c)                 // Update live
+                }
+                onEditStart={() => handleEditClick(index, claim)}
+                onEditSave={handleSaveDraft}
+                onEditCancel={handleCancelDraft}
                 onRemove={() => handleDeleteClaim(index)}
               />
             );
@@ -301,22 +297,29 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 };
 
 interface ClaimRowProps {
-  index: number;
+  value: string;
   claim: Claim;
   price: number;
   participants: { id: string; name: string; color: string }[];
-  onEdit: () => void;
+  isEditing: boolean;
   onUpdate: (claim: Claim) => void;
-  onRemove: () => void;
+  // Edit actions
+  onEditStart?: () => void;
+  onEditSave?: () => void;
+  onEditCancel?: () => void;
+  onRemove?: () => void;
 }
 
 const ClaimRow: React.FC<ClaimRowProps> = ({
-  index,
+  value,
   claim,
   price,
   participants,
-  onEdit,
+  isEditing,
   onUpdate,
+  onEditStart,
+  onEditSave,
+  onEditCancel,
   onRemove,
 }) => {
   const amount = claim.type === "quantity" ? claim.value * price : claim.value;
@@ -326,76 +329,132 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
 
   return (
     <AccordionItem
-      value={`claim-${index}`}
+      value={value}
       className="border rounded-md overflow-hidden data-[state=open]:bg-muted/50"
     >
-      <AccordionHeader className="flex items-stretch hover:bg-muted/30 transition-colors">
-        <AccordionTrigger
-          className="flex-1 px-3 py-3 hover:no-underline"
-        >
-          <div className="flex justify-between items-center w-full">
-            {/* Claim info - left side */}
-            <div className="flex items-baseline gap-2 text-foreground">
-              <span className="font-semibold">{claim.value}</span>
-              <span className="text-sm text-muted-foreground">
-                {claim.type === "amount" ? "₽" : t("pcs")}
-              </span>
-              {claim.type !== "amount" && (
-                <span className="text-sm text-muted-foreground">
-                  = {amount.toFixed(0)} ₽
-                </span>
-              )}
-            </div>
+      <AccordionHeader className="flex items-stretch hover:bg-muted/30 transition-colors bg-background">
+        {isEditing ? (
+          // EDIT MODE HEADER (No Trigger)
+          <div className="flex items-center gap-2 p-3 w-full border-b bg-muted/20">
+            {/* Actions (Left) */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={() => onEditCancel?.()}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+              onClick={() => onEditSave?.()}
+              disabled={claim.value <= 0}
+            >
+              <Check className="h-5 w-5" />
+            </Button>
 
-            {/* Stacked avatars */}
-            <div className="flex -space-x-2 mr-2">
-              {selectedParticipants.length > 0 ? (
-                selectedParticipants.slice(0, 4).map((p, idx) => (
-                  <div
-                    key={p.id}
-                    className="relative"
-                    style={{ zIndex: selectedParticipants.length - idx }}
-                  >
-                    <ParticipantAvatar participant={p} className="h-7 w-7" />
-                  </div>
-                ))
-              ) : (
-                <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
-                  ?
-                </div>
-              )}
-              {selectedParticipants.length > 4 && (
-                <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs font-medium ring-2 ring-muted-foreground/30">
-                  +{selectedParticipants.length - 4}
-                </div>
-              )}
-            </div>
+            {/* Input Value */}
+            <Input
+              type="number"
+              className="flex-1 h-9 bg-background"
+              value={claim.value || ""}
+              onChange={(e) => onUpdate({ ...claim, value: parseFloat(e.target.value) || 0 })}
+              placeholder="0"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && claim.value > 0) {
+                  onEditSave?.();
+                }
+              }}
+            />
+
+            {/* Type Select */}
+            <Select
+              value={claim.type}
+              onValueChange={(v: "quantity" | "amount") => onUpdate({ ...claim, type: v })}
+            >
+              <SelectTrigger className="w-[100px] h-9 bg-background">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="quantity">{t("quantity")}</SelectItem>
+                <SelectItem value="amount">{t("amount")}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </AccordionTrigger>
+        ) : (
+          // VIEW MODE HEADER (With Trigger)
+          <>
+            <AccordionTrigger
+              className="flex-1 px-3 py-3 hover:no-underline"
+            >
+              <div className="flex justify-between items-center w-full">
+                {/* Claim info - left side */}
+                <div className="flex items-baseline gap-2 text-foreground">
+                  <span className="font-semibold">{claim.value}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {claim.type === "amount" ? "₽" : t("pcs")}
+                  </span>
+                  {claim.type !== "amount" && (
+                    <span className="text-sm text-muted-foreground">
+                      = {amount.toFixed(0)} ₽
+                    </span>
+                  )}
+                </div>
 
-        {/* Actions - outside trigger */}
-        <div className="flex items-center px-1">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onEdit}>
-                <Pencil className="h-4 w-4 mr-2" />
-                {t("edit")}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={onRemove}
-                className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                {t("delete")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+                {/* Stacked avatars */}
+                <div className="flex -space-x-2 mr-2">
+                  {selectedParticipants.length > 0 ? (
+                    selectedParticipants.slice(0, 4).map((p, idx) => (
+                      <div
+                        key={p.id}
+                        className="relative"
+                        style={{ zIndex: selectedParticipants.length - idx }}
+                      >
+                        <ParticipantAvatar participant={p} className="h-7 w-7" />
+                      </div>
+                    ))
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                      ?
+                    </div>
+                  )}
+                  {selectedParticipants.length > 4 && (
+                    <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs font-medium ring-2 ring-muted-foreground/30">
+                      +{selectedParticipants.length - 4}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </AccordionTrigger>
+
+            {/* Actions - outside trigger */}
+            <div className="flex items-center px-1">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={onEditStart}>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    {t("edit")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={onRemove}
+                    className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {t("delete")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </>
+        )}
       </AccordionHeader>
 
       <AccordionContent className="p-0">
@@ -410,108 +469,6 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
 
       <DistributionBar data={claim} className="h-2" />
     </AccordionItem>
-  );
-};
-
-interface ClaimEditRowProps {
-  claim: Claim;
-  price: number;
-  participants: { id: string; name: string; color: string }[];
-  onChange: (claim: Claim) => void;
-  onSave: () => void;
-  onCancel: () => void;
-  isNew: boolean;
-  defaultOpen: boolean;
-}
-
-const ClaimEditRow: React.FC<ClaimEditRowProps> = ({
-  claim,
-  participants,
-  onChange,
-  onSave,
-  onCancel,
-  defaultOpen
-}) => {
-  // Local state to toggle visibility (like accordion)
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-
-  return (
-    <div className="border rounded-md overflow-hidden bg-background">
-      <div className="flex items-center gap-2 p-3 border-b bg-muted/20">
-        {/* Actions (Left) */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-          onClick={onCancel}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
-          onClick={onSave}
-          disabled={claim.value <= 0}
-        >
-          <Check className="h-5 w-5" />
-        </Button>
-
-        {/* Input Value */}
-        <Input
-          type="number"
-          className="flex-1 h-9 bg-background"
-          value={claim.value || ""}
-          onChange={(e) => onChange({ ...claim, value: parseFloat(e.target.value) || 0 })}
-          placeholder="0"
-          autoFocus
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && claim.value > 0) {
-              onSave();
-            }
-          }}
-        />
-
-        {/* Type Select */}
-        <Select
-          value={claim.type}
-          onValueChange={(v: "quantity" | "amount") => onChange({ ...claim, type: v })}
-        >
-          <SelectTrigger className="w-[100px] h-9 bg-background">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="quantity">{t("quantity")}</SelectItem>
-            <SelectItem value="amount">{t("amount")}</SelectItem>
-          </SelectContent>
-        </Select>
-
-        {/* Toggle Visibility (Chevron) - Right side */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 ml-1"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <ChevronDown className={cn("h-4 w-4 transition-transform", !isOpen && "-rotate-90")} />
-        </Button>
-      </div>
-
-      {/* Participants Selector (Collapsible) */}
-      {isOpen && (
-        <div className="px-3 py-2 bg-background animate-in slide-in-from-top-1 duration-200">
-          <ParticipantsSelector
-            selectedIds={claim.participantIds}
-            participants={participants}
-            onChange={(ids) => onChange({ ...claim, participantIds: ids })}
-          />
-        </div>
-      )}
-
-      {/* Live Distribution Bar (Always visible in edit mode? Or only when open? 
-               Usually better always visible to see effect of value change) */}
-      <DistributionBar data={claim} className="h-2" />
-    </div>
   );
 };
 
