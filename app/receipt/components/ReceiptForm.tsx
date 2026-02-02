@@ -21,11 +21,12 @@ import styles from "./form.module.css";
 import { FormArrayTitle } from "./FormArrayTitle";
 import { Modifiers } from "./Modifiers";
 import { EditingSheet } from "@/app/receipt/components/EdititngSheet/EditingSheet";
+import { SplittingSheet } from "@/app/receipt/components/SplittingSheet/SplittingSheet";
+import { ParticipantsSheet, ParticipantsBadge } from "@/app/receipt/components/ParticipantsSheet";
 import { distinctUntilChanged, Observable, startWith } from "rxjs";
 import { receiptSchema } from "@/model/receipt/schema";
 import { Drawer } from "@/components/ui/drawer";
 import { isEqual } from "lodash-es";
-import { SplittingSheet } from "@/app/receipt/components/SplittingSheet/SplittingSheet";
 import { FormProvider, useFieldArray } from "react-hook-form";
 
 interface EditableReceiptFormProps {
@@ -92,6 +93,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
 
   const [activeModalProps, setActiveModalProps] =
     React.useState<null | EditModalProps>(null);
+  const [participantsModalOpen, setParticipantsModalOpen] = React.useState(false);
 
   useEffect(() => {
     const sub = formState.openEditModalCommand$.subscribe((props) =>
@@ -118,6 +120,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
   return (
     <ReceiptFormContext.Provider value={formState}>
       <FormProvider {...form}>
+        {/* Edit Modal Drawer */}
         <Drawer
           onCloseAnimationEnd={() => setActiveModalProps(null)}
           open={!!activeModalProps}
@@ -129,6 +132,14 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
               <EditingSheet {...activeModalProps} />
             )
           )}
+        </Drawer>
+
+        {/* Participants Modal Drawer */}
+        <Drawer
+          open={participantsModalOpen}
+          onClose={() => setParticipantsModalOpen(false)}
+        >
+          <ParticipantsSheet onClose={() => setParticipantsModalOpen(false)} />
         </Drawer>
         <div className="m-3 rounded bg-white shadow-md text-black max-w-fit w-full mx-auto overflow-auto font-mono">
           <table className={styles.table}>
@@ -192,8 +203,11 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
               </tr>
             </tfoot>
           </table>
-          <div className="flex justify-end mt-4 mb-2 mr-4">
-            <Button onClick={proceed} disabled={!canProceed} className="">
+          <div className="flex justify-end items-center gap-3 mt-4 mb-2 mr-4 ml-4">
+            {scenarioType === "splitting" && (
+              <ParticipantsBadge onClick={() => setParticipantsModalOpen(true)} />
+            )}
+            <Button onClick={proceed} disabled={!canProceed}>
               {t("proceed")}
             </Button>
           </div>
