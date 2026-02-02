@@ -76,7 +76,7 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
         variant="ghost"
         size="icon"
         className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-        onClick={() => onCancel?.()}
+        onClick={onCancel}
       >
         <Trash2 className="h-4 w-4" />
       </Button>
@@ -84,7 +84,7 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
         variant="ghost"
         size="icon"
         className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
-        onClick={() => onSave?.()}
+        onClick={onSave}
         disabled={claim.value <= 0}
       >
         <Check className="h-5 w-5" />
@@ -102,7 +102,7 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
         autoFocus
         onKeyDown={(e) => {
           if (e.key === "Enter" && claim.value > 0) {
-            onSave?.();
+            onSave();
           }
         }}
       />
@@ -130,8 +130,8 @@ interface ViewingHeaderProps {
   claim: Claim;
   price: number;
   participants: { id: string; name: string; color: string }[];
-  onEditStart?: () => void;
-  onRemove?: () => void;
+  onEditStart: () => void;
+  onRemove: () => void;
 }
 
 const ViewingHeader: React.FC<ViewingHeaderProps> = ({
@@ -264,27 +264,16 @@ const ParticipantsSelector: React.FC<ParticipantsSelectorProps> = ({
 
 interface ClaimRowProps {
   claim: Claim;
-  price: number;
   participants: { id: string; name: string; color: string }[];
-  isEditing: boolean;
   onUpdate: (claim: Claim) => void;
-  // Edit actions
-  onEditStart?: () => void;
-  onEditSave?: () => void;
-  onEditCancel?: () => void;
-  onRemove?: () => void;
+  header: React.ReactNode;
 }
 
 const ClaimRow: React.FC<ClaimRowProps> = ({
   claim,
-  price,
   participants,
-  isEditing,
   onUpdate,
-  onEditStart,
-  onEditSave,
-  onEditCancel,
-  onRemove,
+  header,
 }) => {
   return (
     <Accordion type="single" collapsible>
@@ -293,22 +282,7 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
         className="border rounded-md overflow-hidden data-[state=open]:bg-muted/50"
       >
         <AccordionHeader className="flex items-stretch hover:bg-muted/30 transition-colors bg-background">
-          {isEditing ? (
-            <EditingHeader
-              claim={claim}
-              onUpdate={onUpdate}
-              onSave={onEditSave}
-              onCancel={onEditCancel}
-            />
-          ) : (
-            <ViewingHeader
-              claim={claim}
-              price={price}
-              participants={participants}
-              onEditStart={onEditStart}
-              onRemove={onRemove}
-            />
-          )}
+          {header}
         </AccordionHeader>
 
         <AccordionContent className="p-0">
@@ -342,7 +316,6 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
     structuredClone(position)
   );
 
-  // Find current user's participant ID
   const currentUserParticipantId = participants?.find(
     (p) => p.name === user?.email?.split("@")[0] || p.id === user?.id
   )?.id;
@@ -448,7 +421,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         <span className="font-semibold text-foreground">{localPosition.overall} ₽</span>
       </div>
 
-      {/* Add Button on top */}
+      {/* Add share button */}
       {(!draftClaim || draftClaim.index !== "new") && (
         <div className="px-4 pb-3">
           <Button
@@ -461,18 +434,22 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         </div>
       )}
 
-      {/* Scrollable content area */}
+      {/* Scrollable shares area */}
       <div className="flex-1 overflow-y-auto px-4 space-y-3">
         {/* Add View (only if adding new) */}
         {draftClaim && draftClaim.index === "new" && (
           <ClaimRow
             claim={draftClaim.claim}
-            price={localPosition.price}
             participants={participants}
-            isEditing={true}
             onUpdate={(c) => setDraftClaim({ ...draftClaim, claim: c })}
-            onEditSave={handleSaveDraft}
-            onEditCancel={handleCancelDraft}
+            header={
+              <EditingHeader
+                claim={draftClaim.claim}
+                onUpdate={(c) => setDraftClaim({ ...draftClaim, claim: c })}
+                onSave={handleSaveDraft}
+                onCancel={handleCancelDraft}
+              />
+            }
           />
         )}
 
@@ -485,17 +462,29 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
             <ClaimRow
               key={index}
               claim={currentClaim}
-              price={localPosition.price}
               participants={participants}
-              isEditing={isEditing}
               onUpdate={(c) => isEditing
-                ? setDraftClaim({ ...draftClaim, claim: c }) // Update draft
-                : handleUpdateClaim(index, c)                 // Update live
+                ? setDraftClaim({ ...draftClaim, claim: c })
+                : handleUpdateClaim(index, c)
               }
-              onEditStart={() => handleEditClick(index, claim)}
-              onEditSave={handleSaveDraft}
-              onEditCancel={handleCancelDraft}
-              onRemove={() => handleDeleteClaim(index)}
+              header={
+                isEditing ? (
+                  <EditingHeader
+                    claim={currentClaim}
+                    onUpdate={(c) => setDraftClaim({ ...draftClaim, claim: c })}
+                    onSave={handleSaveDraft}
+                    onCancel={handleCancelDraft}
+                  />
+                ) : (
+                  <ViewingHeader
+                    claim={currentClaim}
+                    price={localPosition.price}
+                    participants={participants}
+                    onEditStart={() => handleEditClick(index, claim)}
+                    onRemove={() => handleDeleteClaim(index)}
+                  />
+                )
+              }
             />
           );
         })}
