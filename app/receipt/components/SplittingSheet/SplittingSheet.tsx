@@ -30,6 +30,7 @@ import {
   Accordion,
   AccordionContent,
   AccordionItem,
+  AccordionHeader,
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { cn } from "@/utils/cn";
@@ -231,27 +232,26 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
       value={`claim-${index}`}
       className="border rounded-md overflow-hidden data-[state=open]:bg-muted/50"
     >
-      <AccordionTrigger
-        className="px-3 py-3 hover:no-underline hover:bg-muted/30 transition-colors"
-      >
-        <div className="flex justify-between items-center w-full">
-          {/* Claim info - left side */}
-          <div className="flex items-baseline gap-2 text-foreground">
-            <span className="font-semibold">{claim.value}</span>
-            <span className="text-sm text-muted-foreground">
-              {claim.type === "amount" ? "₽" : t("pcs")}
-            </span>
-            {claim.type !== "amount" && (
+      <AccordionHeader className="flex items-stretch hover:bg-muted/30 transition-colors">
+        <AccordionTrigger
+          className="flex-1 px-3 py-3 hover:no-underline [&>svg]:hidden"
+        >
+          <div className="flex justify-between items-center w-full">
+            {/* Claim info - left side */}
+            <div className="flex items-baseline gap-2 text-foreground">
+              <span className="font-semibold">{claim.value}</span>
               <span className="text-sm text-muted-foreground">
-                = {amount.toFixed(0)} ₽
+                {claim.type === "amount" ? "₽" : t("pcs")}
               </span>
-            )}
-          </div>
+              {claim.type !== "amount" && (
+                <span className="text-sm text-muted-foreground">
+                  = {amount.toFixed(0)} ₽
+                </span>
+              )}
+            </div>
 
-          {/* Right side - avatars + actions */}
-          <div className="flex items-center gap-2">
-            {/* Stacked avatars with colored ring */}
-            <div className="flex -space-x-2">
+            {/* Stacked avatars with colored ring - inside trigger (right aligned) */}
+            <div className="flex -space-x-2 mr-2">
               {selectedParticipants.length > 0 ? (
                 selectedParticipants.slice(0, 4).map((p, idx) => (
                   <div
@@ -273,33 +273,33 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
                 </div>
               )}
             </div>
-
-            {/* Actions */}
-            <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                    <Pencil className="h-4 w-4 mr-2" />
-                    {t("edit")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={onRemove}
-                    className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    {t("delete")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
           </div>
+        </AccordionTrigger>
+
+        {/* Actions - outside trigger */}
+        <div className="flex items-center px-1">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                <Pencil className="h-4 w-4 mr-2" />
+                {t("edit")}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={onRemove}
+                className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {t("delete")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </AccordionTrigger>
+      </AccordionHeader>
 
       <AccordionContent className="p-0">
         <div className="px-3 py-2 border-t bg-background">
