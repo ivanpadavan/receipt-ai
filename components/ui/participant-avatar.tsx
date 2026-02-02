@@ -35,7 +35,7 @@ export const ParticipantAvatar = ({
             {avatarUrl && <AvatarImage src={avatarUrl} />}
             <AvatarFallback
                 style={{
-                    backgroundColor: participant.color + "20",
+                    backgroundColor: `color-mix(in srgb, ${participant.color}, white 95%)`,
                     color: participant.color,
                 }}
             >
