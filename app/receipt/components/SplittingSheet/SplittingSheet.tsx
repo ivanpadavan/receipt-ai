@@ -67,9 +67,6 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
     structuredClone(position)
   );
 
-  // Manage accordion state
-  const [openItems, setOpenItems] = useState<string[]>([]);
-
   // Find current user's participant ID
   const currentUserParticipantId = participants?.find(
     (p) => p.name === user?.email?.split("@")[0] || p.id === user?.id
@@ -79,14 +76,12 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
   const [draftClaim, setDraftClaim] = useState<{
     index: number | "new";
     claim: Claim;
-    wasOpen?: boolean;
   } | null>(() => ({
     index: "new",
     claim: {
       ...createDefaultClaim(),
       participantIds: currentUserParticipantId ? [currentUserParticipantId] : [],
     },
-    wasOpen: true
   }));
 
   // Create an effective position that includes the draft changes for live preview
@@ -121,25 +116,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         ...createDefaultClaim(),
         participantIds: currentUserParticipantId ? [currentUserParticipantId] : [],
       },
-      wasOpen: true
     });
-    // Ensure new item is open for adding participants
-    setOpenItems(prev => [...prev, "new-claim"]);
-  };
-
-  const restoreAccordionState = (draft: NonNullable<typeof draftClaim>) => {
-    // If we were editing an existing item, restore its state
-    if (draft.index !== "new") {
-      const id = `claim-${draft.index}`;
-      if (draft.wasOpen) {
-        setOpenItems(prev => Array.from(new Set([...prev, id])));
-      } else {
-        setOpenItems(prev => prev.filter(i => i !== id));
-      }
-    } else {
-      // If it was 'new', we remove the temporary 'new-claim' id
-      setOpenItems(prev => prev.filter(i => i !== "new-claim"));
-    }
   };
 
   const handleSaveDraft = () => {
@@ -149,8 +126,6 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       if (draftClaim.claim.value > 0) {
         setLocalPosition(prev => ({ ...prev, claims: [...prev.claims, draftClaim.claim] }));
       }
-      // Remove "new-claim" from openItems
-      setOpenItems(prev => prev.filter(i => i !== "new-claim"));
     } else {
       // Update existing
       const idx = draftClaim.index as number;
@@ -158,16 +133,12 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         ...prev,
         claims: prev.claims.map((c, i) => i === idx ? draftClaim.claim : c)
       }));
-      restoreAccordionState(draftClaim);
     }
     // Close draft mode
     setDraftClaim(null);
   };
 
   const handleCancelDraft = () => {
-    if (draftClaim) {
-      restoreAccordionState(draftClaim);
-    }
     setDraftClaim(null);
   };
 
@@ -176,7 +147,6 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       ...prev,
       claims: prev.claims.filter((_, i) => i !== index),
     }));
-    setOpenItems(prev => prev.filter(i => i !== `claim-${index}`));
 
     if (draftClaim && draftClaim.index === index) {
       setDraftClaim(null);
@@ -184,8 +154,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
   };
 
   const handleEditClick = (index: number, claim: Claim) => {
-    const isOpen = openItems.includes(`claim-${index}`);
-    setDraftClaim({ index, claim, wasOpen: isOpen });
+    setDraftClaim({ index, claim });
   };
 
   const handleUpdateClaim = (index: number, updatedClaim: Claim) => {
@@ -229,8 +198,6 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         <Accordion
           type="multiple"
           className="space-y-3"
-          value={openItems}
-          onValueChange={setOpenItems}
         >
           {/* Add View (only if adding new) */}
           {draftClaim && draftClaim.index === "new" && (
