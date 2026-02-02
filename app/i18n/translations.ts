@@ -50,6 +50,11 @@ const ru = {
   back: 'Назад',
   distributed: 'Распределено',
   done: 'Готово',
+
+  // Delete confirmation
+  deleteParticipant: 'Удалить участника?',
+  deleteParticipantConfirm: 'Вы уверены, что хотите удалить этого участника? Все его распределения по позициям будут сброшены.',
+  delete: 'Удалить',
 };
 
 export type TranslationKey = keyof typeof ru;
@@ -107,6 +112,11 @@ const en: Translations = {
   back: 'Back',
   distributed: 'Distributed',
   done: 'Done',
+
+  // Delete confirmation
+  deleteParticipant: 'Delete participant?',
+  deleteParticipantConfirm: 'Are you sure you want to delete this participant? All their claim distributions will be reset.',
+  delete: 'Delete',
 };
 
 // Available languages
