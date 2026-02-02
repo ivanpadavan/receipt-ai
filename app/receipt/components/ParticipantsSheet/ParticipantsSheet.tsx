@@ -22,8 +22,14 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { t } from "@/app/i18n/translations";
-import { UserPlus, X, Check, Trash2 } from "lucide-react";
+import { UserPlus, X, Check, Trash2, MoreVertical } from "lucide-react";
 import { createDefaultParticipant } from "@/app/receipt/[id]/useReceiptFormState";
 
 // Predefined colors for participants
@@ -120,18 +126,26 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({ onClose })
                         return (
                             <div
                                 key={field.id}
-                                className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl mb-2 shadow-sm transition-all duration-200 hover:shadow-md group"
+                                className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl mb-2 shadow-sm"
                             >
                                 <ParticipantAvatar participant={participant} className="shrink-0" />
                                 <span className="flex-1 font-medium text-gray-800">{participant.name}</span>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                    onClick={() => handleDeleteClick(index, participant.name)}
-                                >
-                                    <Trash2 className="h-4 w-4 text-gray-400 hover:text-red-500" />
-                                </Button>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500">
+                                            <MoreVertical className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem
+                                            onClick={() => handleDeleteClick(index, participant.name)}
+                                            className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50"
+                                        >
+                                            <Trash2 className="h-4 w-4 mr-2" />
+                                            {t("delete")}
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
                         );
                     })}
@@ -184,7 +198,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({ onClose })
                         <Button
                             variant="outline"
                             onClick={() => setIsAdding(true)}
-                            className="w-full border-dashed border-amber-500 text-amber-500 font-medium hover:bg-amber-500/5 hover:border-amber-600 hover:text-amber-600"
+                            className="w-full border-dashed border-amber-500 text-amber-500 font-medium hover:bg-amber-500/5 hover:border-amber-600 hover:text-amber-600 active:bg-amber-500/10"
                         >
                             <UserPlus className="h-4 w-4 mr-2" />
                             {t("addParticipant")}
@@ -195,7 +209,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({ onClose })
                 <div className="p-4 border-t border-gray-100 bg-white">
                     <Button
                         onClick={onClose}
-                        className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold py-3 rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-amber-500/30"
+                        className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold py-3 rounded-xl active:scale-[0.98] transition-transform"
                     >
                         {t("done")}
                     </Button>
