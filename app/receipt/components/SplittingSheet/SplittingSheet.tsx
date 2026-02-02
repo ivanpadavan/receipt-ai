@@ -320,31 +320,54 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
     (p) => p.name === user?.email?.split("@")[0] || p.id === user?.id
   )?.id;
 
-  const [draftClaim, setDraftClaim] = useState<{
-    index: number | "new";
-    claim: Claim;
-  } | null>(() => ({
-    index: "new",
-    claim: {
-      ...createDefaultClaim(),
-      participantIds: currentUserParticipantId ? [currentUserParticipantId] : [],
-    },
-  }));
+  // --- Draft Claims State (Map) ---
+  const [draftClaims, setDraftClaims] = useState<Map<number | "new", Claim>>(
+    new Map([
+      [
+        "new",
+        {
+          ...createDefaultClaim(),
+          participantIds: currentUserParticipantId
+            ? [currentUserParticipantId]
+            : [],
+        },
+      ],
+    ] as const),
+  );
 
+
+  // Helper to update draft state safely
+  const updateDraft = (index: number | "new", claim: Claim) => {
+    setDraftClaims(prev => {
+      const next = new Map(prev);
+      next.set(index, claim);
+      return next;
+    });
+  };
+
+  const removeDraft = (index: number | "new") => {
+    setDraftClaims(prev => {
+      const next = new Map(prev);
+      next.delete(index);
+      return next;
+    });
+  };
+
+  // Create an effective position that includes ALL draft changes for live preview
   const effectivePosition = useMemo(() => {
-    const pos = JSON.parse(JSON.stringify(localPosition)) as ReceiptPosition;
+    const pos = structuredClone(localPosition);
 
-    if (draftClaim) {
-      if (draftClaim.index === "new") {
-        pos.claims.push(draftClaim.claim);
+    draftClaims.forEach((claim, index) => {
+      if (index === "new") {
+        pos.claims.push(claim);
       } else {
-        if (pos.claims[draftClaim.index as number]) {
-          pos.claims[draftClaim.index as number] = draftClaim.claim;
+        if (typeof index === 'number' && pos.claims[index]) {
+          pos.claims[index] = claim;
         }
       }
-    }
+    });
     return pos;
-  }, [localPosition, draftClaim]);
+  }, [localPosition, draftClaims]);
 
   const totalClaimed = effectivePosition.claims.reduce((acc, claim) => {
     if (!claim.participantIds || claim.participantIds.length === 0) return acc;
@@ -353,34 +376,34 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
   }, 0);
 
   const startAdding = () => {
-    setDraftClaim({
-      index: "new",
-      claim: {
-        ...createDefaultClaim(),
-        participantIds: currentUserParticipantId ? [currentUserParticipantId] : [],
-      },
+    updateDraft("new", {
+      ...createDefaultClaim(),
+      participantIds: currentUserParticipantId ? [currentUserParticipantId] : [],
     });
   };
 
-  const handleSaveDraft = () => {
-    if (!draftClaim) return;
+  const handleSaveDraft = (index: number | "new") => {
+    const claim = draftClaims.get(index);
+    if (!claim) return;
 
-    if (draftClaim.index === "new") {
-      if (draftClaim.claim.value > 0) {
-        setLocalPosition(prev => ({ ...prev, claims: [...prev.claims, draftClaim.claim] }));
+    if (index === "new") {
+      if (claim.value > 0) {
+        setLocalPosition(prev => ({ ...prev, claims: [...prev.claims, claim] }));
+        // Reset the 'new' draft to default for next addition
+        updateDraft("new", {
+          ...createDefaultClaim(),
+          participantIds: currentUserParticipantId ? [currentUserParticipantId] : [],
+        });
       }
     } else {
-      const idx = draftClaim.index as number;
+      // Update existing
       setLocalPosition(prev => ({
         ...prev,
-        claims: prev.claims.map((c, i) => i === idx ? draftClaim.claim : c)
+        claims: prev.claims.map((c, i) => i === index ? claim : c)
       }));
+      // Close edit mode for this item
+      removeDraft(index);
     }
-    setDraftClaim(null);
-  };
-
-  const handleCancelDraft = () => {
-    setDraftClaim(null);
   };
 
   const handleDeleteClaim = (index: number) => {
@@ -388,17 +411,19 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       ...prev,
       claims: prev.claims.filter((_, i) => i !== index),
     }));
-
-    if (draftClaim && draftClaim.index === index) {
-      setDraftClaim(null);
+    // Also remove from drafts if being edited
+    if (draftClaims.has(index)) {
+      removeDraft(index);
     }
   };
 
   const handleEditClick = (index: number, claim: Claim) => {
-    setDraftClaim({ index, claim });
+    updateDraft(index, claim);
   };
 
   const handleUpdateClaim = (index: number, updatedClaim: Claim) => {
+    // Only used for ViewingHeader updates if allowed (currently not used as ViewingHeader is read-only mostly)
+    // But if we ever allow editing from view mode directly:
     setLocalPosition((prev) => ({
       ...prev,
       claims: prev.claims.map((c, i) => (i === index ? updatedClaim : c)),
@@ -408,6 +433,9 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
   const handleDone = () => {
     onSave(localPosition);
   };
+
+  // "new" draft claim
+  const newDraftClaim = draftClaims.get("new");
 
   return (
     <DrawerContent className="h-[85vh] flex flex-col">
@@ -421,8 +449,12 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         <span className="font-semibold text-foreground">{localPosition.overall} ₽</span>
       </div>
 
-      {/* Add share button */}
-      {(!draftClaim || draftClaim.index !== "new") && (
+      {/* Add share button - only if "new" form is NOT active? Or always allow adding?
+          If we allow multiple new items, we need a list of new items.
+          Currently we have only one "new" key. So if "new" exists, we are adding.
+          Should hide button if "new" is visible.
+      */}
+      {!draftClaims.has("new") && (
         <div className="px-4 pb-3">
           <Button
             variant="outline"
@@ -437,17 +469,18 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       {/* Scrollable shares area */}
       <div className="flex-1 overflow-y-auto px-4 space-y-3">
         {/* Add View (only if adding new) */}
-        {draftClaim && draftClaim.index === "new" && (
+        {newDraftClaim && (
           <ClaimRow
-            claim={draftClaim.claim}
+            key="new-claim"
+            claim={newDraftClaim}
             participants={participants}
-            onUpdate={(c) => setDraftClaim({ ...draftClaim, claim: c })}
+            onUpdate={(c) => updateDraft("new", c)}
             header={
               <EditingHeader
-                claim={draftClaim.claim}
-                onUpdate={(c) => setDraftClaim({ ...draftClaim, claim: c })}
-                onSave={handleSaveDraft}
-                onCancel={handleCancelDraft}
+                claim={newDraftClaim}
+                onUpdate={(c) => updateDraft("new", c)}
+                onSave={() => handleSaveDraft("new")}
+                onCancel={() => removeDraft("new")}
               />
             }
           />
@@ -455,8 +488,9 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
         {/* Claims List */}
         {localPosition.claims.map((claim, index) => {
-          const isEditing = draftClaim?.index === index;
-          const currentClaim = isEditing && draftClaim ? draftClaim.claim : claim;
+          const isEditing = draftClaims.has(index);
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const currentClaim = isEditing ? draftClaims.get(index)! : claim;
 
           return (
             <ClaimRow
@@ -464,16 +498,16 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
               claim={currentClaim}
               participants={participants}
               onUpdate={(c) => isEditing
-                ? setDraftClaim({ ...draftClaim, claim: c })
+                ? updateDraft(index, c)
                 : handleUpdateClaim(index, c)
               }
               header={
                 isEditing ? (
                   <EditingHeader
                     claim={currentClaim}
-                    onUpdate={(c) => setDraftClaim({ ...draftClaim, claim: c })}
-                    onSave={handleSaveDraft}
-                    onCancel={handleCancelDraft}
+                    onUpdate={(c) => updateDraft(index, c)}
+                    onSave={() => handleSaveDraft(index)}
+                    onCancel={() => removeDraft(index)}
                   />
                 ) : (
                   <ViewingHeader
