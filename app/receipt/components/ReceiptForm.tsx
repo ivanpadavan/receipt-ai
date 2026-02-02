@@ -14,6 +14,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useState,
 } from "react";
 import { Cell } from "./Cell";
 import { CellGroup } from "./CellGroup";
@@ -92,26 +93,17 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
   // Use the new react-hook-form based state
   const formState = useReceiptFormState(receipt, receiptId);
 
-  const [activeModalProps, setActiveModalProps] =
-    React.useState<null | EditModalProps>(null);
-  const [participantsModalOpen, setParticipantsModalOpen] = React.useState(false);
-
-  useEffect(() => {
-    const sub = formState.openEditModalCommand$.subscribe((props) =>
-      setActiveModalProps(props)
-    );
-    return () => sub.unsubscribe();
-  }, [formState.openEditModalCommand$]);
+  const [participantsModalOpen, setParticipantsModalOpen] = useState(false);
 
   const {
     scenario: { form, canEdit, type: scenarioType },
     openEditModal,
+    closeModal,
     proceed,
     goBackToEditing,
-    canProceed$,
+    canProceed,
+    editModalProps,
   } = formState;
-
-  const canProceed = useObservable(canProceed$, forceSync);
 
   // Get field array for positions
   const { fields: positionFields } = useFieldArray({
@@ -124,16 +116,15 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
       <FormProvider {...form}>
         {/* Edit Modal Drawer */}
         <Drawer
-          onCloseAnimationEnd={() => setActiveModalProps(null)}
-          open={!!activeModalProps}
+          onCloseAnimationEnd={() => closeModal()}
+          open={!!editModalProps}
         >
-          {activeModalProps && (
-            scenarioType === "splitting" ? (
-              <SplittingSheet {...activeModalProps} />
+          {editModalProps &&
+            (scenarioType === "splitting" ? (
+              <SplittingSheet {...editModalProps} />
             ) : (
-              <EditingSheet {...activeModalProps} />
-            )
-          )}
+              <EditingSheet {...editModalProps} />
+            ))}
         </Drawer>
 
         {/* Participants Modal Drawer */}
@@ -184,7 +175,9 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
             </tbody>
             <tfoot>
               <tr
-                onClick={() => canEdit.totalsForm && openEditModal({ type: "totals" })}
+                onClick={() =>
+                  canEdit.totalsForm && openEditModal({ type: "totals" })
+                }
                 className={
                   canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""
                 }
@@ -195,7 +188,9 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
               <Modifiers type="discounts" />
               <Modifiers type="fees" />
               <tr
-                onClick={() => canEdit.totalsForm && openEditModal({ type: "totals" })}
+                onClick={() =>
+                  canEdit.totalsForm && openEditModal({ type: "totals" })
+                }
                 className={
                   canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""
                 }
@@ -212,7 +207,9 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
                   <Pencil className="h-4 w-4 mr-2" />
                   {t("edit")}
                 </Button>
-                <ParticipantsBadge onClick={() => setParticipantsModalOpen(true)} />
+                <ParticipantsBadge
+                  onClick={() => setParticipantsModalOpen(true)}
+                />
               </>
             )}
             <Button onClick={proceed} disabled={!canProceed}>
