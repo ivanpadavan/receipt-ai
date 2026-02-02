@@ -26,6 +26,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { cn } from "@/utils/cn";
 import { ParticipantAvatar } from "@/components/ui/participant-avatar";
 import { DistributionBar } from "./DistributionBar";
@@ -34,11 +40,11 @@ import { useWatch } from "react-hook-form";
 import { useUser } from "@/context/AuthContext";
 
 // Claim type
-type Claim = {
+interface Claim {
   value: number;
   type: "quantity" | "amount";
   participantIds: string[];
-};
+}
 
 // Default claim factory
 const createDefaultClaim = (): Claim => ({
@@ -142,16 +148,19 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         )}
 
         {/* Claims List */}
-        {claims.map((claim, index) => (
-          <ClaimRow
-            key={index}
-            claim={claim}
-            price={localPosition.price}
-            participants={participants}
-            onUpdate={(updated) => handleUpdateClaim(index, updated)}
-            onRemove={() => handleRemoveClaim(index)}
-          />
-        ))}
+        <Accordion type="multiple" className="space-y-3">
+          {claims.map((claim, index) => (
+            <ClaimRow
+              key={index}
+              index={index}
+              claim={claim}
+              price={localPosition.price}
+              participants={participants}
+              onUpdate={(updated) => handleUpdateClaim(index, updated)}
+              onRemove={() => handleRemoveClaim(index)}
+            />
+          ))}
+        </Accordion>
       </div>
 
       {/* Footer - Distribution + Done button */}
@@ -177,6 +186,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 };
 
 interface ClaimRowProps {
+  index: number;
   claim: Claim;
   price: number;
   participants: { id: string; name: string; color: string }[];
@@ -185,13 +195,13 @@ interface ClaimRowProps {
 }
 
 const ClaimRow: React.FC<ClaimRowProps> = ({
+  index,
   claim,
   price,
   participants,
   onUpdate,
   onRemove,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const amount = claim.type === "quantity" ? claim.value * price : claim.value;
 
@@ -217,82 +227,81 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
   }
 
   return (
-    <div className="border rounded-md overflow-hidden">
-      {/* Header - always visible, clickable to expand */}
-      <div
-        className={cn(
-          "flex justify-between items-center p-3 cursor-pointer transition-colors",
-          isExpanded ? "bg-muted/50" : "hover:bg-muted/30"
-        )}
-        onClick={() => setIsExpanded(!isExpanded)}
+    <AccordionItem
+      value={`claim-${index}`}
+      className="border rounded-md overflow-hidden data-[state=open]:bg-muted/50"
+    >
+      <AccordionTrigger
+        className="px-3 py-3 hover:no-underline hover:bg-muted/30 transition-colors"
       >
-        {/* Claim info - left side */}
-        <div className="flex items-baseline gap-2">
-          <span className="font-semibold">{claim.value}</span>
-          <span className="text-sm text-muted-foreground">
-            {claim.type === "amount" ? "₽" : t("pcs")}
-          </span>
-          {claim.type !== "amount" && (
+        <div className="flex justify-between items-center w-full">
+          {/* Claim info - left side */}
+          <div className="flex items-baseline gap-2 text-foreground">
+            <span className="font-semibold">{claim.value}</span>
             <span className="text-sm text-muted-foreground">
-              = {amount.toFixed(0)} ₽
+              {claim.type === "amount" ? "₽" : t("pcs")}
             </span>
-          )}
-        </div>
+            {claim.type !== "amount" && (
+              <span className="text-sm text-muted-foreground">
+                = {amount.toFixed(0)} ₽
+              </span>
+            )}
+          </div>
 
-        {/* Right side - avatars + actions */}
-        <div className="flex items-center gap-2">
-          {/* Stacked avatars with colored ring */}
-          <div className="flex -space-x-2">
-            {selectedParticipants.length > 0 ? (
-              selectedParticipants.slice(0, 4).map((p, idx) => (
-                <div
-                  key={p.id}
-                  className="relative"
-                  style={{ zIndex: selectedParticipants.length - idx }}
-                >
-                  <ParticipantAvatar participant={p} className="h-7 w-7" />
+          {/* Right side - avatars + actions */}
+          <div className="flex items-center gap-2">
+            {/* Stacked avatars with colored ring */}
+            <div className="flex -space-x-2">
+              {selectedParticipants.length > 0 ? (
+                selectedParticipants.slice(0, 4).map((p, idx) => (
+                  <div
+                    key={p.id}
+                    className="relative"
+                    style={{ zIndex: selectedParticipants.length - idx }}
+                  >
+                    <ParticipantAvatar participant={p} className="h-7 w-7" />
+                  </div>
+                ))
+              ) : (
+                <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                  ?
                 </div>
-              ))
-            ) : (
-              <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
-                ?
-              </div>
-            )}
-            {selectedParticipants.length > 4 && (
-              <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs font-medium ring-2 ring-muted-foreground/30">
-                +{selectedParticipants.length - 4}
-              </div>
-            )}
-          </div>
+              )}
+              {selectedParticipants.length > 4 && (
+                <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs font-medium ring-2 ring-muted-foreground/30">
+                  +{selectedParticipants.length - 4}
+                </div>
+              )}
+            </div>
 
-          {/* Actions */}
-          <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                  <Pencil className="h-4 w-4 mr-2" />
-                  {t("edit")}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={onRemove}
-                  className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  {t("delete")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Actions */}
+            <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    {t("edit")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={onRemove}
+                    className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {t("delete")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
-      </div>
+      </AccordionTrigger>
 
-      {/* Expanded content - participants selector */}
-      {isExpanded && (
+      <AccordionContent className="p-0">
         <div className="px-3 py-2 border-t bg-background">
           <ParticipantsSelector
             selectedIds={claim.participantIds}
@@ -300,11 +309,10 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
             onChange={(ids) => onUpdate({ ...claim, participantIds: ids })}
           />
         </div>
-      )}
+      </AccordionContent>
 
-      {/* Distribution bar - always at bottom, no rounded corners */}
       <DistributionBar data={claim} className="h-2" />
-    </div>
+    </AccordionItem>
   );
 };
 
