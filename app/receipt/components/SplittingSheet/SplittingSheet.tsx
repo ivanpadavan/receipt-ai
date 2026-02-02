@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { useReceiptState } from "../ReceiptForm";
-import { Check, Pencil, Trash2 } from "lucide-react";
+import { Check, Pencil, Trash2, MoreVertical } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -20,6 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/utils/cn";
 import { ParticipantAvatar } from "@/components/ui/participant-avatar";
 import { DistributionBar } from "./DistributionBar";
@@ -260,29 +266,27 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsEditing(true);
-              }}
-            >
-              <Pencil className="w-3.5 h-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-destructive hover:text-destructive"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemove();
-              }}
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </Button>
+          <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  {t("edit")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={onRemove}
+                  className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {t("delete")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
