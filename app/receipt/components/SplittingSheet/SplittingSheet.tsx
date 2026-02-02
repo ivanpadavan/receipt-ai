@@ -1,7 +1,7 @@
 "use client";
 
 import { EditModalProps } from "@/app/receipt/[id]/useReceiptFormState";
-import React, { useState, useMemo, useEffect } from "react";
+import React from "react";
 import { t } from "@/app/i18n/translations";
 import {
   DrawerClose,
@@ -36,29 +36,16 @@ import {
 import { cn } from "@/utils/cn";
 import { ParticipantAvatar } from "@/components/ui/participant-avatar";
 import { DistributionBar } from "./DistributionBar";
-import { ReceiptPosition } from "@/model/receipt/model";
+import { ReceiptPosition, ReceiptPositionClaim, ReceiptParticipant } from "@/model/receipt/model";
 import { useWatch } from "react-hook-form";
 import { useUser } from "@/context/AuthContext";
-
-// --- Types ---
-
-interface Claim {
-  value: number;
-  type: "quantity" | "amount";
-  participantIds: string[];
-}
-
-const createDefaultClaim = (): Claim => ({
-  value: 0,
-  type: "quantity",
-  participantIds: [],
-});
+import { useSplittingLogic } from "./useSplittingLogic";
 
 // --- Components ---
 
 interface EditingHeaderProps {
-  claim: Claim;
-  onUpdate: (claim: Claim) => void;
+  claim: ReceiptPositionClaim;
+  onUpdate: (claim: ReceiptPositionClaim) => void;
   onSave: () => void;
   onCancel: () => void;
 }
@@ -126,9 +113,9 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
 };
 
 interface ViewingHeaderProps {
-  claim: Claim;
+  claim: ReceiptPositionClaim;
   price: number;
-  participants: { id: string; name: string; color: string }[];
+  participants: ReceiptParticipant[];
   onEditStart: () => void;
   onRemove: () => void;
 }
@@ -168,7 +155,7 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
               selectedParticipants.slice(0, 4).map((p, idx) => (
                 <div
                   key={p.id}
-                  className="relative"
+                  className="relative ring-2 ring-background rounded-full"
                   style={{ zIndex: selectedParticipants.length - idx }}
                 >
                   <ParticipantAvatar participant={p} className="h-7 w-7" />
@@ -217,7 +204,7 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
 
 interface ParticipantsSelectorProps {
   selectedIds: string[];
-  participants: { id: string; name: string; color: string }[];
+  participants: ReceiptParticipant[];
   onChange: (ids: string[]) => void;
 }
 
@@ -262,9 +249,9 @@ const ParticipantsSelector: React.FC<ParticipantsSelectorProps> = ({
 // --- ClaimRow ---
 
 interface ClaimRowProps {
-  claim: Claim;
-  participants: { id: string; name: string; color: string }[];
-  onUpdate: (claim: Claim) => void;
+  claim: ReceiptPositionClaim;
+  participants: ReceiptParticipant[];
+  onUpdate: (claim: ReceiptPositionClaim) => void;
   header: React.ReactNode;
   defaultOpen?: boolean;
 }
@@ -313,133 +300,26 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
   const participants = useWatch({ control: form.control, name: "participants" });
   const { user } = useUser();
 
-  const [localPosition, setLocalPosition] = useState<ReceiptPosition>(() =>
-    structuredClone(position)
-  );
-
-  const currentUserParticipantId = participants?.find(
-    (p) => p.name === user?.email?.split("@")[0] || p.id === user?.id
-  )?.id;
-
-  // --- Draft Claims State (Map) ---
-  const [draftClaims, setDraftClaims] = useState<Map<number | "new", Claim>>(
-    new Map([
-      [
-        "new",
-        {
-          ...createDefaultClaim(),
-          participantIds: currentUserParticipantId
-            ? [currentUserParticipantId]
-            : [],
-        },
-      ],
-    ] as const),
-  );
-
-
-  // Helper to update draft state safely
-  const updateDraft = (index: number | "new", claim: Claim) => {
-    setDraftClaims(prev => {
-      const next = new Map(prev);
-      next.set(index, claim);
-      return next;
-    });
-  };
-
-  const removeDraft = (index: number | "new") => {
-    setDraftClaims(prev => {
-      const next = new Map(prev);
-      next.delete(index);
-      return next;
-    });
-  };
-
-  // Create an effective position that includes ALL draft changes for live preview
-  const effectivePosition = useMemo(() => {
-    const pos = structuredClone(localPosition);
-
-    draftClaims.forEach((claim, index) => {
-      if (index === "new") {
-        pos.claims.push(claim);
-      } else {
-        if (typeof index === 'number' && pos.claims[index]) {
-          pos.claims[index] = claim;
-        }
-      }
-    });
-    return pos;
-  }, [localPosition, draftClaims]);
-
-  const totalClaimed = effectivePosition.claims.reduce((acc, claim) => {
-    if (!claim.participantIds || claim.participantIds.length === 0) return acc;
-    if (claim.type === "quantity") return acc + claim.value * effectivePosition.price;
-    return acc + claim.value;
-  }, 0);
-
-  const startAdding = () => {
-    updateDraft("new", {
-      ...createDefaultClaim(),
-      participantIds: currentUserParticipantId ? [currentUserParticipantId] : [],
-    });
-  };
-
-  const handleSaveDraft = (index: number | "new") => {
-    const claim = draftClaims.get(index);
-    if (!claim) return;
-
-    if (index === "new") {
-      if (claim.value <= 0) {
-        return;
-      }
-      setLocalPosition(prev => ({ ...prev, claims: [...prev.claims, claim] }));
-    } else {
-      // Update existing
-      setLocalPosition(prev => ({
-        ...prev,
-        claims: prev.claims.map((c, i) => i === index ? claim : c)
-      }));
-    }
-    removeDraft(index);
-  };
-
-  const handleDeleteClaim = (index: number) => {
-    setLocalPosition((prev) => ({
-      ...prev,
-      claims: prev.claims.filter((_, i) => i !== index),
-    }));
-    // Also remove from drafts if being edited
-    if (draftClaims.has(index)) {
-      removeDraft(index);
-    }
-  };
-
-  const handleEditClick = (index: number, claim: Claim) => {
-    updateDraft(index, claim);
-  };
-
-  const handleUpdateClaim = (index: number, updatedClaim: Claim) => {
-    // Only used for ViewingHeader updates if allowed (currently not used as ViewingHeader is read-only mostly)
-    // But if we ever allow editing from view mode directly:
-    setLocalPosition((prev) => ({
-      ...prev,
-      claims: prev.claims.map((c, i) => (i === index ? updatedClaim : c)),
-    }));
-  };
-
-  const handleDone = () => {
-    const finalPosition = structuredClone(localPosition);
-
-    // Auto-save NEW draft only
-    const newClaim = draftClaims.get("new");
-    if (newClaim && newClaim.value > 0) {
-      finalPosition.claims.push(newClaim);
-    }
-
-    onSave(finalPosition);
-  };
-
-  // "new" draft claim
-  const newDraftClaim = draftClaims.get("new");
+  const {
+    localPosition,
+    draftClaims,
+    effectivePosition,
+    totalClaimed,
+    newDraftClaim,
+    startAdding,
+    updateDraft,
+    handleSaveDraft,
+    removeDraft,
+    handleDeleteClaim,
+    handleEditClick,
+    handleUpdateClaim,
+    handleDone
+  } = useSplittingLogic({
+    initialValue: position,
+    onSave,
+    currentUser: user,
+    participants
+  });
 
   return (
     <DrawerContent className="h-[85vh] flex flex-col">
@@ -526,6 +406,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       </div>
 
       {/* Footer - Distribution + Done button */}
+
       <DrawerFooter className="pt-2 border-t bg-background">
         <div className="px-4 py-3">
           <div className="flex justify-between text-sm mb-2">
