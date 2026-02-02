@@ -10,7 +10,7 @@ import {
 // ============================================================================
 
 export interface ReceiptValidationContext {
-    type: "validation" | "editing" | "splitting";
+    type: "validation" | "editing" | "splitting" | "summary";
 }
 
 // ============================================================================
@@ -59,7 +59,7 @@ export const validateGrandTotalMatchesCalculation = (
 // ============================================================================
 
 interface FieldError { type: string; message: string }
- 
+
 // type ErrorRecord = Record<string, FieldError | ErrorRecord>;
 type ErrorRecord = Record<string, any>;
 

@@ -24,11 +24,12 @@ import { Modifiers } from "./Modifiers";
 import { EditingSheet } from "@/app/receipt/components/EdititngSheet/EditingSheet";
 import { SplittingSheet } from "@/app/receipt/components/SplittingSheet/SplittingSheet";
 import { ParticipantsSheet, ParticipantsBadge } from "@/app/receipt/components/ParticipantsSheet";
+import { SummaryScreen } from "@/app/receipt/components/SummaryScreen/SummaryScreen";
 import { distinctUntilChanged, Observable, startWith } from "rxjs";
 import { receiptSchema } from "@/model/receipt/schema";
 import { Drawer } from "@/components/ui/drawer";
 import { isEqual } from "lodash-es";
-import { FormProvider, useFieldArray } from "react-hook-form";
+import { FormProvider, useFieldArray, useWatch } from "react-hook-form";
 import { Pencil } from "lucide-react";
 
 interface EditableReceiptFormProps {
@@ -100,6 +101,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
     openEditModal,
     closeModal,
     proceed,
+    goBack,
     goBackToEditing,
     canProceed,
     editModalProps,
@@ -110,6 +112,8 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
     control: form.control,
     name: "positions",
   });
+
+  const currentReceipt = useWatch({ control: form.control }) as Receipt;
 
   return (
     <ReceiptFormContext.Provider value={formState}>
@@ -134,89 +138,99 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
         >
           <ParticipantsSheet onClose={() => setParticipantsModalOpen(false)} />
         </Drawer>
-        <div className="m-3 rounded bg-white shadow-md text-black max-w-fit w-full mx-auto overflow-auto font-mono">
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>
-                  <FormArrayTitle
-                    title={t("name")}
-                    onAddClick={
-                      canEdit.positionForm === true
-                        ? () => openEditModal("addPosition")
-                        : undefined
-                    }
-                  />
-                </th>
-                <th className="text-center">{t("price")}</th>
-                <th className="text-center">{t("quantity")}</th>
-                <th className="text-center">{t("overall")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {positionFields.map((field, index) => (
-                <CellGroup
-                  key={field.id}
-                  fieldPath={`positions.${index}`}
-                  index={index}
-                  type="position"
-                  canEdit={canEdit.positionForm}
-                >
-                  {({ className, ...props }) => (
-                    <tr className={className + " border-b border-gray-200"}>
-                      <Cell {...props} name={`positions.${index}.name`} />
-                      <Cell {...props} name={`positions.${index}.price`} />
-                      <Cell {...props} name={`positions.${index}.quantity`} />
-                      <Cell {...props} name={`positions.${index}.overall`} />
-                    </tr>
-                  )}
-                </CellGroup>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr
-                onClick={() =>
-                  canEdit.totalsForm && openEditModal({ type: "totals" })
-                }
-                className={
-                  canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""
-                }
-              >
-                <td colSpan={3}>{t("total")}</td>
-                <Cell name="totals.total" className="font-bold" />
-              </tr>
-              <Modifiers type="discounts" />
-              <Modifiers type="fees" />
-              <tr
-                onClick={() =>
-                  canEdit.totalsForm && openEditModal({ type: "totals" })
-                }
-                className={
-                  canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""
-                }
-              >
-                <td colSpan={3}>{t("grandTotal")}</td>
-                <Cell name="totals.grandTotal" className="font-bold" />
-              </tr>
-            </tfoot>
-          </table>
-          <div className="flex justify-end items-center gap-3 mt-4 mb-2 mr-4 ml-4">
-            {scenarioType === "splitting" && (
-              <>
-                <Button variant="outline" onClick={goBackToEditing}>
-                  <Pencil className="h-4 w-4 mr-2" />
-                  {t("edit")}
-                </Button>
-                <ParticipantsBadge
-                  onClick={() => setParticipantsModalOpen(true)}
-                />
-              </>
-            )}
-            <Button onClick={proceed} disabled={!canProceed}>
-              {t("proceed")}
-            </Button>
+
+        {scenarioType === "summary" ? (
+          <div className="p-4 h-full">
+            <SummaryScreen
+              receipt={currentReceipt}
+              onBack={goBack}
+            />
           </div>
-        </div>
+        ) : (
+          <div className="m-3 rounded bg-white shadow-md text-black max-w-fit w-full mx-auto overflow-auto font-mono">
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>
+                    <FormArrayTitle
+                      title={t("name")}
+                      onAddClick={
+                        canEdit.positionForm === true
+                          ? () => openEditModal("addPosition")
+                          : undefined
+                      }
+                    />
+                  </th>
+                  <th className="text-center">{t("price")}</th>
+                  <th className="text-center">{t("quantity")}</th>
+                  <th className="text-center">{t("overall")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {positionFields.map((field, index) => (
+                  <CellGroup
+                    key={field.id}
+                    fieldPath={`positions.${index}`}
+                    index={index}
+                    type="position"
+                    canEdit={canEdit.positionForm}
+                  >
+                    {({ className, ...props }) => (
+                      <tr className={className + " border-b border-gray-200"}>
+                        <Cell {...props} name={`positions.${index}.name`} />
+                        <Cell {...props} name={`positions.${index}.price`} />
+                        <Cell {...props} name={`positions.${index}.quantity`} />
+                        <Cell {...props} name={`positions.${index}.overall`} />
+                      </tr>
+                    )}
+                  </CellGroup>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr
+                  onClick={() =>
+                    canEdit.totalsForm && openEditModal({ type: "totals" })
+                  }
+                  className={
+                    canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""
+                  }
+                >
+                  <td colSpan={3}>{t("total")}</td>
+                  <Cell name="totals.total" className="font-bold" />
+                </tr>
+                <Modifiers type="discounts" />
+                <Modifiers type="fees" />
+                <tr
+                  onClick={() =>
+                    canEdit.totalsForm && openEditModal({ type: "totals" })
+                  }
+                  className={
+                    canEdit.totalsForm ? "cursor-pointer hover:bg-gray-100" : ""
+                  }
+                >
+                  <td colSpan={3}>{t("grandTotal")}</td>
+                  <Cell name="totals.grandTotal" className="font-bold" />
+                </tr>
+              </tfoot>
+            </table>
+            <div className="flex justify-end items-center gap-3 mt-4 mb-2 mr-4 ml-4">
+              {scenarioType === "splitting" && (
+                <>
+                  <Button variant="outline" onClick={goBackToEditing}>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    {t("edit")}
+                  </Button>
+                  <ParticipantsBadge
+                    onClick={() => setParticipantsModalOpen(true)}
+                  />
+                </>
+              )}
+              <Button onClick={proceed} disabled={!canProceed}>
+                {scenarioType === "splitting" ? t("done") : t("proceed")}
+              </Button>
+            </div>
+          </div>
+        )}
       </FormProvider>
     </ReceiptFormContext.Provider>
   );

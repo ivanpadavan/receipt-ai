@@ -30,10 +30,10 @@ import { createReceiptResolver } from "./receiptResolver";
 // Types
 // ============================================================================
 
-type FormType = "validation" | "editing" | "splitting";
+type FormType = "validation" | "editing" | "splitting" | "summary";
 
 export interface CanEdit {
-  positionForm: boolean | "splitting";
+  positionForm: boolean | "splitting" | false;
   modifierForm: boolean;
   totalsForm: boolean;
 }
@@ -73,6 +73,7 @@ export interface ReceiptState {
   ) => void;
   closeModal: () => void;
   proceed: () => void;
+  goBack: () => void;
   goBackToEditing: () => void;
   canProceed: boolean;
   editModalProps: EditModalProps | null;
@@ -95,6 +96,11 @@ const permissions: Record<FormType, CanEdit> = {
   },
   splitting: {
     positionForm: "splitting",
+    modifierForm: false,
+    totalsForm: false,
+  },
+  summary: {
+    positionForm: false,
     modifierForm: false,
     totalsForm: false,
   },
@@ -294,10 +300,10 @@ export function useReceiptFormState(
         | { type: "position"; index: number }
         | { type: "splitting-position"; index: number }
         | {
-            type: "modifier";
-            modifierType: "fees" | "discounts";
-            index: number;
-          }
+          type: "modifier";
+          modifierType: "fees" | "discounts";
+          index: number;
+        }
         | { type: "totals" }
         | "addPosition"
         | "addDiscount"
@@ -435,6 +441,10 @@ export function useReceiptFormState(
       // Переход в editing mode
       typeRef.current = "editing";
       setForceUpdate((v) => v + 1);
+    } else if (type === "splitting") {
+      // Переход в summary mode
+      typeRef.current = "summary";
+      setForceUpdate((v) => v + 1);
     }
 
     proceed$.next();
@@ -459,6 +469,15 @@ export function useReceiptFormState(
       });
   }, [type, getValues, receiptId, setValue]);
 
+  const goBack = useCallback(() => {
+    if (type === "summary") {
+      typeRef.current = "splitting";
+      setForceUpdate((v) => v + 1);
+    } else if (type === "splitting") {
+      goBackToEditing();
+    }
+  }, [type, goBackToEditing]);
+
   // -------------------------------------------------------------------------
   // 8. Return state
   // -------------------------------------------------------------------------
@@ -470,6 +489,7 @@ export function useReceiptFormState(
     },
     canProceed: formState.isValid,
     proceed,
+    goBack,
     goBackToEditing,
     openEditModal,
     closeModal: () => setEditModalProps(null),
