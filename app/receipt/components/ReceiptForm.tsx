@@ -28,6 +28,7 @@ import { receiptSchema } from "@/model/receipt/schema";
 import { Drawer } from "@/components/ui/drawer";
 import { isEqual } from "lodash-es";
 import { FormProvider, useFieldArray } from "react-hook-form";
+import { Pencil } from "lucide-react";
 
 interface EditableReceiptFormProps {
   initialData: Receipt;
@@ -106,6 +107,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
     scenario: { form, canEdit, type: scenarioType },
     openEditModal,
     proceed,
+    goBackToEditing,
     canProceed$,
   } = formState;
 
@@ -205,7 +207,13 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
           </table>
           <div className="flex justify-end items-center gap-3 mt-4 mb-2 mr-4 ml-4">
             {scenarioType === "splitting" && (
-              <ParticipantsBadge onClick={() => setParticipantsModalOpen(true)} />
+              <>
+                <Button variant="outline" onClick={goBackToEditing}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  {t("edit")}
+                </Button>
+                <ParticipantsBadge onClick={() => setParticipantsModalOpen(true)} />
+              </>
             )}
             <Button onClick={proceed} disabled={!canProceed}>
               {t("proceed")}

@@ -25,6 +25,7 @@ import { ParticipantAvatar } from "@/components/ui/participant-avatar";
 import { DistributionBar } from "./DistributionBar";
 import { ReceiptPosition } from "@/model/receipt/model";
 import { useWatch } from "react-hook-form";
+import { useUser } from "@/context/AuthContext";
 
 // Claim type
 type Claim = {
@@ -61,7 +62,14 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
     return acc + claim.value;
   }, 0);
 
-  const [isAdding, setIsAdding] = useState(false);
+  const { user } = useUser();
+
+  // Find current user's participant ID
+  const currentUserParticipantId = participants?.find(
+    (p) => p.name === user?.email?.split("@")[0] || p.id === user?.id
+  )?.id;
+
+  const [isAdding, setIsAdding] = useState(true);  // Start in adding mode
 
   const handleSaveClaim = (claim: Claim) => {
     setLocalPosition((prev) => ({
@@ -90,18 +98,43 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
   };
 
   return (
-    <DrawerContent>
+    <DrawerContent className="h-[85vh] flex flex-col">
       <DrawerTitle className="px-4 pt-4 text-center">
         {localPosition.name}
       </DrawerTitle>
 
       {/* Position info */}
       <div className="px-4 py-2 text-center text-sm text-muted-foreground">
-        {localPosition.quantity} {t("pcs")} × {localPosition.price} ₽ = {" "}
+        {localPosition.quantity} {t("pcs")} × {localPosition.price} ₽ ={" "}
         <span className="font-semibold text-foreground">{localPosition.overall} ₽</span>
       </div>
 
-      <div className="p-4 space-y-3 overflow-y-auto max-h-[50vh]">
+      {/* Add Button on top */}
+      {!isAdding && (
+        <div className="px-4 pb-3">
+          <Button
+            variant="outline"
+            className="w-full border-dashed"
+            onClick={() => setIsAdding(true)}
+          >
+            + {t("addShare")}
+          </Button>
+        </div>
+      )}
+
+      {/* Scrollable content area */}
+      <div className="flex-1 overflow-y-auto px-4 space-y-3">
+        {/* Add Form (when adding) */}
+        {isAdding && (
+          <AddClaimForm
+            onSave={handleSaveClaim}
+            onCancel={() => setIsAdding(false)}
+            price={localPosition.price}
+            participants={participants}
+            defaultParticipantId={currentUserParticipantId}
+          />
+        )}
+
         {/* Claims List */}
         {claims.map((claim, index) => (
           <ClaimRow
@@ -113,42 +146,26 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
             onRemove={() => handleRemoveClaim(index)}
           />
         ))}
-
-        {/* Add Button or Add Form */}
-        {isAdding ? (
-          <AddClaimForm
-            onSave={handleSaveClaim}
-            onCancel={() => setIsAdding(false)}
-            price={localPosition.price}
-            participants={participants}
-          />
-        ) : (
-          <Button
-            variant="outline"
-            className="w-full border-dashed"
-            onClick={() => setIsAdding(true)}
-          >
-            + {t("addMore")}
-          </Button>
-        )}
       </div>
 
-      {/* Distribution Bar */}
-      <div className="px-4 py-3 border-t">
-        <div className="flex justify-between text-sm mb-2">
-          <span className="text-muted-foreground">{t("distributed")}</span>
-          <span className="font-medium">
-            {totalClaimed.toFixed(0)} / {localPosition.overall} ₽
-          </span>
+      {/* Footer - Distribution + Done button */}
+      <div className="mt-auto border-t bg-background">
+        <div className="px-4 py-3">
+          <div className="flex justify-between text-sm mb-2">
+            <span className="text-muted-foreground">{t("distributed")}</span>
+            <span className="font-medium">
+              {totalClaimed.toFixed(0)} / {localPosition.overall} ₽
+            </span>
+          </div>
+          <DistributionBar data={localPosition} className="h-3 rounded-full" />
         </div>
-        <DistributionBar data={localPosition} className="h-3 rounded-full" />
-      </div>
 
-      <DrawerFooter>
-        <DrawerClose asChild>
-          <Button onClick={handleDone}>{t("done")}</Button>
-        </DrawerClose>
-      </DrawerFooter>
+        <DrawerFooter className="pt-2">
+          <DrawerClose asChild>
+            <Button onClick={handleDone}>{t("done")}</Button>
+          </DrawerClose>
+        </DrawerFooter>
+      </div>
     </DrawerContent>
   );
 };
@@ -168,8 +185,14 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
   onUpdate,
   onRemove,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const amount = claim.type === "quantity" ? claim.value * price : claim.value;
+
+  // Get selected participants for stacked avatars
+  const selectedParticipants = participants.filter((p) =>
+    claim.participantIds.includes(p.id)
+  );
 
   if (isEditing) {
     return (
@@ -188,10 +211,18 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
   }
 
   return (
-    <div className="border rounded-md p-3 space-y-3">
-      <div className="flex justify-between items-center">
+    <div className="border rounded-md overflow-hidden">
+      {/* Header - always visible, clickable to expand */}
+      <div
+        className={cn(
+          "flex justify-between items-center p-3 cursor-pointer transition-colors",
+          isExpanded ? "bg-muted/50" : "hover:bg-muted/30"
+        )}
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        {/* Claim info - left side */}
         <div className="flex items-baseline gap-2">
-          <span className="font-semibold text-lg">{claim.value}</span>
+          <span className="font-semibold">{claim.value}</span>
           <span className="text-sm text-muted-foreground">
             {claim.type === "amount" ? "₽" : t("pcs")}
           </span>
@@ -201,35 +232,74 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
             </span>
           )}
         </div>
-        <div className="flex gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => setIsEditing(true)}
-          >
-            <Pencil className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-destructive hover:text-destructive"
-            onClick={onRemove}
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+
+        {/* Right side - avatars + actions */}
+        <div className="flex items-center gap-2">
+          {/* Stacked avatars with colored ring */}
+          <div className="flex -space-x-2">
+            {selectedParticipants.length > 0 ? (
+              selectedParticipants.slice(0, 4).map((p, idx) => (
+                <div
+                  key={p.id}
+                  className="relative"
+                  style={{ zIndex: selectedParticipants.length - idx }}
+                >
+                  <ParticipantAvatar participant={p} className="h-7 w-7" />
+                </div>
+              ))
+            ) : (
+              <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                ?
+              </div>
+            )}
+            {selectedParticipants.length > 4 && (
+              <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs font-medium ring-2 ring-muted-foreground/30">
+                +{selectedParticipants.length - 4}
+              </div>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditing(true);
+              }}
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-destructive hover:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove();
+              }}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Participants */}
-      <ParticipantsSelector
-        selectedIds={claim.participantIds}
-        participants={participants}
-        onChange={(ids) => onUpdate({ ...claim, participantIds: ids })}
-      />
+      {/* Expanded content - participants selector */}
+      {isExpanded && (
+        <div className="px-3 py-2 border-t bg-background">
+          <ParticipantsSelector
+            selectedIds={claim.participantIds}
+            participants={participants}
+            onChange={(ids) => onUpdate({ ...claim, participantIds: ids })}
+          />
+        </div>
+      )}
 
-      {/* Mini Bar */}
-      <DistributionBar data={claim} className="h-1.5 rounded-full" />
+      {/* Distribution bar - always at bottom, no rounded corners */}
+      <DistributionBar data={claim} className="h-2" />
     </div>
   );
 };
@@ -239,6 +309,7 @@ interface AddClaimFormProps {
   onCancel: () => void;
   price: number;
   participants: { id: string; name: string; color: string }[];
+  defaultParticipantId?: string;
 }
 
 const AddClaimForm: React.FC<AddClaimFormProps> = ({
@@ -246,8 +317,12 @@ const AddClaimForm: React.FC<AddClaimFormProps> = ({
   onCancel,
   price,
   participants,
+  defaultParticipantId,
 }) => {
-  const [claim, setClaim] = useState<Claim>(createDefaultClaim);
+  const [claim, setClaim] = useState<Claim>(() => ({
+    ...createDefaultClaim(),
+    participantIds: defaultParticipantId ? [defaultParticipantId] : [],
+  }));
   const isValid = claim.value > 0;
 
   return (
@@ -378,15 +453,14 @@ const ParticipantsSelector: React.FC<ParticipantsSelectorProps> = ({
             onClick={() => handleToggle(p.id)}
             className={cn(
               "relative rounded-full transition-all",
-              isSelected
-                ? "ring-2 ring-offset-1"
-                : "opacity-40 hover:opacity-70"
+              !isSelected && "opacity-50 hover:opacity-80"
             )}
-            style={
-              isSelected ? { "--tw-ring-color": p.color } as React.CSSProperties : undefined
-            }
           >
-            <ParticipantAvatar participant={p} className="h-8 w-8" />
+            <ParticipantAvatar
+              participant={p}
+              className="h-8 w-8"
+              showRing={isSelected}
+            />
           </button>
         );
       })}

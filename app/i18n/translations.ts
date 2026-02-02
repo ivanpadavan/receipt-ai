@@ -55,6 +55,10 @@ const ru = {
   deleteParticipant: 'Удалить участника?',
   deleteParticipantConfirm: 'Вы уверены, что хотите удалить этого участника? Все его распределения по позициям будут сброшены.',
   delete: 'Удалить',
+
+  // Navigation
+  edit: 'Редактировать',
+  addShare: 'Добавить долю',
 };
 
 export type TranslationKey = keyof typeof ru;
@@ -117,6 +121,10 @@ const en: Translations = {
   deleteParticipant: 'Delete participant?',
   deleteParticipantConfirm: 'Are you sure you want to delete this participant? All their claim distributions will be reset.',
   delete: 'Delete',
+
+  // Navigation
+  edit: 'Edit',
+  addShare: 'Add share',
 };
 
 // Available languages

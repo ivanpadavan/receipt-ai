@@ -74,6 +74,7 @@ export interface ReceiptState {
             | "addFee"
     ) => void;
     proceed: () => void;
+    goBackToEditing: () => void;
     canProceed$: Observable<boolean>;
     openEditModalCommand$: Observable<EditModalProps>;
 }
@@ -430,6 +431,25 @@ export function useReceiptFormState(
     }, [formState.isValid, type, getValues, receiptId, setValue, proceed$]);
 
     // -------------------------------------------------------------------------
+    // 7.5. Go back to editing logic
+    // -------------------------------------------------------------------------
+    const goBackToEditing = useCallback(() => {
+        if (type !== "splitting") return;
+
+        const data = getValues();
+        apiClient
+            .updateReceipt({
+                id: receiptId,
+                data: { ...data, editingFinished: false },
+            })
+            .then(() => {
+                typeRef.current = "editing";
+                setValue("editingFinished" as keyof Receipt, false as never);
+                setForceUpdate((v) => v + 1);
+            });
+    }, [type, getValues, receiptId, setValue]);
+
+    // -------------------------------------------------------------------------
     // 8. canProceed Observable
     // -------------------------------------------------------------------------
     const canProceed$ = useMemo(() => of(formState.isValid), [formState.isValid]);
@@ -445,6 +465,7 @@ export function useReceiptFormState(
         },
         canProceed$,
         proceed,
+        goBackToEditing,
         openEditModal,
         openEditModalCommand$,
     };

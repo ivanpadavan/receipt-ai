@@ -95,7 +95,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({ onClose })
 
     return (
         <>
-            <DrawerContent className="max-h-[85vh] flex flex-col bg-gradient-to-b from-white to-gray-50">
+            <DrawerContent className="h-[85vh] flex flex-col bg-gradient-to-b from-white to-gray-50">
                 <DrawerHeader className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                     <DrawerTitle className="text-xl font-semibold text-gray-900">
                         {t("participants")}
@@ -139,7 +139,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({ onClose })
                     {isAdding && (
                         <div className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl border-2 border-dashed border-amber-500 mb-2">
                             <div
-                                className="w-8 h-8 rounded-full flex items-center justify-content font-semibold shrink-0"
+                                className="w-8 h-8 rounded-full flex items-center justify-center font-semibold shrink-0 text-lg"
                                 style={{
                                     backgroundColor: getNextColor(fields as ReceiptParticipant[]) + "20",
                                     color: getNextColor(fields as ReceiptParticipant[]),
