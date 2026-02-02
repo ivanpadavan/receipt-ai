@@ -1,7 +1,7 @@
 "use client";
 
 import { EditModalProps } from "@/app/receipt/[id]/useReceiptFormState";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { t } from "@/app/i18n/translations";
 import {
   DrawerClose,
@@ -387,23 +387,18 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
     if (!claim) return;
 
     if (index === "new") {
-      if (claim.value > 0) {
-        setLocalPosition(prev => ({ ...prev, claims: [...prev.claims, claim] }));
-        // Reset the 'new' draft to default for next addition
-        updateDraft("new", {
-          ...createDefaultClaim(),
-          participantIds: currentUserParticipantId ? [currentUserParticipantId] : [],
-        });
+      if (claim.value <= 0) {
+        return;
       }
+      setLocalPosition(prev => ({ ...prev, claims: [...prev.claims, claim] }));
     } else {
       // Update existing
       setLocalPosition(prev => ({
         ...prev,
         claims: prev.claims.map((c, i) => i === index ? claim : c)
       }));
-      // Close edit mode for this item
-      removeDraft(index);
     }
+    removeDraft(index);
   };
 
   const handleDeleteClaim = (index: number) => {
@@ -434,6 +429,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
     onSave(localPosition);
   };
 
+  useEffect(() => onSave(localPosition), [onSave, localPosition]);
+
   // "new" draft claim
   const newDraftClaim = draftClaims.get("new");
 
@@ -449,12 +446,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         <span className="font-semibold text-foreground">{localPosition.overall} ₽</span>
       </div>
 
-      {/* Add share button - only if "new" form is NOT active? Or always allow adding?
-          If we allow multiple new items, we need a list of new items.
-          Currently we have only one "new" key. So if "new" exists, we are adding.
-          Should hide button if "new" is visible.
-      */}
-      {!draftClaims.has("new") && (
+      {!newDraftClaim && (
         <div className="px-4 pb-3">
           <Button
             variant="outline"
