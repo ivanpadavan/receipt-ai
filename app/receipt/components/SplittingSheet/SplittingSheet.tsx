@@ -71,25 +71,6 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
 }) => {
   return (
     <div className="flex items-center gap-2 p-3 w-full border-b bg-muted/20">
-      {/* Actions (Left) */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-        onClick={onCancel}
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
-        onClick={onSave}
-        disabled={claim.value <= 0}
-      >
-        <Check className="h-5 w-5" />
-      </Button>
-
       {/* Input Value */}
       <Input
         type="number"
@@ -114,7 +95,7 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
           onUpdate({ ...claim, type: v })
         }
       >
-        <SelectTrigger className="w-[100px] h-9 bg-background">
+        <SelectTrigger className="w-[140px] h-9 bg-background">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -122,6 +103,24 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
           <SelectItem value="amount">{t("amount")}</SelectItem>
         </SelectContent>
       </Select>
+      {/* Actions */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+        onClick={onCancel}
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+        onClick={onSave}
+        disabled={claim.value <= 0}
+      >
+        <Check className="h-5 w-5" />
+      </Button>
     </div>
   );
 };
@@ -267,6 +266,7 @@ interface ClaimRowProps {
   participants: { id: string; name: string; color: string }[];
   onUpdate: (claim: Claim) => void;
   header: React.ReactNode;
+  defaultOpen?: boolean;
 }
 
 const ClaimRow: React.FC<ClaimRowProps> = ({
@@ -274,14 +274,15 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
   participants,
   onUpdate,
   header,
+  defaultOpen,
 }) => {
   return (
-    <Accordion type="single" collapsible>
+    <Accordion type="single" collapsible defaultValue={defaultOpen ? "1" : undefined}>
       <AccordionItem
         value="1"
         className="border rounded-md overflow-hidden data-[state=open]:bg-muted/50"
       >
-        <AccordionHeader className="flex items-stretch hover:bg-muted/30 transition-colors bg-background">
+        <AccordionHeader className="flex items-stretch hover:bg-muted/30 transition-colors bg-background h-[4rem]">
           {header}
         </AccordionHeader>
 
@@ -426,10 +427,16 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
   };
 
   const handleDone = () => {
-    onSave(localPosition);
-  };
+    const finalPosition = structuredClone(localPosition);
 
-  useEffect(() => onSave(localPosition), [onSave, localPosition]);
+    // Auto-save NEW draft only
+    const newClaim = draftClaims.get("new");
+    if (newClaim && newClaim.value > 0) {
+      finalPosition.claims.push(newClaim);
+    }
+
+    onSave(finalPosition);
+  };
 
   // "new" draft claim
   const newDraftClaim = draftClaims.get("new");
@@ -443,7 +450,9 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       {/* Position info */}
       <div className="px-4 py-2 text-center text-sm text-muted-foreground">
         {localPosition.quantity} {t("pcs")} × {localPosition.price} ₽ ={" "}
-        <span className="font-semibold text-foreground">{localPosition.overall} ₽</span>
+        <span className="font-semibold text-foreground">
+          {localPosition.overall} ₽
+        </span>
       </div>
 
       {!newDraftClaim && (
@@ -467,6 +476,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
             claim={newDraftClaim}
             participants={participants}
             onUpdate={(c) => updateDraft("new", c)}
+            defaultOpen={true}
             header={
               <EditingHeader
                 claim={newDraftClaim}
@@ -489,9 +499,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
               key={index}
               claim={currentClaim}
               participants={participants}
-              onUpdate={(c) => isEditing
-                ? updateDraft(index, c)
-                : handleUpdateClaim(index, c)
+              onUpdate={(c) =>
+                isEditing ? updateDraft(index, c) : handleUpdateClaim(index, c)
               }
               header={
                 isEditing ? (
@@ -517,7 +526,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       </div>
 
       {/* Footer - Distribution + Done button */}
-      <div className="mt-auto border-t bg-background">
+      <DrawerFooter className="pt-2 border-t bg-background">
         <div className="px-4 py-3">
           <div className="flex justify-between text-sm mb-2">
             <span className="text-muted-foreground">{t("distributed")}</span>
@@ -525,15 +534,15 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
               {totalClaimed.toFixed(0)} / {localPosition.overall} ₽
             </span>
           </div>
-          <DistributionBar data={effectivePosition} className="h-3 rounded-full" />
+          <DistributionBar
+            data={effectivePosition}
+            className="h-3 rounded-full"
+          />
         </div>
-
-        <DrawerFooter className="pt-2">
-          <DrawerClose asChild>
-            <Button onClick={handleDone}>{t("done")}</Button>
-          </DrawerClose>
-        </DrawerFooter>
-      </div>
+        <DrawerClose asChild>
+          <Button onClick={handleDone}>{t("done")}</Button>
+        </DrawerClose>
+      </DrawerFooter>
     </DrawerContent>
   );
 };
