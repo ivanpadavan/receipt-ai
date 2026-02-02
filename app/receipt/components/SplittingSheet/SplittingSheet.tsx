@@ -67,7 +67,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
     structuredClone(position)
   );
 
-  // Manage accordion state to restore it after editing
+  // Manage accordion state
   const [openItems, setOpenItems] = useState<string[]>([]);
 
   // Find current user's participant ID
@@ -79,13 +79,14 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
   const [draftClaim, setDraftClaim] = useState<{
     index: number | "new";
     claim: Claim;
-    wasOpen?: boolean; // To restore accordion state
+    wasOpen?: boolean;
   } | null>(() => ({
     index: "new",
     claim: {
       ...createDefaultClaim(),
       participantIds: currentUserParticipantId ? [currentUserParticipantId] : [],
     },
+    wasOpen: true
   }));
 
   // Create an effective position that includes the draft changes for live preview
@@ -119,13 +120,18 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       claim: {
         ...createDefaultClaim(),
         participantIds: currentUserParticipantId ? [currentUserParticipantId] : [],
-      }
+      },
+      wasOpen: true
     });
   };
 
   const restoreAccordionState = (draft: NonNullable<typeof draftClaim>) => {
+    // If we were editing an existing item, restore its state
     if (draft.index !== "new") {
       const id = `claim-${draft.index}`;
+      // If the user explicitly expanded/collapsed during edit, we might want to respect that?
+      // But requirement says "if it was closed at that moment". 
+      // Current logic: restore to what it was BEFORE edit.
       if (draft.wasOpen) {
         setOpenItems(prev => Array.from(new Set([...prev, id])));
       } else {
@@ -166,9 +172,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       ...prev,
       claims: prev.claims.filter((_, i) => i !== index),
     }));
-    setOpenItems(prev => prev.filter(i => i !== `claim-${index}`)); // Cleanup ID
+    setOpenItems(prev => prev.filter(i => i !== `claim-${index}`));
 
-    // If we were editing this one, close draft
     if (draftClaim && draftClaim.index === index) {
       setDraftClaim(null);
     }
@@ -179,7 +184,6 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
     setDraftClaim({ index, claim, wasOpen: isOpen });
   };
 
-  // Helper for quick updates from view mode
   const handleUpdateClaim = (index: number, updatedClaim: Claim) => {
     setLocalPosition((prev) => ({
       ...prev,
@@ -203,7 +207,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         <span className="font-semibold text-foreground">{localPosition.overall} ₽</span>
       </div>
 
-      {/* Add Button on top (visible only if NOT adding new) */}
+      {/* Add Button on top */}
       {(!draftClaim || draftClaim.index !== "new") && (
         <div className="px-4 pb-3">
           <Button
@@ -228,6 +232,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
             onSave={handleSaveDraft}
             onCancel={handleCancelDraft}
             isNew={true}
+            defaultOpen={true}
           />
         )}
 
@@ -251,6 +256,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
                     onSave={handleSaveDraft}
                     onCancel={handleCancelDraft}
                     isNew={false}
+                    defaultOpen={!!draftClaim.wasOpen}
                   />
                 </div>
               );
@@ -325,7 +331,7 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
     >
       <AccordionHeader className="flex items-stretch hover:bg-muted/30 transition-colors">
         <AccordionTrigger
-          className="flex-1 px-3 py-3 hover:no-underline [&>svg]:hidden"
+          className="flex-1 px-3 py-3 hover:no-underline"
         >
           <div className="flex justify-between items-center w-full">
             {/* Claim info - left side */}
@@ -415,17 +421,20 @@ interface ClaimEditRowProps {
   onSave: () => void;
   onCancel: () => void;
   isNew: boolean;
+  defaultOpen: boolean;
 }
 
 const ClaimEditRow: React.FC<ClaimEditRowProps> = ({
   claim,
-  price,
   participants,
   onChange,
   onSave,
   onCancel,
-  isNew
+  defaultOpen
 }) => {
+  // Local state to toggle visibility (like accordion)
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
   return (
     <div className="border rounded-md overflow-hidden bg-background">
       <div className="flex items-center gap-2 p-3 border-b bg-muted/20">
@@ -476,18 +485,31 @@ const ClaimEditRow: React.FC<ClaimEditRowProps> = ({
             <SelectItem value="amount">{t("amount")}</SelectItem>
           </SelectContent>
         </Select>
+
+        {/* Toggle Visibility (Chevron) - Right side */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 ml-1"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <ChevronDown className={cn("h-4 w-4 transition-transform", !isOpen && "-rotate-90")} />
+        </Button>
       </div>
 
-      {/* Participants Selector */}
-      <div className="px-3 py-2 bg-background">
-        <ParticipantsSelector
-          selectedIds={claim.participantIds}
-          participants={participants}
-          onChange={(ids) => onChange({ ...claim, participantIds: ids })}
-        />
-      </div>
+      {/* Participants Selector (Collapsible) */}
+      {isOpen && (
+        <div className="px-3 py-2 bg-background animate-in slide-in-from-top-1 duration-200">
+          <ParticipantsSelector
+            selectedIds={claim.participantIds}
+            participants={participants}
+            onChange={(ids) => onChange({ ...claim, participantIds: ids })}
+          />
+        </div>
+      )}
 
-      {/* Live Distribution Bar */}
+      {/* Live Distribution Bar (Always visible in edit mode? Or only when open? 
+               Usually better always visible to see effect of value change) */}
       <DistributionBar data={claim} className="h-2" />
     </div>
   );
