@@ -323,7 +323,6 @@ export function useReceiptFormState(
               setValue(`positions.${idx}`, data as ReceiptPosition, {
                 shouldValidate: true,
               });
-              recalculateTotals();
             },
             onRemove: () => {
               positionsField.remove(idx);
@@ -344,7 +343,6 @@ export function useReceiptFormState(
               setValue(`${modType}.${idx}`, data as ReceiptModifier, {
                 shouldValidate: true,
               });
-              recalculateTotals();
             },
             onRemove: () => {
               if (modType === "fees") {
@@ -375,7 +373,6 @@ export function useReceiptFormState(
           header: "addPosition",
           onSave: (data) => {
             positionsField.prepend(data as ReceiptPosition);
-            recalculateTotals();
           },
         });
       } else if (args === "addFee") {
@@ -387,7 +384,6 @@ export function useReceiptFormState(
           header: "addFee",
           onSave: (data) => {
             feesField.prepend(data as ReceiptModifier);
-            recalculateTotals();
           },
         });
       } else if (args === "addDiscount") {
@@ -399,7 +395,6 @@ export function useReceiptFormState(
           header: "addDiscount",
           onSave: (data) => {
             discountsField.prepend(data as ReceiptModifier);
-            recalculateTotals();
           },
         });
       }

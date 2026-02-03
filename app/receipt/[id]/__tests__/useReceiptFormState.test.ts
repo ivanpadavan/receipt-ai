@@ -184,6 +184,36 @@ describe("useReceiptFormState", () => {
         `);
   });
 
+  it("should emit modal props for addFee", () => {
+    const { result } = renderHook(() => useReceiptFormState(validReceipt));
+
+    act(() => {
+      result.current.openEditModal("addFee");
+    });
+    const props = result.current.editModalProps;
+    expect(props).not.toBeNull();
+    expect(props?.fieldType).toBe("modifier");
+    expect(props?.modifierType).toBe("fees");
+    expect(props?.header).toBe("addFee");
+    expect(props?.initialValue).toBeDefined();
+
+    // Simulate save
+    const newFee = { id: "new-fee", name: "Service", value: 10 };
+    act(() => {
+      props?.onSave(newFee);
+    });
+
+    // Check if fee was added
+    const values = result.current.scenario.form.getValues();
+    expect(values.fees[0].name).toBe("Service"); // Prepend used
+    expect(values.fees[1].name).toBe("Tax");
+
+    // Check totals updated
+    // Original GT: 23. Added Fee 10. Discount unchanged. Positions unchanged.
+    // 20 + (5 + 10) - 2 = 33.
+    expect(values.totals.grandTotal).toBe(33);
+  });
+
   it("should have correct permissions for different modes", () => {
     // Editing mode
     const { result: editResult } = renderHook(() =>

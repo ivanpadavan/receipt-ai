@@ -19,7 +19,10 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
     receipt,
     onBack,
 }) => {
-    const balances = useMemo(() => calculateBalances(receipt), [receipt]);
+    const balances = useMemo(() => {
+        const all = calculateBalances(receipt);
+        return all.filter(b => b.finalAmount > 0.01);
+    }, [receipt]);
 
     // Sum of distributed amounts
     const distributedTotal = useMemo(
@@ -108,7 +111,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
                                     </span>
                                     {Math.abs(balance.finalAmount - balance.baseAmount) > 0.1 && (
                                         <span className="text-xs text-muted-foreground">
-                                            {balance.baseAmount.toFixed(0)} + {(balance.finalAmount - balance.baseAmount).toFixed(0)}
+                                            {balance.baseAmount.toFixed(0)} {(balance.finalAmount - balance.baseAmount) > 0 ? "+" : "−"} {Math.abs(balance.finalAmount - balance.baseAmount).toFixed(0)}
                                         </span>
                                     )}
                                 </div>
