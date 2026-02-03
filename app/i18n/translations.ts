@@ -59,6 +59,11 @@ const ru = {
   // Navigation
   edit: 'Редактировать',
   addShare: 'Добавить долю',
+  receipt: 'Чек',
+  remaining: 'Осталось',
+  overpaid: 'Переплата',
+  copiedToClipboard: 'Скопировано в буфер',
+  noClaims: 'Пока нет распределений',
 };
 
 export type TranslationKey = keyof typeof ru;
@@ -125,6 +130,11 @@ const en: Translations = {
   // Navigation
   edit: 'Edit',
   addShare: 'Add share',
+  receipt: 'Receipt',
+  remaining: 'Remaining',
+  overpaid: 'Overpaid',
+  copiedToClipboard: 'Copied to clipboard',
+  noClaims: 'No claims yet',
 };
 
 // Available languages

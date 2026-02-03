@@ -327,12 +327,25 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         {localPosition.name}
       </DrawerTitle>
 
-      {/* Position info */}
-      <div className="px-4 py-2 text-center text-sm text-muted-foreground">
-        {localPosition.quantity} {t("pcs")} × {localPosition.price} ₽ ={" "}
-        <span className="font-semibold text-foreground">
-          {localPosition.overall} ₽
-        </span>
+      <div className="px-4 py-2 text-center text-sm text-muted-foreground flex flex-col items-center gap-1">
+        <div>
+          {localPosition.quantity} {t("pcs")} × {localPosition.price} ₽ ={" "}
+          <span className="font-semibold text-foreground">
+            {localPosition.overall} ₽
+          </span>
+        </div>
+
+        {/* Validation Status */}
+        {(totalClaimed > localPosition.overall + 0.01) && (
+          <div className="text-destructive font-medium text-xs bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
+            {t("overpaid") || "Over"}: {(totalClaimed - localPosition.overall).toFixed(2)} ₽
+          </div>
+        )}
+        {(totalClaimed < localPosition.overall - 0.01) && (
+          <div className="text-amber-600 font-medium text-xs bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+            {t("remaining") || "Left"}: {(localPosition.overall - totalClaimed).toFixed(2)} ₽
+          </div>
+        )}
       </div>
 
       {!newDraftClaim && (
@@ -421,7 +434,12 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
           />
         </div>
         <DrawerClose asChild>
-          <Button onClick={handleDone}>{t("done")}</Button>
+          <Button
+            onClick={handleDone}
+            disabled={totalClaimed > localPosition.overall + 0.01}
+          >
+            {t("done")}
+          </Button>
         </DrawerClose>
       </DrawerFooter>
     </DrawerContent>

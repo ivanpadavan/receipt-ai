@@ -46,12 +46,16 @@ export const calculateBalances = (receipt: Receipt): ParticipantBalance[] => {
                     balance.baseAmount += amountPerParticipant;
 
                     let desc = "";
-                    if (claim.type === "quantity") {
-                        // If shared, show fraction?
-                        const qty = claim.value / claim.participantIds.length;
-                        desc = `${qty.toFixed(2)} × ${pos.price} ₽`; // e.g. "0.5 × 100"
-                    } else {
-                        desc = `${amountPerParticipant.toFixed(0)} ₽`;
+                    if (pos.price > 0) {
+                        // Calculate quantity for both types (quantity or fixed amount)
+                        // amountPerParticipant is already calculated based on split
+                        const qty = amountPerParticipant / pos.price;
+
+                        // Format: 0.5 × 100
+                        // Use up to 3 decimal places for amount-derived quantity to be precise enough? 
+                        // Or sticking to 2 is fine for UI.
+                        const qtyStr = Number.isInteger(qty) ? qty.toString() : qty.toFixed(2).replace(/\.?0+$/, "");
+                        desc = `${qtyStr} × ${pos.price} ₽`;
                     }
 
                     balance.items.push({
