@@ -397,9 +397,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
               claim={currentClaim}
               participants={participants}
               onUpdate={(c) =>
-                isEditing
-                  ? updateDraft(claim.id, c)
-                  : handleUpdateClaim(claim.id, c)
+                isEditing ? updateDraft(claim.id, c) : handleUpdateClaim(c)
               }
               header={
                 isEditing ? (
@@ -414,8 +412,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
                     claim={currentClaim}
                     price={localPosition.price}
                     participants={participants}
-                    onEditStart={() => handleEditClick(claim.id, claim)}
-                    onRemove={() => handleDeleteClaim(claim.id)}
+                    onEditStart={() => handleEditClick(claim)}
+                    onRemove={() => handleDeleteClaim(claim)}
                   />
                 )
               }

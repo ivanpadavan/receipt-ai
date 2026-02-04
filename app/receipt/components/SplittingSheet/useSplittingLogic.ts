@@ -120,7 +120,8 @@ export const useSplittingLogic = ({
     removeDraft(id);
   };
 
-  const handleDeleteClaim = (id: string) => {
+  const handleDeleteClaim = (claim: ReceiptPositionClaim) => {
+    const id = claim.id;
     const nextPosition = {
       ...localPosition,
       claims: localPosition.claims.filter((c) => c.id !== id),
@@ -135,14 +136,12 @@ export const useSplittingLogic = ({
     }
   };
 
-  const handleEditClick = (id: string, claim: ReceiptPositionClaim) => {
-    updateDraft(id, claim);
+  const handleEditClick = (claim: ReceiptPositionClaim) => {
+    updateDraft(claim.id, claim);
   };
 
-  const handleUpdateClaim = (
-    id: string,
-    updatedClaim: ReceiptPositionClaim,
-  ) => {
+  const handleUpdateClaim = (updatedClaim: ReceiptPositionClaim) => {
+    const id = updatedClaim.id;
     // Only used for update from view mode if allowed
     const nextPosition = {
       ...localPosition,
