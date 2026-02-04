@@ -34,6 +34,8 @@ const ru = {
   warning: 'Предупреждение',
   error: 'Ошибка',
   close: 'Закрыть',
+  useServer: 'Принять серверное',
+  keepMine: 'Оставить моё',
 
   // Splitting mode
   splitEvenly: 'Поделить поровну',
@@ -105,6 +107,8 @@ const en: Translations = {
   warning: 'Warning',
   error: 'Error',
   close: 'Close',
+  useServer: 'Use server',
+  keepMine: 'Keep mine',
 
   // Splitting mode
   splitEvenly: 'Split evenly',

@@ -1,6 +1,11 @@
 "use client";
 
-import { useForm, useFieldArray, UseFormReturn } from "react-hook-form";
+import {
+  useForm,
+  useFieldArray,
+  UseFormReturn,
+  FieldPath,
+} from "react-hook-form";
 import { useEffect, useMemo, useRef, useCallback, useState } from "react";
 import {
   Subject,
@@ -51,6 +56,8 @@ export interface EditModalProps {
   fieldType: "position" | "modifier" | "totals";
   // Для модификаторов: fee или discount
   modifierType?: "fees" | "discounts";
+  // Field path for syncing edits into react-hook-form
+  fieldPath?: FieldPath<Receipt>;
   // Копия данных для редактирования (не привязана к основной форме)
   initialValue: ReceiptPosition | ReceiptModifier | Receipt["totals"];
   // Заголовок модального окна
@@ -311,7 +318,6 @@ export function useReceiptFormState(
     (
       args:
         | { type: "position"; index: number }
-        | { type: "splitting-position"; index: number }
         | {
           type: "modifier";
           modifierType: "fees" | "discounts";
@@ -330,6 +336,7 @@ export function useReceiptFormState(
           const idx = args.index;
           setEditModalProps({
             fieldType: "position",
+            fieldPath: `positions.${idx}`,
             initialValue: position,
             header: "editPosition",
             onSave: (data) => {
@@ -350,6 +357,7 @@ export function useReceiptFormState(
           setEditModalProps({
             fieldType: "modifier",
             modifierType: modType,
+            fieldPath: `${modType}.${idx}`,
             initialValue: modifier,
             header: modType === "fees" ? "editFee" : "editDiscount",
             onSave: (data) => {
@@ -371,12 +379,13 @@ export function useReceiptFormState(
           });
         } else if (args.type === "totals") {
           const totals = structuredClone(getValues("totals"));
-          setEditModalProps({
-            fieldType: "totals",
-            initialValue: totals,
-            header: "overall",
-            onSave: (data) => {
-              setValue("totals", data as Receipt["totals"], {
+        setEditModalProps({
+          fieldType: "totals",
+          fieldPath: "totals",
+          initialValue: totals,
+          header: "overall",
+          onSave: (data) => {
+            setValue("totals", data as Receipt["totals"], {
                 shouldValidate: true,
               });
             },

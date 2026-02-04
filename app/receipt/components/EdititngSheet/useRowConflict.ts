@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { UseFormReturn } from "react-hook-form";
+import { FieldPath, UseFormReturn } from "react-hook-form";
 import { Receipt, ReceiptPosition, ReceiptModifier } from "@/model/receipt/model";
 import { isEqual } from "lodash-es";
 
@@ -13,7 +13,7 @@ interface UseRowConflictProps<T extends EditableValue> {
   /** The main form to watch for external changes */
   form: UseFormReturn<Receipt>;
   /** Path to get current value from form state */
-  getFormValue: (data: Receipt) => T | undefined;
+  fieldPath?: FieldPath<Receipt>;
 }
 
 export type ConflictType = 'deleted' | 'modified';
@@ -32,15 +32,22 @@ export const useRowConflict = <T extends EditableValue>({
   localValue,
   initialValue,
   form,
-  getFormValue,
+  fieldPath,
 }: UseRowConflictProps<T>) => {
   const [conflict, setConflict] = useState<ConflictState<T> | null>(null);
 
   useEffect(() => {
+    if (!fieldPath) return;
     const subscription = form.watch((formData) => {
       if (!formData) return;
-
-      const liveValue = getFormValue(formData as Receipt);
+      const liveValue = fieldPath
+        .split(".")
+        .reduce<unknown>((acc, key) => {
+          if (acc && typeof acc === "object") {
+            return (acc as Record<string, unknown>)[key];
+          }
+          return undefined;
+        }, formData) as T | undefined;
 
       // Case 1: Deleted
       if (!liveValue) {
@@ -70,7 +77,7 @@ export const useRowConflict = <T extends EditableValue>({
     });
 
     return () => subscription.unsubscribe();
-  }, [form, initialValue, localValue, getFormValue]);
+  }, [form, initialValue, localValue, fieldPath]);
 
   const resolveConflict = (action: 'accept' | 'keep') => {
     if (!conflict) return null;

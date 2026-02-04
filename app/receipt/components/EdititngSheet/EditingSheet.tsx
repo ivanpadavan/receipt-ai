@@ -19,6 +19,7 @@ import {
   Receipt,
 } from "@/model/receipt/model";
 import { useReceiptState } from "../ReceiptForm";
+import { useRowConflict } from "./useRowConflict";
 
 type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
 
@@ -37,7 +38,7 @@ const isTotals = (v: EditableValue): v is Receipt["totals"] =>
 // Get editable fields based on value type and mode
 const getEditableFields = (
   value: EditableValue,
-  mode: "editing" | "validation" | "splitting"
+  mode: "editing" | "validation" | "splitting" | "summary"
 ): { key: string; label: TranslationKey; type: "string" | "number"; disabled?: boolean }[] => {
   if (isPosition(value)) {
     // In editing mode, overall is computed and should be disabled
@@ -68,9 +69,11 @@ export const EditingSheet: React.FC<EditModalProps> = ({
   header,
   onSave,
   onRemove,
+  fieldPath,
 }) => {
-  // Get current mode from context
-  const { scenario: { type: mode } } = useReceiptState();
+  const receiptState = useReceiptState();
+  const { scenario: { type, form } } = receiptState;
+  const { setValue } = form;
 
   // Local state - работаем с копией данных
   const [localValue, setLocalValue] = useState<EditableValue>(() =>
@@ -82,6 +85,13 @@ export const EditingSheet: React.FC<EditModalProps> = ({
   const toastId = useRef<string | number | undefined>(undefined);
   const { closing } = useWithinDrawerContext();
 
+  const { conflict, resolveConflict } = useRowConflict({
+    localValue,
+    initialValue,
+    form,
+    fieldPath,
+  });
+
   // Dismiss toast on closing
   useEffect(
     () => (closing && toast.dismiss(toastId.current), void 0),
@@ -89,7 +99,7 @@ export const EditingSheet: React.FC<EditModalProps> = ({
   );
 
   // Get editable fields for this value type
-  const fields = getEditableFields(localValue, mode);
+  const fields = getEditableFields(localValue, type);
 
   // Validation
   const validate = useCallback((value: EditableValue): Record<string, string> => {
@@ -123,12 +133,12 @@ export const EditingSheet: React.FC<EditModalProps> = ({
   }, [localValue, validate]);
 
   // Handle field change with auto-calculation for positions
-  const handleChange = (key: string, rawValue: string, type: "string" | "number") => {
+  const handleChange = (key: string, rawValue: string, valueType: "string" | "number") => {
     setTouched((prev) => new Set(prev).add(key));
 
     const newValue = { ...localValue } as Record<string, unknown>;
 
-    if (type === "number") {
+    if (valueType === "number") {
       // Sanitize numeric input
       const sanitized = rawValue.replace(/,/g, ".");
       const parsed = parseFloat(sanitized);
@@ -138,7 +148,7 @@ export const EditingSheet: React.FC<EditModalProps> = ({
     }
 
     // Auto-calculate overall for positions in editing mode
-    if (isPosition(localValue) && mode === "editing" && (key === "price" || key === "quantity")) {
+    if (isPosition(localValue) && type === "editing" && (key === "price" || key === "quantity")) {
       const price = key === "price" ? (newValue.price as number) : (localValue.price as number);
       const quantity = key === "quantity" ? (newValue.quantity as number) : (localValue.quantity as number);
       newValue.overall = price * quantity;
@@ -149,6 +159,7 @@ export const EditingSheet: React.FC<EditModalProps> = ({
 
   // Check if form is valid
   const isValid = Object.keys(errors).length === 0;
+  const isSaveDisabled = !isValid || conflict?.type === "deleted";
 
   // Show errors only for touched fields (except for existing items)
   const hideErrorsUntilTouched = !onRemove;
@@ -170,6 +181,40 @@ export const EditingSheet: React.FC<EditModalProps> = ({
     <DrawerContent>
       <DrawerTitle className={"px-4 pt-4 text-center"}>{t(header)}</DrawerTitle>
       <div className={"p-4"}>
+        {conflict && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+            <p className="text-sm text-amber-800">{conflict.message}</p>
+            {conflict.type === "modified" && (
+              <div className="mt-2 flex space-x-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    const serverValue = resolveConflict("accept");
+                    if (serverValue && fieldPath) {
+                      setLocalValue(serverValue);
+                      setValue(fieldPath, serverValue as never, { shouldDirty: true });
+                    }
+                  }}
+                >
+                  {t("useServer")}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    resolveConflict("keep");
+                    if (fieldPath) {
+                      setValue(fieldPath, localValue as never, { shouldDirty: true });
+                    }
+                  }}
+                >
+                  {t("keepMine")}
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
         {visibleErrors.length > 0 && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
             <ul className="list-disc pl-5 space-y-1">
@@ -221,7 +266,7 @@ export const EditingSheet: React.FC<EditModalProps> = ({
               </Button>
             </DrawerClose>
             <DrawerClose asChild>
-              <Button type="button" disabled={!isValid} onClick={handleSave}>
+              <Button type="button" disabled={isSaveDisabled} onClick={handleSave}>
                 {t("save")}
               </Button>
             </DrawerClose>
