@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ReceiptParticipant,
   ReceiptPosition,
@@ -54,10 +54,10 @@ export const useSplittingLogic = ({
     });
   };
 
-  const removeDraft = (id: string | "new") => {
+  const removeDraft = (...ids: (string | "new")[]) => {
     setDraftClaims((prev) => {
       const next = new Map(prev);
-      next.delete(id);
+      ids.forEach((id) => next.delete(id));
       return next;
     });
   };
@@ -166,6 +166,21 @@ export const useSplittingLogic = ({
   };
 
   const newDraftClaim = draftClaims.get("new");
+
+  useEffect(() => {
+    if (localPosition === initialValue) {
+      return;
+    }
+    const deleteDrafts = new Set<string>();
+    for (const newClaim of initialValue.claims) {
+      if (draftClaims.has(newClaim.id)) deleteDrafts.add(newClaim.id);
+    }
+    if (deleteDrafts.size) {
+      removeDraft(...deleteDrafts);
+    }
+    console.log(initialValue);
+    setLocalPosition(initialValue);
+  }, [localPosition, initialValue, removeDraft, draftClaims]);
 
   return {
     localPosition,
