@@ -27,7 +27,7 @@ import { distinctUntilChanged, Observable, startWith } from "rxjs";
 import { receiptSchema } from "@/model/receipt/schema";
 import { Drawer } from "@/components/ui/drawer";
 import { isEqual } from "lodash-es";
-import { FormProvider, useFieldArray, useWatch } from "react-hook-form";
+import { FormProvider, useWatch } from "react-hook-form";
 import { Pencil } from "lucide-react";
 
 interface EditableReceiptFormProps {

@@ -430,6 +430,17 @@ export function useReceiptFormState(
     ],
   );
 
+  /*
+  useEffect(() => {
+    if (!editModalProps || editModalProps.fieldType !== 'position' || type !== 'splitting') return;
+
+    setEditModalProps((prev) => {
+      if (!prev || !prev.index) return prev;
+      return { ...prev, initialValue: initialData.positions[prev.index] };
+    });
+  }, [initialData, editModalProps, type]);
+  */
+
   // -------------------------------------------------------------------------
   // 7. Proceed logic
   // -------------------------------------------------------------------------
