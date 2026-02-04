@@ -5,10 +5,9 @@ import { useEffect, useMemo, useRef, useCallback, useState } from "react";
 import {
   Subject,
   switchMap,
-  from,
   ignoreElements,
   distinctUntilChanged,
-  debounceTime,
+  debounceTime, startWith,
 } from "rxjs";
 import { isEqual } from "lodash-es";
 
@@ -25,6 +24,8 @@ import {
 } from "@/model/receipt/model";
 import { apiClient } from "@/app/api-client";
 import { createReceiptResolver } from "./receiptResolver";
+import { useObservable } from "@/hooks/rx/useObservable";
+import { map, tap } from "rxjs/operators";
 
 // ============================================================================
 // Types
@@ -165,12 +166,17 @@ export function useReceiptFormState(
   // 2. Initialize react-hook-form
   // -------------------------------------------------------------------------
   const form = useForm<Receipt>({
-    defaultValues: initialData,
+    values: initialData,
+    resetOptions: {
+      keepErrors: true,
+    },
     mode: "onChange",
     resolver: createReceiptResolver({ type }),
   });
 
   const { control, watch, setValue, getValues, formState } = form;
+  const isResettingRef = useRef(false);
+  const lastInitialDataRef = useRef(initialData);
 
   // -------------------------------------------------------------------------
   // 3. Field arrays
@@ -234,39 +240,54 @@ export function useReceiptFormState(
   }, [type, watch, getValues, setValue]);
 
   // -------------------------------------------------------------------------
+  // 4.5. Sync external receipt updates into the form
+  // -------------------------------------------------------------------------
+  useEffect(() => {
+    if (lastInitialDataRef.current === initialData) return;
+    lastInitialDataRef.current = initialData;
+
+    const currentValues = getValues();
+    if (isEqual(currentValues, initialData)) return;
+
+    isResettingRef.current = true;
+    form.reset(initialData, {
+      keepErrors: true,
+    });
+    setTimeout(() => {
+      isResettingRef.current = false;
+    }, 0);
+  }, [initialData, form, getValues]);
+
+  // -------------------------------------------------------------------------
   // 5. Auto-save effect (для editing режима)
   // -------------------------------------------------------------------------
   const updateReceiptRef = useRef<Subject<Receipt>>(new Subject<Receipt>());
-
   // Setup auto-save pipeline
-  useEffect(() => {
-    if (type !== "editing" || !receiptId) return;
-
-    const subscription = updateReceiptRef.current
-      .pipe(
-        debounceTime(500),
+  useObservable(
+    useMemo(() => {
+      return updateReceiptRef.current.pipe(
+        startWith(initialData),
+        debounceTime(100),
+        map((v, i) => (console.log('tap', v, i), v)),
         distinctUntilChanged(isEqual),
-        switchMap((data) =>
-          from(apiClient.updateReceipt({ id: receiptId, data })).pipe(
-            ignoreElements(),
-          ),
-        ),
-      )
-      .subscribe({
-        error: (err) => console.error("Auto-save error:", err),
-      });
-
-    return () => subscription.unsubscribe();
-  }, [type, receiptId]);
+        switchMap((data) => {
+          console.log({ data });
+          return apiClient.updateReceipt({ data, id: receiptId })
+        }),
+        ignoreElements(),
+      );
+    }, [receiptId]),
+  );
 
   // Watch for form changes and trigger auto-save
   useEffect(() => {
-    if (type !== "editing" || !receiptId) return;
-
     const subscription = watch(() => {
+      if (isResettingRef.current) return;
       // Use getValues() to get complete form data instead of partial watch data
       const completeData = getValues();
+
       if (completeData && updateReceiptRef.current) {
+        console.log({ completeData });
         updateReceiptRef.current.next(completeData);
       }
     });
@@ -300,10 +321,10 @@ export function useReceiptFormState(
         | { type: "position"; index: number }
         | { type: "splitting-position"; index: number }
         | {
-          type: "modifier";
-          modifierType: "fees" | "discounts";
-          index: number;
-        }
+            type: "modifier";
+            modifierType: "fees" | "discounts";
+            index: number;
+          }
         | { type: "totals" }
         | "addPosition"
         | "addDiscount"
