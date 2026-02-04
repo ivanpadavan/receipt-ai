@@ -1,9 +1,9 @@
 import { db } from "@/app/db";
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/utils/supabase/client";
 import { isEqual } from "lodash-es";
 import putValidator from "@/app/api-client/receipt/put";
 import { errorWrap } from "@/app/api/receipt/error-wrap";
+import { serverSupabase } from "@/utils/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -37,13 +37,13 @@ export async function GET(
 
       // Add this connection to the receipt's connection set
       const channelName = `topic:${receiptId}`;
-      const channel = supabase.channel(channelName);
+      const channel = (await serverSupabase()).channel(channelName);
 
       channel
         .on(
           "postgres_changes",
           {
-            event: "*",
+            event: "UPDATE",
             schema: "public",
             table: "Receipt",
             filter: `id=eq.${receiptId}`,
