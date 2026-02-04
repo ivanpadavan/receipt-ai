@@ -3,7 +3,7 @@ import { z } from "zod";
 import { receiptSchema } from "@/model/receipt/schema";
 
 const validator = {
-  request: z.object({ id: z.string(), data: receiptSchema }),
+  request: receiptSchema,
   response: z.unknown(),
 } satisfies ApiValidator;
 

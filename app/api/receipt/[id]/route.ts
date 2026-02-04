@@ -1,7 +1,9 @@
 import { db } from "@/app/db";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/utils/supabase/client";
 import { isEqual } from "lodash-es";
+import putValidator from "@/app/api-client/receipt/put";
+import { errorWrap } from "@/app/api/receipt/error-wrap";
 
 export const runtime = "nodejs";
 
@@ -12,13 +14,14 @@ export async function GET(
   const { id: receiptId } = await params;
 
   // Verify receipt exists
-  let receipt = await db.receipt.findUnique({
+  const receipt = await db.receipt.findUnique({
     where: { id: receiptId },
   });
 
   if (!receipt) {
     return new Response("Receipt not found", { status: 404 });
   }
+  let lastData = receipt.data;
 
   // Create SSE stream
   const stream = new ReadableStream({
@@ -36,27 +39,25 @@ export async function GET(
       const channelName = `topic:${receiptId}`;
       const channel = supabase.channel(channelName);
 
-      channel.on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "Receipt", filter: `id=eq.${receiptId}` },
-        async () => {
-          const res = await db.receipt.findUnique({
-            where: { id: receiptId },
-          });
-          if (!res) {
-            throw new Error("Receipt not found");
-          }
-          const data = res.data;
-          console.log(`notify about ${channelName}`);
-          if (isEqual(data, receipt)) {
-            return;
-          }
-          receipt = data as unknown as typeof receipt;
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify(data)}\n\n`),
-          );
-        },
-      )
+      channel
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "Receipt",
+            filter: `id=eq.${receiptId}`,
+          },
+          async (payload) => {
+            const data = payload?.new?.data;
+            if (!data) return;
+            // if (isEqual(data, lastData)) return;
+            lastData = data;
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify(data)}\n\n`),
+            );
+          },
+        )
         .subscribe();
 
       controller.enqueue(encoder.encode(`data: "connection established"\n\n`));
@@ -83,5 +84,22 @@ export async function GET(
       "Cache-Control": "no-cache",
       "Connection": "keep-alive",
     },
+  });
+}
+
+/**
+ * FIXME ability to change only for users that visited
+ */
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  return errorWrap(req, putValidator, async ({ body }) => {
+    await db.receipt.update({
+      where: { id },
+      data: { data: body },
+    });
+    return NextResponse.json({ success: true }, { status: 200 });
   });
 }

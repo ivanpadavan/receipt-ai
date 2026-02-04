@@ -36,7 +36,7 @@ export const apiClient = {
     return requestWrapper('/api/receipt', 'POST', postValidator, { image });
   },
 
-  async updateReceipt(receipt: ReturnType<typeof putValidator['request']['parse']>) {
-    return requestWrapper('/api/receipt', 'PUT', putValidator, receipt);
+  async updateReceipt(receiptId: string, receipt: ReturnType<typeof putValidator['request']['parse']>) {
+    return requestWrapper(`/api/receipt/${receiptId}`, 'PUT', putValidator, receipt);
   }
 }

@@ -5,11 +5,10 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
 import { db } from "@/app/db";
 import postValidator from "@/app/api-client/receipt/post";
-import putValidator from "@/app/api-client/receipt/put";
-import { ApiValidator } from "@/app/api-client/api-validator";
-import { serverSupabase, getUser } from "@/utils/supabase/server";
+import { serverSupabase } from "@/utils/supabase/server";
 import type { User } from "@supabase/supabase-js";
 import { getUserName } from "@/utils/getUserName";
+import { errorWrap } from "@/app/api/receipt/error-wrap";
 
 // Edge runtime is not compatible with Prisma, so we need to use the Node.js runtime
 export const runtime = "nodejs";
@@ -85,28 +84,6 @@ async function uploadImage(image: string, userId: string) {
   return data.fullPath;
 }
 
-async function errorWrap<T extends ApiValidator>(req: NextRequest, validator: T, cb: (v: { session: { user: User }, body: ReturnType<T['request']['parse']> }) => Promise<NextResponse<ReturnType<T['response']['parse']>>>) {
-  try {
-    const user = await getUser();
-
-    const body = validator.request.parse(await req.json()) as ReturnType<T['request']['parse']>;
-
-    return await cb({ session: { user }, body });
-  } catch (e: unknown) {
-    console.error("API Error:", e);
-    if (typeof e !== 'object' || e == null) {
-      return NextResponse.json(
-        { error: 'unknown' },
-        { status: 500 },
-      );
-    }
-    return NextResponse.json(
-      { error: 'message' in e && e.message },
-      { status: 'status' in e && typeof e.status === 'number' ? e.status : 500 },
-    );
-  }
-}
-
 /**
  * This handler initializes and calls a Google Gemini powered
  * structured output chain for receipt processing.
@@ -149,14 +126,4 @@ export async function POST(req: NextRequest) {
       { status: 200 },
     );
   });
-}
-
-/**
- * FIXME ability to change only for users that visited
- */
-export async function PUT(req: NextRequest) {
-  return errorWrap(req, putValidator, async ({ body }) => {
-    await db.receipt.update({ where: { id: body.id }, data: { data: body.data } });
-    return NextResponse.json({ success: true }, { status: 200 });
-  })
 }

@@ -14,6 +14,7 @@ import {
   distinctUntilChanged,
   debounceTime,
   startWith,
+  skip,
 } from "rxjs";
 import { isEqual } from "lodash-es";
 
@@ -272,8 +273,9 @@ export function useReceiptFormState(
         startWith(initialData),
         debounceTime(100),
         distinctUntilChanged(isEqual),
+        skip(1),
         switchMap((data) => {
-          return apiClient.updateReceipt({ data, id: receiptId });
+          return apiClient.updateReceipt(receiptId, data);
         }),
         ignoreElements(),
       );
@@ -465,10 +467,7 @@ export function useReceiptFormState(
       // Переход в splitting mode
       const data = getValues();
       apiClient
-        .updateReceipt({
-          id: receiptId,
-          data: { ...data, editingFinished: true },
-        })
+        .updateReceipt(receiptId, { ...data, editingFinished: true })
         .then(() => {
           typeRef.current = "splitting";
           setValue("editingFinished" as keyof Receipt, true as never);
@@ -495,10 +494,7 @@ export function useReceiptFormState(
 
     const data = getValues();
     apiClient
-      .updateReceipt({
-        id: receiptId,
-        data: { ...data, editingFinished: false },
-      })
+      .updateReceipt(receiptId, { ...data, editingFinished: false })
       .then(() => {
         typeRef.current = "editing";
         setValue("editingFinished" as keyof Receipt, false as never);
