@@ -6,16 +6,16 @@ import React from "react";
 import { Cell } from "./Cell";
 import { FormArrayTitle } from "./FormArrayTitle";
 import { useReceiptState } from "./ReceiptForm";
-import { useFieldArray, useFormContext } from "react-hook-form";
-import { Receipt } from "@/model/receipt/model";
+import { useFormContext, useWatch } from "react-hook-form";
+import { Receipt, ReceiptModifier } from "@/model/receipt/model";
 
 interface ModifiersProps {
   type: "discounts" | "fees";
 }
 
 export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
-  const { control } = useFormContext<Receipt>();
-  const { fields } = useFieldArray({ control, name: type });
+  const { control, } = useFormContext<Receipt>();
+  const fields = useWatch({ control, name: type }) as ReceiptModifier[] || [];
   const ctx = useReceiptState();
 
   const openEditModal = ctx.scenario.canEdit.modifierForm

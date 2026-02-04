@@ -2,7 +2,6 @@
 
 import { t } from "@/app/i18n/translations";
 import {
-  EditModalProps,
   useReceiptFormState,
   ReceiptState,
 } from "@/app/receipt/[id]/useReceiptFormState";
@@ -12,7 +11,6 @@ import { Receipt } from "@/model/receipt/model";
 import React, {
   createContext,
   useContext,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -108,7 +106,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
   } = formState;
 
   // Get field array for positions
-  const { fields: positionFields } = useFieldArray({
+  const positionFields = useWatch({
     control: form.control,
     name: "positions",
   });
