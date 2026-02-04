@@ -24,6 +24,13 @@ export async function GET(
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
+      const heartbeat = setInterval(() => {
+        try {
+          controller.enqueue(encoder.encode(`: heartbeat\n\n`));
+        } catch {
+          // stream already closed
+        }
+      }, 20000);
 
       // Add this connection to the receipt's connection set
       const channelName = `topic:${receiptId}`;
@@ -58,6 +65,7 @@ export async function GET(
       // Cleanup on close
       req.signal.addEventListener("abort", () => {
         try {
+          clearInterval(heartbeat);
           controller.close();
           channel.unsubscribe();
         } catch {
