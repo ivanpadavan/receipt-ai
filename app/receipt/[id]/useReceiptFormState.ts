@@ -270,7 +270,7 @@ export function useReceiptFormState(
         ignoreElements(),
       );
     }, [initialData, receiptId]),
-  );
+  null);
 
   // Watch for form changes and trigger auto-save
   useEffect(() => {
@@ -351,7 +351,6 @@ export function useReceiptFormState(
             fieldType: "modifier",
             modifierType: modType,
             initialValue: modifier,
-            index: idx,
             header: modType === "fees" ? "editFee" : "editDiscount",
             onSave: (data) => {
               if (modType === "fees") {
