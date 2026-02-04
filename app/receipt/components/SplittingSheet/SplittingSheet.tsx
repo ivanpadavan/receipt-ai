@@ -294,6 +294,7 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
 export const SplittingSheet: React.FC<EditModalProps> = ({
   initialValue,
   onSave,
+  fieldPath,
 }) => {
   const position = initialValue as ReceiptPosition;
   const { scenario: { form } } = useReceiptState();
@@ -316,9 +317,10 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
     handleDone
   } = useSplittingLogic({
     initialValue: position,
+    currentValue: useWatch({ control: form.control, name: fieldPath! }) as ReceiptPosition,
     onSave,
     currentUser: user,
-    participants
+    participants,
   });
 
   return (

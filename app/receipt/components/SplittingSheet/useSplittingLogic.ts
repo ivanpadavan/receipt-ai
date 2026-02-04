@@ -8,6 +8,7 @@ import { createDefaultClaim } from "@/app/receipt/[id]/useReceiptFormState";
 
 export interface UseSplittingLogicProps {
   initialValue: ReceiptPosition;
+  currentValue: ReceiptPosition;
   onSave: (data: ReceiptPosition) => void;
   currentUser: { id: string; email?: string } | null;
   participants: ReceiptParticipant[];
@@ -70,9 +71,7 @@ export const useSplittingLogic = ({
       if (index === "new") {
         pos.claims.push(claim);
       } else {
-        if (typeof index === "number" && pos.claims[index]) {
-          pos.claims[index] = claim;
-        }
+        pos.claims[index] = claim;
       }
     });
     return pos;
@@ -98,7 +97,7 @@ export const useSplittingLogic = ({
     const claim = draftClaims.get(index);
     if (!claim) return;
 
-    let nextPosition = structuredClone(localPosition);
+    const nextPosition = structuredClone(localPosition);
 
     if (index === "new") {
       if (claim.value <= 0) {
