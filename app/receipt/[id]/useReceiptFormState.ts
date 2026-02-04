@@ -7,7 +7,8 @@ import {
   switchMap,
   ignoreElements,
   distinctUntilChanged,
-  debounceTime, startWith,
+  debounceTime,
+  startWith,
 } from "rxjs";
 import { isEqual } from "lodash-es";
 
@@ -189,7 +190,7 @@ export function useReceiptFormState(
   // 3.5. Revalidation trigger (для validation режима)
   // -------------------------------------------------------------------------
   useEffect(() => {
-      form.trigger();
+    form.trigger();
   }, [type, initialData]);
 
   // -------------------------------------------------------------------------
@@ -264,7 +265,7 @@ export function useReceiptFormState(
         debounceTime(100),
         distinctUntilChanged(isEqual),
         switchMap((data) => {
-          return apiClient.updateReceipt({ data, id: receiptId })
+          return apiClient.updateReceipt({ data, id: receiptId });
         }),
         ignoreElements(),
       );
@@ -350,6 +351,7 @@ export function useReceiptFormState(
             fieldType: "modifier",
             modifierType: modType,
             initialValue: modifier,
+            index: idx,
             header: modType === "fees" ? "editFee" : "editDiscount",
             onSave: (data) => {
               if (modType === "fees") {
