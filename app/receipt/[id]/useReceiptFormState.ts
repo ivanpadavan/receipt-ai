@@ -174,7 +174,7 @@ export function useReceiptFormState(
     resolver: createReceiptResolver({ type }),
   });
 
-  const { control, watch, setValue, getValues, formState } = form;
+  const { control, watch, setValue, getValues, formState, trigger } = form;
   const isResettingRef = useRef(false);
   const lastInitialDataRef = useRef(initialData);
 
@@ -187,14 +187,11 @@ export function useReceiptFormState(
   const participantsField = useFieldArray({ control, name: "participants" });
 
   // -------------------------------------------------------------------------
-  // 3.5. Initial validation trigger (для validation режима)
+  // 3.5. Revalidation trigger (для validation режима)
   // -------------------------------------------------------------------------
   useEffect(() => {
-    if (type === "validation") {
-      // Trigger validation immediately to show errors
       form.trigger();
-    }
-  }, [type, form]);
+  }, [type, initialData]);
 
   // -------------------------------------------------------------------------
   // 4. Auto-calculation (для editing/splitting режимов)
@@ -250,9 +247,7 @@ export function useReceiptFormState(
     if (isEqual(currentValues, initialData)) return;
 
     isResettingRef.current = true;
-    form.reset(initialData, {
-      keepErrors: true,
-    });
+    form.reset(initialData);
     setTimeout(() => {
       isResettingRef.current = false;
     }, 0);
@@ -268,15 +263,13 @@ export function useReceiptFormState(
       return updateReceiptRef.current.pipe(
         startWith(initialData),
         debounceTime(100),
-        map((v, i) => (console.log('tap', v, i), v)),
         distinctUntilChanged(isEqual),
         switchMap((data) => {
-          console.log({ data });
           return apiClient.updateReceipt({ data, id: receiptId })
         }),
         ignoreElements(),
       );
-    }, [receiptId]),
+    }, [initialData, receiptId]),
   );
 
   // Watch for form changes and trigger auto-save
@@ -287,7 +280,6 @@ export function useReceiptFormState(
       const completeData = getValues();
 
       if (completeData && updateReceiptRef.current) {
-        console.log({ completeData });
         updateReceiptRef.current.next(completeData);
       }
     });
@@ -321,10 +313,10 @@ export function useReceiptFormState(
         | { type: "position"; index: number }
         | { type: "splitting-position"; index: number }
         | {
-            type: "modifier";
-            modifierType: "fees" | "discounts";
-            index: number;
-          }
+          type: "modifier";
+          modifierType: "fees" | "discounts";
+          index: number;
+        }
         | { type: "totals" }
         | "addPosition"
         | "addDiscount"
@@ -341,12 +333,12 @@ export function useReceiptFormState(
             initialValue: position,
             header: "editPosition",
             onSave: (data) => {
-              setValue(`positions.${idx}`, data as ReceiptPosition, {
-                shouldValidate: true,
-              });
+              positionsField.update(idx, data as ReceiptPosition);
+              trigger();
             },
             onRemove: () => {
               positionsField.remove(idx);
+              trigger();
             },
           });
         } else if (args.type === "modifier") {
@@ -361,9 +353,12 @@ export function useReceiptFormState(
             initialValue: modifier,
             header: modType === "fees" ? "editFee" : "editDiscount",
             onSave: (data) => {
-              setValue(`${modType}.${idx}`, data as ReceiptModifier, {
-                shouldValidate: true,
-              });
+              if (modType === "fees") {
+                feesField.update(idx, data as ReceiptModifier);
+              } else {
+                discountsField.update(idx, data as ReceiptModifier);
+              }
+              trigger();
             },
             onRemove: () => {
               if (modType === "fees") {
@@ -371,6 +366,7 @@ export function useReceiptFormState(
               } else {
                 discountsField.remove(idx);
               }
+              trigger();
             },
           });
         } else if (args.type === "totals") {
@@ -394,6 +390,7 @@ export function useReceiptFormState(
           header: "addPosition",
           onSave: (data) => {
             positionsField.prepend(data as ReceiptPosition);
+            trigger();
           },
         });
       } else if (args === "addFee") {
@@ -405,6 +402,7 @@ export function useReceiptFormState(
           header: "addFee",
           onSave: (data) => {
             feesField.prepend(data as ReceiptModifier);
+            trigger();
           },
         });
       } else if (args === "addDiscount") {
@@ -416,6 +414,7 @@ export function useReceiptFormState(
           header: "addDiscount",
           onSave: (data) => {
             discountsField.prepend(data as ReceiptModifier);
+            trigger();
           },
         });
       }
@@ -427,6 +426,7 @@ export function useReceiptFormState(
       positionsField,
       feesField,
       discountsField,
+      trigger,
     ],
   );
 
