@@ -35,6 +35,7 @@ const withId = <T extends ZodObject<ZodRawShape>>(initial: T) => z.intersection(
 );
 
 const claimSchema = z.object({
+  id: z.string(),
   participantIds: z.array(z.string()),
   type: z.enum(["quantity", "amount"]),
   value: z.number(),
