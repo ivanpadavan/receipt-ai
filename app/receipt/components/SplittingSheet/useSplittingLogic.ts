@@ -98,29 +98,34 @@ export const useSplittingLogic = ({
     const claim = draftClaims.get(index);
     if (!claim) return;
 
+    let nextPosition = structuredClone(localPosition);
+
     if (index === "new") {
       if (claim.value <= 0) {
         return;
       }
-      setLocalPosition((prev) => ({
-        ...prev,
-        claims: [...prev.claims, claim],
-      }));
+      nextPosition.claims.push(claim);
     } else {
       // Update existing
-      setLocalPosition((prev) => ({
-        ...prev,
-        claims: prev.claims.map((c, i) => (i === index ? claim : c)),
-      }));
+      nextPosition.claims = nextPosition.claims.map((c, i) =>
+        i === index ? claim : c,
+      );
     }
+
+    setLocalPosition(nextPosition);
+    onSave(nextPosition);
     removeDraft(index);
   };
 
   const handleDeleteClaim = (index: number) => {
-    setLocalPosition((prev) => ({
-      ...prev,
-      claims: prev.claims.filter((_, i) => i !== index),
-    }));
+    const nextPosition = {
+      ...localPosition,
+      claims: localPosition.claims.filter((_, i) => i !== index),
+    };
+
+    setLocalPosition(nextPosition);
+    onSave(nextPosition);
+
     // Also remove from drafts if being edited
     if (draftClaims.has(index)) {
       removeDraft(index);
@@ -136,10 +141,14 @@ export const useSplittingLogic = ({
     updatedClaim: ReceiptPositionClaim,
   ) => {
     // Only used for update from view mode if allowed
-    setLocalPosition((prev) => ({
-      ...prev,
-      claims: prev.claims.map((c, i) => (i === index ? updatedClaim : c)),
-    }));
+    const nextPosition = {
+      ...localPosition,
+      claims: localPosition.claims.map((c, i) =>
+        i === index ? updatedClaim : c,
+      ),
+    };
+    setLocalPosition(nextPosition);
+    onSave(nextPosition);
   };
 
   const handleDone = () => {

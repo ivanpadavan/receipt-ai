@@ -25,7 +25,6 @@ import {
 import { apiClient } from "@/app/api-client";
 import { createReceiptResolver } from "./receiptResolver";
 import { useObservable } from "@/hooks/rx/useObservable";
-import { map, tap } from "rxjs/operators";
 
 // ============================================================================
 // Types
