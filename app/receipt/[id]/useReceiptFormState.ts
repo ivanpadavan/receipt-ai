@@ -119,6 +119,7 @@ const permissions: Record<FormType, CanEdit> = {
 // ============================================================================
 
 export const createDefaultClaim = (): ReceiptPositionClaim => ({
+  id: crypto.randomUUID(),
   value: NaN,
   type: "quantity",
   participantIds: [],

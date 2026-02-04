@@ -73,7 +73,7 @@ describe("SplittingSheet Integration", () => {
         quantity: 2,
         overall: 200,
         claims: [
-            { value: 1, type: "quantity", participantIds: ["p2"] } // Bob claims 1 item
+            { id: "claim-1", value: 1, type: "quantity", participantIds: ["p2"] } // Bob claims 1 item
         ],
     };
 

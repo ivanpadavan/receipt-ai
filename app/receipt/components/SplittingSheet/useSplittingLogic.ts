@@ -8,7 +8,6 @@ import { createDefaultClaim } from "@/app/receipt/[id]/useReceiptFormState";
 
 export interface UseSplittingLogicProps {
   initialValue: ReceiptPosition;
-  currentValue: ReceiptPosition;
   onSave: (data: ReceiptPosition) => void;
   currentUser: { id: string; email?: string } | null;
   participants: ReceiptParticipant[];
@@ -31,7 +30,7 @@ export const useSplittingLogic = ({
 
   // --- Draft Claims State (Map) ---
   const [draftClaims, setDraftClaims] = useState<
-    Map<number | "new", ReceiptPositionClaim>
+    Map<string | "new", ReceiptPositionClaim>
   >(
     new Map([
       [
@@ -47,18 +46,18 @@ export const useSplittingLogic = ({
   );
 
   // Helper to update draft state safely
-  const updateDraft = (index: number | "new", claim: ReceiptPositionClaim) => {
+  const updateDraft = (id: string | "new", claim: ReceiptPositionClaim) => {
     setDraftClaims((prev) => {
       const next = new Map(prev);
-      next.set(index, claim);
+      next.set(id, claim);
       return next;
     });
   };
 
-  const removeDraft = (index: number | "new") => {
+  const removeDraft = (id: string | "new") => {
     setDraftClaims((prev) => {
       const next = new Map(prev);
-      next.delete(index);
+      next.delete(id);
       return next;
     });
   };
@@ -67,11 +66,16 @@ export const useSplittingLogic = ({
   const effectivePosition = useMemo(() => {
     const pos = structuredClone(localPosition);
 
-    draftClaims.forEach((claim, index) => {
-      if (index === "new") {
+    draftClaims.forEach((claim, id) => {
+      if (id === "new") {
         pos.claims.push(claim);
       } else {
-        pos.claims[index] = claim;
+        const existingIndex = pos.claims.findIndex((c) => c.id === id);
+        if (existingIndex >= 0) {
+          pos.claims[existingIndex] = claim;
+        } else {
+          pos.claims.push(claim);
+        }
       }
     });
     return pos;
@@ -93,57 +97,57 @@ export const useSplittingLogic = ({
     });
   };
 
-  const handleSaveDraft = (index: number | "new") => {
-    const claim = draftClaims.get(index);
+  const handleSaveDraft = (id: string | "new") => {
+    const claim = draftClaims.get(id);
     if (!claim) return;
 
     const nextPosition = structuredClone(localPosition);
 
-    if (index === "new") {
+    if (id === "new") {
       if (claim.value <= 0) {
         return;
       }
       nextPosition.claims.push(claim);
     } else {
       // Update existing
-      nextPosition.claims = nextPosition.claims.map((c, i) =>
-        i === index ? claim : c,
+      nextPosition.claims = nextPosition.claims.map((c) =>
+        c.id === id ? claim : c,
       );
     }
 
     setLocalPosition(nextPosition);
     onSave(nextPosition);
-    removeDraft(index);
+    removeDraft(id);
   };
 
-  const handleDeleteClaim = (index: number) => {
+  const handleDeleteClaim = (id: string) => {
     const nextPosition = {
       ...localPosition,
-      claims: localPosition.claims.filter((_, i) => i !== index),
+      claims: localPosition.claims.filter((c) => c.id !== id),
     };
 
     setLocalPosition(nextPosition);
     onSave(nextPosition);
 
     // Also remove from drafts if being edited
-    if (draftClaims.has(index)) {
-      removeDraft(index);
+    if (draftClaims.has(id)) {
+      removeDraft(id);
     }
   };
 
-  const handleEditClick = (index: number, claim: ReceiptPositionClaim) => {
-    updateDraft(index, claim);
+  const handleEditClick = (id: string, claim: ReceiptPositionClaim) => {
+    updateDraft(id, claim);
   };
 
   const handleUpdateClaim = (
-    index: number,
+    id: string,
     updatedClaim: ReceiptPositionClaim,
   ) => {
     // Only used for update from view mode if allowed
     const nextPosition = {
       ...localPosition,
-      claims: localPosition.claims.map((c, i) =>
-        i === index ? updatedClaim : c,
+      claims: localPosition.claims.map((c) =>
+        c.id === id ? updatedClaim : c,
       ),
     };
     setLocalPosition(nextPosition);

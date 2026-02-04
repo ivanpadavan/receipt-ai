@@ -39,6 +39,7 @@ describe("SummaryScreen", () => {
                 overall: 100,
                 claims: [
                     {
+                        id: "claim-1",
                         type: "quantity",
                         value: 1,
                         participantIds: ["user1"],

@@ -314,10 +314,12 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
     handleDeleteClaim,
     handleEditClick,
     handleUpdateClaim,
-    handleDone
+    handleDone,
   } = useSplittingLogic({
-    initialValue: position,
-    currentValue: useWatch({ control: form.control, name: fieldPath! }) as ReceiptPosition,
+    initialValue: useWatch({
+      control: form.control,
+      name: fieldPath!,
+    }) as ReceiptPosition,
     onSave,
     currentUser: user,
     participants,
@@ -384,34 +386,36 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         )}
 
         {/* Claims List */}
-        {localPosition.claims.map((claim, index) => {
-          const isEditing = draftClaims.has(index);
+        {localPosition.claims.map((claim) => {
+          const isEditing = draftClaims.has(claim.id);
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const currentClaim = isEditing ? draftClaims.get(index)! : claim;
+          const currentClaim = isEditing ? draftClaims.get(claim.id)! : claim;
 
           return (
             <ClaimRow
-              key={index}
+              key={claim.id}
               claim={currentClaim}
               participants={participants}
               onUpdate={(c) =>
-                isEditing ? updateDraft(index, c) : handleUpdateClaim(index, c)
+                isEditing
+                  ? updateDraft(claim.id, c)
+                  : handleUpdateClaim(claim.id, c)
               }
               header={
                 isEditing ? (
                   <EditingHeader
                     claim={currentClaim}
-                    onUpdate={(c) => updateDraft(index, c)}
-                    onSave={() => handleSaveDraft(index)}
-                    onCancel={() => removeDraft(index)}
+                    onUpdate={(c) => updateDraft(claim.id, c)}
+                    onSave={() => handleSaveDraft(claim.id)}
+                    onCancel={() => removeDraft(claim.id)}
                   />
                 ) : (
                   <ViewingHeader
                     claim={currentClaim}
                     price={localPosition.price}
                     participants={participants}
-                    onEditStart={() => handleEditClick(index, claim)}
-                    onRemove={() => handleDeleteClaim(index)}
+                    onEditStart={() => handleEditClick(claim.id, claim)}
+                    onRemove={() => handleDeleteClaim(claim.id)}
                   />
                 )
               }

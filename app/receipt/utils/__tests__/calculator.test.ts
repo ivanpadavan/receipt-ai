@@ -17,6 +17,7 @@ describe("calculateBalances", () => {
             overall: 200,
             claims: [
                 {
+                    id: "claim-1",
                     type: "amount",
                     value: 50, // 50 RUB
                     participantIds: ["p1"]
