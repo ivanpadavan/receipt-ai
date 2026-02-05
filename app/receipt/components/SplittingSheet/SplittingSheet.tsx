@@ -37,6 +37,7 @@ import { cn } from "@/utils/cn";
 import { ParticipantAvatar } from "@/components/ui/participant-avatar";
 import { DistributionBar } from "./DistributionBar";
 import { ReceiptPosition, ReceiptPositionClaim, ReceiptParticipant } from "@/model/receipt/model";
+import { getClaimOverage } from "@/app/receipt/utils/claims";
 import { useWatch } from "react-hook-form";
 import { useUser } from "@/context/AuthContext";
 import { useSplittingLogic } from "./useSplittingLogic";
@@ -45,6 +46,7 @@ import { useSplittingLogic } from "./useSplittingLogic";
 
 interface EditingHeaderProps {
   claim: ReceiptPositionClaim;
+  isInvalid?: boolean;
   onUpdate: (claim: ReceiptPositionClaim) => void;
   onSave: () => void;
   onCancel: () => void;
@@ -52,6 +54,7 @@ interface EditingHeaderProps {
 
 const EditingHeader: React.FC<EditingHeaderProps> = ({
   claim,
+  isInvalid,
   onUpdate,
   onSave,
   onCancel,
@@ -61,7 +64,10 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
       {/* Input Value */}
       <Input
         type="number"
-        className="flex-1 h-9 bg-background"
+        className={cn(
+          "flex-1 h-9 bg-background",
+          isInvalid && "border-destructive focus-visible:ring-destructive",
+        )}
         value={claim.value || ""}
         onChange={(e) =>
           onUpdate({ ...claim, value: parseFloat(e.target.value) || 0 })
@@ -69,7 +75,7 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
         placeholder="0"
         autoFocus
         onKeyDown={(e) => {
-          if (e.key === "Enter" && claim.value > 0) {
+          if (e.key === "Enter" && claim.value > 0 && !isInvalid) {
             onSave();
           }
         }}
@@ -104,7 +110,7 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
         size="icon"
         className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
         onClick={onSave}
-        disabled={claim.value <= 0}
+        disabled={claim.value <= 0 || isInvalid}
       >
         <Check className="h-5 w-5" />
       </Button>
@@ -377,6 +383,14 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
             header={
               <EditingHeader
                 claim={newDraftClaim}
+                isInvalid={
+                  getClaimOverage(
+                    newDraftClaim,
+                    localPosition.claims,
+                    localPosition.price,
+                    localPosition.overall,
+                  ) > 0
+                }
                 onUpdate={(c) => updateDraft("new", c)}
                 onSave={() => handleSaveDraft("new")}
                 onCancel={() => removeDraft("new")}
@@ -403,6 +417,15 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
                 isEditing ? (
                   <EditingHeader
                     claim={currentClaim}
+                    isInvalid={
+                      getClaimOverage(
+                        currentClaim,
+                        localPosition.claims,
+                        localPosition.price,
+                        localPosition.overall,
+                        currentClaim.id,
+                      ) > 0
+                    }
                     onUpdate={(c) => updateDraft(claim.id, c)}
                     onSave={() => handleSaveDraft(claim.id)}
                     onCancel={() => removeDraft(claim.id)}

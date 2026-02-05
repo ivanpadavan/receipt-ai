@@ -5,6 +5,10 @@ import {
   ReceiptPositionClaim,
 } from "@/model/receipt/model";
 import { createDefaultClaim } from "@/app/receipt/[id]/useReceiptFormState";
+import {
+  canApplyClaim,
+  getClaimAmount,
+} from "@/app/receipt/utils/claims";
 
 export interface UseSplittingLogicProps {
   initialValue: ReceiptPosition;
@@ -62,6 +66,15 @@ export const useSplittingLogic = ({
     });
   };
 
+  const canApplyClaimLocal = (claim: ReceiptPositionClaim, excludeId?: string) =>
+    canApplyClaim(
+      claim,
+      localPosition.claims,
+      localPosition.price,
+      localPosition.overall,
+      excludeId,
+    );
+
   // Create an effective position that includes ALL draft changes for live preview
   const effectivePosition = useMemo(() => {
     const pos = structuredClone(localPosition);
@@ -83,9 +96,7 @@ export const useSplittingLogic = ({
 
   const totalClaimed = effectivePosition.claims.reduce((acc, claim) => {
     if (!claim.participantIds || claim.participantIds.length === 0) return acc;
-    if (claim.type === "quantity")
-      return acc + claim.value * effectivePosition.price;
-    return acc + claim.value;
+    return acc + getClaimAmount(claim, effectivePosition.price);
   }, 0);
 
   const startAdding = () => {
@@ -100,6 +111,11 @@ export const useSplittingLogic = ({
   const handleSaveDraft = (id: string | "new") => {
     const claim = draftClaims.get(id);
     if (!claim) return;
+
+    const excludeId = id === "new" ? undefined : id;
+    if (!canApplyClaimLocal(claim, excludeId)) {
+      return;
+    }
 
     const nextPosition = structuredClone(localPosition);
 
@@ -142,6 +158,9 @@ export const useSplittingLogic = ({
 
   const handleUpdateClaim = (updatedClaim: ReceiptPositionClaim) => {
     const id = updatedClaim.id;
+    if (!canApplyClaimLocal(updatedClaim, id)) {
+      return;
+    }
     // Only used for update from view mode if allowed
     const nextPosition = {
       ...localPosition,
@@ -158,7 +177,7 @@ export const useSplittingLogic = ({
 
     // Auto-save NEW draft only if valid
     const newClaim = draftClaims.get("new");
-    if (newClaim && newClaim.value > 0) {
+    if (newClaim && newClaim.value > 0 && canApplyClaimLocal(newClaim)) {
       finalPosition.claims.push(newClaim);
     }
 
@@ -178,7 +197,6 @@ export const useSplittingLogic = ({
     if (deleteDrafts.size) {
       removeDraft(...deleteDrafts);
     }
-    console.log(initialValue);
     setLocalPosition(initialValue);
   }, [localPosition, initialValue, removeDraft, draftClaims]);
 
