@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { calculateBalances } from "../calculator";
-import { ParticipantDTO, ReceiptData, ReceiptPosition } from "@/model/receipt/model";
+import { ParticipantDTO, Receipt, ReceiptPosition } from "@/model/receipt/model";
 
 describe("calculateBalances", () => {
     const participants: ParticipantDTO[] = [
@@ -32,7 +32,7 @@ describe("calculateBalances", () => {
             fees: [],
             discounts: [],
             editingFinished: true
-        } as unknown as ReceiptData;
+        } as unknown as Receipt;
 
         const balances = calculateBalances(receipt, participants);
         const p1Balance = balances.find(b => b.participantId === "p1");

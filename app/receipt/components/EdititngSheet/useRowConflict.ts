@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { FieldPath, UseFormReturn } from "react-hook-form";
-import { ReceiptData, ReceiptPosition, ReceiptModifier } from "@/model/receipt/model";
+import { Receipt, ReceiptPosition, ReceiptModifier } from "@/model/receipt/model";
 import { isEqual } from "lodash-es";
 
-type EditableValue = ReceiptPosition | ReceiptModifier | ReceiptData["totals"];
+type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
 
 interface UseRowConflictProps<T extends EditableValue> {
   /** Current local value being edited */
@@ -11,9 +11,9 @@ interface UseRowConflictProps<T extends EditableValue> {
   /** Initial value when the modal opened */
   initialValue: T;
   /** The main form to watch for external changes */
-  form: UseFormReturn<ReceiptData>;
+  form: UseFormReturn<Receipt>;
   /** Path to get current value from form state */
-  fieldPath?: FieldPath<ReceiptData>;
+  fieldPath?: FieldPath<Receipt>;
 }
 
 export type ConflictType = 'deleted' | 'modified';

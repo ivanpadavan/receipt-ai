@@ -2,14 +2,14 @@ import React from 'react';
 import { cn } from "@/utils/cn";
 
 import {
-  ReceiptData,
+  Receipt,
   ReceiptPosition,
   ReceiptPositionClaim,
   ParticipantDTO,
 } from "@/model/receipt/model";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 
-type DistributionData = ReceiptPositionClaim | ReceiptPosition | ReceiptData;
+type DistributionData = ReceiptPositionClaim | ReceiptPosition | Receipt;
 
 interface DistributionBarProps {
   data: DistributionData;
@@ -17,7 +17,7 @@ interface DistributionBarProps {
   children?: React.ReactNode;
 }
 
-const isReceipt = (data: DistributionData): data is ReceiptData => {
+const isReceipt = (data: DistributionData): data is Receipt => {
   return 'positions' in data && Array.isArray(data.positions);
 }
 

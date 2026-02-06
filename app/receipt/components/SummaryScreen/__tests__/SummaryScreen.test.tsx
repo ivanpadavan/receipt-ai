@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { SummaryScreen } from "../SummaryScreen";
-import { ParticipantDTO, ReceiptData } from "@/model/receipt/model";
+import { ParticipantDTO, Receipt } from "@/model/receipt/model";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 
 // Mock translations
@@ -34,7 +34,7 @@ describe("SummaryScreen", () => {
         { id: "user1", displayName: "Alice", color: "red", kind: "REAL" },
     ];
 
-    const mockReceipt: ReceiptData = {
+    const mockReceipt: Receipt = {
         positions: [
             {
                 id: "p1",

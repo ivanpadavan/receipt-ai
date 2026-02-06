@@ -16,12 +16,12 @@ import { Input } from "@/components/ui/input";
 import {
   ReceiptPosition,
   ReceiptModifier,
-  ReceiptData,
+  Receipt,
 } from "@/model/receipt/model";
 import { useReceiptState } from "../ReceiptForm";
 import { useRowConflict } from "./useRowConflict";
 
-type EditableValue = ReceiptPosition | ReceiptModifier | ReceiptData["totals"];
+type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
 
 // Helper to check if value is position
 const isPosition = (v: EditableValue): v is ReceiptPosition =>
@@ -32,7 +32,7 @@ const isModifier = (v: EditableValue): v is ReceiptModifier =>
   "value" in v && "name" in v && !("total" in v);
 
 // Helper to check if value is totals
-const isTotals = (v: EditableValue): v is ReceiptData["totals"] =>
+const isTotals = (v: EditableValue): v is Receipt["totals"] =>
   "total" in v && "grandTotal" in v;
 
 // Get editable fields based on value type and mode

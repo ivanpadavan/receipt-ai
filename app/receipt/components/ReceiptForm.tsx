@@ -7,7 +7,7 @@ import {
 } from "@/app/receipt/[id]/useReceiptFormState";
 import { Button } from "@/components/ui/button";
 import { forceSync, useObservable } from "@/hooks/rx/useObservable";
-import { ReceiptData } from "@/model/receipt/model";
+import { Receipt } from "@/model/receipt/model";
 import React, {
   createContext,
   useContext,
@@ -46,7 +46,7 @@ import { SettingsForm } from "@/app/settings/SettingsForm";
 import { supabase } from "@/utils/supabase/client";
 
 interface EditableReceiptFormProps {
-  initialData: ReceiptData;
+  initialData: Receipt;
   receiptId: string;
 }
 
@@ -60,11 +60,11 @@ export const useReceiptState = (): ReceiptState => {
   return ctx;
 };
 
-const useReceiptWithUpdates = (initialData: ReceiptData, receiptId: string) => {
+const useReceiptWithUpdates = (initialData: Receipt, receiptId: string) => {
   const setParticipants = useParticipantsStore((s) => s.setParticipants);
-  return useObservable<Observable<ReceiptData>>(
+  return useObservable<Observable<Receipt>>(
     useMemo(() => {
-      return new Observable<ReceiptData>((handler) => {
+      return new Observable<Receipt>((handler) => {
         if (typeof window === "undefined") {
           handler.next(initialData);
           handler.complete();
@@ -138,7 +138,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
     name: "positions",
   });
 
-  const currentReceipt = useWatch({ control: form.control }) as ReceiptData;
+  const currentReceipt = useWatch({ control: form.control }) as Receipt;
 
   const isAnonymous =
     user?.is_anonymous === true ||

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { ReceiptData } from "@/model/receipt/model";
+import { Receipt } from "@/model/receipt/model";
 import { calculateBalances } from "@/app/receipt/utils/calculator";
 import { t } from "@/app/i18n/translations";
 import { ParticipantAvatar } from "@/components/ui/participant-avatar";
@@ -12,7 +12,7 @@ import { cn } from "@/utils/cn";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 
 interface SummaryScreenProps {
-    receipt: ReceiptData;
+    receipt: Receipt;
     onBack: () => void;
 }
 

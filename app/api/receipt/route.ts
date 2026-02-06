@@ -1,5 +1,5 @@
 import { receiptAiSchema } from "@/model/receipt/schema";
-import { ReceiptData, ReceiptNoId, validateReceipt } from "@/model/receipt/model";
+import { Receipt, ReceiptNoId, validateReceipt } from "@/model/receipt/model";
 import { NextRequest, NextResponse } from "next/server";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
@@ -51,7 +51,7 @@ function appendIdsToArr<T>(v: T[]): (T & { id: string })[] {
   return v.map((v) => ({ ...v, id: crypto.randomUUID() }));
 }
 
-function appendIdsAndUser(receipt: ReceiptNoId): ReceiptData {
+function appendIdsAndUser(receipt: ReceiptNoId): Receipt {
   return {
     ...receipt,
     positions: appendIdsToArr(receipt.positions).map((v) => ({ ...v, claims: [] })),

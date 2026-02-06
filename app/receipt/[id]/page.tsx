@@ -1,5 +1,5 @@
 import { db } from "@/app/db";
-import { ReceiptData } from "@/model/receipt/model";
+import { Receipt } from "@/model/receipt/model";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
@@ -40,7 +40,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   // Parse the receipt data from JSON
   const rawData = receipt.data as Record<string, unknown>;
   const { participants: _participants, ...rest } = rawData;
-  const receiptData = rest as ReceiptData;
+  const receiptData = rest as Receipt;
 
   return (
     <ReceiptForm initialData={receiptData} receiptId={id} />

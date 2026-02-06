@@ -1,6 +1,6 @@
 import {
   ParticipantDTO,
-  ReceiptData,
+  Receipt,
   calculateGrandTotal,
   calculateTotal,
 } from "@/model/receipt/model";
@@ -17,7 +17,7 @@ export interface ParticipantBalance {
 }
 
 export const calculateBalances = (
-  receipt: ReceiptData,
+  receipt: Receipt,
   participants: ParticipantDTO[],
 ): ParticipantBalance[] => {
     const balances = new Map<string, ParticipantBalance>();
