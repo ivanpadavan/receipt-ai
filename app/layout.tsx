@@ -3,10 +3,10 @@ import "./globals.css";
 
 import { Public_Sans } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { AppNavbar } from "@/components/AppNavbar";
 import { Providers } from "./providers";
 import { AuthProvider } from "@/context/AuthContext";
 import { getUser } from "@/utils/supabase/server";
+import { AppNavbar } from "@/app/layout/AppNavbar";
 
 const publicSans = Public_Sans({ subsets: ["latin"] });
 

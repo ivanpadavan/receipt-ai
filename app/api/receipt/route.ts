@@ -6,8 +6,6 @@ import { ChatPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
 import { db } from "@/app/db";
 import postValidator from "@/app/api-client/receipt/post";
 import { serverSupabase } from "@/utils/supabase/server";
-import type { User } from "@supabase/supabase-js";
-import { getUserName } from "@/utils/getUserName";
 import { errorWrap } from "@/app/api/receipt/error-wrap";
 
 // Edge runtime is not compatible with Prisma, so we need to use the Node.js runtime
@@ -52,13 +50,13 @@ function appendIdsToArr<T>(v: T[]): (T & { id: string })[] {
   return v.map((v) => ({ ...v, id: crypto.randomUUID() }));
 }
 
-function appendIdsAndUser(receipt: ReceiptNoId, user: User): Receipt {
+function appendIdsAndUser(receipt: ReceiptNoId): Receipt {
   return {
     ...receipt,
     positions: appendIdsToArr(receipt.positions).map((v) => ({ ...v, claims: [] })),
     fees: appendIdsToArr(receipt.fees),
     discounts: appendIdsToArr(receipt.discounts),
-    participants: [{ id: user.id, name: getUserName(user), color: '#F00' }],
+    participants: [],
   }
 }
 
@@ -114,7 +112,7 @@ export async function POST(req: NextRequest) {
       data: {
         userId,
         imageUrl,
-        data: appendIdsAndUser(result, session.user), // Store the receipt data as JSON
+        data: appendIdsAndUser(result), // Store the receipt data as JSON
       },
     });
 

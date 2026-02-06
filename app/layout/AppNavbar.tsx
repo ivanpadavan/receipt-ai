@@ -4,12 +4,26 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/utils/cn";
-import Logo from "@/components/Logo";
-import { Button } from "./ui/button";
-import { Menu, X, User, LogOut } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
 import { supabase } from "@/utils/supabase/client";
-import { getUserName } from "@/utils/getUserName";
 import { useUser } from "@/context/AuthContext";
+import { CredentialResponse, GoogleLogin, useGoogleOneTapLogin } from "@react-oauth/google";
+import Logo from "@/app/layout/Logo";
+import { Button } from "@/components/ui/button";
+
+const handleSignIn = async (response: CredentialResponse) => {
+  const res = await fetch("/api/auth/google", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: response.credential }),
+  });
+  const { access_token, refresh_token } = await res.json();
+  await supabase.auth.setSession({ access_token, refresh_token });
+};
+
+const handleSignOut = async () => {
+  await supabase.auth.signInAnonymously();
+};
 
 // Custom NavLink component with amber color scheme
 const NavLink = ({
@@ -45,7 +59,6 @@ export const AppNavbar = () => {
   const { user } = useUser();
 
   const isAuthenticated = !!user && !user.is_anonymous;
-  const userName = getUserName(user);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -54,10 +67,6 @@ export const AppNavbar = () => {
   const closeMenu = () => {
     setIsMenuOpen(false);
   };
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-  }
 
   return (
     <nav className="bg-background border-b shadow-sm">
@@ -71,6 +80,7 @@ export const AppNavbar = () => {
 
           {/* Menu button - only visible on mobile */}
           <div className="flex items-center md:hidden">
+            {!isAuthenticated && <GoogleLogin onSuccess={handleSignIn} />}
             <Button
               variant="ghost"
               className="text-foreground hover:bg-accent hover:text-accent-foreground"
@@ -90,58 +100,59 @@ export const AppNavbar = () => {
               "flex flex-col md:flex-row items-start md:items-center md:space-x-4 bg-background",
               "absolute md:static left-0 right-0 top-16 md:top-auto border-t md:border-t-0",
               "md:flex",
-              isMenuOpen ? "flex" : "hidden"
+              isMenuOpen ? "flex" : "hidden",
             )}
           >
             <div className="w-full md:w-auto px-2 pt-2 pb-3 md:p-0 space-y-1 md:space-y-0 sm:px-3">
               <div className="block md:inline-block py-2 px-3 md:p-0 md:mr-4">
-                <NavLink href="/" onClick={closeMenu}>Scan new</NavLink>
+                <NavLink href="/" onClick={closeMenu}>
+                  Scan new
+                </NavLink>
               </div>
-
               <div className="block md:inline-block py-2 px-3 md:p-0 md:mr-4">
-                <NavLink href="/history" onClick={closeMenu}>History</NavLink>
+                <NavLink href="/history" onClick={closeMenu}>
+                  History
+                </NavLink>
               </div>
-
               {isAuthenticated && (
                 <div className="block md:inline-block py-2 px-3 md:p-0 md:mr-4">
-                  <NavLink href="/settings" onClick={closeMenu}>Settings</NavLink>
+                  <NavLink href="/settings" onClick={closeMenu}>
+                    Settings
+                  </NavLink>
                 </div>
               )}
-
               {isAuthenticated && (
-                <div className="block md:hidden py-2 px-3 text-center">
-                  <span className="text-foreground font-medium">{userName}</span>
-                </div>
-              )}
-
-              <div className="block md:hidden py-2 px-3">
-                <Button
-                  onClick={() => {
-                    closeMenu();
-                    isAuthenticated ? handleSignOut() : window.location.href = '/auth/sign-in';
-                  }}
-                  className="w-full flex items-center justify-center gap-2"
-                  variant={isAuthenticated ? "outline" : "default"}
-                >
-                  {isAuthenticated ? (
-                    <>
+                <>
+                  <div className="block md:hidden py-2 px-3 text-center">
+                    <span className="text-foreground font-medium">
+                      {user.user_metadata.displayName}
+                    </span>
+                  </div>
+                  <div className="block md:hidden py-2 px-3">
+                    <Button
+                      onClick={() => {
+                        closeMenu();
+                        isAuthenticated
+                          ? handleSignOut()
+                          : (window.location.href = "/auth/sign-in");
+                      }}
+                      className="w-full flex items-center justify-center gap-2"
+                      variant={isAuthenticated ? "outline" : "default"}
+                    >
                       <LogOut className="h-4 w-4" />
                       Sign Out
-                    </>
-                  ) : (
-                    <>
-                      <User className="h-4 w-4" />
-                      Sign In
-                    </>
-                  )}
-                </Button>
-              </div>
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* User info and auth buttons - only visible on desktop */}
             {isAuthenticated ? (
               <div className="hidden md:flex items-center gap-2 ml-2">
-                <span className="text-foreground font-medium">{userName}</span>
+                <span className="text-foreground font-medium">
+                  {user.user_metadata.displayName}
+                </span>
                 <Button
                   onClick={handleSignOut}
                   variant="ghost"
@@ -152,14 +163,10 @@ export const AppNavbar = () => {
                 </Button>
               </div>
             ) : (
-              <Link href="/auth/sign-in">
-                <Button
-                  className="hidden md:flex ml-4 items-center gap-2"
-                >
-                  <User className="h-4 w-4" />
-                  Sign In
-                </Button>
-              </Link>
+              <GoogleLogin
+                containerProps={{ className: "hidden md:flex" }}
+                onSuccess={handleSignIn}
+              />
             )}
           </div>
         </div>

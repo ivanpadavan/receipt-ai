@@ -10,6 +10,16 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+const appendAnonymousUserName = (user: User): User => {
+  console.log(user.user_metadata, user.user_metadata.displayName);
+  if (!user.user_metadata || !user.user_metadata.displayName) {
+    user.user_metadata = Object.assign(user.user_metadata || {}, {
+      displayName: "Anonymous",
+    });
+  }
+  return user;
+}
+
 export const AuthProvider = ({
     children,
     initialUser,
@@ -17,7 +27,7 @@ export const AuthProvider = ({
     children: React.ReactNode;
     initialUser: User
 }) => {
-    const [user, setUser] = useState(initialUser);
+    const [user, setUser] = useState(appendAnonymousUserName(initialUser));
 
     useEffect(() => {
 
@@ -25,7 +35,8 @@ export const AuthProvider = ({
             data: { subscription },
         } = supabase.auth.onAuthStateChange(
             (_: AuthChangeEvent, session: Session | null) => {
-              if (session?.user) setUser(session.user);
+              console.log(session);
+              if (session?.user) setUser(appendAnonymousUserName({ ...session.user, user_metadata: initialUser.user_metadata }));
               else window.location.reload();
             }
         );
