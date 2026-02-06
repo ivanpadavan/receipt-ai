@@ -21,6 +21,7 @@
     "@types/react-dom": "19.2.3"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
     "@langchain/community": "^0.3.37",
     "@langchain/core": "^0.3.43",
     "@langchain/google-genai": "^0.2.10",
