@@ -117,10 +117,7 @@ export default function ImagePastePage() {
                 >
                   Clear Image
                 </Button>
-                <Button onClick={async () => {
-                  if (!user) {
-                    await supabase.auth.signInAnonymously();
-                  }
+                <Button onClick={() => {
                   picture.proceed();
                 }}
                   className="shadow-md">
