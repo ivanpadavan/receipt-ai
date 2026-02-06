@@ -74,6 +74,8 @@ const ru = {
   changeAvatar: 'Сменить аватар',
   avatarUploadHint: 'Нажмите, чтобы выбрать файл или сделать фото',
   takeAvatarPhoto: 'Сделать фото',
+  cropAvatar: 'Обрезать аватар',
+  zoom: 'Масштаб',
 };
 
 export type TranslationKey = keyof typeof ru;
@@ -155,6 +157,8 @@ const en: Translations = {
   changeAvatar: 'Change avatar',
   avatarUploadHint: 'Click to choose a file or take a photo',
   takeAvatarPhoto: 'Take photo',
+  cropAvatar: 'Crop avatar',
+  zoom: 'Zoom',
 };
 
 // Available languages

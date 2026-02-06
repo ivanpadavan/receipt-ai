@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,10 +11,65 @@ import { toast } from "sonner";
 import { t } from "@/app/i18n/translations";
 import { Controller, useForm } from "react-hook-form";
 import { Field, FieldContent, FieldGroup, FieldLabel } from "@/components/ui/field";
+import Cropper, { Area } from "react-easy-crop";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const captureSupported =
   typeof document === "object" &&
   document.createElement("input").capture !== undefined;
+
+const createImage = (url: string) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.addEventListener("load", () => resolve(image));
+    image.addEventListener("error", (error) => reject(error));
+    image.setAttribute("crossOrigin", "anonymous");
+    image.src = url;
+  });
+
+const getCroppedBlob = async (imageSrc: string, pixelCrop: Area) => {
+  const image = await createImage(imageSrc);
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas not supported");
+
+  canvas.width = pixelCrop.width;
+  canvas.height = pixelCrop.height;
+
+  ctx.drawImage(
+    image,
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height,
+    0,
+    0,
+    pixelCrop.width,
+    pixelCrop.height,
+  );
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          reject(new Error("Crop failed"));
+          return;
+        }
+        resolve(blob);
+      },
+      "image/jpeg",
+      0.92,
+    );
+  });
+};
 
 interface SettingsFormValues {
   name: string;
@@ -51,6 +106,12 @@ export default function SettingsPage() {
   const avatarUrl = watch("avatarUrl");
   const [saving, setSaving] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [cropOpen, setCropOpen] = useState(false);
+  const [cropImage, setCropImage] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [pendingFileName, setPendingFileName] = useState<string | null>(null);
 
   useEffect(() => {
     console.log("settings user_metadata", user?.user_metadata);
@@ -87,19 +148,46 @@ export default function SettingsPage() {
     files: FileList | null,
     onChange: (files: FileList | null) => void,
   ) => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    onChange(files);
-    if (files?.[0]) {
-      const url = URL.createObjectURL(files[0]);
-      setPreviewUrl(url);
-      setValue("avatarUrl", url, { shouldDirty: true });
-    } else {
-      setPreviewUrl(null);
-    }
+    const file = files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result !== "string") return;
+      setCropImage(result);
+      setPendingFileName(file.name);
+      setCropOpen(true);
+      onChange(files);
+    };
+    reader.readAsDataURL(file);
   };
 
   const triggerFileInput = () => fileInputRef.current?.click();
   const triggerCameraInput = () => cameraInputRef.current?.click();
+
+  const onCropComplete = useCallback((_area: Area, areaPixels: Area) => {
+    setCroppedAreaPixels(areaPixels);
+  }, []);
+
+  const handleApplyCrop = async (
+    onChange: (files: FileList | null) => void,
+  ) => {
+    if (!cropImage || !croppedAreaPixels) return;
+    const blob = await getCroppedBlob(cropImage, croppedAreaPixels);
+    const fileName = pendingFileName || "avatar.jpg";
+    const file = new File([blob], fileName, { type: blob.type });
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    const fileList = dataTransfer.files;
+
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    const url = URL.createObjectURL(blob);
+    setPreviewUrl(url);
+    setValue("avatarUrl", url, { shouldDirty: true });
+    onChange(fileList);
+    setCropOpen(false);
+    setCropImage(null);
+  };
 
   const handleSave = async (values: SettingsFormValues) => {
     if (!values.name.trim()) return;
@@ -217,6 +305,51 @@ export default function SettingsPage() {
                           </Button>
                         )}
                       </div>
+
+                      <AlertDialog open={cropOpen} onOpenChange={setCropOpen}>
+                        <AlertDialogContent className="max-w-lg">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>{t("cropAvatar")}</AlertDialogTitle>
+                          </AlertDialogHeader>
+                          <div className="relative w-full h-72 bg-black/80 rounded-lg overflow-hidden">
+                            {cropImage && (
+                              <Cropper
+                                image={cropImage}
+                                crop={crop}
+                                zoom={zoom}
+                                aspect={1}
+                                onCropChange={setCrop}
+                                onZoomChange={setZoom}
+                                onCropComplete={onCropComplete}
+                              />
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm text-muted-foreground">
+                              {t("zoom")}
+                            </span>
+                            <input
+                              type="range"
+                              min={1}
+                              max={3}
+                              step={0.05}
+                              value={zoom}
+                              onChange={(e) => setZoom(Number(e.target.value))}
+                              className="w-full"
+                            />
+                          </div>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel onClick={() => setCropOpen(false)}>
+                              {t("cancel")}
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleApplyCrop(onChange)}
+                            >
+                              {t("save")}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   )}
                 />
