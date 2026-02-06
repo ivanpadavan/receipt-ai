@@ -1,28 +1,23 @@
 "use client";
 
 import React from "react";
-import { useFormContext, useWatch } from "react-hook-form";
-import { Receipt } from "@/model/receipt/model";
 import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useParticipantsStore } from "@/app/receipt/store/participants";
 
 interface ParticipantsBadgeProps {
     onClick: () => void;
+    disabled?: boolean;
 }
 
-export const ParticipantsBadge: React.FC<ParticipantsBadgeProps> = ({ onClick }) => {
-    const form = useFormContext<Receipt>();
-    const participants = useWatch({
-        control: form.control,
-        name: "participants",
-    });
-
-    const count = participants?.length || 0;
+export const ParticipantsBadge: React.FC<ParticipantsBadgeProps> = ({ onClick, disabled }) => {
+    const count = useParticipantsStore((s) => s.participants.length);
 
     return (
         <Button
             variant="outline"
             onClick={onClick}
+            disabled={disabled}
             title="Участники"
             className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-500 font-medium transition-all duration-200 hover:border-amber-500 hover:text-amber-500 hover:bg-amber-500/5 hover:shadow-md"
         >

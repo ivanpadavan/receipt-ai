@@ -1,5 +1,5 @@
 import { receiptAiSchema } from "@/model/receipt/schema";
-import { Receipt, ReceiptNoId, validateReceipt } from "@/model/receipt/model";
+import { ReceiptData, ReceiptNoId, validateReceipt } from "@/model/receipt/model";
 import { NextRequest, NextResponse } from "next/server";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
@@ -7,6 +7,7 @@ import { db } from "@/app/db";
 import postValidator from "@/app/api-client/receipt/post";
 import { serverSupabase } from "@/utils/supabase/server";
 import { errorWrap } from "@/app/api/receipt/error-wrap";
+import { getNextColor } from "@/app/receipt/utils/participants";
 
 // Edge runtime is not compatible with Prisma, so we need to use the Node.js runtime
 export const runtime = "nodejs";
@@ -50,13 +51,12 @@ function appendIdsToArr<T>(v: T[]): (T & { id: string })[] {
   return v.map((v) => ({ ...v, id: crypto.randomUUID() }));
 }
 
-function appendIdsAndUser(receipt: ReceiptNoId): Receipt {
+function appendIdsAndUser(receipt: ReceiptNoId): ReceiptData {
   return {
     ...receipt,
     positions: appendIdsToArr(receipt.positions).map((v) => ({ ...v, claims: [] })),
     fees: appendIdsToArr(receipt.fees),
     discounts: appendIdsToArr(receipt.discounts),
-    participants: [],
   }
 }
 
@@ -115,6 +115,20 @@ export async function POST(req: NextRequest) {
         data: appendIdsAndUser(result), // Store the receipt data as JSON
       },
     });
+
+    const displayName =
+      (session.user.user_metadata?.displayName as string | undefined)?.trim() ||
+      session.user.email?.split("@")[0] ||
+      "Anonymous";
+    if (displayName && displayName !== "Anonymous") {
+      await db.receiptUserParticipant.create({
+        data: {
+          receiptId: receipt.id,
+          userId,
+          color: getNextColor([]),
+        },
+      });
+    }
 
     // Return the receipt ID instead of the full data
     return NextResponse.json(

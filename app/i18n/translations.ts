@@ -77,6 +77,14 @@ const ru = {
   cropAvatar: 'Обрезать аватар',
   zoom: 'Масштаб',
   yourName: 'Ваше имя',
+  authPromptTitle: 'Нужна авторизация?',
+  authPromptBody: 'Вы можете авторизоваться или продолжить анонимно. В любом случае потребуется имя.',
+  continueAnon: 'Продолжить анонимно',
+  authYes: 'Авторизоваться',
+  removedTitle: 'Вы удалены из чека',
+  removedBody: 'У вас больше нет доступа к этому чеку.',
+  goHome: 'На главную',
+  nameConflict: 'Совпадает имя',
 };
 
 export type TranslationKey = keyof typeof ru;
@@ -161,6 +169,14 @@ const en: Translations = {
   cropAvatar: 'Crop avatar',
   zoom: 'Zoom',
   yourName: 'Your name',
+  authPromptTitle: 'Sign in?',
+  authPromptBody: 'You can sign in or continue anonymously. Name is required in both cases.',
+  continueAnon: 'Continue anonymously',
+  authYes: 'Sign in',
+  removedTitle: 'Removed from receipt',
+  removedBody: 'You no longer have access to this receipt.',
+  goHome: 'Go home',
+  nameConflict: 'Name already exists',
 };
 
 // Available languages

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { Receipt } from "@/model/receipt/model";
+import { ReceiptData } from "@/model/receipt/model";
 import { calculateBalances } from "@/app/receipt/utils/calculator";
 import { t } from "@/app/i18n/translations";
 import { ParticipantAvatar } from "@/components/ui/participant-avatar";
@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Share2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/utils/cn";
+import { useParticipantsStore } from "@/app/receipt/store/participants";
 
 interface SummaryScreenProps {
-    receipt: Receipt;
+    receipt: ReceiptData;
     onBack: () => void;
 }
 
@@ -19,10 +20,11 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
     receipt,
     onBack,
 }) => {
+    const participants = useParticipantsStore((s) => s.participants);
     const balances = useMemo(() => {
-        const all = calculateBalances(receipt);
+        const all = calculateBalances(receipt, participants);
         return all.filter(b => b.finalAmount > 0.01);
-    }, [receipt]);
+    }, [receipt, participants]);
 
     // Sum of distributed amounts
     const distributedTotal = useMemo(
@@ -42,8 +44,8 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
         const lines = [
             `${t("receipt")}: ${realGrandTotal.toFixed(0)} ₽`,
             ...balances.map((b) => {
-                const p = receipt.participants.find((p) => p.id === b.participantId);
-                return `${p?.name || "Unknown"}: ${b.finalAmount.toFixed(0)} ₽`;
+                const p = participants.find((p) => p.id === b.participantId);
+                return `${p?.displayName || "Unknown"}: ${b.finalAmount.toFixed(0)} ₽`;
             }),
         ];
         if (Math.abs(remaining) > 1) {
@@ -90,7 +92,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
             {/* List */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {balances.map((balance) => {
-                    const participant = receipt.participants.find(
+                    const participant = participants.find(
                         (p) => p.id === balance.participantId
                     );
                     if (!participant) return null;
@@ -103,7 +105,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
                             <div className="flex items-center gap-3 w-full mb-2">
                                 <ParticipantAvatar participant={participant} />
                                 <span className="font-medium text-lg flex-1 text-left truncate">
-                                    {participant.name}
+                                    {participant.displayName}
                                 </span>
                                 <div className="text-right">
                                     <span className="font-bold text-xl block">

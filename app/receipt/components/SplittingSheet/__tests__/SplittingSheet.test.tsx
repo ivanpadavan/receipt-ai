@@ -1,14 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
 import { SplittingSheet } from "../SplittingSheet";
-import { ReceiptPosition, ReceiptParticipant } from "@/model/receipt/model";
+import { ParticipantDTO, ReceiptPosition } from "@/model/receipt/model";
+import { useParticipantsStore } from "@/app/receipt/store/participants";
 
 // --- Mocks ---
 
 // Mock useReceiptState to provide participants
-const mockParticipants: ReceiptParticipant[] = [
-    { id: "p1", name: "Alice", color: "#FF0000" },
-    { id: "p2", name: "Bob", color: "#00FF00" },
+const mockParticipants: ParticipantDTO[] = [
+    { id: "p1", displayName: "Alice", color: "#FF0000", kind: "REAL" },
+    { id: "p2", displayName: "Bob", color: "#00FF00", kind: "MOCK" },
 ];
 
 const mockReceiptState = {
@@ -25,7 +26,7 @@ vi.mock("../../ReceiptForm", () => ({
 
 // Mock react-hook-form useWatch
 vi.mock("react-hook-form", () => ({
-    useWatch: () => mockParticipants,
+    useWatch: (args?: any) => (args?.name ? args?.name : mockParticipants),
 }));
 
 // Mock useUser
@@ -89,6 +90,7 @@ describe("SplittingSheet Integration", () => {
     });
 
     it("renders position info and existing claims", () => {
+        useParticipantsStore.setState({ participants: mockParticipants, initialized: true });
         render(<SplittingSheet initialValue={defaultPosition} onSave={onSave} fieldType="position" header="name" />);
 
         // Check header
@@ -105,6 +107,7 @@ describe("SplittingSheet Integration", () => {
     it("opens adding new share by default if not present in initial", () => {
         const posWithoutNew = { ...defaultPosition };
 
+        useParticipantsStore.setState({ participants: mockParticipants, initialized: true });
         render(<SplittingSheet initialValue={posWithoutNew} onSave={onSave} fieldType="position" header="name" />);
 
         const inputs = screen.getAllByRole("spinbutton");
@@ -116,6 +119,7 @@ describe("SplittingSheet Integration", () => {
     });
 
     it("allows adding a new claim", async () => {
+        useParticipantsStore.setState({ participants: mockParticipants, initialized: true });
         render(<SplittingSheet initialValue={defaultPosition} onSave={onSave} fieldType="position" header="name" />);
 
         const input = screen.getByRole("spinbutton");

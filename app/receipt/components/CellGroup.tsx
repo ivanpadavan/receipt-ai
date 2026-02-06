@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useFormContext, FieldPath } from "react-hook-form";
-import { Receipt } from "@/model/receipt/model";
+import { ReceiptData } from "@/model/receipt/model";
 import { useReceiptState } from "./ReceiptForm";
 
 interface CellGroupProps {
   /** Field path prefix for this group (e.g., "positions.0") */
-  fieldPath: FieldPath<Receipt>;
+  fieldPath: FieldPath<ReceiptData>;
   /** Index in the array (for positions, fees, discounts) */
   index: number;
   /** Type of the group */
@@ -37,7 +37,7 @@ export const CellGroup = ({
   canEdit,
   children,
 }: CellGroupProps) => {
-  const { formState } = useFormContext<Receipt>();
+  const { formState } = useFormContext<ReceiptData>();
   const [hoverWithin, setHoverWithin] = useState(false);
   const { openEditModal } = useReceiptState();
 

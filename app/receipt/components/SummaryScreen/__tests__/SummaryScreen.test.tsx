@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { SummaryScreen } from "../SummaryScreen";
-import { Receipt } from "@/model/receipt/model";
+import { ParticipantDTO, ReceiptData } from "@/model/receipt/model";
+import { useParticipantsStore } from "@/app/receipt/store/participants";
 
 // Mock translations
 vi.mock("@/app/i18n/translations", () => ({
@@ -20,7 +21,7 @@ vi.mock("@/app/i18n/translations", () => ({
 
 // Mock Avatar
 vi.mock("@/components/ui/participant-avatar", () => ({
-    ParticipantAvatar: ({ participant }: { participant: any }) => <div>{participant.name[0]}</div>,
+    ParticipantAvatar: ({ participant }: { participant: any }) => <div>{participant.displayName[0]}</div>,
 }));
 
 // Mock Sonner
@@ -29,7 +30,11 @@ vi.mock("sonner", () => ({
 }));
 
 describe("SummaryScreen", () => {
-    const mockReceipt: Receipt = {
+    const participants: ParticipantDTO[] = [
+        { id: "user1", displayName: "Alice", color: "red", kind: "REAL" },
+    ];
+
+    const mockReceipt: ReceiptData = {
         positions: [
             {
                 id: "p1",
@@ -47,9 +52,6 @@ describe("SummaryScreen", () => {
                 ],
             },
         ],
-        participants: [
-            { id: "user1", name: "Alice", color: "red" },
-        ],
         // Total claimed: 100.
         // We want a discount. Let's make GrandTotal 90.
         // Ratio = 90 / 100 = 0.9.
@@ -63,6 +65,7 @@ describe("SummaryScreen", () => {
     };
 
     it("displays discount with correct formatting (minus sign)", () => {
+        useParticipantsStore.setState({ participants, initialized: true });
         render(<SummaryScreen receipt={mockReceipt} onBack={() => { }} />);
 
         // Alice claimed 100.
@@ -98,6 +101,7 @@ describe("SummaryScreen", () => {
     });
 
     it("displays fee with plus sign", () => {
+        useParticipantsStore.setState({ participants, initialized: true });
         const feeReceipt = {
             ...mockReceipt,
             totals: {

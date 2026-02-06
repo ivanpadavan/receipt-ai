@@ -1,6 +1,6 @@
 import { Resolver } from "react-hook-form";
 import {
-    Receipt,
+    ReceiptData,
     calculateTotal,
     calculateGrandTotal,
 } from "@/model/receipt/model";
@@ -36,7 +36,7 @@ export const validateOverallMatchesQuantityPrice = (
 
 export const validateTotalMatchesSum = (
     total: number,
-    positions: Receipt["positions"]
+    positions: ReceiptData["positions"]
 ): string | null => {
     const calculatedTotal = calculateTotal(positions);
     return Math.abs(calculatedTotal - total) > 0.01
@@ -46,7 +46,7 @@ export const validateTotalMatchesSum = (
 
 export const validateGrandTotalMatchesCalculation = (
     grandTotal: number,
-    receipt: Receipt
+    receipt: ReceiptData
 ): string | null => {
     const calculatedGrandTotal = calculateGrandTotal(receipt);
     return Math.abs(calculatedGrandTotal - grandTotal) > 0.01
@@ -65,7 +65,7 @@ type ErrorRecord = Record<string, any>;
 
 export const createReceiptResolver = (
     context: ReceiptValidationContext
-): Resolver<Receipt> => {
+): Resolver<ReceiptData> => {
     return async (values) => {
         const errors: ErrorRecord = {};
 

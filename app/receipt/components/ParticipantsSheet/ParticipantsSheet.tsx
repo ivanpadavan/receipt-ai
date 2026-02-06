@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useFormContext, useFieldArray } from "react-hook-form";
-import { Receipt, ReceiptParticipant } from "@/model/receipt/model";
+import React, { useMemo, useState } from "react";
+import { ParticipantDTO } from "@/model/receipt/model";
 import { ParticipantAvatar } from "@/components/ui/participant-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,52 +29,43 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { t } from "@/app/i18n/translations";
 import { UserPlus, X, Check, Trash2, MoreVertical } from "lucide-react";
-import { createDefaultParticipant } from "@/app/receipt/[id]/useReceiptFormState";
-
-// Predefined colors for participants
-const PARTICIPANT_COLORS = [
-    "#F59E0B", // amber
-    "#10B981", // emerald
-    "#3B82F6", // blue
-    "#8B5CF6", // violet
-    "#EC4899", // pink
-    "#EF4444", // red
-    "#06B6D4", // cyan
-    "#84CC16", // lime
-];
-
-const getNextColor = (participants: ReceiptParticipant[]): string => {
-    const usedColors = new Set(participants.map((p) => p.color));
-    const available = PARTICIPANT_COLORS.find((c) => !usedColors.has(c));
-    return available || PARTICIPANT_COLORS[participants.length % PARTICIPANT_COLORS.length];
-};
+import { useParticipantsStore } from "@/app/receipt/store/participants";
 
 interface ParticipantsSheetProps {
     onClose?: () => void;
+    receiptId: string;
 }
 
-export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({ onClose }) => {
-    const form = useFormContext<Receipt>();
-    const { fields, append, remove } = useFieldArray({
-        control: form.control,
-        name: "participants",
-    });
+export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({ onClose, receiptId }) => {
+    const participants = useParticipantsStore((s) => s.participants);
+    const setParticipants = useParticipantsStore((s) => s.setParticipants);
 
     const [newParticipantName, setNewParticipantName] = useState("");
     const [isAdding, setIsAdding] = useState(false);
-    const [deleteConfirm, setDeleteConfirm] = useState<{ index: number; name: string } | null>(null);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; displayName: string; kind: "REAL" | "MOCK" } | null>(null);
+    const trimmedNewName = newParticipantName.trim();
+    const hasNameConflict = useMemo(() => {
+        if (!trimmedNewName) return false;
+        return participants.some(
+            (p) => p.displayName.trim().toLowerCase() === trimmedNewName.toLowerCase(),
+        );
+    }, [participants, trimmedNewName]);
 
-    const handleAddParticipant = () => {
-        if (newParticipantName.trim()) {
-            const newParticipant: ReceiptParticipant = {
-                ...createDefaultParticipant(),
-                name: newParticipantName.trim(),
-                color: getNextColor(fields as ReceiptParticipant[]),
-            };
-            append(newParticipant);
-            setNewParticipantName("");
-            setIsAdding(false);
+    const handleAddParticipant = async () => {
+        if (!trimmedNewName) return;
+        const res = await fetch(`/api/receipt/${receiptId}/participants/mock`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ displayName: trimmedNewName }),
+        });
+        if (!res.ok) return;
+        const json = await res.json();
+        const participant = json.participant as ParticipantDTO | undefined;
+        if (participant) {
+            setParticipants([...participants, participant]);
         }
+        setNewParticipantName("");
+        setIsAdding(false);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -88,13 +78,19 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({ onClose })
         }
     };
 
-    const handleDeleteClick = (index: number, name: string) => {
-        setDeleteConfirm({ index, name });
+    const handleDeleteClick = (participant: ParticipantDTO) => {
+        setDeleteConfirm({ id: participant.id, displayName: participant.displayName, kind: participant.kind });
     };
 
-    const handleConfirmDelete = () => {
+    const handleConfirmDelete = async () => {
         if (deleteConfirm !== null) {
-            remove(deleteConfirm.index);
+            const base = `/api/receipt/${receiptId}/participants`;
+            const path =
+                deleteConfirm.kind === "REAL"
+                    ? `${base}/real/${deleteConfirm.id}`
+                    : `${base}/mock/${deleteConfirm.id}`;
+            await fetch(path, { method: "DELETE" });
+            setParticipants(participants.filter((p) => p.id !== deleteConfirm.id));
             setDeleteConfirm(null);
         }
     };
@@ -114,22 +110,21 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({ onClose })
                 </DrawerHeader>
 
                 <div className="flex-1 overflow-y-auto px-4 py-3 min-h-[200px]">
-                    {fields.length === 0 && !isAdding && (
+                    {participants.length === 0 && !isAdding && (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
                             <UserPlus className="h-12 w-12 text-gray-300 mb-3" />
                             <p className="text-gray-500 text-sm">Добавьте участников чека</p>
                         </div>
                     )}
 
-                    {fields.map((field, index) => {
-                        const participant = field as unknown as ReceiptParticipant;
+                    {participants.map((participant) => {
                         return (
                             <div
-                                key={field.id}
+                                key={participant.id}
                                 className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl mb-2 shadow-sm"
                             >
                                 <ParticipantAvatar participant={participant} className="shrink-0" />
-                                <span className="flex-1 font-medium text-gray-800">{participant.name}</span>
+                                <span className="flex-1 font-medium text-gray-800">{participant.displayName}</span>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500">
@@ -138,7 +133,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({ onClose })
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuItem
-                                            onClick={() => handleDeleteClick(index, participant.name)}
+                                            onClick={() => handleDeleteClick(participant)}
                                             className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50"
                                         >
                                             <Trash2 className="h-4 w-4 mr-2" />
@@ -154,10 +149,6 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({ onClose })
                         <div className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl border-2 border-dashed border-amber-500 mb-2">
                             <div
                                 className="w-8 h-8 rounded-full flex items-center justify-center font-semibold shrink-0 text-lg"
-                                style={{
-                                    backgroundColor: getNextColor(fields as ReceiptParticipant[]) + "20",
-                                    color: getNextColor(fields as ReceiptParticipant[]),
-                                }}
                             >
                                 ?
                             </div>
@@ -169,6 +160,11 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({ onClose })
                                 placeholder="Имя нового участника"
                                 className="flex-1 border-none bg-transparent p-0 text-base focus:ring-0 focus-visible:ring-0"
                             />
+                            {hasNameConflict && (
+                                <span className="text-xs text-amber-600">
+                                    {t("nameConflict")}
+                                </span>
+                            )}
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -225,7 +221,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({ onClose })
                             {t("deleteParticipantConfirm")}
                             {deleteConfirm && (
                                 <span className="block mt-2 font-semibold text-gray-900">
-                                    {deleteConfirm.name}
+                            {deleteConfirm.displayName}
                                 </span>
                             )}
                         </AlertDialogDescription>

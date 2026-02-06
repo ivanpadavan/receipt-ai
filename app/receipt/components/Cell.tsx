@@ -2,18 +2,18 @@
 
 import React from "react";
 import { useFormContext, useWatch, FieldPath } from "react-hook-form";
-import { Receipt } from "@/model/receipt/model";
+import { ReceiptData } from "@/model/receipt/model";
 
 interface CellProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
-  name: FieldPath<Receipt>;
+  name: FieldPath<ReceiptData>;
 }
 
 /**
  * Cell component that displays a value from react-hook-form.
  */
 export const Cell: React.FC<CellProps> = ({ name, className = "", ...props }) => {
-  const { formState } = useFormContext<Receipt>();
-  const value = useWatch<Receipt>({ name });
+  const { formState } = useFormContext<ReceiptData>();
+  const value = useWatch<ReceiptData>({ name });
 
   // Check if this field has errors
   const hasError = name.split(".").reduce((obj: unknown, key) => {

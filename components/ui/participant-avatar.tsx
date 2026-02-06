@@ -1,10 +1,8 @@
-import { ReceiptParticipant } from "@/model/receipt/model";
-import { useUser } from "@/context/AuthContext";
-import { cn } from "@/utils/cn";
+import { ParticipantDTO } from "@/model/receipt/model";
 import { UserAvatar } from "@/components/ui/user-avatar";
 
 interface ParticipantAvatarProps {
-    participant: ReceiptParticipant;
+    participant: ParticipantDTO;
     className?: string;
     showRing?: boolean; // Show colored ring around avatar (default: true)
     ringColor?: string; // Override ring color (default: participant.color)
@@ -16,20 +14,21 @@ export const ParticipantAvatar = ({
     showRing = true,
     ringColor,
 }: ParticipantAvatarProps) => {
-    const { user } = useUser();
-
-    const iscurrentUser = user?.id === participant.id;
-    const avatarUrl = iscurrentUser ? user?.user_metadata?.avatarUrl : undefined;
+    const avatarUrl =
+        participant.kind === "REAL"
+            ? participant.avatarUrl ?? undefined
+            : undefined;
 
     const effectiveRingColor = ringColor ?? participant.color;
 
     return (
         <UserAvatar
-            name={participant.name}
+            name={participant.displayName}
             src={avatarUrl}
-            className={cn("h-8 w-8", className)}
+            className={className}
             showRing={showRing}
             ringColor={effectiveRingColor}
+            fallbackColor={participant.color}
         />
     );
 };

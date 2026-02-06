@@ -7,14 +7,14 @@ import { Cell } from "./Cell";
 import { FormArrayTitle } from "./FormArrayTitle";
 import { useReceiptState } from "./ReceiptForm";
 import { useFormContext, useWatch } from "react-hook-form";
-import { Receipt, ReceiptModifier } from "@/model/receipt/model";
+import { ReceiptData, ReceiptModifier } from "@/model/receipt/model";
 
 interface ModifiersProps {
   type: "discounts" | "fees";
 }
 
 export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
-  const { control, } = useFormContext<Receipt>();
+  const { control, } = useFormContext<ReceiptData>();
   const fields = useWatch({ control, name: type }) as ReceiptModifier[] || [];
   const ctx = useReceiptState();
 

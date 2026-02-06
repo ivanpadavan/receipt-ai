@@ -1,16 +1,15 @@
 import React from 'react';
-import { useReceiptState } from "../ReceiptForm";
 import { cn } from "@/utils/cn";
-import { useWatch } from "react-hook-form";
 
 import {
-  Receipt,
+  ReceiptData,
   ReceiptPosition,
   ReceiptPositionClaim,
-  ReceiptParticipant,
+  ParticipantDTO,
 } from "@/model/receipt/model";
+import { useParticipantsStore } from "@/app/receipt/store/participants";
 
-type DistributionData = ReceiptPositionClaim | ReceiptPosition | Receipt;
+type DistributionData = ReceiptPositionClaim | ReceiptPosition | ReceiptData;
 
 interface DistributionBarProps {
   data: DistributionData;
@@ -18,7 +17,7 @@ interface DistributionBarProps {
   children?: React.ReactNode;
 }
 
-const isReceipt = (data: DistributionData): data is Receipt => {
+const isReceipt = (data: DistributionData): data is ReceiptData => {
   return 'positions' in data && Array.isArray(data.positions);
 }
 
@@ -32,12 +31,7 @@ export const DistributionBar = ({
   className,
   children,
 }: DistributionBarProps) => {
-  const {
-    scenario: { form },
-  } = useReceiptState();
-
-  // Use react-hook-form's useWatch instead of RxJS observable
-  const participants = useWatch({ control: form.control, name: "participants" }) as ReceiptParticipant[];
+  const participants = useParticipantsStore((s) => s.participants);
 
   // Aggregate amounts per participant
   const participantAmounts = new Map<string, number>();
@@ -79,17 +73,17 @@ export const DistributionBar = ({
   // Convert to array.
   // We respect the order of participants (usually "Me" is first), so the current user's segment appears first.
   const bars = (participants || [])
-    .map((p: ReceiptParticipant) => ({
+    .map((p: ParticipantDTO) => ({
       ...p,
       amount: participantAmounts.get(p.id) || 0,
     }))
-    .filter((p: ReceiptParticipant & { amount: number }) => p.amount > 0);
+    .filter((p: ParticipantDTO & { amount: number }) => p.amount > 0);
 
   return (
     <div
       className={cn("w-full bg-secondary overflow-hidden flex relative", className)}
     >
-      {bars.map((bar: ReceiptParticipant & { amount: number }, i: number) => {
+      {bars.map((bar: ParticipantDTO & { amount: number }, i: number) => {
         const style: React.CSSProperties = {
           backgroundColor: bar.color,
         };
@@ -109,7 +103,7 @@ export const DistributionBar = ({
           <div
             key={bar.id}
             style={style}
-            title={`${bar.name}: ${bar.amount.toFixed(2)}`}
+            title={`${bar.displayName}: ${bar.amount.toFixed(2)}`}
             className="h-full transition-all flex items-center justify-center relative overflow-hidden"
           />
         );

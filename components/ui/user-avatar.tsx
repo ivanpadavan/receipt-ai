@@ -7,6 +7,7 @@ interface UserAvatarProps {
   className?: string;
   showRing?: boolean;
   ringColor?: string;
+  fallbackColor?: string;
 }
 
 export const UserAvatar = ({
@@ -15,6 +16,7 @@ export const UserAvatar = ({
   className,
   showRing = false,
   ringColor,
+  fallbackColor,
 }: UserAvatarProps) => {
   const initials = name.trim().substring(0, 1).toUpperCase() || "?";
 
@@ -28,7 +30,18 @@ export const UserAvatar = ({
       }
     >
       {src && <AvatarImage src={src} />}
-      <AvatarFallback>{initials}</AvatarFallback>
+      <AvatarFallback
+        style={
+          fallbackColor
+            ? {
+                backgroundColor: `color-mix(in srgb, ${fallbackColor}, white 92%)`,
+                color: fallbackColor,
+              }
+            : undefined
+        }
+      >
+        {initials}
+      </AvatarFallback>
     </Avatar>
   );
 };

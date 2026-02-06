@@ -1,12 +1,13 @@
 import { z } from "zod";
-import { receiptAiSchema, receiptSchema } from "./schema";
+import { participantDtoSchema, receiptAiSchema, receiptSchema, receiptWithParticipantsSchema } from "./schema";
 
 // Infer TypeScript types from Zod schema
 export type ReceiptModifier = z.infer<typeof receiptSchema>["fees"][number] | z.infer<typeof receiptSchema>["discounts"][number];
 export type ReceiptPosition = z.infer<typeof receiptSchema>["positions"][number];
 export type ReceiptPositionClaim = z.infer<typeof receiptSchema>["positions"][number]["claims"][number];
-export type ReceiptParticipant = z.infer<typeof receiptSchema>["participants"][number];
-export type Receipt = z.infer<typeof receiptSchema>;
+export type ReceiptData = z.infer<typeof receiptSchema>;
+export type ParticipantDTO = z.infer<typeof participantDtoSchema>;
+export type ReceiptWithParticipants = z.infer<typeof receiptWithParticipantsSchema>;
 
 // Infer TypeScript types from Zod schema
 export type ReceiptModifierNoId = z.infer<typeof receiptAiSchema>["fees"][number] | z.infer<typeof receiptSchema>["discounts"][number];

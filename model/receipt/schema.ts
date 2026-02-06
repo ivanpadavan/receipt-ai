@@ -41,12 +41,6 @@ const claimSchema = z.object({
   value: z.number(),
 });
 
-const participantSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  color: z.string(), // hex color for badge
-});
-
 export const receiptSchema = z
   .object({
     positions: z.array(
@@ -60,7 +54,19 @@ export const receiptSchema = z
     totals: receiptTotalsSchema.describe(
       "Total information including discounts and tips",
     ),
-    participants: z.array(participantSchema),
     editingFinished: z.boolean().optional(),
   })
   .describe("Structured data extracted from the receipt");
+
+export const participantDtoSchema = z.object({
+  id: z.string(),
+  displayName: z.string(),
+  color: z.string(),
+  kind: z.enum(["REAL", "MOCK"]),
+  avatarUrl: z.string().optional(),
+});
+
+export const receiptWithParticipantsSchema = z.object({
+  receipt: receiptSchema,
+  participants: z.array(participantDtoSchema),
+});

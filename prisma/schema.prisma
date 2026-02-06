@@ -18,6 +18,34 @@ model Receipt {
   user      users    @relation(fields: [userId], references: [id], onDelete: Cascade)
   imageUrl  String
   data      Json
+  realParticipants ReceiptUserParticipant[]
+  mockParticipants ReceiptMockParticipant[]
+
+  @@schema("public")
+}
+
+model ReceiptUserParticipant {
+  id        String   @id @default(cuid())
+  receiptId String
+  userId    String   @db.Uuid
+  color     String
+  createdAt DateTime @default(now())
+
+  receipt Receipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  user    users   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([receiptId, userId])
+  @@schema("public")
+}
+
+model ReceiptMockParticipant {
+  id          String   @id @default(cuid())
+  receiptId   String
+  displayName String
+  color       String
+  createdAt   DateTime @default(now())
+
+  receipt Receipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
 
   @@schema("public")
 }
@@ -31,6 +59,7 @@ model users {
   raw_user_meta_data Json
 
   receipts Receipt[]
+  receiptParticipants ReceiptUserParticipant[]
 
   @@schema("auth")
 }

@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { calculateBalances } from "../calculator";
-import { Receipt, ReceiptPosition, ReceiptParticipant } from "@/model/receipt/model";
+import { ParticipantDTO, ReceiptData, ReceiptPosition } from "@/model/receipt/model";
 
 describe("calculateBalances", () => {
-    const participants: ReceiptParticipant[] = [
-        { id: "p1", name: "P1", color: "" },
-        { id: "p2", name: "P2", color: "" }
+    const participants: ParticipantDTO[] = [
+        { id: "p1", displayName: "P1", color: "", kind: "MOCK" },
+        { id: "p2", displayName: "P2", color: "", kind: "MOCK" }
     ];
 
     it("calculates quantity description for fixed amount claims", () => {
@@ -28,15 +28,13 @@ describe("calculateBalances", () => {
         const receipt = {
             id: "r1",
             positions: [position],
-            participants,
-            totals: { total: 200, grandTotal: 200, discount: 0, fee: 0 },
+            totals: { total: 200, grandTotal: 200 },
             fees: [],
             discounts: [],
-            date: new Date(),
             editingFinished: true
-        } as unknown as Receipt;
+        } as unknown as ReceiptData;
 
-        const balances = calculateBalances(receipt);
+        const balances = calculateBalances(receipt, participants);
         const p1Balance = balances.find(b => b.participantId === "p1");
 
         expect(p1Balance).toBeDefined();

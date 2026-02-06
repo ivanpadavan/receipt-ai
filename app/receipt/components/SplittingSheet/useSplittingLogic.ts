@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  ReceiptParticipant,
+  ParticipantDTO,
   ReceiptPosition,
   ReceiptPositionClaim,
 } from "@/model/receipt/model";
@@ -14,7 +14,7 @@ export interface UseSplittingLogicProps {
   initialValue: ReceiptPosition;
   onSave: (data: ReceiptPosition) => void;
   currentUser: { id: string; email?: string } | null;
-  participants: ReceiptParticipant[];
+  participants: ParticipantDTO[];
 }
 
 export const useSplittingLogic = ({
@@ -28,8 +28,7 @@ export const useSplittingLogic = ({
   );
 
   const currentUserParticipantId = participants?.find(
-    (p) =>
-      p.name === currentUser?.email?.split("@")[0] || p.id === currentUser?.id,
+    (p) => p.kind === "REAL" && p.id === currentUser?.id,
   )?.id;
 
   // --- Draft Claims State (Map) ---

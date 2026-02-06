@@ -1,4 +1,9 @@
-import { Receipt, calculateTotal, calculateGrandTotal } from "@/model/receipt/model";
+import {
+  ParticipantDTO,
+  ReceiptData,
+  calculateGrandTotal,
+  calculateTotal,
+} from "@/model/receipt/model";
 
 export interface ParticipantBalance {
     participantId: string;
@@ -11,11 +16,14 @@ export interface ParticipantBalance {
     }[];
 }
 
-export const calculateBalances = (receipt: Receipt): ParticipantBalance[] => {
+export const calculateBalances = (
+  receipt: ReceiptData,
+  participants: ParticipantDTO[],
+): ParticipantBalance[] => {
     const balances = new Map<string, ParticipantBalance>();
 
     // Initialize for all participants
-    receipt.participants.forEach((p) => {
+    participants.forEach((p) => {
         balances.set(p.id, {
             participantId: p.id,
             baseAmount: 0,

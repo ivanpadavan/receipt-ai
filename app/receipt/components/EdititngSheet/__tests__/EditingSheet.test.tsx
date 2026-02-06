@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import { EditingSheet } from "../EditingSheet";
-import { ReceiptPosition, ReceiptModifier, Receipt } from "@/model/receipt/model";
+import { ReceiptPosition, ReceiptModifier, ReceiptData } from "@/model/receipt/model";
 
 // Mock useReceiptState
 const mockReceiptState = {
@@ -73,7 +73,7 @@ describe("EditingSheet", () => {
         value: 50,
     };
 
-    const defaultTotals: Receipt["totals"] = {
+    const defaultTotals: ReceiptData["totals"] = {
         total: 1000,
         grandTotal: 1050,
     };

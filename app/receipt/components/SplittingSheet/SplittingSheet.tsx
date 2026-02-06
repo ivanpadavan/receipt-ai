@@ -36,11 +36,12 @@ import {
 import { cn } from "@/utils/cn";
 import { ParticipantAvatar } from "@/components/ui/participant-avatar";
 import { DistributionBar } from "./DistributionBar";
-import { ReceiptPosition, ReceiptPositionClaim, ReceiptParticipant } from "@/model/receipt/model";
+import { ParticipantDTO, ReceiptPosition, ReceiptPositionClaim } from "@/model/receipt/model";
 import { getClaimOverage } from "@/app/receipt/utils/claims";
 import { useWatch } from "react-hook-form";
 import { useUser } from "@/context/AuthContext";
 import { useSplittingLogic } from "./useSplittingLogic";
+import { useParticipantsStore } from "@/app/receipt/store/participants";
 
 // --- Components ---
 
@@ -121,7 +122,7 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
 interface ViewingHeaderProps {
   claim: ReceiptPositionClaim;
   price: number;
-  participants: ReceiptParticipant[];
+  participants: ParticipantDTO[];
   onEditStart: () => void;
   onRemove: () => void;
 }
@@ -210,7 +211,7 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
 
 interface ParticipantsSelectorProps {
   selectedIds: string[];
-  participants: ReceiptParticipant[];
+  participants: ParticipantDTO[];
   onChange: (ids: string[]) => void;
 }
 
@@ -256,7 +257,7 @@ const ParticipantsSelector: React.FC<ParticipantsSelectorProps> = ({
 
 interface ClaimRowProps {
   claim: ReceiptPositionClaim;
-  participants: ReceiptParticipant[];
+  participants: ParticipantDTO[];
   onUpdate: (claim: ReceiptPositionClaim) => void;
   header: React.ReactNode;
   defaultOpen?: boolean;
@@ -304,7 +305,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 }) => {
   const position = initialValue as ReceiptPosition;
   const { scenario: { form } } = useReceiptState();
-  const participants = useWatch({ control: form.control, name: "participants" });
+  const participants = useParticipantsStore((s) => s.participants);
   const { user } = useUser();
 
   const {

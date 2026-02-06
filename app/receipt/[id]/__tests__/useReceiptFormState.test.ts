@@ -1,6 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { useReceiptFormState } from "../useReceiptFormState";
-import { Receipt } from "@/model/receipt/model";
+import { ReceiptData } from "@/model/receipt/model";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/app/api-client", () => ({
@@ -12,7 +12,7 @@ vi.mock("@/app/api-client", () => ({
 
 describe("useReceiptFormState", () => {
   // Sample receipt data for testing
-  const validReceipt: Receipt = {
+  const validReceipt: ReceiptData = {
     positions: [
       {
         id: "pos-1",
@@ -41,10 +41,9 @@ describe("useReceiptFormState", () => {
         value: 2,
       },
     ],
-    participants: [],
   };
 
-  const invalidReceipt: Receipt = {
+  const invalidReceipt: ReceiptData = {
     positions: [
       {
         id: "pos-1",
@@ -73,7 +72,6 @@ describe("useReceiptFormState", () => {
         value: 2,
       },
     ],
-    participants: [],
   };
 
   beforeEach(() => {

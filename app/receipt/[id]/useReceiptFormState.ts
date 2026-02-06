@@ -20,10 +20,9 @@ import { isEqual } from "lodash-es";
 
 import { TranslationKey } from "@/app/i18n/translations";
 import {
-  Receipt,
+  ReceiptData,
   ReceiptPosition,
   ReceiptModifier,
-  ReceiptParticipant,
   ReceiptPositionClaim,
   validateReceipt,
   calculateTotal,
@@ -48,7 +47,7 @@ export interface CanEdit {
 export interface FormScenario {
   type: FormType;
   canEdit: CanEdit;
-  form: UseFormReturn<Receipt>;
+  form: UseFormReturn<ReceiptData>;
 }
 
 // EditModalProps - работает с копией данных, как в оригинале
@@ -58,13 +57,13 @@ export interface EditModalProps {
   // Для модификаторов: fee или discount
   modifierType?: "fees" | "discounts";
   // Field path for syncing edits into react-hook-form
-  fieldPath?: FieldPath<Receipt>;
+  fieldPath?: FieldPath<ReceiptData>;
   // Копия данных для редактирования (не привязана к основной форме)
-  initialValue: ReceiptPosition | ReceiptModifier | Receipt["totals"];
+  initialValue: ReceiptPosition | ReceiptModifier | ReceiptData["totals"];
   // Заголовок модального окна
   header: TranslationKey;
   // Callback при сохранении — получает отредактированные данные
-  onSave: (data: ReceiptPosition | ReceiptModifier | Receipt["totals"]) => void;
+  onSave: (data: ReceiptPosition | ReceiptModifier | ReceiptData["totals"]) => void;
   // Callback при удалении (если доступен)
   onRemove?: () => void;
 }
@@ -141,18 +140,12 @@ export const createDefaultModifier = (): ReceiptModifier => ({
   value: 0,
 });
 
-export const createDefaultParticipant = (): ReceiptParticipant => ({
-  id: crypto.randomUUID(),
-  name: "",
-  color: "",
-});
-
 // ============================================================================
 // Hook
 // ============================================================================
 
 export function useReceiptFormState(
-  initialData: Receipt,
+  initialData: ReceiptData,
   receiptId = "",
 ): ReceiptState {
   // -------------------------------------------------------------------------
@@ -174,7 +167,7 @@ export function useReceiptFormState(
   // -------------------------------------------------------------------------
   // 2. Initialize react-hook-form
   // -------------------------------------------------------------------------
-  const form = useForm<Receipt>({
+  const form = useForm<ReceiptData>({
     values: initialData,
     resetOptions: {
       keepErrors: true,
@@ -193,7 +186,6 @@ export function useReceiptFormState(
   const positionsField = useFieldArray({ control, name: "positions" });
   const feesField = useFieldArray({ control, name: "fees" });
   const discountsField = useFieldArray({ control, name: "discounts" });
-  const participantsField = useFieldArray({ control, name: "participants" });
 
   // -------------------------------------------------------------------------
   // 3.5. Revalidation trigger (для validation режима)
@@ -265,7 +257,7 @@ export function useReceiptFormState(
   // -------------------------------------------------------------------------
   // 5. Auto-save effect (для editing режима)
   // -------------------------------------------------------------------------
-  const updateReceiptRef = useRef<Subject<Receipt>>(new Subject<Receipt>());
+  const updateReceiptRef = useRef<Subject<ReceiptData>>(new Subject<ReceiptData>());
   // Setup auto-save pipeline
   useObservable(
     useMemo(() => {
@@ -388,7 +380,7 @@ export function useReceiptFormState(
           initialValue: totals,
           header: "overall",
           onSave: (data) => {
-            setValue("totals", data as Receipt["totals"], {
+          setValue("totals", data as ReceiptData["totals"], {
                 shouldValidate: true,
               });
             },
@@ -470,7 +462,7 @@ export function useReceiptFormState(
         .updateReceipt(receiptId, { ...data, editingFinished: true })
         .then(() => {
           typeRef.current = "splitting";
-          setValue("editingFinished" as keyof Receipt, true as never);
+        setValue("editingFinished" as keyof ReceiptData, true as never);
           setForceUpdate((v) => v + 1);
         });
     } else if (type === "validation") {
@@ -497,7 +489,7 @@ export function useReceiptFormState(
       .updateReceipt(receiptId, { ...data, editingFinished: false })
       .then(() => {
         typeRef.current = "editing";
-        setValue("editingFinished" as keyof Receipt, false as never);
+      setValue("editingFinished" as keyof ReceiptData, false as never);
         setForceUpdate((v) => v + 1);
       });
   }, [type, getValues, receiptId, setValue]);

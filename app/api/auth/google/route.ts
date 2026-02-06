@@ -42,7 +42,6 @@ export async function POST(request: Request) {
 
   if (!linkError && linkData.session && linkData.user) {
     // Достаем основные поля и кладем в новый аккаунт
-    console.log(linkData.user, getUserMetadata(linkData.user));
     await supabase.auth.updateUser({
       data: getUserMetadata(linkData.user)
     });
