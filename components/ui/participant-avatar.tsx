@@ -19,7 +19,7 @@ export const ParticipantAvatar = ({
     const { user } = useUser();
 
     const iscurrentUser = user?.id === participant.id;
-    const avatarUrl = iscurrentUser ? user?.user_metadata?.avatar_url : undefined;
+    const avatarUrl = iscurrentUser ? user?.user_metadata?.avatarUrl : undefined;
 
     const effectiveRingColor = ringColor ?? participant.color;
 

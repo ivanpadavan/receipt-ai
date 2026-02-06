@@ -66,6 +66,14 @@ const ru = {
   overpaid: 'Переплата',
   copiedToClipboard: 'Скопировано в буфер',
   noClaims: 'Пока нет распределений',
+  settings: 'Настройки',
+  profileName: 'Имя',
+  avatarImage: 'Аватар',
+  avatarUrl: 'Ссылка на аватар',
+  uploadAvatar: 'Загрузить аватар',
+  changeAvatar: 'Сменить аватар',
+  avatarUploadHint: 'Нажмите, чтобы выбрать файл или сделать фото',
+  takeAvatarPhoto: 'Сделать фото',
 };
 
 export type TranslationKey = keyof typeof ru;
@@ -139,6 +147,14 @@ const en: Translations = {
   overpaid: 'Overpaid',
   copiedToClipboard: 'Copied to clipboard',
   noClaims: 'No claims yet',
+  settings: 'Settings',
+  profileName: 'Name',
+  avatarImage: 'Avatar image',
+  avatarUrl: 'Avatar URL',
+  uploadAvatar: 'Upload avatar',
+  changeAvatar: 'Change avatar',
+  avatarUploadHint: 'Click to choose a file or take a photo',
+  takeAvatarPhoto: 'Take photo',
 };
 
 // Available languages

@@ -10,13 +10,13 @@ const getUserMetadata = (user: User): User["user_metadata"] => {
     unknown
   >;
   const displayName =
-    (user.user_metadata?.name as string | undefined) ||
+    (user.user_metadata?.displayName as string | undefined) ||
     (identityData.full_name as string | undefined) ||
     (identityData.name as string | undefined) ||
     user.email ||
     "Mystery";
   const avatarUrl =
-    (user.user_metadata?.avatar_url as string | undefined) ||
+    (user.user_metadata?.avatarUrl as string | undefined) ||
     (identityData.avatar_url as string | undefined) ||
     (identityData.picture as string | undefined) ||
     undefined;
@@ -42,11 +42,9 @@ export async function POST(request: Request) {
 
   if (!linkError && linkData.session && linkData.user) {
     // Достаем основные поля и кладем в новый аккаунт
-    await db.users.update({
-      where: { id: linkData.user.id },
-      data: {
-        raw_user_meta_data: getUserMetadata(linkData.user),
-      },
+    console.log(linkData.user, getUserMetadata(linkData.user));
+    await supabase.auth.updateUser({
+      data: getUserMetadata(linkData.user)
     });
     // УСПЕХ: Аккаунт привязан.
     // Возвращаем успех, но сессию менять не надо (она та же)

@@ -4,7 +4,7 @@ import "@supabase/auth-js";
 declare module "@supabase/supabase-js" {
   interface UserMetadata {
     displayName: string;
-    avatar_url?: string;
+    avatarUrl?: string;
   }
 }
 
@@ -12,7 +12,7 @@ declare module "@supabase/supabase-js" {
 declare module "@supabase/auth-js" {
   interface UserMetadata {
     displayName: string;
-    avatar_url?: string;
+    avatarUrl?: string;
   }
 }
 
