@@ -76,6 +76,7 @@ const ru = {
   takeAvatarPhoto: 'Сделать фото',
   cropAvatar: 'Обрезать аватар',
   zoom: 'Масштаб',
+  yourName: 'Ваше имя',
 };
 
 export type TranslationKey = keyof typeof ru;
@@ -159,6 +160,7 @@ const en: Translations = {
   takeAvatarPhoto: 'Take photo',
   cropAvatar: 'Crop avatar',
   zoom: 'Zoom',
+  yourName: 'Your name',
 };
 
 // Available languages

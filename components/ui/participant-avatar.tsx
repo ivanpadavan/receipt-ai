@@ -1,7 +1,7 @@
 import { ReceiptParticipant } from "@/model/receipt/model";
 import { useUser } from "@/context/AuthContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/utils/cn";
+import { UserAvatar } from "@/components/ui/user-avatar";
 
 interface ParticipantAvatarProps {
     participant: ReceiptParticipant;
@@ -24,23 +24,12 @@ export const ParticipantAvatar = ({
     const effectiveRingColor = ringColor ?? participant.color;
 
     return (
-        <Avatar
-            className={cn(
-                "h-8 w-8",
-                showRing && "ring-2",
-                className
-            )}
-            style={showRing ? { "--tw-ring-color": effectiveRingColor } as React.CSSProperties : undefined}
-        >
-            {avatarUrl && <AvatarImage src={avatarUrl} />}
-            <AvatarFallback
-                style={{
-                    backgroundColor: `color-mix(in srgb, ${participant.color}, white 95%)`,
-                    color: participant.color,
-                }}
-            >
-                {participant.name.substring(0, 1).toUpperCase()}
-            </AvatarFallback>
-        </Avatar>
+        <UserAvatar
+            name={participant.name}
+            src={avatarUrl}
+            className={cn("h-8 w-8", className)}
+            showRing={showRing}
+            ringColor={effectiveRingColor}
+        />
     );
 };

@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUser } from "@/context/AuthContext";
 import { supabase } from "@/utils/supabase/client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { toast } from "sonner";
 import { t } from "@/app/i18n/translations";
 import { Controller, useForm } from "react-hook-form";
@@ -121,11 +121,6 @@ export default function SettingsPage() {
     if (isAnonymous) router.replace("/auth/sign-in");
   }, [isAnonymous, router]);
 
-  const initials = useMemo(() => {
-    const source = displayName || user?.email || "U";
-    return source.trim().substring(0, 1).toUpperCase();
-  }, [displayName, user?.email]);
-
   useEffect(() => {
     reset({
       name: (user?.user_metadata?.displayName as string | undefined) ?? "",
@@ -225,17 +220,18 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4 bg-amber-50">
+    <div className="flex flex-col items-center justify-center p-4 gap-4 bg-amber-50">
       <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-md p-6 border border-amber-200">
         <h1 className="text-2xl font-bold mb-6 text-center text-amber-800">
           {t("settings")}
         </h1>
 
         <div className="flex items-center gap-4 mb-6">
-          <Avatar className="h-12 w-12">
-            {avatarUrl && <AvatarImage src={avatarUrl} />}
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
+          <UserAvatar
+            name={displayName || user?.email || "User"}
+            src={avatarUrl}
+            className="h-12 w-12"
+          />
           <div className="text-sm text-muted-foreground">
             {user?.email ?? t("yourName")}
           </div>
@@ -282,10 +278,11 @@ export default function SettingsPage() {
                         onClick={triggerFileInput}
                         className="flex items-center gap-4 rounded-xl border-2 border-dashed border-amber-200 bg-amber-50/40 p-4 cursor-pointer hover:bg-amber-50 transition-colors"
                       >
-                        <Avatar className="h-16 w-16">
-                          {avatarUrl && <AvatarImage src={avatarUrl} />}
-                          <AvatarFallback>{initials}</AvatarFallback>
-                        </Avatar>
+                        <UserAvatar
+                          name={displayName || user?.email || "User"}
+                          src={avatarUrl}
+                          className="h-16 w-16"
+                        />
                         <div className="flex flex-col gap-1">
                           <div className="text-sm font-medium">
                             {value?.length ? t("changeAvatar") : t("uploadAvatar")}
