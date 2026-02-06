@@ -12,8 +12,7 @@ export default function SignInPage() {
     setIsLoading(true);
     setLoadingProvider(provider);
     try {
-      // FIXME link identity
-      await supabase.auth.signInWithOAuth({
+      await supabase.auth.linkIdentity({
         provider,
         options: {
           redirectTo: `${window.location.origin}/api/auth/callback`,

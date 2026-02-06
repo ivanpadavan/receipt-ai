@@ -57,7 +57,6 @@ export const AppNavbar = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.reload();
   }
 
   return (
