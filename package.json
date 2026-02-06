@@ -10,7 +10,6 @@
     "lint": "eslint",
     "format": "prettier --write \"app\"",
     "test": "vitest",
-    "migrate:claims": "npx tsx scripts/migrate-claims-ids.ts",
     "postinstall": "prisma generate"
   },
   "engines": {
