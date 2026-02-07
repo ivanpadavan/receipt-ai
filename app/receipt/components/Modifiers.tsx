@@ -1,81 +1,65 @@
 "use client";
 
-import { t } from "@/app/i18n/translations";
-import { CellGroup } from "@/app/receipt/components/CellGroup";
 import React from "react";
-import { Cell } from "./Cell";
-import { FormArrayTitle } from "./FormArrayTitle";
-import { useReceiptState } from "./ReceiptForm";
-import { useFormContext, useWatch } from "react-hook-form";
-import { Receipt, ReceiptModifier } from "@/model/receipt/model";
+import { t } from "@/app/i18n/translations";
+import { ReceiptModifier } from "@/model/receipt/model";
+import { useReceiptState } from "@/app/receipt/components/ReceiptForm";
+import { useWatch } from "react-hook-form";
+import { formatMoney } from "@/app/receipt/utils/formatMoney";
 
 interface ModifiersProps {
   type: "discounts" | "fees";
 }
 
 export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
-  const { control } = useFormContext<Receipt>();
-  const fields = (useWatch({ control, name: type }) as ReceiptModifier[]) || [];
-  const ctx = useReceiptState();
-
-  const openEditModal = ctx.scenario.canEdit.modifierForm
-    ? () => ctx.openEditModal(type === "discounts" ? "addDiscount" : "addFee")
-    : undefined;
-
-  if (fields.length === 0) {
-    return (
-      <>
-        <tr>
-          <td>
-            <FormArrayTitle title={t(type) + ":"} onAddClick={openEditModal} />
-          </td>
-          <td colSpan={3}>-</td>
-        </tr>
-      </>
-    );
-  }
+  const { scenario, openEditModal } = useReceiptState();
+  const items =
+    (useWatch({
+      control: scenario.form.control,
+      name: type,
+    }) as ReceiptModifier[]) || [];
+  const canEdit = scenario.canEdit.modifierForm;
+  const sign = type === "discounts" ? "-" : "+";
 
   return (
-    <>
-      {fields.map((field, index) => (
-        <CellGroup
-          key={field.id}
-          fieldPath={`${type}.${index}` as const}
-          index={index}
-          type="modifier"
-          modifierType={type}
-          canEdit={ctx.scenario.canEdit.modifierForm}
-        >
-          {(props) => (
-            <>
-              <tr>
-                {index === 0 && (
-                  <td rowSpan={fields.length * 2}>
-                    <FormArrayTitle
-                      title={t(type) + ":"}
-                      onAddClick={openEditModal}
-                    />
-                  </td>
-                )}
-                <td colSpan={2} {...props}>
-                  {t("modifierName")}
-                </td>
-                <Cell {...props} name={`${type}.${index}.name` as const} />
-              </tr>
-              <tr>
-                <td colSpan={2} {...props}>
-                  {t("modifierValue")}
-                </td>
-                <Cell
-                  {...props}
-                  name={`${type}.${index}.value` as const}
-                  colSpan={2}
-                />
-              </tr>
-            </>
-          )}
-        </CellGroup>
-      ))}
-    </>
+    <div className="mt-2">
+      <div className="mb-1 text-sm text-muted-foreground">{t(type)}:</div>
+      {items.length === 0 ? (
+        <div className="text-sm text-muted-foreground">-</div>
+      ) : (
+        <div className="space-y-1">
+          {items.map((item, index) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`flex w-full items-center justify-between rounded-md px-1 py-1 text-sm ${
+                canEdit ? "cursor-pointer hover:bg-muted/45" : "cursor-default"
+              }`}
+              onClick={() =>
+                canEdit &&
+                openEditModal({
+                  type: "modifier",
+                  modifierType: type,
+                  index,
+                })
+              }
+            >
+              <span className="text-muted-foreground">
+                {item.name || t("modifierName")}
+              </span>
+              <span
+                className={
+                  type === "discounts"
+                    ? "font-medium text-emerald-600"
+                    : "font-medium"
+                }
+              >
+                {sign} {formatMoney(item.value)}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };

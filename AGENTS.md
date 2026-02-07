@@ -8,6 +8,7 @@ Rules:
 - Solve the concrete bug/flow first. Keep changes scoped to the requested task.
 - Do not replace working code with a "safer style" variant unless there is a demonstrated failure mode.
 - Avoid speculative refactors and abstraction churn without functional benefit.
+- Copy-paste duplication is strictly forbidden. Reuse existing code or extract shared helpers/components.
 - For name handling, treat `displayName` as a normal field. Do not add extra heuristics or fallback semantics unless explicitly requested.
 - After each meaningful change, validate with a concrete signal:
   - `tsc` (or targeted typecheck),
