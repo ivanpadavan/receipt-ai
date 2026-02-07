@@ -191,10 +191,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
 
         {scenarioType === "summary" ? (
           <div className="p-4 h-full flex flex-col gap-3">
-            <div className="flex justify-end">
-              <ShareReceiptDialog receiptId={receiptId} />
-            </div>
-            <SummaryScreen receipt={currentReceipt} onBack={goBack} />
+            <SummaryScreen receipt={currentReceipt} receiptId={receiptId} onBack={goBack} />
           </div>
         ) : (
           <div className="m-3 rounded bg-white shadow-md text-black max-w-fit w-full mx-auto overflow-auto font-mono">

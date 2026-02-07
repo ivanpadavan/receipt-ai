@@ -6,18 +6,20 @@ import { calculateBalances } from "@/app/receipt/utils/calculator";
 import { t } from "@/app/i18n/translations";
 import { ParticipantAvatar } from "@/components/ui/participant-avatar";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Share2, AlertCircle } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowLeft, AlertCircle } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
+import { ShareReceiptDialog } from "@/app/receipt/components/ShareReceiptDialog";
 
 interface SummaryScreenProps {
   receipt: Receipt;
+  receiptId: string;
   onBack: () => void;
 }
 
 export const SummaryScreen: React.FC<SummaryScreenProps> = ({
   receipt,
+  receiptId,
   onBack,
 }) => {
   const participants = useParticipantsStore((s) => s.participants);
@@ -39,21 +41,6 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
   // If not, there is a diff.
   const realGrandTotal = receipt.totals.grandTotal;
   const remaining = realGrandTotal - distributedTotal;
-
-  const handleShare = () => {
-    const lines = [
-      `${t("receipt")}: ${realGrandTotal.toFixed(0)} ₽`,
-      ...balances.map((b) => {
-        const p = participants.find((p) => p.id === b.participantId);
-        return `${p?.displayName || "Unknown"}: ${b.finalAmount.toFixed(0)} ₽`;
-      }),
-    ];
-    if (Math.abs(remaining) > 1) {
-      lines.push(`${t("remaining") || "Remaining"}: ${remaining.toFixed(0)} ₽`);
-    }
-    navigator.clipboard.writeText(lines.join("\n"));
-    toast.success(t("copiedToClipboard") || "Copied to clipboard");
-  };
 
   return (
     <div className="flex flex-col h-full bg-background max-w-md mx-auto w-full shadow-sm rounded-lg overflow-hidden border">
@@ -166,10 +153,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
 
       {/* Footer */}
       <div className="p-4 border-t bg-background">
-        <Button className="w-full gap-2" size="lg" onClick={handleShare}>
-          <Share2 className="h-4 w-4" />
-          {t("share")}
-        </Button>
+        <ShareReceiptDialog receiptId={receiptId} />
       </div>
     </div>
   );
