@@ -9,11 +9,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { t } from "@/app/i18n/translations";
 
-interface RemovedDialogProps {
+interface RemovedFromReceiptDialogProps {
   onGoHome: () => void;
 }
 
-export function RemovedDialog({ onGoHome }: RemovedDialogProps) {
+export function RemovedFromReceiptDialog({
+  onGoHome,
+}: RemovedFromReceiptDialogProps) {
   return (
     <AlertDialog open>
       <AlertDialogContent>

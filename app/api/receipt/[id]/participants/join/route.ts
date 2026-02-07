@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/utils/supabase/server";
-import { joinToReceiptSsr } from "@/app/receipt/[id]/ui-gate/join-to-receipt-ssr";
+import { joinReceiptServer } from "@/app/receipt/[id]/join-flow/join-receipt-server";
 
 export const runtime = "nodejs";
 
@@ -16,7 +16,10 @@ export async function POST(
   }
 
   try {
-    return NextResponse.json({ participant: await joinToReceiptSsr(receiptId, user) }, { status: 200 });
+    return NextResponse.json(
+      { participant: await joinReceiptServer(receiptId, user) },
+      { status: 200 },
+    );
   } catch (e) {
     if (!(e instanceof Error)) {
       return NextResponse.json({ error: 'Fail' }, { status: 500 });

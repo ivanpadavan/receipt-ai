@@ -18,11 +18,14 @@ function canJoin(user: User) {
   return !!user.user_metadata.displayName;
 }
 
-export function joinAutomatically(participants: ParticipantDTO[], user: User) {
+export function shouldAutoJoinReceipt(
+  participants: ParticipantDTO[],
+  user: User,
+) {
   return !joined(participants, user) && canJoin(user);
 }
 
-export function checkUiGate(
+export function getJoinFlowState(
   participants: ParticipantDTO[],
   user: User,
   formType: FormScenario["type"],

@@ -7,7 +7,7 @@ import { supabase } from "@/utils/supabase/client";
 import { useGoogleOneTapLogin } from "@react-oauth/google";
 import { handleSignIn } from "@/app/receipt/utils/auth";
 
-export function SettingsDialog() {
+export function JoinFlowSettingsDialog() {
   useGoogleOneTapLogin({ onSuccess: handleSignIn });
 
   const { user } = useUser();

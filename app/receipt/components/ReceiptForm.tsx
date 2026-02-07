@@ -34,7 +34,7 @@ import { isEqual } from "lodash-es";
 import { FormProvider, useWatch } from "react-hook-form";
 import { Pencil } from "lucide-react";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
-import { useUiGate } from "@/app/receipt/[id]/ui-gate/hooks";
+import { useJoinFlowOverlay } from "@/app/receipt/[id]/join-flow/use-join-flow-overlay";
 
 interface EditableReceiptFormProps {
   initialData: ReceiptWithParticipants;
@@ -122,7 +122,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
     editModalProps,
   } = formState;
 
-  const uiGate$ = useUiGate(scenarioType, receiptId);
+  const uiGate$ = useJoinFlowOverlay(scenarioType, receiptId);
   const UiGate = useObservable(uiGate$, <></>);
 
   // Get field array for positions

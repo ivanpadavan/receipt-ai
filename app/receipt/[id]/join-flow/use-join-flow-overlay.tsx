@@ -2,11 +2,11 @@ import React, { useMemo } from "react";
 import { FormScenario } from "@/app/receipt/[id]/useReceiptFormState";
 import { useUser } from "@/context/AuthContext";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
-import { checkUiGate } from "@/app/receipt/[id]/ui-gate/functions";
-import { joinToReciept } from "@/app/receipt/[id]/ui-gate/join-to-receipt-csr";
-import { SettingsDialog } from "@/app/receipt/[id]/ui-gate/settings-dialog";
+import { getJoinFlowState } from "@/app/receipt/[id]/join-flow/rules";
+import { joinReceiptClient } from "@/app/receipt/[id]/join-flow/join-receipt-client";
+import { JoinFlowSettingsDialog } from "@/app/receipt/[id]/join-flow/settings-required-dialog";
 import { useRouter } from "next/navigation";
-import { RemovedDialog } from "@/app/receipt/[id]/ui-gate/removed-dialog";
+import { RemovedFromReceiptDialog } from "@/app/receipt/[id]/join-flow/removed-from-receipt-dialog";
 import { useHookToObservable } from "@/hooks/rx/useHookToObservable";
 import {
   catchError,
@@ -27,7 +27,7 @@ import {
 
 type GateState = "join" | "settings" | "nothing";
 
-export function useUiGate(
+export function useJoinFlowOverlay(
   formType: FormScenario["type"],
   receiptId: string,
 ): Observable<React.ReactNode> {
@@ -54,14 +54,14 @@ export function useUiGate(
     );
 
     const gate$ = combineLatest([participants$, user$, formType$]).pipe(
-      map(([ps, u, type]) => checkUiGate(ps, u, type) as GateState),
+      map(([ps, u, type]) => getJoinFlowState(ps, u, type) as GateState),
       distinctUntilChanged(),
     );
 
     const join$ = gate$.pipe(
       filter((state) => state === "join"),
       exhaustMap(() =>
-        from(joinToReciept(receiptId)).pipe(
+        from(joinReceiptClient(receiptId)).pipe(
           catchError(() => EMPTY),
           ignoreElements(),
         ),
@@ -70,8 +70,10 @@ export function useUiGate(
 
     const ui$ = combineLatest([gate$, removedOpen$]).pipe(
       map(([gate, removedOpen]) => {
-        if (removedOpen) return <RemovedDialog onGoHome={() => router.push("/")} />;
-        if (gate === "settings") return <SettingsDialog />;
+        if (removedOpen) {
+          return <RemovedFromReceiptDialog onGoHome={() => router.push("/")} />;
+        }
+        if (gate === "settings") return <JoinFlowSettingsDialog />;
         return <></>;
       }),
     );

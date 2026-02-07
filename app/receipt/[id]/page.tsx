@@ -6,8 +6,8 @@ import Link from "next/link";
 import { ReceiptForm } from "../components/ReceiptForm";
 import { buildParticipants } from "@/app/db-utils/build-participants";
 import { getUser } from "@/utils/supabase/server";
-import { joinAutomatically } from "@/app/receipt/[id]/ui-gate/functions";
-import { joinToReceiptSsr } from "@/app/receipt/[id]/ui-gate/join-to-receipt-ssr";
+import { shouldAutoJoinReceipt } from "@/app/receipt/[id]/join-flow/rules";
+import { joinReceiptServer } from "@/app/receipt/[id]/join-flow/join-receipt-server";
 
 // This is a server component that fetches the receipt data from the database
 export default async function ReceiptPage({
@@ -48,8 +48,8 @@ export default async function ReceiptPage({
     );
   }
 
-  if (joinAutomatically(participants, user)) {
-    await joinToReceiptSsr(id, user);
+  if (shouldAutoJoinReceipt(participants, user)) {
+    await joinReceiptServer(id, user);
     participants = await buildParticipants(id);
   }
 
