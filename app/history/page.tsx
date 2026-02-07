@@ -1,9 +1,9 @@
 import { db } from "@/app/db";
 import { getUser } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Receipt } from "@/model/receipt/model";
+import { Card, CardContent } from "@/components/ui/card";
 
 // export const runtime = 'edge';
 
@@ -29,16 +29,22 @@ export default async function HistoryPage() {
         </div>
 
         {receipts.length === 0 ? (
-          <div className="w-full bg-white rounded-lg shadow-md p-6 border border-amber-200 text-center">
-            <p className="text-amber-700 mb-4">
-              You haven&apos;t scanned any receipts yet.
-            </p>
-            <Link href="/">
-              <Button className="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-full shadow-md">
-                Scan Your First Receipt
-              </Button>
-            </Link>
-          </div>
+          <Card
+            variant="warning"
+            shadow="md"
+            className="w-full text-center"
+          >
+            <CardContent className="p-6">
+              <p className="mb-4">
+                You haven&apos;t scanned any receipts yet.
+              </p>
+              <Link href="/">
+                <Button className="rounded-full bg-amber-500 px-4 py-2 font-bold text-white shadow-md hover:bg-amber-600">
+                  Scan Your First Receipt
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-4">
             {receipts.map((receipt) => {
@@ -53,8 +59,13 @@ export default async function HistoryPage() {
 
               return (
                 <Link href={`/receipt/${receipt.id}`} key={receipt.id}>
-                  <div className="w-full bg-white rounded-lg shadow-md p-4 border border-amber-200 hover:border-amber-400 transition-colors cursor-pointer">
-                    <div className="flex justify-between items-center mb-2">
+                  <Card
+                    variant="interactive"
+                    shadow="md"
+                    interactive
+                    className="w-full border-amber-200 p-4 hover:border-amber-400"
+                  >
+                    <div className="mb-2 flex items-center justify-between">
                       <h2 className="text-lg font-semibold text-amber-800">
                         Receipt #{receipt.id.slice(-6)}
                       </h2>
@@ -66,11 +77,9 @@ export default async function HistoryPage() {
                       <span>
                         {itemCount} {itemCount === 1 ? "item" : "items"}
                       </span>
-                      <span className="font-medium">
-                        ${totalAmount.toFixed(2)}
-                      </span>
+                      <span className="font-medium">${totalAmount.toFixed(2)}</span>
                     </div>
-                  </div>
+                  </Card>
                 </Link>
               );
             })}

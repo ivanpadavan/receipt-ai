@@ -28,7 +28,7 @@ export default async function ReceiptPage({
   if (!receipt) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4">
-        <Card className="w-full max-w-md p-6">
+        <Card variant="warning" shadow="md" className="w-full max-w-md p-6">
           <h1 className="text-2xl font-bold mb-6 text-center text-foreground">
             Receipt Not Found
           </h1>

@@ -6,8 +6,6 @@ import { useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-import { useUser } from "@/context/AuthContext";
-import { supabase } from "@/utils/supabase/client";
 
 const captureSupported =
   typeof document === "object" &&
@@ -15,7 +13,6 @@ const captureSupported =
 
 export default function ImagePastePage() {
   const router = useRouter();
-  const { user } = useUser();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -108,7 +105,7 @@ export default function ImagePastePage() {
           />
 
           {picture.status === "picture-in" && (
-            <Card className="flex flex-col items-center gap-4 w-full p-4">
+            <Card variant="interactive" shadow="md" className="flex w-full flex-col items-center gap-4 p-4">
               <img
                 src={picture.imageBase64}
                 alt="Receipt image"
@@ -134,7 +131,7 @@ export default function ImagePastePage() {
             </Card>
           )}
           {picture.status === "idle" && (
-            <Card className="p-6">
+            <Card variant="default" shadow="md" className="p-6">
               <div
                 className="w-full border-2 border-dashed border-input rounded-lg p-6 min-h-[200px] flex flex-col items-center justify-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors"
                 onClick={triggerFileInput}

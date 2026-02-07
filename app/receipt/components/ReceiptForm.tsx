@@ -197,29 +197,6 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
     <ReceiptFormContext.Provider value={formState}>
       <FormProvider {...form}>
         {UiGate}
-        {/*
-          <AlertDialog open={gateStep === "removed"}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{t("removedTitle")}</AlertDialogTitle>
-              <AlertDialogDescription>
-                {t("removedBody")}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogAction
-                onClick={() => {
-                  closeGate();
-                  router.push("/");
-                }}
-              >
-                {t("goHome")}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-        */}
-
         {/* Edit Modal Drawer */}
         <Drawer
           onCloseAnimationEnd={() => closeModal()}
@@ -277,13 +254,10 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                 return (
                   <Card
                     key={field.id}
-                    className={[
-                      "overflow-hidden rounded-2xl border-border/60 bg-background/90",
-                      "shadow-[0_12px_24px_rgba(15,23,42,0.08),0_2px_6px_rgba(15,23,42,0.06)]",
-                      clickable
-                        ? "transition hover:border-border hover:shadow-[0_16px_34px_rgba(15,23,42,0.12),0_4px_10px_rgba(15,23,42,0.08)]"
-                        : "",
-                    ].join(" ")}
+                    variant="interactive"
+                    shadow={clickable ? "md" : "sm"}
+                    interactive={clickable}
+                    className="overflow-hidden"
                   >
                     <button
                       type="button"
@@ -320,7 +294,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
               })}
             </div>
 
-            <Card className="mt-4 rounded-2xl border-border/70 bg-muted/30 shadow-[0_10px_22px_rgba(15,23,42,0.08),0_2px_6px_rgba(15,23,42,0.05)]">
+            <Card variant="summary" shadow="md" className="mt-4 rounded-2xl">
               <CardContent className="p-4">
                 <div
                   className={canEditTotals ? "cursor-pointer" : ""}
@@ -418,7 +392,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       <ButtonGroupSeparator className="mx-1 h-5 self-center opacity-60" />
                       <ShareReceiptDialog
                         receiptId={receiptId}
-                        iconOnly
+                        iconOnly={true}
                         variant="ghost"
                         size="sm"
                         className="h-14 w-14 shrink-0 rounded-full px-0 text-muted-foreground hover:text-foreground"

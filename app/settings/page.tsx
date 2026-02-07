@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { t } from "@/app/i18n/translations";
 import { SettingsForm } from "@/app/settings/SettingsForm";
 import { UserMetadata } from "@supabase/supabase-js";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function SettingsPage() {
   const { user } = useUser();
@@ -49,15 +50,18 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col items-center justify-center p-4 gap-4 bg-amber-50">
-      <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-md p-6 border border-amber-200">
-        <h1 className="text-2xl font-bold mb-6 text-center text-amber-800">
+      <Card
+        variant="default"
+        shadow="md"
+        className="mx-auto w-full max-w-md p-6"
+      >
+        <h1 className="text-2xl font-bold mb-6 text-center">
           {t("settings")}
         </h1>
-        <SettingsForm
-          user={user}
-          onSubmit={handleSave}
-        />
-      </div>
+        <CardContent className="p-0">
+          <SettingsForm user={user} onSubmit={handleSave} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

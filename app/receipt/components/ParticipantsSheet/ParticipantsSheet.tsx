@@ -101,9 +101,9 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
         deleteConfirm.kind === "REAL"
           ? `${base}/real/${deleteConfirm.id}`
           : `${base}/mock/${deleteConfirm.id}`;
-      await fetch(path, { method: "DELETE" });
       setParticipants(participants.filter((p) => p.id !== deleteConfirm.id));
       setDeleteConfirm(null);
+      await fetch(path, { method: "DELETE" });
     }
   };
 
