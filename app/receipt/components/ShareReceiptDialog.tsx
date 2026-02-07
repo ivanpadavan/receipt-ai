@@ -21,11 +21,15 @@ import { toast } from "sonner";
 type ShareReceiptDialogProps = {
   receiptId: string;
   iconOnly?: boolean;
+  stacked?: boolean;
+  label?: string;
 } & React.ComponentProps<typeof Button>;
 
 export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
   receiptId,
   iconOnly = false,
+  stacked = false,
+  label,
   ...buttonProps
 }) => {
   const [open, setOpen] = useState(false);
@@ -57,12 +61,23 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
     }
   };
 
+  const triggerLabel = label ?? t("share");
+
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button {...buttonProps}>
-          <Share2 className="h-4 w-4" />
-          {!iconOnly && t("share")}
+          {stacked ? (
+            <span className="flex flex-col items-center gap-1 leading-none">
+              <Share2 className="h-4 w-4" />
+              <span className="text-[11px] font-medium">{triggerLabel}</span>
+            </span>
+          ) : (
+            <>
+              <Share2 className="h-4 w-4" />
+              {!iconOnly && triggerLabel}
+            </>
+          )}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-md">

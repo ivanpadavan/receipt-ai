@@ -19,7 +19,6 @@ import { EditingSheet } from "@/app/receipt/components/EdititngSheet/EditingShee
 import { SplittingSheet } from "@/app/receipt/components/SplittingSheet/SplittingSheet";
 import {
   ParticipantsSheet,
-  ParticipantsBadge,
 } from "@/app/receipt/components/ParticipantsSheet";
 import { SummaryScreen } from "@/app/receipt/components/SummaryScreen/SummaryScreen";
 import { ShareReceiptDialog } from "@/app/receipt/components/ShareReceiptDialog";
@@ -28,7 +27,7 @@ import { receiptWithParticipantsSchema } from "@/model/receipt/schema";
 import { Drawer } from "@/components/ui/drawer";
 import { isEqual } from "lodash-es";
 import { FormProvider, useWatch } from "react-hook-form";
-import { Pencil, Plus } from "lucide-react";
+import { Pencil, Plus, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   ParticipantsStoreProvider,
@@ -107,6 +106,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   receiptId,
 }) => {
   const setParticipants = useParticipantsStore((s) => s.setParticipants);
+  const participantsCount = useParticipantsStore((s) => s.participants.length);
 
   useEffect(() => {
     setParticipants(participants);
@@ -316,47 +316,71 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
             </Card>
 
             <div className="sticky bottom-3 z-10 mt-5">
-              <div className="flex items-center gap-2">
-                {scenarioType === "splitting" && (
-                  <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
-                    <ButtonGroup className="rounded-[22px] border border-white/80 bg-white/60 p-1.5 shadow-[0_18px_40px_rgba(15,23,42,0.20)] backdrop-blur-2xl [&>*]:border-0">
+              {scenarioType === "splitting" ? (
+                <div className="ml-auto w-full rounded-[32px] border border-white/70 bg-white/35 p-2 shadow-[0_24px_48px_rgba(15,23,42,0.20)] backdrop-blur-2xl">
+                  <div className="flex items-center justify-between gap-3">
+                    <ButtonGroup className="min-w-0 justify-center rounded-full border border-white/80 bg-white/72 p-1.5 shadow-inner [&>*]:border-0">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-10 rounded-xl px-3 text-muted-foreground hover:text-foreground"
+                        className="h-14 w-14 shrink-0 rounded-full px-0 text-muted-foreground hover:text-foreground"
                         onClick={goBackToEditing}
+                        title={t("edit")}
+                        aria-label={t("edit")}
                       >
-                        <Pencil className="mr-2 h-4 w-4" />
-                        <span className="hidden sm:inline">{t("edit")}</span>
+                        <Pencil className="h-4 w-4" />
                       </Button>
-                      <ButtonGroupSeparator className="mx-1 h-5 self-center opacity-70" />
-                      <ParticipantsBadge
-                        compact
+                      <ButtonGroupSeparator className="mx-1 h-5 self-center opacity-60" />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="relative h-14 w-14 shrink-0 rounded-full px-0 text-muted-foreground hover:text-foreground"
                         onClick={() => setParticipantsModalOpen(true)}
-                      />
-                      <ButtonGroupSeparator className="mx-1 h-5 self-center opacity-70" />
+                        title={t("participants")}
+                        aria-label={t("participants")}
+                      >
+                        <span className="pointer-events-none absolute right-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-semibold leading-none text-background">
+                          {participantsCount}
+                        </span>
+                        <Users className="h-4 w-4" />
+                      </Button>
+                      <ButtonGroupSeparator className="mx-1 h-5 self-center opacity-60" />
                       <ShareReceiptDialog
                         receiptId={receiptId}
                         iconOnly
                         variant="ghost"
                         size="sm"
-                        className="h-10 w-10 rounded-xl px-0 text-muted-foreground hover:text-foreground"
+                        className="h-14 w-14 shrink-0 rounded-full px-0 text-muted-foreground hover:text-foreground"
                         title={t("share")}
                       />
                     </ButtonGroup>
+                    <Button
+                      onClick={proceed}
+                      disabled={!canProceed}
+                      className="h-14 min-w-44 shrink-0 rounded-full px-8 text-base font-semibold shadow-[0_14px_30px_rgba(249,115,22,0.36)]"
+                    >
+                      {t("done")}
+                    </Button>
                   </div>
-                )}
-                {scenarioType !== "splitting" && (
-                  <ShareReceiptDialog variant="outline" receiptId={receiptId} />
-                )}
-                <Button
-                  onClick={proceed}
-                  disabled={!canProceed}
-                  className="h-12 rounded-2xl px-7 text-base font-semibold shadow-[0_14px_30px_rgba(249,115,22,0.36)]"
-                >
-                  {scenarioType === "splitting" ? t("done") : t("proceed")}
-                </Button>
-              </div>
+                </div>
+              ) : (
+                <div className="ml-auto w-full rounded-[32px] border border-white/70 bg-white/35 p-2 shadow-[0_24px_48px_rgba(15,23,42,0.20)] backdrop-blur-2xl">
+                  <div className="flex items-center justify-end gap-2">
+                    <ShareReceiptDialog
+                      variant="ghost"
+                      receiptId={receiptId}
+                      className="h-12 rounded-full border border-white/80 bg-white/72 px-5 text-sm font-medium text-muted-foreground shadow-inner hover:text-foreground"
+                    />
+                    <Button
+                      onClick={proceed}
+                      disabled={!canProceed}
+                      className="h-12 rounded-full px-7 text-base font-semibold shadow-[0_14px_30px_rgba(249,115,22,0.36)]"
+                    >
+                      {t("proceed")}
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

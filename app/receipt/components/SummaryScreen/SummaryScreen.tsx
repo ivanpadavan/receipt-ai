@@ -152,8 +152,14 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t bg-background">
-        <ShareReceiptDialog className={'w-full'} receiptId={receiptId} />
+      <div className="border-t bg-background p-4">
+        <div className="rounded-[28px] border border-white/70 bg-white/35 p-2 shadow-[0_20px_44px_rgba(15,23,42,0.18)] backdrop-blur-2xl">
+          <ShareReceiptDialog
+            className="h-11 w-full rounded-full border border-white/80 bg-white/72 text-sm font-medium text-muted-foreground shadow-inner hover:text-foreground"
+            variant="ghost"
+            receiptId={receiptId}
+          />
+        </div>
       </div>
     </div>
   );
