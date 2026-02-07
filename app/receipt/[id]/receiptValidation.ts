@@ -65,6 +65,30 @@ export const editableTotalsSchema = z.object({
     ),
 });
 
+export const createEditableTotalsSchema = (receipt: Receipt) =>
+  editableTotalsSchema.superRefine((value, context) => {
+    const calculatedTotal = calculateTotal(receipt.positions);
+    if (Math.abs(calculatedTotal - value.total) > 0.01) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["total"],
+        message: `Total ${value.total} doesn't match positions sum (${calculatedTotal})`,
+      });
+    }
+
+    const calculatedGrandTotal =
+      calculatedTotal - receipt.discounts.reduce((acc, discount) => acc + discount.value, 0) +
+      receipt.fees.reduce((acc, fee) => acc + fee.value, 0);
+    if (Math.abs(calculatedGrandTotal - value.grandTotal) > 0.01) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["grandTotal"],
+        message:
+          `Grand total ${value.grandTotal} doesn't match modifiers result (${calculatedGrandTotal})`,
+      });
+    }
+  });
+
 export const receiptValidationSchema = receiptSchema.superRefine((value: Receipt, context) => {
     const positionSchema = editablePositionValidationSchema;
 

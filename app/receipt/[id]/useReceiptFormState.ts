@@ -30,9 +30,9 @@ import {
 import { apiClient } from "@/app/api-client";
 import { useObservable } from "@/hooks/rx/useObservable";
 import {
+  createEditableTotalsSchema,
   editableModifierSchema,
   editablePositionValidationSchema,
-  editableTotalsSchema,
   receiptValidationSchema,
 } from "@/app/receipt/[id]/receiptValidation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -393,9 +393,10 @@ export function useReceiptFormState(
             },
           });
         } else if (args.type === "totals") {
+          const receiptSnapshot = getValues();
           const totals = structuredClone(getValues("totals"));
           setEditModalProps({
-            validator: editableTotalsSchema,
+            validator: createEditableTotalsSchema(receiptSnapshot),
             fields: [
               { key: "total", label: "total", type: "number" },
               { key: "grandTotal", label: "grandTotal", type: "number" },
