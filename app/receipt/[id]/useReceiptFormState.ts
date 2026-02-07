@@ -1,35 +1,35 @@
 "use client";
 
 import {
-  useForm,
-  useFieldArray,
-  UseFormReturn,
   FieldPath,
+  useFieldArray,
+  useForm,
+  UseFormReturn,
 } from "react-hook-form";
-import { useEffect, useMemo, useRef, useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  debounceTime,
+  distinctUntilChanged,
+  ignoreElements,
+  skip,
+  startWith,
   Subject,
   switchMap,
-  ignoreElements,
-  distinctUntilChanged,
-  debounceTime,
-  startWith,
-  skip,
 } from "rxjs";
 import { isEqual } from "lodash-es";
 
 import { TranslationKey } from "@/app/i18n/translations";
 import {
-  Receipt,
-  ReceiptPosition,
-  ReceiptModifier,
-  ReceiptPositionClaim,
-  calculateTotal,
   calculateGrandTotal,
+  calculateTotal,
+  Receipt,
+  ReceiptModifier,
+  ReceiptPosition,
+  ReceiptPositionClaim,
 } from "@/model/receipt/model";
 import { apiClient } from "@/app/api-client";
 import { useObservable } from "@/hooks/rx/useObservable";
-import { receiptValidationSchema } from "@/app/receipt/[id]/receiptResolver";
+import { receiptValidationSchema } from "@/app/receipt/[id]/receiptValidation";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 // ============================================================================
@@ -52,6 +52,12 @@ export interface FormScenario {
 
 // EditModalProps - работает с копией данных, как в оригинале
 export interface EditModalProps {
+  fields: {
+    key: string;
+    label: TranslationKey;
+    type: "string" | "number";
+    disabled?: boolean;
+  }[];
   // Тип редактируемого элемента
   fieldType: "position" | "modifier" | "totals";
   // Для модификаторов: fee или discount
@@ -154,9 +160,7 @@ export function useReceiptFormState(
   const typeRef = useRef<FormType | null>(null);
 
   if (typeRef.current === null) {
-    const isValid = receiptValidationSchema.safeParse(
-      initialData,
-    ).success;
+    const isValid = receiptValidationSchema.safeParse(initialData).success;
     typeRef.current = isValid
       ? initialData.editingFinished
         ? "splitting"
@@ -319,6 +323,25 @@ export function useReceiptFormState(
           );
           const idx = args.index;
           setEditModalProps({
+            fields:
+              type === "validation"
+                ? [
+                    { key: "name", label: "name", type: "string" },
+                    { key: "price", label: "price", type: "number" },
+                    { key: "quantity", label: "quantity", type: "number" },
+                    { key: "overall", label: "overall", type: "number" },
+                  ]
+                : [
+                    { key: "name", label: "name", type: "string" },
+                    { key: "price", label: "price", type: "number" },
+                    { key: "quantity", label: "quantity", type: "number" },
+                    {
+                      key: "overall",
+                      label: "overall",
+                      type: "number",
+                      disabled: true,
+                    },
+                  ],
             fieldType: "position",
             fieldPath: `positions.${idx}`,
             initialValue: position,
@@ -339,6 +362,10 @@ export function useReceiptFormState(
           const idx = args.index;
           const modType = args.modifierType;
           setEditModalProps({
+            fields: [
+              { key: "name", label: "modifierName", type: "string" },
+              { key: "value", label: "modifierValue", type: "number" },
+            ],
             fieldType: "modifier",
             modifierType: modType,
             fieldPath: `${modType}.${idx}`,
@@ -364,6 +391,10 @@ export function useReceiptFormState(
         } else if (args.type === "totals") {
           const totals = structuredClone(getValues("totals"));
           setEditModalProps({
+            fields: [
+              { key: "total", label: "total", type: "number" },
+              { key: "grandTotal", label: "grandTotal", type: "number" },
+            ],
             fieldType: "totals",
             fieldPath: "totals",
             initialValue: totals,
@@ -378,6 +409,17 @@ export function useReceiptFormState(
       } else if (args === "addPosition") {
         const newPosition = createDefaultPosition(0);
         setEditModalProps({
+          fields: [
+            { key: "name", label: "name", type: "string" },
+            { key: "price", label: "price", type: "number" },
+            { key: "quantity", label: "quantity", type: "number" },
+            {
+              key: "overall",
+              label: "overall",
+              type: "number",
+              disabled: type === "editing",
+            },
+          ],
           fieldType: "position",
           initialValue: newPosition,
           header: "addPosition",
@@ -389,6 +431,10 @@ export function useReceiptFormState(
       } else if (args === "addFee") {
         const newFee = createDefaultModifier();
         setEditModalProps({
+          fields: [
+            { key: "name", label: "modifierName", type: "string" },
+            { key: "value", label: "modifierValue", type: "number" },
+          ],
           fieldType: "modifier",
           modifierType: "fees",
           initialValue: newFee,
@@ -401,6 +447,10 @@ export function useReceiptFormState(
       } else if (args === "addDiscount") {
         const newDiscount = createDefaultModifier();
         setEditModalProps({
+          fields: [
+            { key: "name", label: "modifierName", type: "string" },
+            { key: "value", label: "modifierValue", type: "number" },
+          ],
           fieldType: "modifier",
           modifierType: "discounts",
           initialValue: newDiscount,

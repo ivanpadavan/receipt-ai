@@ -31,50 +31,8 @@ const isPosition = (v: EditableValue): v is ReceiptPosition =>
 const isModifier = (v: EditableValue): v is ReceiptModifier =>
   "value" in v && "name" in v && !("total" in v);
 
-// Helper to check if value is totals
-const isTotals = (v: EditableValue): v is Receipt["totals"] =>
-  "total" in v && "grandTotal" in v;
-
-// Get editable fields based on value type and mode
-const getEditableFields = (
-  value: EditableValue,
-  mode: "editing" | "validation" | "splitting" | "summary",
-): {
-  key: string;
-  label: TranslationKey;
-  type: "string" | "number";
-  disabled?: boolean;
-}[] => {
-  if (isPosition(value)) {
-    // In editing mode, overall is computed and should be disabled
-    // In validation mode, overall is editable
-    const isOverallDisabled = mode === "editing";
-    return [
-      { key: "name", label: "name", type: "string" },
-      { key: "price", label: "price", type: "number" },
-      { key: "quantity", label: "quantity", type: "number" },
-      {
-        key: "overall",
-        label: "overall",
-        type: "number",
-        disabled: isOverallDisabled,
-      },
-    ];
-  } else if (isModifier(value)) {
-    return [
-      { key: "name", label: "modifierName", type: "string" },
-      { key: "value", label: "modifierValue", type: "number" },
-    ];
-  } else if (isTotals(value)) {
-    return [
-      { key: "total", label: "total", type: "number" },
-      { key: "grandTotal", label: "grandTotal", type: "number" },
-    ];
-  }
-  return [];
-};
-
 export const EditingSheet: React.FC<EditModalProps> = ({
+  fields,
   initialValue,
   header,
   onSave,
@@ -83,7 +41,7 @@ export const EditingSheet: React.FC<EditModalProps> = ({
 }) => {
   const receiptState = useReceiptState();
   const {
-    scenario: { type, form },
+    scenario: { form },
   } = receiptState;
   const { setValue } = form;
 
@@ -109,9 +67,6 @@ export const EditingSheet: React.FC<EditModalProps> = ({
     () => (closing && toast.dismiss(toastId.current), void 0),
     [closing],
   );
-
-  // Get editable fields for this value type
-  const fields = getEditableFields(localValue, type);
 
   // Validation
   const validate = useCallback(
@@ -169,7 +124,7 @@ export const EditingSheet: React.FC<EditModalProps> = ({
     // Auto-calculate overall for positions in editing mode
     if (
       isPosition(localValue) &&
-      type === "editing" &&
+      fields.some((field) => field.key === "overall" && field.disabled) &&
       (key === "price" || key === "quantity")
     ) {
       const price =
