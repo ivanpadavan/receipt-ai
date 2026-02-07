@@ -322,7 +322,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                     canEditTotals && openEditModal({ type: "totals" })
                   }
                 >
-]                  <div className="mt-2 flex items-center justify-between text-sm">
+                  <div className="mt-2 flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">
                       {t("discounts")}:
                     </span>
