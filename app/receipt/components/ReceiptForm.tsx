@@ -33,7 +33,10 @@ import { Drawer } from "@/components/ui/drawer";
 import { isEqual } from "lodash-es";
 import { FormProvider, useWatch } from "react-hook-form";
 import { Pencil } from "lucide-react";
-import { useParticipantsStore } from "@/app/receipt/store/participants";
+import {
+  ParticipantsStoreProvider,
+  useParticipantsStore,
+} from "@/app/receipt/store/participants";
 import { useJoinFlowOverlay } from "@/app/receipt/[id]/join-flow/use-join-flow-overlay";
 
 interface EditableReceiptFormProps {
@@ -91,15 +94,17 @@ const useReceiptWithUpdates = (
   );
 };
 
-export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
-  initialData,
+interface ReceiptFormInnerProps {
+  receipt: Receipt;
+  participants: ReceiptWithParticipants["participants"];
+  receiptId: string;
+}
+
+const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
+  receipt,
+  participants,
   receiptId,
 }) => {
-  // Subscribe to the receipt state with SSE updates
-  const { receipt, participants } = useReceiptWithUpdates(
-    initialData,
-    receiptId,
-  );
   const setParticipants = useParticipantsStore((s) => s.setParticipants);
 
   useEffect(() => {
@@ -277,5 +282,22 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
         )}
       </FormProvider>
     </ReceiptFormContext.Provider>
+  );
+};
+
+export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
+  initialData,
+  receiptId,
+}) => {
+  const { receipt, participants } = useReceiptWithUpdates(initialData, receiptId);
+
+  return (
+    <ParticipantsStoreProvider initialParticipants={participants}>
+      <ReceiptFormInner
+        receipt={receipt as Receipt}
+        participants={participants}
+        receiptId={receiptId}
+      />
+    </ParticipantsStoreProvider>
   );
 };
