@@ -6,6 +6,8 @@ export type ReceiptModifier = z.infer<typeof receiptSchema>["fees"][number] | z.
 export type ReceiptPosition = z.infer<typeof receiptSchema>["positions"][number];
 export type ReceiptPositionClaim = z.infer<typeof receiptSchema>["positions"][number]["claims"][number];
 export type Receipt = z.infer<typeof receiptSchema>;
+export type ReceiptWithParticipants = z.infer<typeof receiptWithParticipantsSchema>;
+
 export type ParticipantDTO = z.infer<typeof participantDtoSchema>;
 
 // Infer TypeScript types from Zod schema
@@ -100,6 +102,7 @@ export function validateReceipt(receipt: ReceiptNoId): {
   isValid: boolean;
   errors: string[]
 } {
+  console.log(receipt);
   const errors: string[] = [];
 
   // Validate each position's calculation

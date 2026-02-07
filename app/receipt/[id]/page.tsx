@@ -4,18 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { ReceiptForm } from "../components/ReceiptForm";
+import { buildParticipants } from "@/app/db-utils/build-participants";
 
 // This is a server component that fetches the receipt data from the database
 export default async function ReceiptPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   // Fetch the receipt from the database
-  const receipt = await db.receipt.findUnique({
-    where: { id },
-  });
+  const [receipt, participants] = await Promise.all([
+    db.receipt.findUnique({ where: { id } }),
+    buildParticipants(id).catch(() => 'fail' as const)
+  ]);
 
   // Check if the receipt exists and belongs to the user
-  if (!receipt) {
+  if (!receipt || participants === 'fail') {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4">
         <Card className="w-full max-w-md p-6">
@@ -37,12 +39,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
     );
   }
 
-  // Parse the receipt data from JSON
-  const rawData = receipt.data as Record<string, unknown>;
-  const { participants: _participants, ...rest } = rawData;
-  const receiptData = rest as Receipt;
-
   return (
-    <ReceiptForm initialData={receiptData} receiptId={id} />
+    <ReceiptForm initialData={{ receipt: receipt.data as Receipt, participants }} receiptId={id} />
   );
 }

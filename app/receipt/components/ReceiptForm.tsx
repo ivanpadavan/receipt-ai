@@ -7,7 +7,7 @@ import {
 } from "@/app/receipt/[id]/useReceiptFormState";
 import { Button } from "@/components/ui/button";
 import { forceSync, useObservable } from "@/hooks/rx/useObservable";
-import { Receipt } from "@/model/receipt/model";
+import { Receipt, ReceiptWithParticipants } from "@/model/receipt/model";
 import React, {
   createContext,
   useContext,
@@ -46,7 +46,7 @@ import { SettingsForm } from "@/app/settings/SettingsForm";
 import { supabase } from "@/utils/supabase/client";
 
 interface EditableReceiptFormProps {
-  initialData: Receipt;
+  initialData: ReceiptWithParticipants;
   receiptId: string;
 }
 
@@ -60,11 +60,10 @@ export const useReceiptState = (): ReceiptState => {
   return ctx;
 };
 
-const useReceiptWithUpdates = (initialData: Receipt, receiptId: string) => {
-  const setParticipants = useParticipantsStore((s) => s.setParticipants);
-  return useObservable<Observable<Receipt>>(
+const  useReceiptWithUpdates = (initialData: ReceiptWithParticipants, receiptId: string) => {
+  return useObservable<Observable<ReceiptWithParticipants>>(
     useMemo(() => {
-      return new Observable<Receipt>((handler) => {
+      return new Observable<ReceiptWithParticipants>((handler) => {
         if (typeof window === "undefined") {
           handler.next(initialData);
           handler.complete();
@@ -83,8 +82,7 @@ const useReceiptWithUpdates = (initialData: Receipt, receiptId: string) => {
             JSON.parse(event.data),
           );
           if (success) {
-            setParticipants(data.participants);
-            handler.next(data.receipt);
+            handler.next(data);
           }
         };
 
@@ -104,10 +102,10 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
   receiptId,
 }) => {
   // Subscribe to the receipt state with SSE updates
-  const receipt = useReceiptWithUpdates(initialData, receiptId);
+  const { receipt, participants } = useReceiptWithUpdates(initialData, receiptId);
   const { user } = useUser();
   const router = useRouter();
-  const participantsInitialized = useParticipantsStore((s) => s.initialized);
+  const setParticipants = useParticipantsStore((s) => s.setParticipants);
   const hasParticipant = useParticipantsStore((s) => s.hasParticipant);
   const gateStep = useUiGateStore((s) => s.step);
   const isBlocked = useUiGateStore((s) => s.isBlocked);
@@ -115,6 +113,9 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
   const openSettings = useUiGateStore((s) => s.openSettings);
   const openRemoved = useUiGateStore((s) => s.openRemoved);
   const closeGate = useUiGateStore((s) => s.closeGate);
+  setTimeout(() => {
+    setParticipants(participants);
+  });
 
   // Use the new react-hook-form based state
   const formState = useReceiptFormState(receipt, receiptId);
@@ -140,25 +141,21 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
 
   const currentReceipt = useWatch({ control: form.control }) as Receipt;
 
-  const isAnonymous =
-    user?.is_anonymous === true ||
-    user?.identities?.some((identity) => identity.provider === "anonymous");
-  const displayName = (user?.user_metadata?.displayName as string | undefined) ?? "";
+  const { is_anonymous, user_metadata: { displayName } } = user;
 
   React.useEffect(() => {
     if (scenarioType !== "splitting") return;
-    if (!isAnonymous) return;
+    if (!is_anonymous) return;
     if (displayName && displayName !== "Anonymous") return;
     openChoice();
-  }, [scenarioType, isAnonymous, displayName, openChoice]);
+  }, [scenarioType, is_anonymous, displayName, openChoice]);
 
   React.useEffect(() => {
-    if (!participantsInitialized || !user?.id) return;
-    if (isAnonymous) return;
+    if (is_anonymous) return;
     if (!hasParticipant(user.id)) {
       openRemoved();
     }
-  }, [participantsInitialized, user?.id, hasParticipant, isAnonymous, openRemoved]);
+  }, [user?.id, hasParticipant, is_anonymous, openRemoved]);
 
   const handleSettingsSubmit = async (values: {
     displayName: string;

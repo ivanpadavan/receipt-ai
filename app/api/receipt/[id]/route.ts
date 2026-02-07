@@ -5,78 +5,12 @@ import putValidator from "@/app/api-client/receipt/put";
 import { errorWrap } from "@/app/api/receipt/error-wrap";
 import { serverSupabase } from "@/utils/supabase/server";
 import { getNextColor } from "@/app/receipt/utils/participants";
+import type { User } from "@supabase/supabase-js";
+import { buildParticipants } from "@/app/db-utils/build-participants";
 
 export const runtime = "nodejs";
 
-const isAnonymousUser = (user: { is_anonymous?: boolean; identities?: { provider?: string }[] }) =>
-  user.is_anonymous === true ||
-  user.identities?.some((identity) => identity.provider === "anonymous") === true;
-
-const stripParticipants = (data: unknown) => {
-  if (!data || typeof data !== "object") return data;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { participants, ...rest } = data as Record<string, unknown>;
-  return rest;
-};
-
-const getDisplayName = (rawMeta?: Record<string, unknown>) => {
-  const displayName = typeof rawMeta?.displayName === "string" ? rawMeta.displayName : "";
-  return displayName.trim() || "Anonymous";
-};
-
-const getAvatarUrl = (rawMeta?: Record<string, unknown>) => {
-  const avatarUrl = typeof rawMeta?.avatarUrl === "string" ? rawMeta.avatarUrl : "";
-  return avatarUrl.trim() || undefined;
-};
-
-const buildParticipants = async (receiptId: string) => {
-  const [realParticipants, mockParticipants] = await Promise.all([
-    db.receiptUserParticipant.findMany({
-      where: { receiptId },
-      orderBy: { createdAt: "asc" },
-    }),
-    db.receiptMockParticipant.findMany({
-      where: { receiptId },
-      orderBy: { createdAt: "asc" },
-    }),
-  ]);
-
-  const userIds = realParticipants.map((p) => p.userId);
-  const users = userIds.length
-    ? await db.users.findMany({ where: { id: { in: userIds } } })
-    : [];
-
-  const userById = new Map(users.map((u) => [u.id, u]));
-
-  const realDtos = realParticipants.map((p) => {
-    const rawMeta = (userById.get(p.userId)?.raw_user_meta_data || {}) as Record<
-      string,
-      unknown
-    >;
-    return {
-      id: p.userId,
-      displayName: getDisplayName(rawMeta),
-      avatarUrl: getAvatarUrl(rawMeta),
-      color: p.color,
-      kind: "REAL" as const,
-    };
-  });
-
-  const mockDtos = mockParticipants.map((p) => ({
-    id: p.id,
-    displayName: p.displayName,
-    color: p.color,
-    kind: "MOCK" as const,
-  }));
-
-  return [...realDtos, ...mockDtos];
-};
-
-const ensureRealParticipant = async (receiptId: string, user: { id: string; user_metadata?: Record<string, unknown>; is_anonymous?: boolean; identities?: { provider?: string }[] }) => {
-  if (isAnonymousUser(user)) return;
-  const displayName = getDisplayName(user.user_metadata as Record<string, unknown>);
-  if (!displayName || displayName === "Anonymous") return;
-
+const ensureRealParticipant = async (receiptId: string, user: User) => {
   const existing = await db.receiptUserParticipant.findFirst({
     where: { receiptId, userId: user.id },
   });
@@ -110,9 +44,8 @@ export async function GET(
   if (!receipt) {
     return new Response("Receipt not found", { status: 404 });
   }
-  const initialReceipt = stripParticipants(receipt.data);
   let lastPayload = {
-    receipt: initialReceipt,
+    receipt: receipt.data,
     participants: await buildParticipants(receiptId),
   };
 
@@ -133,17 +66,6 @@ export async function GET(
       const supabase = await serverSupabase();
       const channel = supabase.channel(channelName);
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        await ensureRealParticipant(receiptId, user);
-        lastPayload = {
-          receipt: initialReceipt,
-          participants: await buildParticipants(receiptId),
-        };
-      }
-
       controller.enqueue(
         encoder.encode(`data: ${JSON.stringify(lastPayload)}\n\n`),
       );
@@ -158,11 +80,11 @@ export async function GET(
             filter: `id=eq.${receiptId}`,
           },
           async (payload) => {
-            const data = stripParticipants(payload?.new?.data);
+            const data = payload?.new?.data;
             if (!data) return;
             const nextPayload = {
               receipt: data,
-              participants: await buildParticipants(receiptId),
+              participants: lastPayload.participants,
             };
             if (isEqual(nextPayload, lastPayload)) return;
             lastPayload = nextPayload;

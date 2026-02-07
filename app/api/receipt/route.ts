@@ -116,19 +116,14 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const displayName =
-      (session.user.user_metadata?.displayName as string | undefined)?.trim() ||
-      session.user.email?.split("@")[0] ||
-      "Anonymous";
-    if (displayName && displayName !== "Anonymous") {
-      await db.receiptUserParticipant.create({
-        data: {
-          receiptId: receipt.id,
-          userId,
-          color: getNextColor([]),
-        },
-      });
-    }
+
+    await db.receiptUserParticipant.create({
+      data: {
+        receiptId: receipt.id,
+        userId,
+        color: getNextColor([]),
+      },
+    });
 
     // Return the receipt ID instead of the full data
     return NextResponse.json(
