@@ -21,7 +21,10 @@ export async function PATCH(
   const displayName =
     typeof body?.displayName === "string" ? body.displayName.trim() : "";
   if (!displayName) {
-    return NextResponse.json({ error: "Display name required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Display name required" },
+      { status: 400 },
+    );
   }
 
   const existing = await db.receiptMockParticipant.findUnique({

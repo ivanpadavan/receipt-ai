@@ -10,8 +10,7 @@ interface ParticipantsState {
 
 export const useParticipantsStore = create<ParticipantsState>((set, get) => ({
   participants: [],
-  setParticipants: (participants) =>
-    set({ participants }),
+  setParticipants: (participants) => set({ participants }),
   hasParticipant: (id) => get().participants.some((p) => p.id === id),
   getById: (id) => get().participants.find((p) => p.id === id),
 }));

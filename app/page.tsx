@@ -10,7 +10,8 @@ import { useUser } from "@/context/AuthContext";
 import { supabase } from "@/utils/supabase/client";
 
 const captureSupported =
-  typeof document === 'object' && document.createElement("input").capture != undefined;
+  typeof document === "object" &&
+  document.createElement("input").capture != undefined;
 
 export default function ImagePastePage() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function ImagePastePage() {
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
-      if (!items || picture.status !== 'idle') return;
+      if (!items || picture.status !== "idle") return;
 
       for (const item of items) {
         if (item.type.indexOf("image") !== -1) {
@@ -34,7 +35,7 @@ export default function ImagePastePage() {
 
           const reader = new FileReader();
           reader.onload = async (event) => {
-            if (event.target?.result && picture.status === 'idle') {
+            if (event.target?.result && picture.status === "idle") {
               picture.appendPicture(event.target.result as string);
             }
           };
@@ -60,24 +61,28 @@ export default function ImagePastePage() {
     if (!file) return;
 
     // Check if the file is an image
-    if (!file.type.startsWith('image/')) {
-      error.setError('Please select an image file');
+    if (!file.type.startsWith("image/")) {
+      error.setError("Please select an image file");
       return;
     }
 
     try {
       const reader = new FileReader();
       reader.onload = async (event) => {
-        if (event.target?.result && picture.status === 'idle') {
+        if (event.target?.result && picture.status === "idle") {
           picture.appendPicture(event.target.result as string);
-          error.setError('');
+          error.setError("");
         }
-        e.target.value = '';
+        e.target.value = "";
       };
       reader.readAsDataURL(file);
     } catch (err) {
-      error.setError(err instanceof Error ? err.message : 'An error occurred while reading the file');
-      console.error('Error reading file:', err);
+      error.setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while reading the file",
+      );
+      console.error("Error reading file:", err);
     }
   };
 
@@ -117,10 +122,12 @@ export default function ImagePastePage() {
                 >
                   Clear Image
                 </Button>
-                <Button onClick={() => {
-                  picture.proceed();
-                }}
-                  className="shadow-md">
+                <Button
+                  onClick={() => {
+                    picture.proceed();
+                  }}
+                  className="shadow-md"
+                >
                   Extract Receipt Data
                 </Button>
               </div>
@@ -155,7 +162,10 @@ export default function ImagePastePage() {
               </div>
               {captureSupported && (
                 <div className="mt-4 flex justify-center">
-                  <Button asChild className="shadow-md flex items-center gap-2 cursor-pointer">
+                  <Button
+                    asChild
+                    className="shadow-md flex items-center gap-2 cursor-pointer"
+                  >
                     <label>
                       <input
                         type="file"

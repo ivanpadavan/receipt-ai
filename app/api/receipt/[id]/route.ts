@@ -32,7 +32,7 @@ const ensureRealParticipant = async (receiptId: string, user: User) => {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { id: receiptId } = await params;
 
@@ -154,7 +154,7 @@ export async function GET(
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
-      "Connection": "keep-alive",
+      Connection: "keep-alive",
     },
   });
 }

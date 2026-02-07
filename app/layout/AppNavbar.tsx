@@ -7,7 +7,11 @@ import { cn } from "@/utils/cn";
 import { Menu, X, LogOut } from "lucide-react";
 import { supabase } from "@/utils/supabase/client";
 import { useUser } from "@/context/AuthContext";
-import { CredentialResponse, GoogleLogin, useGoogleOneTapLogin } from "@react-oauth/google";
+import {
+  CredentialResponse,
+  GoogleLogin,
+  useGoogleOneTapLogin,
+} from "@react-oauth/google";
 import Logo from "@/app/layout/Logo";
 import { Button } from "@/components/ui/button";
 
@@ -29,7 +33,7 @@ const handleSignOut = async () => {
 const NavLink = ({
   href,
   children,
-  onClick
+  onClick,
 }: {
   href: string;
   children: React.ReactNode;
@@ -46,7 +50,7 @@ const NavLink = ({
         "px-4 py-2 rounded-[18px] whitespace-nowrap flex items-center gap-2 text-sm transition-all",
         isActive
           ? "bg-primary text-primary-foreground"
-          : "text-foreground hover:bg-accent hover:text-accent-foreground"
+          : "text-foreground hover:bg-accent hover:text-accent-foreground",
       )}
     >
       {children}

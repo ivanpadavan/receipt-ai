@@ -22,7 +22,10 @@ export default async function RootLayout({
       <head>
         <title>Receipt Scanner App</title>
         <link rel="shortcut icon" href="/images/favicon.ico" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
         {/* amber-50 color */}
         <meta name="theme-color" content="#fffbeb" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -51,9 +54,7 @@ export default async function RootLayout({
             <AuthProvider initialUser={user}>
               <div className="bg-amber-50 min-h-[100dvh] flex flex-col">
                 <AppNavbar />
-                <main className="flex-1 flex flex-col">
-                  {children}
-                </main>
+                <main className="flex-1 flex flex-col">{children}</main>
               </div>
             </AuthProvider>
           </Providers>
@@ -62,4 +63,3 @@ export default async function RootLayout({
     </html>
   );
 }
-

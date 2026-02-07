@@ -22,7 +22,10 @@ export async function POST(
   const displayName =
     typeof body?.displayName === "string" ? body.displayName.trim() : "";
   if (!displayName) {
-    return NextResponse.json({ error: "Display name required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Display name required" },
+      { status: 400 },
+    );
   }
 
   const [currentReal, currentMock] = await Promise.all([

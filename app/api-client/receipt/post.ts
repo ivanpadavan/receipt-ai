@@ -3,11 +3,11 @@ import { z } from "zod";
 
 const validator = {
   request: z.object({
-    image: z.string()
+    image: z.string(),
   }),
   response: z.object({
-    id: z.string()
-  })
+    id: z.string(),
+  }),
 } satisfies ApiValidator;
 
 export default validator;

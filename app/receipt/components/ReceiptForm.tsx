@@ -8,12 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { forceSync, useObservable } from "@/hooks/rx/useObservable";
 import { Receipt, ReceiptWithParticipants } from "@/model/receipt/model";
-import React, {
-  createContext,
-  useContext,
-  useMemo,
-  useState,
-} from "react";
+import React, { createContext, useContext, useMemo, useState } from "react";
 import { Cell } from "./Cell";
 import { CellGroup } from "./CellGroup";
 import styles from "./form.module.css";
@@ -21,7 +16,10 @@ import { FormArrayTitle } from "./FormArrayTitle";
 import { Modifiers } from "./Modifiers";
 import { EditingSheet } from "@/app/receipt/components/EdititngSheet/EditingSheet";
 import { SplittingSheet } from "@/app/receipt/components/SplittingSheet/SplittingSheet";
-import { ParticipantsSheet, ParticipantsBadge } from "@/app/receipt/components/ParticipantsSheet";
+import {
+  ParticipantsSheet,
+  ParticipantsBadge,
+} from "@/app/receipt/components/ParticipantsSheet";
 import { SummaryScreen } from "@/app/receipt/components/SummaryScreen/SummaryScreen";
 import { distinctUntilChanged, Observable, startWith } from "rxjs";
 import { receiptWithParticipantsSchema } from "@/model/receipt/schema";
@@ -60,7 +58,10 @@ export const useReceiptState = (): ReceiptState => {
   return ctx;
 };
 
-const  useReceiptWithUpdates = (initialData: ReceiptWithParticipants, receiptId: string) => {
+const useReceiptWithUpdates = (
+  initialData: ReceiptWithParticipants,
+  receiptId: string,
+) => {
   return useObservable<Observable<ReceiptWithParticipants>>(
     useMemo(() => {
       return new Observable<ReceiptWithParticipants>((handler) => {
@@ -93,7 +94,7 @@ const  useReceiptWithUpdates = (initialData: ReceiptWithParticipants, receiptId:
         return () => eventSource.close();
       }).pipe(startWith(initialData), distinctUntilChanged(isEqual));
     }, [receiptId, initialData]),
-    forceSync
+    forceSync,
   );
 };
 
@@ -102,7 +103,10 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
   receiptId,
 }) => {
   // Subscribe to the receipt state with SSE updates
-  const { receipt, participants } = useReceiptWithUpdates(initialData, receiptId);
+  const { receipt, participants } = useReceiptWithUpdates(
+    initialData,
+    receiptId,
+  );
   const { user } = useUser();
   const router = useRouter();
   const setParticipants = useParticipantsStore((s) => s.setParticipants);
@@ -141,7 +145,10 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
 
   const currentReceipt = useWatch({ control: form.control }) as Receipt;
 
-  const { is_anonymous, user_metadata: { displayName } } = user;
+  const {
+    is_anonymous,
+    user_metadata: { displayName },
+  } = user;
 
   React.useEffect(() => {
     if (scenarioType !== "splitting") return;
@@ -172,7 +179,9 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
         .from("avatars")
         .upload(filePath, values.avatarFile, { upsert: true });
       if (!uploadError) {
-        const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+        const { data } = supabase.storage
+          .from("avatars")
+          .getPublicUrl(filePath);
         nextAvatarUrl = data.publicUrl;
       }
     }
@@ -192,15 +201,15 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
   return (
     <ReceiptFormContext.Provider value={formState}>
       <FormProvider {...form}>
-        {isBlocked && (
-          <div className="fixed inset-0 bg-black/40 z-30" />
-        )}
+        {isBlocked && <div className="fixed inset-0 bg-black/40 z-30" />}
 
         <AlertDialog open={gateStep === "choice"}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>{t("authPromptTitle")}</AlertDialogTitle>
-              <AlertDialogDescription>{t("authPromptBody")}</AlertDialogDescription>
+              <AlertDialogDescription>
+                {t("authPromptBody")}
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogAction
@@ -213,7 +222,10 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
               <AlertDialogAction
                 onClick={() => {
                   openSettings();
-                  window.open(`/auth/sign-in?next=/receipt/${receiptId}`, "_blank");
+                  window.open(
+                    `/auth/sign-in?next=/receipt/${receiptId}`,
+                    "_blank",
+                  );
                 }}
               >
                 {t("authYes")}
@@ -230,7 +242,9 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
             <SettingsForm
               userEmail={user?.email ?? ""}
               initialDisplayName={displayName}
-              initialAvatarUrl={(user?.user_metadata?.avatarUrl as string | undefined) ?? ""}
+              initialAvatarUrl={
+                (user?.user_metadata?.avatarUrl as string | undefined) ?? ""
+              }
               onSubmit={handleSettingsSubmit}
               submitLabel={t("save")}
             />
@@ -241,7 +255,9 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>{t("removedTitle")}</AlertDialogTitle>
-              <AlertDialogDescription>{t("removedBody")}</AlertDialogDescription>
+              <AlertDialogDescription>
+                {t("removedBody")}
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogAction
@@ -282,10 +298,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
 
         {scenarioType === "summary" ? (
           <div className="p-4 h-full">
-            <SummaryScreen
-              receipt={currentReceipt}
-              onBack={goBack}
-            />
+            <SummaryScreen receipt={currentReceipt} onBack={goBack} />
           </div>
         ) : (
           <div className="m-3 rounded bg-white shadow-md text-black max-w-fit w-full mx-auto overflow-auto font-mono">
@@ -357,7 +370,11 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
             <div className="flex justify-end items-center gap-3 mt-4 mb-2 mr-4 ml-4">
               {scenarioType === "splitting" && (
                 <>
-                  <Button variant="outline" onClick={goBackToEditing} disabled={isBlocked}>
+                  <Button
+                    variant="outline"
+                    onClick={goBackToEditing}
+                    disabled={isBlocked}
+                  >
                     <Pencil className="h-4 w-4 mr-2" />
                     {t("edit")}
                   </Button>

@@ -14,8 +14,8 @@ interface ModifiersProps {
 }
 
 export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
-  const { control, } = useFormContext<Receipt>();
-  const fields = useWatch({ control, name: type }) as ReceiptModifier[] || [];
+  const { control } = useFormContext<Receipt>();
+  const fields = (useWatch({ control, name: type }) as ReceiptModifier[]) || [];
   const ctx = useReceiptState();
 
   const openEditModal = ctx.scenario.canEdit.modifierForm

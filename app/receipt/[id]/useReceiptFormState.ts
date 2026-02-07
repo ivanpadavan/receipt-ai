@@ -272,7 +272,8 @@ export function useReceiptFormState(
         ignoreElements(),
       );
     }, [initialData, receiptId]),
-  null);
+    null,
+  );
 
   // Watch for form changes and trigger auto-save
   useEffect(() => {
@@ -314,10 +315,10 @@ export function useReceiptFormState(
       args:
         | { type: "position"; index: number }
         | {
-          type: "modifier";
-          modifierType: "fees" | "discounts";
-          index: number;
-        }
+            type: "modifier";
+            modifierType: "fees" | "discounts";
+            index: number;
+          }
         | { type: "totals" }
         | "addPosition"
         | "addDiscount"
@@ -374,13 +375,13 @@ export function useReceiptFormState(
           });
         } else if (args.type === "totals") {
           const totals = structuredClone(getValues("totals"));
-        setEditModalProps({
-          fieldType: "totals",
-          fieldPath: "totals",
-          initialValue: totals,
-          header: "overall",
-          onSave: (data) => {
-          setValue("totals", data as Receipt["totals"], {
+          setEditModalProps({
+            fieldType: "totals",
+            fieldPath: "totals",
+            initialValue: totals,
+            header: "overall",
+            onSave: (data) => {
+              setValue("totals", data as Receipt["totals"], {
                 shouldValidate: true,
               });
             },
@@ -462,7 +463,7 @@ export function useReceiptFormState(
         .updateReceipt(receiptId, { ...data, editingFinished: true })
         .then(() => {
           typeRef.current = "splitting";
-        setValue("editingFinished" as keyof Receipt, true as never);
+          setValue("editingFinished" as keyof Receipt, true as never);
           setForceUpdate((v) => v + 1);
         });
     } else if (type === "validation") {
@@ -489,7 +490,7 @@ export function useReceiptFormState(
       .updateReceipt(receiptId, { ...data, editingFinished: false })
       .then(() => {
         typeRef.current = "editing";
-      setValue("editingFinished" as keyof Receipt, false as never);
+        setValue("editingFinished" as keyof Receipt, false as never);
         setForceUpdate((v) => v + 1);
       });
   }, [type, getValues, receiptId, setValue]);

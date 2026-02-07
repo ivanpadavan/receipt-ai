@@ -38,13 +38,19 @@ const model = new ChatGoogleGenerativeAI({
 
 // Create the chain
 const imageChain = imagePrompt.pipe(
-  model.withStructuredOutput(receiptAiSchema, { name: "receipt_data_extractor" })
+  model.withStructuredOutput(receiptAiSchema, {
+    name: "receipt_data_extractor",
+  }),
 );
 
-const fixErrorsPrompt = PromptTemplate.fromTemplate(`There as result of reciept parsing: {result}. There are errors: {errors}. Fix them`);
+const fixErrorsPrompt = PromptTemplate.fromTemplate(
+  `There as result of reciept parsing: {result}. There are errors: {errors}. Fix them`,
+);
 
 const fixErrorsChain = fixErrorsPrompt.pipe(
-  model.withStructuredOutput(receiptAiSchema, { name: "receipt_data_extractor" })
+  model.withStructuredOutput(receiptAiSchema, {
+    name: "receipt_data_extractor",
+  }),
 );
 
 function appendIdsToArr<T>(v: T[]): (T & { id: string })[] {
@@ -54,10 +60,13 @@ function appendIdsToArr<T>(v: T[]): (T & { id: string })[] {
 function appendIdsAndUser(receipt: ReceiptNoId): Receipt {
   return {
     ...receipt,
-    positions: appendIdsToArr(receipt.positions).map((v) => ({ ...v, claims: [] })),
+    positions: appendIdsToArr(receipt.positions).map((v) => ({
+      ...v,
+      claims: [],
+    })),
     fees: appendIdsToArr(receipt.fees),
     discounts: appendIdsToArr(receipt.discounts),
-  }
+  };
 }
 
 async function uploadImage(image: string, userId: string) {
@@ -115,7 +124,6 @@ export async function POST(req: NextRequest) {
         data: appendIdsAndUser(result), // Store the receipt data as JSON
       },
     });
-
 
     await db.receiptUserParticipant.create({
       data: {

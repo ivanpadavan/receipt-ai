@@ -275,11 +275,19 @@ export const SettingsForm = ({
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button type="button" variant="outline" onClick={triggerFileInput}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={triggerFileInput}
+                    >
                       {t("uploadAvatar")}
                     </Button>
                     {captureSupported && (
-                      <Button type="button" variant="outline" onClick={triggerCameraInput}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={triggerCameraInput}
+                      >
                         {t("takeAvatarPhoto")}
                       </Button>
                     )}
@@ -321,7 +329,9 @@ export const SettingsForm = ({
                         <AlertDialogCancel onClick={() => setCropOpen(false)}>
                           {t("cancel")}
                         </AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleApplyCrop(onChange)}>
+                        <AlertDialogAction
+                          onClick={() => handleApplyCrop(onChange)}
+                        >
                           {t("save")}
                         </AlertDialogAction>
                       </AlertDialogFooter>
@@ -334,8 +344,11 @@ export const SettingsForm = ({
         </Field>
       </FieldGroup>
 
-      <Button type="submit" disabled={!displayName?.trim() || saving || isSubmitting}>
-        {saving || isSubmitting ? t("saving") : submitLabel ?? t("save")}
+      <Button
+        type="submit"
+        disabled={!displayName?.trim() || saving || isSubmitting}
+      >
+        {saving || isSubmitting ? t("saving") : (submitLabel ?? t("save"))}
       </Button>
     </form>
   );

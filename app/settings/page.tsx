@@ -61,8 +61,12 @@ export default function SettingsPage() {
         </h1>
         <SettingsForm
           userEmail={user?.email ?? ""}
-          initialDisplayName={(user?.user_metadata?.displayName as string | undefined) ?? ""}
-          initialAvatarUrl={(user?.user_metadata?.avatarUrl as string | undefined) ?? ""}
+          initialDisplayName={
+            (user?.user_metadata?.displayName as string | undefined) ?? ""
+          }
+          initialAvatarUrl={
+            (user?.user_metadata?.avatarUrl as string | undefined) ?? ""
+          }
           onSubmit={handleSave}
         />
       </div>

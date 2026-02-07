@@ -1,25 +1,23 @@
 import { apiClient } from "@/app/api-client";
-import {describe, vi, beforeEach, test, expect} from "vitest";
+import { describe, vi, beforeEach, test, expect } from "vitest";
 
-vi.mock('@/app/apiClient', () => {
+vi.mock("@/app/apiClient", () => {
   const apiClientMock = {
-      createReceipt: vi.fn(),
-    } satisfies Pick<typeof apiClient, 'createReceipt'>;
+    createReceipt: vi.fn(),
+  } satisfies Pick<typeof apiClient, "createReceipt">;
   return { apiClient: apiClientMock };
 });
 
-import { pageState$ } from '../state';
-import { firstValueFrom } from 'rxjs';
-import { take, toArray } from 'rxjs/operators';
+import { pageState$ } from "../state";
+import { firstValueFrom } from "rxjs";
+import { take, toArray } from "rxjs/operators";
 
-
-
-describe('pageState$', () => {
+describe("pageState$", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  test('should initialize with correct default state', async () => {
+  test("should initialize with correct default state", async () => {
     // Arrange
     const state$ = pageState$();
 
@@ -29,22 +27,22 @@ describe('pageState$', () => {
     // Assert
     expect(state).toEqual({
       camera: {
-        status: 'idle',
+        status: "idle",
         start: expect.any(Function),
       },
       picture: {
-        status: 'idle',
+        status: "idle",
         appendPicture: expect.any(Function),
       },
       error: {
-        errorMessage: '',
+        errorMessage: "",
         setError: expect.any(Function),
       },
       navigateTo: null,
     });
   });
 
-  test('should update camera state to pending when start is called', async () => {
+  test("should update camera state to pending when start is called", async () => {
     // Arrange
     const state$ = pageState$();
     const initialState = await firstValueFrom(state$);
@@ -54,11 +52,11 @@ describe('pageState$', () => {
     const updatedState = await firstValueFrom(state$);
 
     // Assert
-    expect(updatedState.camera.status).toBe('pending');
-    expect(updatedState.camera).toHaveProperty('initialized');
+    expect(updatedState.camera.status).toBe("pending");
+    expect(updatedState.camera).toHaveProperty("initialized");
   });
 
-  test('should update camera state to ready when initialized is called', async () => {
+  test("should update camera state to ready when initialized is called", async () => {
     // Arrange
     const state$ = pageState$();
     const initialState = await firstValueFrom(state$);
@@ -70,33 +68,35 @@ describe('pageState$', () => {
     const readyState = await firstValueFrom(state$);
 
     // Assert
-    expect(readyState.camera.status).toBe('ready');
-    expect(readyState.camera).toHaveProperty('close');
-    expect(readyState.camera).toHaveProperty('appendPicture');
+    expect(readyState.camera.status).toBe("ready");
+    expect(readyState.camera).toHaveProperty("close");
+    expect(readyState.camera).toHaveProperty("appendPicture");
   });
 
-  test('should update picture state when appendPicture is called', async () => {
+  test("should update picture state when appendPicture is called", async () => {
     // Arrange
     const state$ = pageState$();
     const initialState = await firstValueFrom(state$);
-    const testImage = 'data:image/jpeg;base64,test123';
+    const testImage = "data:image/jpeg;base64,test123";
 
     // Act
     initialState.picture.appendPicture(testImage);
     const updatedState = await firstValueFrom(state$);
 
     // Assert
-    expect(updatedState.picture.status).toBe('picture-in');
+    expect(updatedState.picture.status).toBe("picture-in");
     expect(updatedState.picture.imageBase64).toBe(testImage);
-    expect(updatedState.picture).toHaveProperty('clear');
-    expect(updatedState.picture).toHaveProperty('proceed');
+    expect(updatedState.picture).toHaveProperty("clear");
+    expect(updatedState.picture).toHaveProperty("proceed");
   });
 
-  test('should process receipt and update navigateTo when proceed is called', async () => {
+  test("should process receipt and update navigateTo when proceed is called", async () => {
     // Arrange
-    const testImage = 'data:image/jpeg;base64,test123';
-    const testReceiptId = 'test-receipt-id';
-    vi.spyOn(apiClient, 'createReceipt').mockResolvedValue({ id: testReceiptId });
+    const testImage = "data:image/jpeg;base64,test123";
+    const testReceiptId = "test-receipt-id";
+    vi.spyOn(apiClient, "createReceipt").mockResolvedValue({
+      id: testReceiptId,
+    });
 
     const state$ = pageState$();
     const states = state$.pipe(take(5), toArray()).toPromise();
@@ -116,11 +116,13 @@ describe('pageState$', () => {
     expect(finalState.navigateTo).toBe(`/receipt/${testReceiptId}`);
   });
 
-  test('should handle errors when processing receipt fails', async () => {
+  test("should handle errors when processing receipt fails", async () => {
     // Arrange
-    const testImage = 'data:image/jpeg;base64,test123';
-    const errorMessage = 'Failed to process receipt';
-    vi.spyOn(apiClient, 'createReceipt').mockRejectedValue(new Error(errorMessage));
+    const testImage = "data:image/jpeg;base64,test123";
+    const errorMessage = "Failed to process receipt";
+    vi.spyOn(apiClient, "createReceipt").mockRejectedValue(
+      new Error(errorMessage),
+    );
 
     const state$ = pageState$();
     const states = state$.pipe(take(5), toArray()).toPromise();
@@ -139,14 +141,14 @@ describe('pageState$', () => {
     // Assert
     expect(apiClient.createReceipt).toHaveBeenCalledWith(testImage);
     expect(finalState.error.errorMessage).toBe(errorMessage);
-    expect(finalState.picture.status).toBe('picture-in');
+    expect(finalState.picture.status).toBe("picture-in");
   });
 
-  test('should clear picture state when clear is called', async () => {
+  test("should clear picture state when clear is called", async () => {
     // Arrange
     const state$ = pageState$();
     const initialState = await firstValueFrom(state$);
-    const testImage = 'data:image/jpeg;base64,test123';
+    const testImage = "data:image/jpeg;base64,test123";
 
     // Act
     initialState.picture.appendPicture(testImage);
@@ -155,11 +157,11 @@ describe('pageState$', () => {
     const clearedState = await firstValueFrom(state$);
 
     // Assert
-    expect(clearedState.picture.status).toBe('idle');
-    expect(clearedState.picture).toHaveProperty('appendPicture');
+    expect(clearedState.picture.status).toBe("idle");
+    expect(clearedState.picture).toHaveProperty("appendPicture");
   });
 
-  test('should reset camera state when close is called', async () => {
+  test("should reset camera state when close is called", async () => {
     // Arrange
     const state$ = pageState$();
     const initialState = await firstValueFrom(state$);
@@ -173,15 +175,15 @@ describe('pageState$', () => {
     const closedState = await firstValueFrom(state$);
 
     // Assert
-    expect(closedState.camera.status).toBe('idle');
-    expect(closedState.camera).toHaveProperty('start');
+    expect(closedState.camera.status).toBe("idle");
+    expect(closedState.camera).toHaveProperty("start");
   });
 
-  test('should set error message when setError is called', async () => {
+  test("should set error message when setError is called", async () => {
     // Arrange
     const state$ = pageState$();
     const initialState = await firstValueFrom(state$);
-    const errorMessage = 'Test error message';
+    const errorMessage = "Test error message";
 
     // Act
     initialState.error.setError(errorMessage);

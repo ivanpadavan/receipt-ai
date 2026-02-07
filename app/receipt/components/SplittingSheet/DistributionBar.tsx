@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import { cn } from "@/utils/cn";
 
 import {
@@ -18,13 +18,12 @@ interface DistributionBarProps {
 }
 
 const isReceipt = (data: DistributionData): data is Receipt => {
-  return 'positions' in data && Array.isArray(data.positions);
-}
+  return "positions" in data && Array.isArray(data.positions);
+};
 
 const isPosition = (data: DistributionData): data is ReceiptPosition => {
-  return 'claims' in data && Array.isArray(data.claims) && 'price' in data;
-}
-
+  return "claims" in data && Array.isArray(data.claims) && "price" in data;
+};
 
 export const DistributionBar = ({
   data,
@@ -40,13 +39,17 @@ export const DistributionBar = ({
   const processClaim = (claim: ReceiptPositionClaim, itemPrice: number) => {
     // If we don't have price (itemPrice=1), we just calculate based on value (quantity or amount).
     // This is fine for single-claim bars where relative proportions matter, not absolute currency.
-    const amount = claim.type === "quantity" ? claim.value * itemPrice : claim.value;
+    const amount =
+      claim.type === "quantity" ? claim.value * itemPrice : claim.value;
     const pIds = claim.participantIds || [];
 
     if (pIds.length > 0) {
       const splitAmount = amount / pIds.length;
       pIds.forEach((pid) => {
-        participantAmounts.set(pid, (participantAmounts.get(pid) || 0) + splitAmount);
+        participantAmounts.set(
+          pid,
+          (participantAmounts.get(pid) || 0) + splitAmount,
+        );
       });
     }
     return amount; // Return the total amount for this claim
@@ -65,7 +68,7 @@ export const DistributionBar = ({
     // For a single claim, the "total" is just its own calculated amount.
     // We use price=1 effectively treating quantity as the unit for visualization if needed,
     // or if the claim is 'amount' type it works directly.
-    // Since we only care about the split ratios in the mini-bar, the price multiplier cancels out 
+    // Since we only care about the split ratios in the mini-bar, the price multiplier cancels out
     // (a * p / (N * a * p) = 1/N).
     calculatedTotal = processClaim(data, 1);
   }
@@ -81,7 +84,10 @@ export const DistributionBar = ({
 
   return (
     <div
-      className={cn("w-full bg-secondary overflow-hidden flex relative", className)}
+      className={cn(
+        "w-full bg-secondary overflow-hidden flex relative",
+        className,
+      )}
     >
       {bars.map((bar: ParticipantDTO & { amount: number }, i: number) => {
         const style: React.CSSProperties = {
@@ -92,7 +98,7 @@ export const DistributionBar = ({
           const percent = (bar.amount / calculatedTotal) * 100;
           style.width = `${percent}%`;
         } else {
-          // If no total allowed, this mode is weird for aggregated view. 
+          // If no total allowed, this mode is weird for aggregated view.
           // Usually total is passed for the footer bar.
           // If used in row, total might be missing.
           // If used in row (mini bar), we usually just want to fill.

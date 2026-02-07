@@ -36,7 +36,11 @@ import {
 import { cn } from "@/utils/cn";
 import { ParticipantAvatar } from "@/components/ui/participant-avatar";
 import { DistributionBar } from "./DistributionBar";
-import { ParticipantDTO, ReceiptPosition, ReceiptPositionClaim } from "@/model/receipt/model";
+import {
+  ParticipantDTO,
+  ReceiptPosition,
+  ReceiptPositionClaim,
+} from "@/model/receipt/model";
 import { getClaimOverage } from "@/app/receipt/utils/claims";
 import { useWatch } from "react-hook-form";
 import { useUser } from "@/context/AuthContext";
@@ -136,7 +140,7 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
 }) => {
   const amount = claim.type === "quantity" ? claim.value * price : claim.value;
   const selectedParticipants = participants.filter((p) =>
-    claim.participantIds.includes(p.id)
+    claim.participantIds.includes(p.id),
   );
 
   return (
@@ -186,7 +190,11 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
       <div className="flex items-center px-1">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-gray-500"
+            >
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -238,7 +246,7 @@ const ParticipantsSelector: React.FC<ParticipantsSelectorProps> = ({
             onClick={() => handleToggle(p.id)}
             className={cn(
               "relative rounded-full transition-all",
-              !isSelected && "opacity-50 hover:opacity-80"
+              !isSelected && "opacity-50 hover:opacity-80",
             )}
           >
             <ParticipantAvatar
@@ -271,7 +279,11 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
   defaultOpen,
 }) => {
   return (
-    <Accordion type="single" collapsible defaultValue={defaultOpen ? "1" : undefined}>
+    <Accordion
+      type="single"
+      collapsible
+      defaultValue={defaultOpen ? "1" : undefined}
+    >
       <AccordionItem
         value="1"
         className="border rounded-md overflow-hidden data-[state=open]:bg-muted/50"
@@ -304,7 +316,9 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
   fieldPath,
 }) => {
   const position = initialValue as ReceiptPosition;
-  const { scenario: { form } } = useReceiptState();
+  const {
+    scenario: { form },
+  } = useReceiptState();
   const participants = useParticipantsStore((s) => s.participants);
   const { user } = useUser();
 
@@ -347,14 +361,16 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         </div>
 
         {/* Validation Status */}
-        {(totalClaimed > localPosition.overall + 0.01) && (
+        {totalClaimed > localPosition.overall + 0.01 && (
           <div className="text-destructive font-medium text-xs bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
-            {t("overpaid") || "Over"}: {(totalClaimed - localPosition.overall).toFixed(2)} ₽
+            {t("overpaid") || "Over"}:{" "}
+            {(totalClaimed - localPosition.overall).toFixed(2)} ₽
           </div>
         )}
-        {(totalClaimed < localPosition.overall - 0.01) && (
+        {totalClaimed < localPosition.overall - 0.01 && (
           <div className="text-amber-600 font-medium text-xs bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-            {t("remaining") || "Left"}: {(localPosition.overall - totalClaimed).toFixed(2)} ₽
+            {t("remaining") || "Left"}:{" "}
+            {(localPosition.overall - totalClaimed).toFixed(2)} ₽
           </div>
         )}
       </div>

@@ -35,15 +35,17 @@ export async function POST(request: Request) {
 
   const supabase = await serverSupabase();
 
-  const { data: linkData, error: linkError } = await supabase.auth.linkIdentity({
-    provider: "google",
-    token: token,
-  });
+  const { data: linkData, error: linkError } = await supabase.auth.linkIdentity(
+    {
+      provider: "google",
+      token: token,
+    },
+  );
 
   if (!linkError && linkData.session && linkData.user) {
     // Достаем основные поля и кладем в новый аккаунт
     await supabase.auth.updateUser({
-      data: getUserMetadata(linkData.user)
+      data: getUserMetadata(linkData.user),
     });
     // УСПЕХ: Аккаунт привязан.
     // Возвращаем успех, но сессию менять не надо (она та же)

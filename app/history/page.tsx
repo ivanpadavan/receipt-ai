@@ -25,14 +25,14 @@ export default async function HistoryPage() {
     <div className="flex flex-col items-center justify-center p-4 gap-4 bg-amber-50">
       <div className="w-full max-w-md mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-amber-800">
-            Receipt History
-          </h1>
+          <h1 className="text-3xl font-bold text-amber-800">Receipt History</h1>
         </div>
 
         {receipts.length === 0 ? (
           <div className="w-full bg-white rounded-lg shadow-md p-6 border border-amber-200 text-center">
-            <p className="text-amber-700 mb-4">You haven&apos;t scanned any receipts yet.</p>
+            <p className="text-amber-700 mb-4">
+              You haven&apos;t scanned any receipts yet.
+            </p>
             <Link href="/">
               <Button className="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-full shadow-md">
                 Scan Your First Receipt
@@ -63,8 +63,12 @@ export default async function HistoryPage() {
                       </span>
                     </div>
                     <div className="flex justify-between text-sm text-amber-700">
-                      <span>{itemCount} {itemCount === 1 ? 'item' : 'items'}</span>
-                      <span className="font-medium">${totalAmount.toFixed(2)}</span>
+                      <span>
+                        {itemCount} {itemCount === 1 ? "item" : "items"}
+                      </span>
+                      <span className="font-medium">
+                        ${totalAmount.toFixed(2)}
+                      </span>
                     </div>
                   </div>
                 </Link>

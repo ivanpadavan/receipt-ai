@@ -38,8 +38,13 @@ const isTotals = (v: EditableValue): v is Receipt["totals"] =>
 // Get editable fields based on value type and mode
 const getEditableFields = (
   value: EditableValue,
-  mode: "editing" | "validation" | "splitting" | "summary"
-): { key: string; label: TranslationKey; type: "string" | "number"; disabled?: boolean }[] => {
+  mode: "editing" | "validation" | "splitting" | "summary",
+): {
+  key: string;
+  label: TranslationKey;
+  type: "string" | "number";
+  disabled?: boolean;
+}[] => {
   if (isPosition(value)) {
     // In editing mode, overall is computed and should be disabled
     // In validation mode, overall is editable
@@ -48,7 +53,12 @@ const getEditableFields = (
       { key: "name", label: "name", type: "string" },
       { key: "price", label: "price", type: "number" },
       { key: "quantity", label: "quantity", type: "number" },
-      { key: "overall", label: "overall", type: "number", disabled: isOverallDisabled },
+      {
+        key: "overall",
+        label: "overall",
+        type: "number",
+        disabled: isOverallDisabled,
+      },
     ];
   } else if (isModifier(value)) {
     return [
@@ -72,12 +82,14 @@ export const EditingSheet: React.FC<EditModalProps> = ({
   fieldPath,
 }) => {
   const receiptState = useReceiptState();
-  const { scenario: { type, form } } = receiptState;
+  const {
+    scenario: { type, form },
+  } = receiptState;
   const { setValue } = form;
 
   // Local state - работаем с копией данных
   const [localValue, setLocalValue] = useState<EditableValue>(() =>
-    structuredClone(initialValue)
+    structuredClone(initialValue),
   );
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -95,37 +107,40 @@ export const EditingSheet: React.FC<EditModalProps> = ({
   // Dismiss toast on closing
   useEffect(
     () => (closing && toast.dismiss(toastId.current), void 0),
-    [closing]
+    [closing],
   );
 
   // Get editable fields for this value type
   const fields = getEditableFields(localValue, type);
 
   // Validation
-  const validate = useCallback((value: EditableValue): Record<string, string> => {
-    const errs: Record<string, string> = {};
+  const validate = useCallback(
+    (value: EditableValue): Record<string, string> => {
+      const errs: Record<string, string> = {};
 
-    if (isPosition(value)) {
-      if (!value.name || value.name.trim() === "") {
-        errs.name = "Name should not be empty";
+      if (isPosition(value)) {
+        if (!value.name || value.name.trim() === "") {
+          errs.name = "Name should not be empty";
+        }
+        if (value.price <= 0 || isNaN(value.price)) {
+          errs.price = "Price should be greater than 0";
+        }
+        if (value.quantity <= 0 || isNaN(value.quantity)) {
+          errs.quantity = "Quantity should be greater than 0";
+        }
+      } else if (isModifier(value)) {
+        if (!value.name || value.name.trim() === "") {
+          errs.name = "Name should not be empty";
+        }
+        if (value.value <= 0 || isNaN(value.value)) {
+          errs.value = "Value should be greater than 0";
+        }
       }
-      if (value.price <= 0 || isNaN(value.price)) {
-        errs.price = "Price should be greater than 0";
-      }
-      if (value.quantity <= 0 || isNaN(value.quantity)) {
-        errs.quantity = "Quantity should be greater than 0";
-      }
-    } else if (isModifier(value)) {
-      if (!value.name || value.name.trim() === "") {
-        errs.name = "Name should not be empty";
-      }
-      if (value.value <= 0 || isNaN(value.value)) {
-        errs.value = "Value should be greater than 0";
-      }
-    }
 
-    return errs;
-  }, []);
+      return errs;
+    },
+    [],
+  );
 
   // Update validation on value change
   useEffect(() => {
@@ -133,7 +148,11 @@ export const EditingSheet: React.FC<EditModalProps> = ({
   }, [localValue, validate]);
 
   // Handle field change with auto-calculation for positions
-  const handleChange = (key: string, rawValue: string, valueType: "string" | "number") => {
+  const handleChange = (
+    key: string,
+    rawValue: string,
+    valueType: "string" | "number",
+  ) => {
     setTouched((prev) => new Set(prev).add(key));
 
     const newValue = { ...localValue } as Record<string, unknown>;
@@ -148,9 +167,19 @@ export const EditingSheet: React.FC<EditModalProps> = ({
     }
 
     // Auto-calculate overall for positions in editing mode
-    if (isPosition(localValue) && type === "editing" && (key === "price" || key === "quantity")) {
-      const price = key === "price" ? (newValue.price as number) : (localValue.price as number);
-      const quantity = key === "quantity" ? (newValue.quantity as number) : (localValue.quantity as number);
+    if (
+      isPosition(localValue) &&
+      type === "editing" &&
+      (key === "price" || key === "quantity")
+    ) {
+      const price =
+        key === "price"
+          ? (newValue.price as number)
+          : (localValue.price as number);
+      const quantity =
+        key === "quantity"
+          ? (newValue.quantity as number)
+          : (localValue.quantity as number);
       newValue.overall = price * quantity;
     }
 
@@ -164,7 +193,7 @@ export const EditingSheet: React.FC<EditModalProps> = ({
   // Show errors only for touched fields (except for existing items)
   const hideErrorsUntilTouched = !onRemove;
   const visibleErrors = Object.entries(errors).filter(
-    ([key]) => !hideErrorsUntilTouched || touched.has(key)
+    ([key]) => !hideErrorsUntilTouched || touched.has(key),
   );
 
   // Handle save
@@ -193,7 +222,9 @@ export const EditingSheet: React.FC<EditModalProps> = ({
                     const serverValue = resolveConflict("accept");
                     if (serverValue && fieldPath) {
                       setLocalValue(serverValue);
-                      setValue(fieldPath, serverValue as never, { shouldDirty: true });
+                      setValue(fieldPath, serverValue as never, {
+                        shouldDirty: true,
+                      });
                     }
                   }}
                 >
@@ -205,7 +236,9 @@ export const EditingSheet: React.FC<EditModalProps> = ({
                   onClick={() => {
                     resolveConflict("keep");
                     if (fieldPath) {
-                      setValue(fieldPath, localValue as never, { shouldDirty: true });
+                      setValue(fieldPath, localValue as never, {
+                        shouldDirty: true,
+                      });
                     }
                   }}
                 >
@@ -266,7 +299,11 @@ export const EditingSheet: React.FC<EditModalProps> = ({
               </Button>
             </DrawerClose>
             <DrawerClose asChild>
-              <Button type="button" disabled={isSaveDisabled} onClick={handleSave}>
+              <Button
+                type="button"
+                disabled={isSaveDisabled}
+                onClick={handleSave}
+              >
                 {t("save")}
               </Button>
             </DrawerClose>

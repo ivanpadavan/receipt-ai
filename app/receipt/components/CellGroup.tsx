@@ -42,12 +42,13 @@ export const CellGroup = ({
   const { openEditModal } = useReceiptState();
 
   // Check if this field path has errors
-  const hasError = fieldPath.split(".").reduce((obj: unknown, key) => {
-    if (obj && typeof obj === "object") {
-      return (obj as Record<string, unknown>)[key];
-    }
-    return undefined;
-  }, formState.errors) !== undefined;
+  const hasError =
+    fieldPath.split(".").reduce((obj: unknown, key) => {
+      if (obj && typeof obj === "object") {
+        return (obj as Record<string, unknown>)[key];
+      }
+      return undefined;
+    }, formState.errors) !== undefined;
 
   const handleClick = () => {
     if (!canEdit) return;

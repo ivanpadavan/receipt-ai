@@ -1,9 +1,6 @@
 import { ReceiptPositionClaim } from "@/model/receipt/model";
 
-export const getClaimAmount = (
-  claim: ReceiptPositionClaim,
-  price: number,
-) => {
+export const getClaimAmount = (claim: ReceiptPositionClaim, price: number) => {
   if (!Number.isFinite(claim.value) || claim.value <= 0) return 0;
   if (claim.type === "quantity") return claim.value * price;
   return claim.value;

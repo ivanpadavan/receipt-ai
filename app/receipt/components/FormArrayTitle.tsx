@@ -16,13 +16,13 @@ export const FormArrayTitle: React.FC<FormTitleProps> = ({
 
   return (
     <div
-      className={`flex items-center ${isClickable ? 'cursor-pointer hover:bg-gray-100' : ''} ${className}`}
+      className={`flex items-center ${isClickable ? "cursor-pointer hover:bg-gray-100" : ""} ${className}`}
       onClick={onAddClick}
     >
-      {onAddClick && <AddButton className={`mr-2 ${!isClickable ? 'opacity-50' : ''}`} />}
-      <span className="flex-grow">
-        {title}
-      </span>
+      {onAddClick && (
+        <AddButton className={`mr-2 ${!isClickable ? "opacity-50" : ""}`} />
+      )}
+      <span className="flex-grow">{title}</span>
     </div>
   );
 };

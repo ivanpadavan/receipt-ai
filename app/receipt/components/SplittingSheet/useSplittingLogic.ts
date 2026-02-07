@@ -5,10 +5,7 @@ import {
   ReceiptPositionClaim,
 } from "@/model/receipt/model";
 import { createDefaultClaim } from "@/app/receipt/[id]/useReceiptFormState";
-import {
-  canApplyClaim,
-  getClaimAmount,
-} from "@/app/receipt/utils/claims";
+import { canApplyClaim, getClaimAmount } from "@/app/receipt/utils/claims";
 
 export interface UseSplittingLogicProps {
   initialValue: ReceiptPosition;
@@ -65,7 +62,10 @@ export const useSplittingLogic = ({
     });
   };
 
-  const canApplyClaimLocal = (claim: ReceiptPositionClaim, excludeId?: string) =>
+  const canApplyClaimLocal = (
+    claim: ReceiptPositionClaim,
+    excludeId?: string,
+  ) =>
     canApplyClaim(
       claim,
       localPosition.claims,
@@ -163,9 +163,7 @@ export const useSplittingLogic = ({
     // Only used for update from view mode if allowed
     const nextPosition = {
       ...localPosition,
-      claims: localPosition.claims.map((c) =>
-        c.id === id ? updatedClaim : c,
-      ),
+      claims: localPosition.claims.map((c) => (c.id === id ? updatedClaim : c)),
     };
     setLocalPosition(nextPosition);
     onSave(nextPosition);

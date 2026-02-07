@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { FieldPath, UseFormReturn } from "react-hook-form";
-import { Receipt, ReceiptPosition, ReceiptModifier } from "@/model/receipt/model";
+import {
+  Receipt,
+  ReceiptPosition,
+  ReceiptModifier,
+} from "@/model/receipt/model";
 import { isEqual } from "lodash-es";
 
 type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
@@ -16,7 +20,7 @@ interface UseRowConflictProps<T extends EditableValue> {
   fieldPath?: FieldPath<Receipt>;
 }
 
-export type ConflictType = 'deleted' | 'modified';
+export type ConflictType = "deleted" | "modified";
 
 export interface ConflictState<T> {
   type: ConflictType;
@@ -40,18 +44,19 @@ export const useRowConflict = <T extends EditableValue>({
     if (!fieldPath) return;
     const subscription = form.watch((formData) => {
       if (!formData) return;
-      const liveValue = fieldPath
-        .split(".")
-        .reduce<unknown>((acc, key) => {
-          if (acc && typeof acc === "object") {
-            return (acc as Record<string, unknown>)[key];
-          }
-          return undefined;
-        }, formData) as T | undefined;
+      const liveValue = fieldPath.split(".").reduce<unknown>((acc, key) => {
+        if (acc && typeof acc === "object") {
+          return (acc as Record<string, unknown>)[key];
+        }
+        return undefined;
+      }, formData) as T | undefined;
 
       // Case 1: Deleted
       if (!liveValue) {
-        setConflict({ type: 'deleted', message: 'Item has been deleted by another user.' });
+        setConflict({
+          type: "deleted",
+          message: "Item has been deleted by another user.",
+        });
         return;
       }
 
@@ -79,10 +84,10 @@ export const useRowConflict = <T extends EditableValue>({
     return () => subscription.unsubscribe();
   }, [form, initialValue, localValue, fieldPath]);
 
-  const resolveConflict = (action: 'accept' | 'keep') => {
+  const resolveConflict = (action: "accept" | "keep") => {
     if (!conflict) return null;
 
-    if (action === 'accept' && conflict.serverValue) {
+    if (action === "accept" && conflict.serverValue) {
       setConflict(null);
       return conflict.serverValue; // Return the server value to apply
     }

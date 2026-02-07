@@ -14,5 +14,8 @@ export const getNextColor = (participants: { color?: string | null }[]) => {
     participants.map((p) => p.color).filter((c): c is string => !!c),
   );
   const available = PARTICIPANT_COLORS.find((c) => !used.has(c));
-  return available || PARTICIPANT_COLORS[participants.length % PARTICIPANT_COLORS.length];
+  return (
+    available ||
+    PARTICIPANT_COLORS[participants.length % PARTICIPANT_COLORS.length]
+  );
 };
