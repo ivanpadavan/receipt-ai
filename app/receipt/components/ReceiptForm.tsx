@@ -39,6 +39,10 @@ import {
   useParticipantsStore,
 } from "@/app/receipt/store/participants";
 import { useJoinFlowOverlay } from "@/app/receipt/[id]/join-flow/use-join-flow-overlay";
+import {
+  ButtonGroup,
+  ButtonGroupSeparator,
+} from "@/components/ui/button-group";
 
 interface EditableReceiptFormProps {
   initialData: ReceiptWithParticipants;
@@ -260,22 +264,37 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                 </tr>
               </tfoot>
             </table>
-            <div className="flex justify-end items-center gap-3 mt-4 mb-2 mr-4 ml-4">
+            <div className="flex justify-end items-center gap-2 mt-4 mb-2 mr-4 ml-4">
               {scenarioType === "splitting" && (
-                <>
+                <ButtonGroup className="rounded-xl border bg-background p-1 [&>*]:border-0">
                   <Button
-                    variant="outline"
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 px-3"
                     onClick={goBackToEditing}
                   >
                     <Pencil className="h-4 w-4 mr-2" />
-                    {t("edit")}
+                    <span className="hidden sm:inline">{t("edit")}</span>
                   </Button>
+                  <ButtonGroupSeparator className="mx-1 h-5 self-center" />
                   <ParticipantsBadge
+                    compact
                     onClick={() => setParticipantsModalOpen(true)}
                   />
-                </>
+                  <ButtonGroupSeparator className="mx-1 h-5 self-center" />
+                  <ShareReceiptDialog
+                    receiptId={receiptId}
+                    iconOnly
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 w-9 px-0 text-muted-foreground"
+                    title={t("share")}
+                  />
+                </ButtonGroup>
               )}
-              <ShareReceiptDialog variant={'outline'} receiptId={receiptId} />
+              {scenarioType !== "splitting" && (
+                <ShareReceiptDialog variant="outline" receiptId={receiptId} />
+              )}
               <Button onClick={proceed} disabled={!canProceed}>
                 {scenarioType === "splitting" ? t("done") : t("proceed")}
               </Button>

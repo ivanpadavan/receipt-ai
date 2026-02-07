@@ -20,10 +20,12 @@ import { toast } from "sonner";
 
 type ShareReceiptDialogProps = {
   receiptId: string;
+  iconOnly?: boolean;
 } & React.ComponentProps<typeof Button>;
 
 export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
   receiptId,
+  iconOnly = false,
   ...buttonProps
 }) => {
   const [open, setOpen] = useState(false);
@@ -60,7 +62,7 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
       <AlertDialogTrigger asChild>
         <Button {...buttonProps}>
           <Share2 className="h-4 w-4" />
-          {t("share")}
+          {!iconOnly && t("share")}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-md">
