@@ -5,6 +5,7 @@ import { ParticipantDTO } from "@/model/receipt/model";
 import { ParticipantAvatar } from "@/components/ui/participant-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   DrawerContent,
   DrawerHeader,
@@ -135,80 +136,90 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
 
           {participants.map((participant) => {
             return (
-              <div
+              <Card
                 key={participant.id}
-                className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl mb-2 shadow-sm"
+                variant="interactive"
+                shadow="md"
+                className="mb-2 rounded-xl"
               >
-                <ParticipantAvatar
-                  participant={participant}
-                  className="shrink-0"
-                />
-                <span className="flex-1 font-medium text-gray-800">
-                  {participant.displayName}
-                </span>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-gray-500"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => handleDeleteClick(participant)}
-                      className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      {t("delete")}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+                <CardContent className="flex items-center gap-3 px-4 py-3">
+                  <ParticipantAvatar
+                    participant={participant}
+                    className="shrink-0"
+                  />
+                  <span className="flex-1 font-medium text-gray-800">
+                    {participant.displayName}
+                  </span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-gray-500"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => handleDeleteClick(participant)}
+                        className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        {t("delete")}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </CardContent>
+              </Card>
             );
           })}
 
           {isAdding && (
-            <div className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl border-2 border-dashed border-amber-500 mb-2">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center font-semibold shrink-0 text-lg">
-                ?
-              </div>
-              <Input
-                autoFocus
-                value={newParticipantName}
-                onChange={(e) => setNewParticipantName(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Имя нового участника"
-                className="flex-1 border-none bg-transparent p-0 text-base focus:ring-0 focus-visible:ring-0"
-              />
-              {hasNameConflict && (
-                <span className="text-xs text-amber-600">
-                  {t("nameConflict")}
-                </span>
-              )}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleAddParticipant}
-                disabled={!newParticipantName.trim()}
-                className="text-green-500 hover:bg-green-500/10"
-              >
-                <Check className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  setNewParticipantName("");
-                  setIsAdding(false);
-                }}
-                className="text-gray-400"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+            <Card
+              variant="warning"
+              shadow="md"
+              className="mb-2 rounded-xl border-2 border-dashed border-amber-500"
+            >
+              <CardContent className="flex items-center gap-3 px-4 py-3">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center font-semibold shrink-0 text-lg">
+                  ?
+                </div>
+                <Input
+                  autoFocus
+                  value={newParticipantName}
+                  onChange={(e) => setNewParticipantName(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Имя нового участника"
+                  className="flex-1 border-none bg-transparent p-0 text-base focus:ring-0 focus-visible:ring-0"
+                />
+                {hasNameConflict && (
+                  <span className="text-xs text-amber-600">
+                    {t("nameConflict")}
+                  </span>
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleAddParticipant}
+                  disabled={!newParticipantName.trim()}
+                  className="text-green-500 hover:bg-green-500/10"
+                >
+                  <Check className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setNewParticipantName("");
+                    setIsAdding(false);
+                  }}
+                  className="text-gray-400"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </CardContent>
+            </Card>
           )}
         </div>
 
@@ -217,7 +228,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
             <Button
               variant="outline"
               onClick={() => setIsAdding(true)}
-              className="w-full border-dashed border-amber-500 text-amber-500 font-medium hover:bg-amber-500/5 hover:border-amber-600 hover:text-amber-600 active:bg-amber-500/10"
+              className="w-full"
             >
               <UserPlus className="h-4 w-4 mr-2" />
               {t("addParticipant")}
