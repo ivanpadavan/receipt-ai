@@ -87,6 +87,8 @@ const ru = {
   shareReceiptHint: "Отсканируйте QR-код или отправьте ссылку.",
   shareReceiptQrAlt: "QR-код ссылки на чек",
   shareViaSystem: "Поделиться",
+  sseDisconnected: "Потеряно соединение с сервером",
+  sseReconnected: "Соединение восстановлено",
 };
 
 export type TranslationKey = keyof typeof ru;
@@ -181,6 +183,8 @@ const en: Translations = {
   shareReceiptHint: "Scan the QR code or send the link.",
   shareReceiptQrAlt: "Receipt link QR code",
   shareViaSystem: "Share",
+  sseDisconnected: "Connection to server lost",
+  sseReconnected: "Connection restored",
 };
 
 // Available languages

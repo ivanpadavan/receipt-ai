@@ -2,8 +2,8 @@
 
 import { t } from "@/app/i18n/translations";
 import {
-  useReceiptFormState,
   ReceiptState,
+  useReceiptFormState,
 } from "@/app/receipt/[id]/useReceiptFormState";
 import { Button } from "@/components/ui/button";
 import { forceSync, useObservable } from "@/hooks/rx/useObservable";
@@ -17,18 +17,27 @@ import React, {
 } from "react";
 import { EditingSheet } from "@/app/receipt/components/EdititngSheet/EditingSheet";
 import { SplittingSheet } from "@/app/receipt/components/SplittingSheet/SplittingSheet";
-import {
-  ParticipantsSheet,
-} from "@/app/receipt/components/ParticipantsSheet";
+import { ParticipantsSheet } from "@/app/receipt/components/ParticipantsSheet";
 import { SummaryScreen } from "@/app/receipt/components/SummaryScreen/SummaryScreen";
 import { ShareReceiptDialog } from "@/app/receipt/components/ShareReceiptDialog";
-import { distinctUntilChanged, Observable, startWith } from "rxjs";
+import {
+  distinctUntilChanged,
+  finalize,
+  fromEvent,
+  merge,
+  Observable,
+  retry,
+  startWith,
+  take,
+  timer,
+} from "rxjs";
 import { receiptWithParticipantsSchema } from "@/model/receipt/schema";
 import { Drawer } from "@/components/ui/drawer";
 import { isEqual } from "lodash-es";
 import { FormProvider, useWatch } from "react-hook-form";
 import { Pencil, Plus, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "sonner";
 import {
   ParticipantsStoreProvider,
   useParticipantsStore,
@@ -60,6 +69,25 @@ const useReceiptWithUpdates = (
 ) => {
   return useObservable<Observable<ReceiptWithParticipants>>(
     useMemo(() => {
+      let isDisconnected = false;
+      const connectionToastId = `receipt-sse-${receiptId}`;
+
+      const notifyDisconnected = () => {
+        if (isDisconnected) return;
+        isDisconnected = true;
+        toast.error(t("sseDisconnected"), {
+          id: connectionToastId,
+          duration: Infinity,
+        });
+      };
+
+      const notifyReconnected = () => {
+        if (!isDisconnected) return;
+        isDisconnected = false;
+        toast.dismiss(connectionToastId);
+        toast.success(t("sseReconnected"));
+      };
+
       return new Observable<ReceiptWithParticipants>((handler) => {
         if (typeof window === "undefined") {
           handler.next(initialData);
@@ -70,7 +98,7 @@ const useReceiptWithUpdates = (
         const eventSource = new EventSource(`/api/receipt/${receiptId}`);
 
         eventSource.onopen = () => {
-          console.log("SSE connected");
+          notifyReconnected();
         };
 
         eventSource.onmessage = (event) => {
@@ -83,12 +111,30 @@ const useReceiptWithUpdates = (
           }
         };
 
-        // TODO indication that connection is lost
-        eventSource.onerror = () =>
+        eventSource.onerror = () => {
+          eventSource.close();
           handler.error(new Error("sse disconnected"));
+        };
 
-        return () => eventSource.close();
-      }).pipe(startWith(initialData), distinctUntilChanged(isEqual));
+        return () => {
+          eventSource.close();
+        };
+      }).pipe(
+        retry({
+          delay: (_error, retryCount) => {
+            notifyDisconnected();
+            const delayMs = Math.min(1000 * 2 ** (retryCount - 1), 10_000);
+            return merge(timer(delayMs), fromEvent(window, "online")).pipe(
+              take(1),
+            );
+          },
+        }),
+        startWith(initialData),
+        distinctUntilChanged(isEqual),
+        finalize(() => {
+          toast.dismiss(connectionToastId);
+        }),
+      );
     }, [receiptId, initialData]),
     forceSync,
   );
@@ -140,7 +186,10 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   const canEditPosition = !!canEdit.positionForm;
   const canEditModifier = !!canEdit.modifierForm;
   const canEditTotals = !!canEdit.totalsForm;
-  const discountTotal = currentReceipt.discounts.reduce((acc, x) => acc + x.value, 0);
+  const discountTotal = currentReceipt.discounts.reduce(
+    (acc, x) => acc + x.value,
+    0,
+  );
   const feeTotal = currentReceipt.fees.reduce((acc, x) => acc + x.value, 0);
   const formatMoney = (value: number) => `${Math.round(value)} ₽`;
 
@@ -197,7 +246,11 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
 
         {scenarioType === "summary" ? (
           <div className="p-4 h-full flex flex-col gap-3">
-            <SummaryScreen receipt={currentReceipt} receiptId={receiptId} onBack={goBack} />
+            <SummaryScreen
+              receipt={currentReceipt}
+              receiptId={receiptId}
+              onBack={goBack}
+            />
           </div>
         ) : (
           <div className="mx-auto my-3 w-full max-w-3xl rounded-3xl border border-border/70 bg-card p-4 text-foreground shadow-[0_14px_38px_rgba(15,23,42,0.10)] md:p-5">
@@ -234,8 +287,14 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                   >
                     <button
                       type="button"
-                      onClick={() => clickable && openEditModal({ type: "position", index })}
-                      className={clickable ? "w-full cursor-pointer text-left" : "w-full cursor-default text-left"}
+                      onClick={() =>
+                        clickable && openEditModal({ type: "position", index })
+                      }
+                      className={
+                        clickable
+                          ? "w-full cursor-pointer text-left"
+                          : "w-full cursor-default text-left"
+                      }
                     >
                       <CardContent className="p-4">
                         <div className="flex items-center gap-3">
@@ -265,25 +324,37 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
               <CardContent className="p-4">
                 <div
                   className={canEditTotals ? "cursor-pointer" : ""}
-                  onClick={() => canEditTotals && openEditModal({ type: "totals" })}
+                  onClick={() =>
+                    canEditTotals && openEditModal({ type: "totals" })
+                  }
                 >
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">{t("total")}</span>
-                    <span className="font-semibold">{formatMoney(currentReceipt.totals.total)}</span>
+                    <span className="font-semibold">
+                      {formatMoney(currentReceipt.totals.total)}
+                    </span>
                   </div>
                   <div className="mt-2 flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{t("discounts")}:</span>
+                    <span className="text-muted-foreground">
+                      {t("discounts")}:
+                    </span>
                     <span className="font-medium text-emerald-600">
-                      {discountTotal > 0 ? `- ${formatMoney(discountTotal)}` : "-"}
+                      {discountTotal > 0
+                        ? `- ${formatMoney(discountTotal)}`
+                        : "-"}
                     </span>
                   </div>
                   <div className="mt-2 flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">{t("fees")}:</span>
-                    <span className="font-medium">{feeTotal > 0 ? `+ ${formatMoney(feeTotal)}` : "-"}</span>
+                    <span className="font-medium">
+                      {feeTotal > 0 ? `+ ${formatMoney(feeTotal)}` : "-"}
+                    </span>
                   </div>
                   <div className="my-3 border-t border-border/70" />
                   <div className="flex items-center justify-between">
-                    <span className="text-base font-semibold">{t("grandTotal")}</span>
+                    <span className="text-base font-semibold">
+                      {t("grandTotal")}
+                    </span>
                     <span className="text-2xl font-bold">
                       {formatMoney(currentReceipt.totals.grandTotal)}
                     </span>
@@ -393,7 +464,10 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
   initialData,
   receiptId,
 }) => {
-  const { receipt, participants } = useReceiptWithUpdates(initialData, receiptId);
+  const { receipt, participants } = useReceiptWithUpdates(
+    initialData,
+    receiptId,
+  );
 
   return (
     <ParticipantsStoreProvider initialParticipants={participants}>
