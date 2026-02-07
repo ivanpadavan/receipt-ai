@@ -8,7 +8,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { forceSync, useObservable } from "@/hooks/rx/useObservable";
 import { Receipt, ReceiptWithParticipants } from "@/model/receipt/model";
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Cell } from "./Cell";
 import { CellGroup } from "./CellGroup";
 import styles from "./form.module.css";
@@ -28,20 +34,7 @@ import { isEqual } from "lodash-es";
 import { FormProvider, useWatch } from "react-hook-form";
 import { Pencil } from "lucide-react";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
-import { useUiGateStore } from "@/app/receipt/store/uiGate";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { useRouter } from "next/navigation";
-import { useUser } from "@/context/AuthContext";
-import { SettingsForm } from "@/app/settings/SettingsForm";
-import { supabase } from "@/utils/supabase/client";
+import { useUiGate } from "@/app/receipt/[id]/ui-gate/hooks";
 
 interface EditableReceiptFormProps {
   initialData: ReceiptWithParticipants;
@@ -107,19 +100,11 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
     initialData,
     receiptId,
   );
-  const { user } = useUser();
-  const router = useRouter();
   const setParticipants = useParticipantsStore((s) => s.setParticipants);
-  const hasParticipant = useParticipantsStore((s) => s.hasParticipant);
-  const gateStep = useUiGateStore((s) => s.step);
-  const isBlocked = useUiGateStore((s) => s.isBlocked);
-  const openChoice = useUiGateStore((s) => s.openChoice);
-  const openSettings = useUiGateStore((s) => s.openSettings);
-  const openRemoved = useUiGateStore((s) => s.openRemoved);
-  const closeGate = useUiGateStore((s) => s.closeGate);
-  setTimeout(() => {
+
+  useEffect(() => {
     setParticipants(participants);
-  });
+  }, [participants, setParticipants]);
 
   // Use the new react-hook-form based state
   const formState = useReceiptFormState(receipt, receiptId);
@@ -137,6 +122,8 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
     editModalProps,
   } = formState;
 
+  const UiGate = useUiGate(scenarioType, receiptId);
+
   // Get field array for positions
   const positionFields = useWatch({
     control: form.control,
@@ -145,113 +132,12 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
 
   const currentReceipt = useWatch({ control: form.control }) as Receipt;
 
-  const {
-    is_anonymous,
-    user_metadata: { displayName },
-  } = user;
-
-  React.useEffect(() => {
-    if (scenarioType !== "splitting") return;
-    if (!is_anonymous) return;
-    if (displayName && displayName !== "Anonymous") return;
-    openChoice();
-  }, [scenarioType, is_anonymous, displayName, openChoice]);
-
-  React.useEffect(() => {
-    if (is_anonymous) return;
-    if (!hasParticipant(user.id)) {
-      openRemoved();
-    }
-  }, [user?.id, hasParticipant, is_anonymous, openRemoved]);
-
-  const handleSettingsSubmit = async (values: {
-    displayName: string;
-    avatarUrl: string | null;
-    avatarFile: File | null;
-  }) => {
-    if (!values.displayName.trim()) return;
-    let nextAvatarUrl = values.avatarUrl;
-
-    if (values.avatarFile) {
-      const extension = values.avatarFile.name.split(".").pop() || "jpg";
-      const filePath = `${user?.id}/avatar.${extension}`;
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, values.avatarFile, { upsert: true });
-      if (!uploadError) {
-        const { data } = supabase.storage
-          .from("avatars")
-          .getPublicUrl(filePath);
-        nextAvatarUrl = data.publicUrl;
-      }
-    }
-    await supabase.auth.updateUser({
-      data: {
-        displayName: values.displayName.trim(),
-        avatarUrl: nextAvatarUrl,
-      },
-    });
-    await fetch(`/api/receipt/${receiptId}/participants/join`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    });
-    closeGate();
-  };
-
   return (
     <ReceiptFormContext.Provider value={formState}>
       <FormProvider {...form}>
-        {isBlocked && <div className="fixed inset-0 bg-black/40 z-30" />}
-
-        <AlertDialog open={gateStep === "choice"}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{t("authPromptTitle")}</AlertDialogTitle>
-              <AlertDialogDescription>
-                {t("authPromptBody")}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogAction
-                onClick={() => {
-                  openSettings();
-                }}
-              >
-                {t("continueAnon")}
-              </AlertDialogAction>
-              <AlertDialogAction
-                onClick={() => {
-                  openSettings();
-                  window.open(
-                    `/auth/sign-in?next=/receipt/${receiptId}`,
-                    "_blank",
-                  );
-                }}
-              >
-                {t("authYes")}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <AlertDialog open={gateStep === "settings"} onOpenChange={() => {}}>
-          <AlertDialogContent className="max-w-lg">
-            <AlertDialogHeader>
-              <AlertDialogTitle>{t("settings")}</AlertDialogTitle>
-            </AlertDialogHeader>
-            <SettingsForm
-              userEmail={user?.email ?? ""}
-              initialDisplayName={displayName}
-              initialAvatarUrl={
-                (user?.user_metadata?.avatarUrl as string | undefined) ?? ""
-              }
-              onSubmit={handleSettingsSubmit}
-              submitLabel={t("save")}
-            />
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <AlertDialog open={gateStep === "removed"}>
+        {UiGate}
+        {/*
+          <AlertDialog open={gateStep === "removed"}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>{t("removedTitle")}</AlertDialogTitle>
@@ -271,6 +157,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        */}
 
         {/* Edit Modal Drawer */}
         <Drawer
@@ -373,18 +260,16 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
                   <Button
                     variant="outline"
                     onClick={goBackToEditing}
-                    disabled={isBlocked}
                   >
                     <Pencil className="h-4 w-4 mr-2" />
                     {t("edit")}
                   </Button>
                   <ParticipantsBadge
                     onClick={() => setParticipantsModalOpen(true)}
-                    disabled={isBlocked}
                   />
                 </>
               )}
-              <Button onClick={proceed} disabled={!canProceed || isBlocked}>
+              <Button onClick={proceed} disabled={!canProceed}>
                 {scenarioType === "splitting" ? t("done") : t("proceed")}
               </Button>
             </div>

@@ -14,17 +14,11 @@ export const ParticipantAvatar = ({
     showRing = true,
     ringColor,
 }: ParticipantAvatarProps) => {
-    const avatarUrl =
-        participant.kind === "REAL"
-            ? participant.avatarUrl ?? undefined
-            : undefined;
-
     const effectiveRingColor = ringColor ?? participant.color;
 
     return (
         <UserAvatar
-            name={participant.displayName}
-            src={avatarUrl}
+            userMetadata={participant}
             className={className}
             showRing={showRing}
             ringColor={effectiveRingColor}

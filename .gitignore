@@ -42,6 +42,7 @@ next-env.d.ts
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+.pnpm-store
 .env
 .env.production
 

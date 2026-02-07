@@ -5,29 +5,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/utils/cn";
 import { Menu, X, LogOut } from "lucide-react";
-import { supabase } from "@/utils/supabase/client";
 import { useUser } from "@/context/AuthContext";
 import {
-  CredentialResponse,
   GoogleLogin,
-  useGoogleOneTapLogin,
 } from "@react-oauth/google";
 import Logo from "@/app/layout/Logo";
 import { Button } from "@/components/ui/button";
-
-const handleSignIn = async (response: CredentialResponse) => {
-  const res = await fetch("/api/auth/google", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token: response.credential }),
-  });
-  const { access_token, refresh_token } = await res.json();
-  await supabase.auth.setSession({ access_token, refresh_token });
-};
-
-const handleSignOut = async () => {
-  await supabase.auth.signInAnonymously();
-};
+import { handleSignIn, handleSignOut } from "@/app/receipt/utils/auth";
 
 // Custom NavLink component with amber color scheme
 const NavLink = ({

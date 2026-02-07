@@ -17,7 +17,7 @@ export const UserAvatar = ({
   ringColor,
   fallbackColor,
 }: UserAvatarProps) => {
-  const initials = displayName.trim().substring(0, 1).toUpperCase() || "?";
+  const initials = displayName?.trim().substring(0, 1).toUpperCase() || "?";
 
   return (
     <Avatar

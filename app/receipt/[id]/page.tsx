@@ -5,6 +5,9 @@ import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { ReceiptForm } from "../components/ReceiptForm";
 import { buildParticipants } from "@/app/db-utils/build-participants";
+import { getUser } from "@/utils/supabase/server";
+import { joinAutomatically } from "@/app/receipt/[id]/ui-gate/functions";
+import { joinToReceiptSsr } from "@/app/receipt/[id]/ui-gate/join-to-receipt-ssr";
 
 // This is a server component that fetches the receipt data from the database
 export default async function ReceiptPage({
@@ -13,15 +16,16 @@ export default async function ReceiptPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const user = await getUser();
 
-  // Fetch the receipt from the database
-  const [receipt, participants] = await Promise.all([
+  // eslint-disable-next-line prefer-const
+  let [receipt, participants] = await Promise.all([
     db.receipt.findUnique({ where: { id } }),
-    buildParticipants(id).catch(() => "fail" as const),
+    buildParticipants(id),
   ]);
 
   // Check if the receipt exists and belongs to the user
-  if (!receipt || participants === "fail") {
+  if (!receipt) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4">
         <Card className="w-full max-w-md p-6">
@@ -42,6 +46,11 @@ export default async function ReceiptPage({
         </Card>
       </div>
     );
+  }
+
+  if (joinAutomatically(participants, user)) {
+    await joinToReceiptSsr(id, user);
+    participants = await buildParticipants(id);
   }
 
   return (
