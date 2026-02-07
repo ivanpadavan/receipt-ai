@@ -1,6 +1,7 @@
 import postValidator from "./receipt/post";
 import putValidator from "./receipt/put";
 import { ApiValidator } from "@/app/api-client/api-validator";
+import { t } from "@/app/i18n/translations";
 
 async function requestWrapper<T extends ApiValidator>(
   apiPath: string,
@@ -27,7 +28,7 @@ async function requestWrapper<T extends ApiValidator>(
     ) {
       throw new Error(json.error);
     } else {
-      throw Error("Something went wrong. Please try again later");
+      throw Error(t("genericTryAgainLater"));
     }
   }
   return validator.response.parse(json);

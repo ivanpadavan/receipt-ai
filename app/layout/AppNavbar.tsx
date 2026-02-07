@@ -12,6 +12,7 @@ import {
 import Logo from "@/app/layout/Logo";
 import { Button } from "@/components/ui/button";
 import { handleSignIn, handleSignOut } from "@/app/receipt/utils/auth";
+import { t } from "@/app/i18n/translations";
 
 // Custom NavLink component with amber color scheme
 const NavLink = ({
@@ -94,18 +95,18 @@ export const AppNavbar = () => {
             <div className="w-full md:w-auto px-2 pt-2 pb-3 md:p-0 space-y-1 md:space-y-0 sm:px-3">
               <div className="block md:inline-block py-2 px-3 md:p-0 md:mr-4">
                 <NavLink href="/" onClick={closeMenu}>
-                  Scan new
+                  {t("scanNew")}
                 </NavLink>
               </div>
               <div className="block md:inline-block py-2 px-3 md:p-0 md:mr-4">
                 <NavLink href="/history" onClick={closeMenu}>
-                  History
+                  {t("history")}
                 </NavLink>
               </div>
               {isAuthenticated && (
                 <div className="block md:inline-block py-2 px-3 md:p-0 md:mr-4">
                   <NavLink href="/settings" onClick={closeMenu}>
-                    Settings
+                    {t("settings")}
                   </NavLink>
                 </div>
               )}
@@ -128,7 +129,7 @@ export const AppNavbar = () => {
                       variant={isAuthenticated ? "outline" : "default"}
                     >
                       <LogOut className="h-4 w-4" />
-                      Sign Out
+                      {t("signOut")}
                     </Button>
                   </div>
                 </>
@@ -147,7 +148,7 @@ export const AppNavbar = () => {
                   className="flex items-center gap-2"
                 >
                   <LogOut className="h-4 w-4" />
-                  Sign Out
+                  {t("signOut")}
                 </Button>
               </div>
             ) : (

@@ -74,8 +74,8 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
           >
             <AlertCircle className="h-4 w-4" />
             {remaining > 0
-              ? `${t("remaining") || "Left to pay"}: ${remaining.toFixed(0)} ₽`
-              : `${t("overpaid") || "Overpaid"}: ${Math.abs(remaining).toFixed(0)} ₽`}
+              ? `${t("remaining")}: ${remaining.toFixed(0)} ₽`
+              : `${t("overpaid")}: ${Math.abs(remaining).toFixed(0)} ₽`}
           </div>
         )}
       </div>
@@ -146,7 +146,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
 
         {balances.length === 0 && (
           <div className="text-center text-muted-foreground py-8">
-            {t("noClaims") || "No claims yet"}
+            {t("noClaims")}
           </div>
         )}
       </div>

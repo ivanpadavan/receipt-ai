@@ -374,13 +374,13 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         {/* Validation Status */}
         {totalClaimed > localPosition.overall + 0.01 && (
           <div className="text-destructive font-medium text-xs bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
-            {t("overpaid") || "Over"}:{" "}
+            {t("overpaid")}:{" "}
             {(totalClaimed - localPosition.overall).toFixed(2)} ₽
           </div>
         )}
         {totalClaimed < localPosition.overall - 0.01 && (
           <div className="text-amber-600 font-medium text-xs bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-            {t("remaining") || "Left"}:{" "}
+            {t("remaining")}:{" "}
             {(localPosition.overall - totalClaimed).toFixed(2)} ₽
           </div>
         )}

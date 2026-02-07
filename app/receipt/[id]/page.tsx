@@ -8,6 +8,7 @@ import { buildParticipants } from "@/app/db-utils/build-participants";
 import { getUser } from "@/utils/supabase/server";
 import { shouldAutoJoinReceipt } from "@/app/receipt/[id]/join-flow/rules";
 import { joinReceiptServer } from "@/app/receipt/[id]/join-flow/join-receipt-server";
+import { t } from "@/app/i18n/translations";
 
 // This is a server component that fetches the receipt data from the database
 export default async function ReceiptPage({
@@ -30,16 +31,15 @@ export default async function ReceiptPage({
       <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4">
         <Card variant="warning" shadow="md" className="w-full max-w-md p-6">
           <h1 className="text-2xl font-bold mb-6 text-center text-foreground">
-            Receipt Not Found
+            {t("receiptNotFound")}
           </h1>
           <p className="text-center mb-6 text-muted-foreground">
-            The receipt you are looking for does not exist or you do not have
-            permission to view it.
+            {t("receiptNotFoundBody")}
           </p>
           <div className="flex justify-center">
             <Link href="/">
               <Button className="font-bold py-2 px-4 rounded-full shadow-md">
-                Return to Home
+                {t("returnHome")}
               </Button>
             </Link>
           </div>

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Receipt } from "@/model/receipt/model";
 import { Card, CardContent } from "@/components/ui/card";
+import { t } from "@/app/i18n/translations";
 
 // export const runtime = 'edge';
 
@@ -25,7 +26,9 @@ export default async function HistoryPage() {
     <div className="flex flex-col items-center justify-center p-4 gap-4 bg-amber-50">
       <div className="w-full max-w-md mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-amber-800">Receipt History</h1>
+          <h1 className="text-3xl font-bold text-amber-800">
+            {t("receiptHistory")}
+          </h1>
         </div>
 
         {receipts.length === 0 ? (
@@ -36,11 +39,11 @@ export default async function HistoryPage() {
           >
             <CardContent className="p-6">
               <p className="mb-4">
-                You haven&apos;t scanned any receipts yet.
+                {t("noReceiptsYet")}
               </p>
               <Link href="/">
                 <Button className="rounded-full bg-amber-500 px-4 py-2 font-bold text-white shadow-md hover:bg-amber-600">
-                  Scan Your First Receipt
+                  {t("scanFirstReceipt")}
                 </Button>
               </Link>
             </CardContent>
@@ -67,7 +70,7 @@ export default async function HistoryPage() {
                   >
                     <div className="mb-2 flex items-center justify-between">
                       <h2 className="text-lg font-semibold text-amber-800">
-                        Receipt #{receipt.id.slice(-6)}
+                        {t("receipt")} #{receipt.id.slice(-6)}
                       </h2>
                       <span className="text-sm text-amber-600">
                         {new Date(receipt.createdAt).toLocaleDateString()}
@@ -75,7 +78,7 @@ export default async function HistoryPage() {
                     </div>
                     <div className="flex justify-between text-sm text-amber-700">
                       <span>
-                        {itemCount} {itemCount === 1 ? "item" : "items"}
+                        {itemCount} {itemCount === 1 ? t("itemSingle") : t("itemPlural")}
                       </span>
                       <span className="font-medium">${totalAmount.toFixed(2)}</span>
                     </div>

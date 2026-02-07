@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
+import { t } from "@/app/i18n/translations";
 
 const captureSupported =
   typeof document === "object" &&
@@ -59,7 +60,7 @@ export default function ImagePastePage() {
 
     // Check if the file is an image
     if (!file.type.startsWith("image/")) {
-      error.setError("Please select an image file");
+      error.setError(t("selectImageFileError"));
       return;
     }
 
@@ -77,7 +78,7 @@ export default function ImagePastePage() {
       error.setError(
         err instanceof Error
           ? err.message
-          : "An error occurred while reading the file",
+          : t("fileReadError"),
       );
       console.error("Error reading file:", err);
     }
@@ -92,7 +93,7 @@ export default function ImagePastePage() {
       <div className="flex flex-col items-center justify-center flex-1 p-4 gap-4 bg-amber-50">
         <div className="w-full max-w-md mx-auto">
           <h1 className="text-3xl font-bold mb-6 text-center text-amber-800">
-            Receipt Scanner
+            {t("receiptScannerTitle")}
           </h1>
 
           {/* Hidden file input */}
@@ -108,7 +109,7 @@ export default function ImagePastePage() {
             <Card variant="interactive" shadow="md" className="flex w-full flex-col items-center gap-4 p-4">
               <img
                 src={picture.imageBase64}
-                alt="Receipt image"
+                alt={t("receiptImageAlt")}
                 className="max-w-full max-h-[400px] object-contain rounded-md"
               />
               <div className="flex flex-wrap gap-2 justify-center w-full">
@@ -117,7 +118,7 @@ export default function ImagePastePage() {
                   variant="destructive"
                   className="shadow-md"
                 >
-                  Clear Image
+                  {t("clearImage")}
                 </Button>
                 <Button
                   onClick={() => {
@@ -125,7 +126,7 @@ export default function ImagePastePage() {
                   }}
                   className="shadow-md"
                 >
-                  Extract Receipt Data
+                  {t("extractReceiptData")}
                 </Button>
               </div>
             </Card>
@@ -150,11 +151,11 @@ export default function ImagePastePage() {
                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                <p className="text-lg font-medium text-foreground mb-2">
-                  Upload Receipt Image
+                <p className="text-lg font-medium text-foreground mb-2 text-center">
+                  {t("uploadReceiptImage")}
                 </p>
                 <p className="text-sm text-muted-foreground text-center">
-                  Tap to select from gallery or paste from clipboard
+                  {t("tapToSelectOrPaste")}
                 </p>
               </div>
               {captureSupported && (
@@ -191,7 +192,7 @@ export default function ImagePastePage() {
                           d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
                         />
                       </svg>
-                      Take Photo
+                      {t("takeAvatarPhoto")}
                     </label>
                   </Button>
                 </div>
@@ -203,14 +204,14 @@ export default function ImagePastePage() {
             <div className="w-full flex flex-col items-center justify-center p-6">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mb-4"></div>
               <span className="text-amber-800 text-sm font-medium">
-                Processing receipt...
+                {t("processingReceipt")}
               </span>
             </div>
           )}
 
           {error.errorMessage && (
             <div className="w-full mt-4 p-4 bg-red-50 border border-red-300 text-red-700 rounded-lg shadow-sm">
-              <p className="font-bold">Error:</p>
+              <p className="font-bold">{t("errorLabel")}</p>
               <p>{error.errorMessage}</p>
             </div>
           )}

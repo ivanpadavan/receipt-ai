@@ -1,4 +1,5 @@
 import { apiClient } from "@/app/api-client";
+import { t } from "@/app/i18n/translations";
 import {
   actions,
   createAction,
@@ -97,7 +98,7 @@ export const pageState$ = () => {
             setError(
               err instanceof Error
                 ? err.message
-                : "Something went wrong. Please try again.",
+                : t("genericTryAgain"),
             );
           });
           return EMPTY;

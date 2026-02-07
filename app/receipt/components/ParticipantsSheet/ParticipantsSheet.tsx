@@ -135,7 +135,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
           {participants.length === 0 && !isAdding && (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <UserPlus className="h-12 w-12 text-gray-300 mb-3" />
-              <p className="text-gray-500 text-sm">Добавьте участников чека</p>
+              <p className="text-gray-500 text-sm">{t("participantsEmpty")}</p>
             </div>
           )}
 
@@ -195,7 +195,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                   value={newParticipantName}
                   onChange={(e) => setNewParticipantName(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Имя нового участника"
+                  placeholder={t("newParticipantNamePlaceholder")}
                   className="flex-1 border-none bg-transparent p-0 text-base focus:ring-0 focus-visible:ring-0"
                 />
                 {hasNameConflict && (
