@@ -356,7 +356,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                   )}
 
                   <div>
-                    <div className="gap-2">
+                    <div className="gap-1">
                       {currentReceipt.discounts.length > 0 && (
                         <Modifiers type="discounts" />
                       )}
