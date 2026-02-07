@@ -6,7 +6,7 @@ import {
 } from "@/model/receipt/model";
 import { receiptSchema } from "@/model/receipt/schema";
 
-export const editablePositionBaseSchema = z.object({
+const editablePositionBaseSchema = z.object({
   name: z.string().trim().min(1, "Name should not be empty"),
   price: z
     .number()
@@ -20,7 +20,12 @@ export const editablePositionBaseSchema = z.object({
       (value) => Number.isFinite(value) && value > 0,
       "Quantity should be greater than 0",
     ),
-  overall: z.number(),
+  overall: z
+    .number()
+    .refine(
+      (value) => Number.isFinite(value) && value > 0,
+      "Overall should be greater than 0",
+    ),
 });
 
 export const editablePositionValidationSchema =
@@ -42,6 +47,21 @@ export const editableModifierSchema = z.object({
     .refine(
       (value) => Number.isFinite(value) && value > 0,
       "Value should be greater than 0",
+    ),
+});
+
+export const editableTotalsSchema = z.object({
+  total: z
+    .number()
+    .refine(
+      (value) => Number.isFinite(value) && value > 0,
+      "Total should be greater than 0",
+    ),
+  grandTotal: z
+    .number()
+    .refine(
+      (value) => Number.isFinite(value) && value > 0,
+      "Grand total should be greater than 0",
     ),
 });
 

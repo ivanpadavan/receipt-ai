@@ -1,7 +1,7 @@
 "use client";
 
 import { EditModalProps } from "@/app/receipt/[id]/useReceiptFormState";
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { t, TranslationKey } from "@/app/i18n/translations";
 import {
   DrawerClose,
@@ -14,9 +14,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  Receipt,
   ReceiptPosition,
   ReceiptModifier,
-  Receipt,
 } from "@/model/receipt/model";
 import { useReceiptState } from "../ReceiptForm";
 import { useRowConflict } from "./useRowConflict";
@@ -27,12 +27,9 @@ type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
 const isPosition = (v: EditableValue): v is ReceiptPosition =>
   "quantity" in v && "price" in v;
 
-// Helper to check if value is modifier
-const isModifier = (v: EditableValue): v is ReceiptModifier =>
-  "value" in v && "name" in v && !("total" in v);
-
 export const EditingSheet: React.FC<EditModalProps> = ({
   fields,
+  validator,
   initialValue,
   header,
   onSave,
@@ -68,39 +65,23 @@ export const EditingSheet: React.FC<EditModalProps> = ({
     [closing],
   );
 
-  // Validation
-  const validate = useCallback(
-    (value: EditableValue): Record<string, string> => {
-      const errs: Record<string, string> = {};
-
-      if (isPosition(value)) {
-        if (!value.name || value.name.trim() === "") {
-          errs.name = "Name should not be empty";
-        }
-        if (value.price <= 0 || isNaN(value.price)) {
-          errs.price = "Price should be greater than 0";
-        }
-        if (value.quantity <= 0 || isNaN(value.quantity)) {
-          errs.quantity = "Quantity should be greater than 0";
-        }
-      } else if (isModifier(value)) {
-        if (!value.name || value.name.trim() === "") {
-          errs.name = "Name should not be empty";
-        }
-        if (value.value <= 0 || isNaN(value.value)) {
-          errs.value = "Value should be greater than 0";
-        }
-      }
-
-      return errs;
-    },
-    [],
-  );
-
   // Update validation on value change
   useEffect(() => {
-    setErrors(validate(localValue));
-  }, [localValue, validate]);
+    const parsed = validator.safeParse(localValue);
+    if (parsed.success) {
+      setErrors({});
+      return;
+    }
+
+    const nextErrors: Record<string, string> = {};
+    parsed.error.issues.forEach((issue) => {
+      const key = issue.path[0];
+      if (typeof key === "string" && nextErrors[key] === undefined) {
+        nextErrors[key] = issue.message;
+      }
+    });
+    setErrors(nextErrors);
+  }, [localValue, validator]);
 
   // Handle field change with auto-calculation for positions
   const handleChange = (
