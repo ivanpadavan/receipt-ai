@@ -20,23 +20,19 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
       control: scenario.form.control,
       name: type,
     }) as ReceiptModifier[]) || [];
+  if (items.length === 0) return null;
+
   const canEdit = scenario.canEdit.modifierForm;
   const sign = type === "discounts" ? "-" : "+";
 
   return (
     <div className="mt-2">
       <div className="mb-1 text-sm text-muted-foreground">{t(type)}:</div>
-      {items.length === 0 ? (
-        <div className="text-sm text-muted-foreground">-</div>
-      ) : (
-        <div className="space-y-1">
-          {items.map((item, index) => {
-            const hasValueError = hasFormPathError(
-              errors,
-              `${type}.${index}.value`,
-            );
+      <div className="space-y-1">
+        {items.map((item, index) => {
+          const hasValueError = hasFormPathError(errors, `${type}.${index}.value`);
 
-            return (
+          return (
             <button
               key={item.id}
               type="button"
@@ -60,17 +56,16 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
                   hasValueError
                     ? "font-medium text-destructive"
                     : type === "discounts"
-                    ? "font-medium text-emerald-600"
-                    : "font-medium"
+                      ? "font-medium text-emerald-600"
+                      : "font-medium"
                 }
               >
                 {sign} {formatMoney(item.value)}
               </span>
             </button>
-            );
-          })}
-        </div>
-      )}
+          );
+        })}
+      </div>
     </div>
   );
 };
