@@ -192,6 +192,8 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   );
   const feeTotal = currentReceipt.fees.reduce((acc, x) => acc + x.value, 0);
   const formatMoney = (value: number) => `${Math.round(value)} ₽`;
+  const screenCardClassName =
+    "mx-auto my-3 w-full max-w-3xl rounded-3xl border border-border/70 bg-card p-4 text-foreground shadow-[0_14px_38px_rgba(15,23,42,0.10)] md:p-5";
 
   return (
     <ReceiptFormContext.Provider value={formState}>
@@ -221,32 +223,31 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
           />
         </Drawer>
 
-        {scenarioType === "summary" ? (
-          <div className="p-4 h-full flex flex-col gap-3">
+        <div className={screenCardClassName}>
+          {scenarioType === "summary" ? (
             <SummaryScreen
               receipt={currentReceipt}
               receiptId={receiptId}
               onBack={goBack}
             />
-          </div>
-        ) : (
-          <div className="mx-auto my-3 w-full max-w-3xl rounded-3xl border border-border/70 bg-card p-4 text-foreground shadow-[0_14px_38px_rgba(15,23,42,0.10)] md:p-5">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                {t("receipt")}
-              </h2>
-              {canEdit.positionForm === true && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 rounded-xl"
-                  onClick={() => openEditModal("addPosition")}
-                >
-                  <Plus className="mr-1 h-4 w-4" />
-                  {t("addPosition")}
-                </Button>
-              )}
-            </div>
+          ) : (
+            <>
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  {t("receipt")}
+                </h2>
+                {canEdit.positionForm === true && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-9 rounded-xl"
+                    onClick={() => openEditModal("addPosition")}
+                  >
+                    <Plus className="mr-1 h-4 w-4" />
+                    {t("addPosition")}
+                  </Button>
+                )}
+              </div>
 
             <div className="space-y-3">
               {positionFields.map((field, index) => {
@@ -273,7 +274,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       <CardContent className="p-4">
                         <div className="flex items-center gap-3">
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-base font-medium text-foreground">
+                            <p className="truncate text-base font-bold text-foreground">
                               {field.name}
                             </p>
                             <p className="text-xs text-muted-foreground">
@@ -360,75 +361,76 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
               </CardContent>
             </Card>
 
-            <div className="sticky bottom-3 z-10 mt-5">
-              {scenarioType === "splitting" ? (
-                <div className="ml-auto w-full rounded-[32px] border border-white/70 bg-white/35 p-2 shadow-[0_24px_48px_rgba(15,23,42,0.20)] backdrop-blur-2xl">
-                  <div className="flex items-center justify-between gap-3">
-                    <ButtonGroup className="justify-center rounded-full border border-white/80 bg-white/72 shadow-inner [&>*]:border-0">
+              <div className="sticky bottom-3 z-10 mt-5">
+                {scenarioType === "splitting" ? (
+                  <div className="ml-auto w-full rounded-[32px] border border-white/70 bg-white/35 p-2 shadow-[0_24px_48px_rgba(15,23,42,0.20)] backdrop-blur-2xl">
+                    <div className="flex items-center justify-between gap-3">
+                      <ButtonGroup className="justify-center rounded-full border border-white/80 bg-white/72 shadow-inner [&>*]:border-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-12 w-14 shrink-0 px-0 text-muted-foreground hover:text-foreground"
+                          onClick={goBackToEditing}
+                          title={t("edit")}
+                          aria-label={t("edit")}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <ButtonGroupSeparator className="mx-1 h-5 opacity-30" />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="relative h-12 w-14 shrink-0 px-0 text-muted-foreground hover:text-foreground"
+                          onClick={() => setParticipantsModalOpen(true)}
+                          title={t("participants")}
+                          aria-label={t("participants")}
+                        >
+                          <span className="pointer-events-none absolute right-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-semibold leading-none opacity-80 text-background">
+                            {participantsCount}
+                          </span>
+                          <Users className="h-4 w-4" />
+                        </Button>
+                        <ButtonGroupSeparator className="mx-1 h-5 opacity-30" />
+                        <ShareReceiptDialog
+                          receiptId={receiptId}
+                          iconOnly={true}
+                          variant="ghost"
+                          size="sm"
+                          className="h-12 w-14 px-0 text-muted-foreground hover:text-foreground"
+                          title={t("share")}
+                        />
+                      </ButtonGroup>
                       <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-12 w-14 shrink-0 px-0 text-muted-foreground hover:text-foreground"
-                        onClick={goBackToEditing}
-                        title={t("edit")}
-                        aria-label={t("edit")}
+                        onClick={proceed}
+                        disabled={!canProceed}
+                        className="h-12 px-8 text-base font-semibold"
                       >
-                        <Pencil className="h-4 w-4" />
+                        {t("done")}
                       </Button>
-                      <ButtonGroupSeparator className="mx-1 h-5 opacity-30" />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="relative h-12 w-14 shrink-0 px-0 text-muted-foreground hover:text-foreground"
-                        onClick={() => setParticipantsModalOpen(true)}
-                        title={t("participants")}
-                        aria-label={t("participants")}
-                      >
-                        <span className="pointer-events-none absolute right-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-semibold leading-none opacity-80 text-background">
-                          {participantsCount}
-                        </span>
-                        <Users className="h-4 w-4" />
-                      </Button>
-                      <ButtonGroupSeparator className="mx-1 h-5 opacity-30" />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="ml-auto w-full rounded-[32px] border border-white/70 bg-white/35 p-2 shadow-[0_24px_48px_rgba(15,23,42,0.20)] backdrop-blur-2xl">
+                    <div className="flex items-center justify-end gap-2">
                       <ShareReceiptDialog
-                        receiptId={receiptId}
-                        iconOnly={true}
                         variant="ghost"
-                        size="sm"
-                        className="h-12 w-14 px-0 text-muted-foreground hover:text-foreground"
-                        title={t("share")}
+                        receiptId={receiptId}
+                        className="h-12 rounded-full border border-white/80 bg-white/72 px-5 text-sm font-medium text-muted-foreground shadow-inner hover:text-foreground"
                       />
-                    </ButtonGroup>
-                    <Button
-                      onClick={proceed}
-                      disabled={!canProceed}
-                      className="h-12 px-8 text-base font-semibold"
-                    >
-                      {t("done")}
-                    </Button>
+                      <Button
+                        onClick={proceed}
+                        disabled={!canProceed}
+                        className="h-12 rounded-full px-7 text-base font-semibold shadow-[0_14px_30px_rgba(249,115,22,0.36)]"
+                      >
+                        {t("proceed")}
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="ml-auto w-full rounded-[32px] border border-white/70 bg-white/35 p-2 shadow-[0_24px_48px_rgba(15,23,42,0.20)] backdrop-blur-2xl">
-                  <div className="flex items-center justify-end gap-2">
-                    <ShareReceiptDialog
-                      variant="ghost"
-                      receiptId={receiptId}
-                      className="h-12 rounded-full border border-white/80 bg-white/72 px-5 text-sm font-medium text-muted-foreground shadow-inner hover:text-foreground"
-                    />
-                    <Button
-                      onClick={proceed}
-                      disabled={!canProceed}
-                      className="h-12 rounded-full px-7 text-base font-semibold shadow-[0_14px_30px_rgba(249,115,22,0.36)]"
-                    >
-                      {t("proceed")}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </FormProvider>
     </ReceiptFormContext.Provider>
   );

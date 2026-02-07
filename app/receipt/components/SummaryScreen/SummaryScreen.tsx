@@ -43,7 +43,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
   const remaining = realGrandTotal - distributedTotal;
 
   return (
-    <div className="flex flex-col h-full bg-background max-w-md mx-auto w-full shadow-sm rounded-lg overflow-hidden border">
+    <div className="flex h-full flex-col overflow-hidden">
       {/* Header / Hero */}
       <div className="p-6 text-center border-b bg-card relative">
         <Button
