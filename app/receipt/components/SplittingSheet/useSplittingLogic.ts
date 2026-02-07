@@ -24,9 +24,7 @@ export const useSplittingLogic = ({
     structuredClone(initialValue),
   );
 
-  const currentUserParticipantId = participants?.find(
-    (p) => p.kind === "REAL" && p.id === currentUser?.id,
-  )?.id;
+  const currentUserParticipantId = participants?.find((p) => p.id === currentUser?.id)?.id;
 
   // --- Draft Claims State (Map) ---
   const [draftClaims, setDraftClaims] = useState<

@@ -47,7 +47,7 @@ import { useWatch } from "react-hook-form";
 import { useUser } from "@/context/AuthContext";
 import { useSplittingLogic } from "./useSplittingLogic";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import {
   iconButtonVariants,
   iconGroupVariants,
@@ -117,7 +117,7 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
         >
           <Trash2 className="h-4 w-4" />
         </Button>
-        <ButtonGroupSeparator className="mx-0 h-5 self-center opacity-30" />
+        <ButtonGroupSeparator className="mx-0 h-5 opacity-30" />
         <Button
           variant="ghost"
           size="icon"
@@ -314,7 +314,7 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
             </div>
           </AccordionContent>
 
-          <DistributionBar data={claim} className="h-2" />
+          <DistributionBar data={claim} className="h-1" />
         </AccordionItem>
       </Accordion>
     </Card>

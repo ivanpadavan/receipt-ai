@@ -85,7 +85,7 @@ export const DistributionBar = ({
   return (
     <div
       className={cn(
-        "w-full bg-secondary overflow-hidden flex relative",
+        "w-full overflow-hidden flex relative " + (bars.length > 0 ? 'bg-secondary' : ''),
         className,
       )}
     >

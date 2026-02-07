@@ -203,20 +203,9 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                     {t("nameConflict")}
                   </span>
                 )}
-                <ButtonGroup className={iconGroupVariants({ density: "compact" })}>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleAddParticipant}
-                    disabled={!newParticipantName.trim()}
-                    className={iconButtonVariants({
-                      size: "compact",
-                      tone: "successSoft",
-                    })}
-                  >
-                    <Check className="h-5 w-5" />
-                  </Button>
-                  <ButtonGroupSeparator className="mx-0 h-5 self-center opacity-30" />
+                <ButtonGroup
+                  className={iconGroupVariants({ density: "roomy" })}
+                >
                   <Button
                     variant="ghost"
                     size="icon"
@@ -225,11 +214,24 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                       setIsAdding(false);
                     }}
                     className={iconButtonVariants({
-                      size: "compact",
+                      size: "liquid",
                       tone: "neutral",
                     })}
                   >
                     <X className="h-4 w-4" />
+                  </Button>
+                  <ButtonGroupSeparator className="mx-0 h-5 opacity-30" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleAddParticipant}
+                    disabled={!newParticipantName.trim()}
+                    className={iconButtonVariants({
+                      size: "liquid",
+                      tone: "successSoft",
+                    })}
+                  >
+                    <Check className="h-5 w-5" />
                   </Button>
                 </ButtonGroup>
               </CardContent>

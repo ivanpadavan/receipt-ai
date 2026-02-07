@@ -18,8 +18,8 @@ export const iconGroupVariants = cva(
 export const iconButtonVariants = cva("px-0", {
   variants: {
     size: {
-      compact: "h-8 w-8",
-      liquid: "h-12 w-14 shrink-0",
+      compact: "h-10 w-10",
+      liquid: "h-12 w-14",
     },
     tone: {
       muted: "text-muted-foreground hover:text-foreground",
