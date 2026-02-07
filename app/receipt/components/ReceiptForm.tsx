@@ -275,7 +275,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                   />
                 </>
               )}
-              <ShareReceiptDialog receiptId={receiptId} />
+              <ShareReceiptDialog variant={'outline'} receiptId={receiptId} />
               <Button onClick={proceed} disabled={!canProceed}>
                 {scenarioType === "splitting" ? t("done") : t("proceed")}
               </Button>

@@ -18,14 +18,13 @@ import { Copy, Share2, QrCode } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 
-interface ShareReceiptDialogProps {
+type ShareReceiptDialogProps = {
   receiptId: string;
-  buttonVariant?: "default" | "outline";
-}
+} & React.ComponentProps<typeof Button>;
 
 export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
   receiptId,
-  buttonVariant = "outline",
+  ...buttonProps
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -59,7 +58,7 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant={buttonVariant} className="gap-2">
+        <Button {...buttonProps}>
           <Share2 className="h-4 w-4" />
           {t("share")}
         </Button>

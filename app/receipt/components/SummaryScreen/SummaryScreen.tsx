@@ -153,7 +153,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
 
       {/* Footer */}
       <div className="p-4 border-t bg-background">
-        <ShareReceiptDialog receiptId={receiptId} />
+        <ShareReceiptDialog className={'w-full'} receiptId={receiptId} />
       </div>
     </div>
   );
