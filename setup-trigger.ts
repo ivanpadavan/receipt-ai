@@ -10,6 +10,8 @@ async function instrumentation() {
     // allow realtime
     await client.query(`
       alter publication supabase_realtime add table "Receipt";
+      alter publication supabase_realtime add table "ReceiptMockParticipant";
+      alter publication supabase_realtime add table "ReceiptRealParticipant";
       
       CREATE POLICY "Give users authenticated access to folder 1lnm9mj_0" ON storage.objects FOR SELECT TO public USING (bucket_id = 'receipts' AND auth.role() = 'authenticated');
       CREATE POLICY "Give users authenticated access to folder 1lnm9mj_1" ON storage.objects FOR INSERT TO public WITH CHECK (bucket_id = 'receipts' AND auth.role() = 'authenticated');
