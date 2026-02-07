@@ -179,14 +179,6 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   });
 
   const currentReceipt = useWatch({ control: form.control }) as Receipt;
-  const canEditPosition = !!canEdit.positionForm;
-  const canEditModifier = !!canEdit.modifierForm;
-  const canEditTotals = !!canEdit.totalsForm;
-  const discountTotal = currentReceipt.discounts.reduce(
-    (acc, x) => acc + x.value,
-    0,
-  );
-  const feeTotal = currentReceipt.fees.reduce((acc, x) => acc + x.value, 0);
   const formatMoney = (value: number) => `${Math.round(value)} ₽`;
   const screenCardClassName =
     "mx-auto my-3 w-full max-w-3xl rounded-3xl border border-border/70 bg-card p-4 text-foreground shadow-[0_14px_38px_rgba(15,23,42,0.10)] md:p-5";
@@ -247,22 +239,27 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
 
             <div className="space-y-3">
               {positionFields.map((field, index) => {
-                const clickable = canEditPosition;
                 return (
                   <Card
                     key={field.id}
                     variant="interactive"
-                    shadow={clickable ? "md" : "sm"}
-                    interactive={clickable}
+                    shadow={
+                      canEdit.positionForm
+                        ? "md"
+                        : "sm"
+                    }
+                    interactive={
+                      canEdit.positionForm
+                    }
                     className="overflow-hidden"
                   >
                     <button
                       type="button"
                       onClick={() =>
-                        clickable && openEditModal({ type: "position", index })
+                        canEdit.positionForm && openEditModal({ type: "position", index })
                       }
                       className={
-                        clickable
+                        canEdit.positionForm
                           ? "w-full cursor-pointer text-left"
                           : "w-full cursor-default text-left"
                       }
@@ -293,7 +290,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
 
             <Card variant="summary" shadow="md" className="mt-4 rounded-2xl">
               <CardContent className="p-4">
-                {canEditModifier && (
+                {canEdit.modifierForm && (
                   <div className="mb-3 flex flex-wrap gap-2">
                     <Button
                       variant="outline"
@@ -316,43 +313,117 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                   </div>
                 )}
 
-                <div
-                  className={canEditTotals ? "cursor-pointer" : ""}
-                  onClick={() =>
-                    canEditTotals && openEditModal({ type: "totals" })
-                  }
-                >
-                  <div className="mt-2 flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">
+                <div>
+                  <div className="mt-2">
+                    <div className="mb-1 text-sm text-muted-foreground">
                       {t("discounts")}:
-                    </span>
-                    <span className="font-medium text-emerald-600">
-                      {discountTotal > 0
-                        ? `- ${formatMoney(discountTotal)}`
-                        : "-"}
-                    </span>
+                    </div>
+                    {currentReceipt.discounts.length === 0 ? (
+                      <div className="text-sm text-muted-foreground">-</div>
+                    ) : (
+                      <div className="space-y-1">
+                        {currentReceipt.discounts.map((discount, index) => (
+                          <button
+                            key={discount.id}
+                            type="button"
+                            className={`flex w-full items-center justify-between rounded-md px-1 py-1 text-sm ${
+                              canEdit.modifierForm
+                                ? "cursor-pointer hover:bg-muted/45"
+                                : "cursor-default"
+                            }`}
+                            onClick={() =>
+                              canEdit.modifierForm &&
+                              openEditModal({
+                                type: "modifier",
+                                modifierType: "discounts",
+                                index,
+                              })
+                            }
+                          >
+                            <span className="text-muted-foreground">
+                              {discount.name || t("modifierName")}
+                            </span>
+                            <span className="font-medium text-emerald-600">
+                              - {formatMoney(discount.value)}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div className="mt-2 flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{t("fees")}:</span>
-                    <span className="font-medium">
-                      {feeTotal > 0 ? `+ ${formatMoney(feeTotal)}` : "-"}
-                    </span>
+
+                  <div className="mt-3">
+                    <div className="mb-1 text-sm text-muted-foreground">
+                      {t("fees")}:
+                    </div>
+                    {currentReceipt.fees.length === 0 ? (
+                      <div className="text-sm text-muted-foreground">-</div>
+                    ) : (
+                      <div className="space-y-1">
+                        {currentReceipt.fees.map((fee, index) => (
+                          <button
+                            key={fee.id}
+                            type="button"
+                            className={`flex w-full items-center justify-between rounded-md px-1 py-1 text-sm ${
+                              canEdit.modifierForm
+                                ? "cursor-pointer hover:bg-muted/45"
+                                : "cursor-default"
+                            }`}
+                            onClick={() =>
+                              canEdit.modifierForm &&
+                              openEditModal({
+                                type: "modifier",
+                                modifierType: "fees",
+                                index,
+                              })
+                            }
+                          >
+                            <span className="text-muted-foreground">
+                              {fee.name || t("modifierName")}
+                            </span>
+                            <span className="font-medium">
+                              + {formatMoney(fee.value)}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-sm">
+                  <div className="my-3 border-t border-border/70" />
+                  <button
+                    type="button"
+                    className={`mt-3 flex w-full items-center justify-between rounded-md px-1 py-1 text-sm ${
+                      canEdit.totalsForm
+                        ? "cursor-pointer hover:bg-muted/45"
+                        : "cursor-default"
+                    }`}
+                    onClick={() =>
+                      canEdit.totalsForm && openEditModal({ type: "totals" })
+                    }
+                  >
                     <span className="text-muted-foreground">{t("total")}</span>
                     <span className="font-semibold">
                       {formatMoney(currentReceipt.totals.total)}
                     </span>
-                  </div>
-                  <div className="my-3 border-t border-border/70" />
-                  <div className="flex items-center justify-between">
+                  </button>
+                  <button
+                    type="button"
+                    className={`flex w-full items-center justify-between rounded-md px-1 py-1 ${
+                      canEdit.totalsForm
+                        ? "cursor-pointer hover:bg-muted/45"
+                        : "cursor-default"
+                    }`}
+                    onClick={() =>
+                      canEdit.totalsForm && openEditModal({ type: "totals" })
+                    }
+                  >
                     <span className="text-base font-semibold">
                       {t("grandTotal")}
                     </span>
                     <span className="text-2xl font-bold">
                       {formatMoney(currentReceipt.totals.grandTotal)}
                     </span>
-                  </div>
+                  </button>
                 </div>
               </CardContent>
             </Card>
