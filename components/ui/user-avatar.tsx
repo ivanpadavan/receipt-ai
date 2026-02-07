@@ -1,9 +1,9 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/utils/cn";
+import { UserMetadata } from "@supabase/supabase-js";
 
 interface UserAvatarProps {
-  name: string;
-  src?: string | null;
+  userMetadata: UserMetadata;
   className?: string;
   showRing?: boolean;
   ringColor?: string;
@@ -11,14 +11,13 @@ interface UserAvatarProps {
 }
 
 export const UserAvatar = ({
-  name,
-  src,
+  userMetadata: { displayName, avatarUrl },
   className,
   showRing = false,
   ringColor,
   fallbackColor,
 }: UserAvatarProps) => {
-  const initials = name.trim().substring(0, 1).toUpperCase() || "?";
+  const initials = displayName.trim().substring(0, 1).toUpperCase() || "?";
 
   return (
     <Avatar
@@ -29,7 +28,7 @@ export const UserAvatar = ({
           : undefined
       }
     >
-      {src && <AvatarImage src={src} />}
+      {avatarUrl && <AvatarImage src={avatarUrl} />}
       <AvatarFallback
         style={
           fallbackColor

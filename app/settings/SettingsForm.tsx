@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Controller, useForm } from "react-hook-form";
 import { Field, FieldContent, FieldGroup } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
@@ -18,6 +17,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { t } from "@/app/i18n/translations";
+import { User, UserMetadata } from "@supabase/supabase-js";
+import { UserAvatar } from "@/components/ui/user-avatar";
 
 const captureSupported =
   typeof document === "object" &&
@@ -68,29 +69,17 @@ const getCroppedBlob = async (imageSrc: string, pixelCrop: Area) => {
   });
 };
 
-interface SettingsFormValues {
-  displayName: string;
-  avatarUrl: string;
-  avatarFile: FileList | null;
-}
+export type SettingsFormValues = UserMetadata & { avatarFile?: File } ;
 
 interface SettingsFormProps {
-  userEmail?: string;
-  initialDisplayName: string;
-  initialAvatarUrl: string;
-  onSubmit: (values: {
-    displayName: string;
-    avatarUrl: string | null;
-    avatarFile: File | null;
-  }) => Promise<void> | void;
+  user: User;
+  onSubmit: (values: SettingsFormValues) => Promise<void> | void;
   submitLabel?: string;
   onValidChange?: (valid: boolean) => void;
 }
 
 export const SettingsForm = ({
-  userEmail,
-  initialDisplayName,
-  initialAvatarUrl,
+  user,
   onSubmit,
   submitLabel,
   onValidChange,
@@ -107,11 +96,7 @@ export const SettingsForm = ({
     watch,
     formState: { isSubmitting, isValid },
   } = useForm<SettingsFormValues>({
-    defaultValues: {
-      displayName: initialDisplayName,
-      avatarUrl: initialAvatarUrl,
-      avatarFile: null,
-    },
+    defaultValues: { ...user.user_metadata },
     mode: "onChange",
   });
 
@@ -128,11 +113,9 @@ export const SettingsForm = ({
 
   useEffect(() => {
     reset({
-      displayName: initialDisplayName,
-      avatarUrl: initialAvatarUrl,
-      avatarFile: null,
+      ...user.user_metadata,
     });
-  }, [initialDisplayName, initialAvatarUrl, reset]);
+  }, [user, reset]);
 
   useEffect(() => {
     if (onValidChange) onValidChange(isValid);
@@ -144,16 +127,10 @@ export const SettingsForm = ({
     };
   }, [previewUrl]);
 
-  const initials = useMemo(() => {
-    const source = displayName || userEmail || "U";
-    return source.trim().substring(0, 1).toUpperCase();
-  }, [displayName, userEmail]);
-
   const handleAvatarFileChange = (
-    files: FileList | null,
-    onChange: (files: FileList | null) => void,
+    file: File | null,
+    onChange: (files: File | null) => void,
   ) => {
-    const file = files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
@@ -162,7 +139,7 @@ export const SettingsForm = ({
       setCropImage(result);
       setPendingFileName(file.name);
       setCropOpen(true);
-      onChange(files);
+      onChange(file);
     };
     reader.readAsDataURL(file);
   };
@@ -195,25 +172,23 @@ export const SettingsForm = ({
   };
 
   const handleSave = async (values: SettingsFormValues) => {
+    // Костылек
+    const avatarFile = (values.avatarFile instanceof FileList ? values.avatarFile.item(0) : values.avatarFile) ?? undefined;
     if (!values.displayName.trim()) return;
     setSaving(true);
-    await onSubmit({
-      displayName: values.displayName.trim(),
-      avatarUrl: values.avatarUrl.trim() || null,
-      avatarFile: values.avatarFile?.[0] ?? null,
-    });
+    await onSubmit({ ...values, avatarFile });
     setSaving(false);
   };
 
   return (
     <form className="flex flex-col gap-6" onSubmit={handleSubmit(handleSave)}>
       <div className="flex items-center gap-4">
-        <Avatar className="h-12 w-12">
-          {avatarUrl && <AvatarImage src={avatarUrl} />}
-          <AvatarFallback>{initials}</AvatarFallback>
-        </Avatar>
-        {userEmail && (
-          <div className="text-sm text-muted-foreground">{userEmail}</div>
+        <UserAvatar
+          className="h-12 w-12"
+          userMetadata={{ avatarUrl, displayName }}
+        />
+        {user.email && (
+          <div className="text-sm text-muted-foreground">{user.email}</div>
         )}
       </div>
 
@@ -242,7 +217,10 @@ export const SettingsForm = ({
                     accept="image/*"
                     className="hidden"
                     onChange={(e) =>
-                      handleAvatarFileChange(e.target.files, onChange)
+                      handleAvatarFileChange(
+                        e.target.files?.item(0) || null,
+                        onChange,
+                      )
                     }
                   />
                   {captureSupported && (
@@ -253,7 +231,10 @@ export const SettingsForm = ({
                       capture="user"
                       className="hidden"
                       onChange={(e) =>
-                        handleAvatarFileChange(e.target.files, onChange)
+                        handleAvatarFileChange(
+                          e.target.files?.item(0) || null,
+                          onChange,
+                        )
                       }
                     />
                   )}
@@ -261,13 +242,13 @@ export const SettingsForm = ({
                     onClick={triggerFileInput}
                     className="flex items-center gap-4 rounded-xl border-2 border-dashed border-amber-200 bg-amber-50/40 p-4 cursor-pointer hover:bg-amber-50 transition-colors"
                   >
-                    <Avatar className="h-16 w-16">
-                      {avatarUrl && <AvatarImage src={avatarUrl} />}
-                      <AvatarFallback>{initials}</AvatarFallback>
-                    </Avatar>
+                    <UserAvatar
+                      className="h-16 w-16"
+                      userMetadata={{ avatarUrl, displayName }}
+                    />
                     <div className="flex flex-col gap-1">
                       <div className="text-sm font-medium">
-                        {value?.length ? t("changeAvatar") : t("uploadAvatar")}
+                        {value ? t("changeAvatar") : t("uploadAvatar")}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {t("avatarUploadHint")}

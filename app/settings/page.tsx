@@ -7,23 +7,17 @@ import { supabase } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { t } from "@/app/i18n/translations";
 import { SettingsForm } from "@/app/settings/SettingsForm";
+import { UserMetadata } from "@supabase/supabase-js";
 
 export default function SettingsPage() {
   const { user } = useUser();
   const router = useRouter();
-  const isAnonymous =
-    user?.is_anonymous === true ||
-    user?.identities?.some((identity) => identity.provider === "anonymous");
 
   useEffect(() => {
-    if (isAnonymous) router.replace("/auth/sign-in");
-  }, [isAnonymous, router]);
+    if (user.is_anonymous) router.replace("/");
+  }, [user, router]);
 
-  const handleSave = async (values: {
-    displayName: string;
-    avatarUrl: string | null;
-    avatarFile: File | null;
-  }) => {
+  const handleSave = async (values: UserMetadata & { avatarFile?: File }) => {
     let nextAvatarUrl = values.avatarUrl;
 
     if (values.avatarFile) {
@@ -60,13 +54,7 @@ export default function SettingsPage() {
           {t("settings")}
         </h1>
         <SettingsForm
-          userEmail={user?.email ?? ""}
-          initialDisplayName={
-            (user?.user_metadata?.displayName as string | undefined) ?? ""
-          }
-          initialAvatarUrl={
-            (user?.user_metadata?.avatarUrl as string | undefined) ?? ""
-          }
+          user={user}
           onSubmit={handleSave}
         />
       </div>
