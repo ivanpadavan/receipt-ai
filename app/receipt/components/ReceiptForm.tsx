@@ -322,13 +322,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                     canEditTotals && openEditModal({ type: "totals" })
                   }
                 >
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{t("total")}</span>
-                    <span className="font-semibold">
-                      {formatMoney(currentReceipt.totals.total)}
-                    </span>
-                  </div>
-                  <div className="mt-2 flex items-center justify-between text-sm">
+]                  <div className="mt-2 flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">
                       {t("discounts")}:
                     </span>
@@ -342,6 +336,12 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                     <span className="text-muted-foreground">{t("fees")}:</span>
                     <span className="font-medium">
                       {feeTotal > 0 ? `+ ${formatMoney(feeTotal)}` : "-"}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">{t("total")}</span>
+                    <span className="font-semibold">
+                      {formatMoney(currentReceipt.totals.total)}
                     </span>
                   </div>
                   <div className="my-3 border-t border-border/70" />
