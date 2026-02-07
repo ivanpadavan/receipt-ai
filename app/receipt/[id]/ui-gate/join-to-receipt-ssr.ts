@@ -1,11 +1,8 @@
-import { serverSupabase } from "@/utils/supabase/server";
 import { db } from "@/app/db";
 import { getNextColor } from "@/app/receipt/utils/participants";
 import { User } from "@supabase/supabase-js";
 
 export async function joinToReceiptSsr(receiptId: string, user: User) {
-  const supabase = await serverSupabase();
-
   if (!user.user_metadata.displayName) {
     throw new Error('Display name required');
   }
