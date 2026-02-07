@@ -122,8 +122,7 @@ export const ReceiptForm: React.FC<EditableReceiptFormProps> = ({
     editModalProps,
   } = formState;
 
-  const uiGate$ = useJoinFlowOverlay(scenarioType, receiptId);
-  const UiGate = useObservable(uiGate$, <></>);
+  const UiGate = useJoinFlowOverlay(scenarioType, receiptId);
 
   // Get field array for positions
   const positionFields = useWatch({
