@@ -1,61 +1,81 @@
+import React, { useMemo } from "react";
 import { FormScenario } from "@/app/receipt/[id]/useReceiptFormState";
 import { useUser } from "@/context/AuthContext";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
-import { useEffect, useRef, useState } from "react";
 import { checkUiGate } from "@/app/receipt/[id]/ui-gate/functions";
 import { joinToReciept } from "@/app/receipt/[id]/ui-gate/join-to-receipt-csr";
 import { SettingsDialog } from "@/app/receipt/[id]/ui-gate/settings-dialog";
 import { useRouter } from "next/navigation";
 import { RemovedDialog } from "@/app/receipt/[id]/ui-gate/removed-dialog";
+import { useHookToObservable } from "@/hooks/rx/useHookToObservable";
+import {
+  catchError,
+  combineLatest,
+  distinctUntilChanged,
+  EMPTY,
+  exhaustMap,
+  filter,
+  from,
+  ignoreElements,
+  map,
+  merge,
+  Observable,
+  pairwise,
+  scan,
+  startWith,
+} from "rxjs";
 
-export function useUiGate(formType: FormScenario["type"], receiptId: string) {
+type GateState = "join" | "settings" | "nothing";
+
+export function useUiGate(
+  formType: FormScenario["type"],
+  receiptId: string,
+): Observable<React.ReactNode> {
   const { user } = useUser();
   const participants = useParticipantsStore((s) => s.participants);
-
   const router = useRouter();
-  const [joining, setJoining] = useState(false);
-  const [removedOpen, setRemovedOpen] = useState(false);
-  const wasJoinedRef = useRef<boolean | null>(null);
-  const joinRequestedRef = useRef(false);
 
-  const state = checkUiGate(participants, user, formType);
-  const isJoined = participants.some((p) => p.id === user.id);
+  const user$ = useHookToObservable(user);
+  const participants$ = useHookToObservable(participants, (a, b) => a === b);
+  const formType$ = useHookToObservable(formType);
 
-  useEffect(() => {
-    if (state !== "join") {
-      joinRequestedRef.current = false;
-      return;
-    }
-    if (joining || joinRequestedRef.current) return;
+  return useMemo(() => {
+    const joined$ = combineLatest([participants$, user$]).pipe(
+      map(([ps, u]) => ps.some((p) => p.id === u.id)),
+      startWith(false),
+      distinctUntilChanged(),
+    );
 
-    let cancelled = false;
-    joinRequestedRef.current = true;
-    setJoining(true);
-    joinToReciept(receiptId)
-      .catch(() => undefined)
-      .finally(() => {
-        if (!cancelled) setJoining(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [state, joining, receiptId]);
+    const removedOpen$ = joined$.pipe(
+      pairwise(),
+      scan((open, [prev, curr]) => open || (prev === true && curr === false), false),
+      startWith(false),
+      distinctUntilChanged(),
+    );
 
-  useEffect(() => {
-    const prev = wasJoinedRef.current;
-    wasJoinedRef.current = isJoined;
-    if (prev === true && !isJoined) {
-      setRemovedOpen(true);
-    }
-  }, [isJoined]);
+    const gate$ = combineLatest([participants$, user$, formType$]).pipe(
+      map(([ps, u, type]) => checkUiGate(ps, u, type) as GateState),
+      distinctUntilChanged(),
+    );
 
-  if (removedOpen) {
-    return <RemovedDialog onGoHome={() => router.push("/")} />;
-  }
+    const join$ = gate$.pipe(
+      filter((state) => state === "join"),
+      exhaustMap(() =>
+        from(joinToReciept(receiptId)).pipe(
+          catchError(() => EMPTY),
+          ignoreElements(),
+        ),
+      ),
+    );
 
-  if (state === "settings") {
-    return <SettingsDialog />;
-  }
+    const ui$ = combineLatest([gate$, removedOpen$]).pipe(
+      map(([gate, removedOpen]) => {
+        if (removedOpen) return <RemovedDialog onGoHome={() => router.push("/")} />;
+        if (gate === "settings") return <SettingsDialog />;
+        return <></>;
+      }),
+    );
 
-  return null;
+    return merge(ui$, join$);
+  }, [participants$, user$, formType$, receiptId, router]);
 }
