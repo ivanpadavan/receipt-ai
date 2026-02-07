@@ -4,31 +4,9 @@ import { isEqual } from "lodash-es";
 import putValidator from "@/app/api-client/receipt/put";
 import { errorWrap } from "@/app/api/receipt/error-wrap";
 import { serverSupabase } from "@/utils/supabase/server";
-import { getNextColor } from "@/app/receipt/utils/participants";
-import type { User } from "@supabase/supabase-js";
 import { buildParticipants } from "@/app/db-utils/build-participants";
 
 export const runtime = "nodejs";
-
-const ensureRealParticipant = async (receiptId: string, user: User) => {
-  const existing = await db.receiptUserParticipant.findFirst({
-    where: { receiptId, userId: user.id },
-  });
-  if (existing) return;
-
-  const [currentReal, currentMock] = await Promise.all([
-    db.receiptUserParticipant.findMany({ where: { receiptId } }),
-    db.receiptMockParticipant.findMany({ where: { receiptId } }),
-  ]);
-  const color = getNextColor([...currentReal, ...currentMock]);
-  await db.receiptUserParticipant.create({
-    data: {
-      receiptId,
-      userId: user.id,
-      color,
-    },
-  });
-};
 
 export async function GET(
   req: NextRequest,
@@ -101,7 +79,7 @@ export async function GET(
             table: "ReceiptUserParticipant",
             filter: `receiptId=eq.${receiptId}`,
           },
-          async () => {
+          async (payload) => {
             const nextPayload = {
               receipt: lastPayload.receipt,
               participants: await buildParticipants(receiptId),
@@ -121,7 +99,7 @@ export async function GET(
             table: "ReceiptMockParticipant",
             filter: `receiptId=eq.${receiptId}`,
           },
-          async () => {
+          async (payload) => {
             const nextPayload = {
               receipt: lastPayload.receipt,
               participants: await buildParticipants(receiptId),
