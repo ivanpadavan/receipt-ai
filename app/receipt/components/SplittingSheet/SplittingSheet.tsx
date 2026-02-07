@@ -10,6 +10,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup, ButtonGroupSeparator } from "@/components/ui/button-group";
 import { useReceiptState } from "../ReceiptForm";
 import { Check, Pencil, Trash2, MoreVertical } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -46,6 +47,10 @@ import { useWatch } from "react-hook-form";
 import { useUser } from "@/context/AuthContext";
 import { useSplittingLogic } from "./useSplittingLogic";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
+import {
+  COMPACT_ICON_BUTTON_CLASS,
+  COMPACT_ICON_GROUP_CLASS,
+} from "@/app/receipt/components/ui-styles";
 
 // --- Components ---
 
@@ -102,23 +107,26 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
         </SelectContent>
       </Select>
       {/* Actions */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-        onClick={onCancel}
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
-        onClick={onSave}
-        disabled={claim.value <= 0 || isInvalid}
-      >
-        <Check className="h-5 w-5" />
-      </Button>
+      <ButtonGroup className={COMPACT_ICON_GROUP_CLASS}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className={`${COMPACT_ICON_BUTTON_CLASS} text-destructive hover:text-destructive hover:bg-destructive/10`}
+          onClick={onCancel}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+        <ButtonGroupSeparator className="mx-0 h-5 self-center opacity-30" />
+        <Button
+          variant="ghost"
+          size="icon"
+          className={`${COMPACT_ICON_BUTTON_CLASS} text-green-600 hover:text-green-700 hover:bg-green-50`}
+          onClick={onSave}
+          disabled={claim.value <= 0 || isInvalid}
+        >
+          <Check className="h-5 w-5" />
+        </Button>
+      </ButtonGroup>
     </div>
   );
 };
@@ -378,8 +386,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       {!newDraftClaim && (
         <div className="px-4 pb-3">
           <Button
-            variant="outline"
-            className="w-full"
+            variant="ghost"
+            className="w-full rounded-full border border-white/80 bg-white/72 text-sm font-medium shadow-inner"
             onClick={startAdding}
           >
             + {t("addShare")}
