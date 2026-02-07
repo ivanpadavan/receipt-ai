@@ -19,7 +19,6 @@ import { EditingSheet } from "@/app/receipt/components/EdititngSheet/EditingShee
 import { SplittingSheet } from "@/app/receipt/components/SplittingSheet/SplittingSheet";
 import { ParticipantsSheet } from "@/app/receipt/components/ParticipantsSheet";
 import { SummaryScreen } from "@/app/receipt/components/SummaryScreen/SummaryScreen";
-import { ShareReceiptDialog } from "@/app/receipt/components/ShareReceiptDialog";
 import {
   distinctUntilChanged,
   finalize,
@@ -35,7 +34,7 @@ import { receiptWithParticipantsSchema } from "@/model/receipt/schema";
 import { Drawer } from "@/components/ui/drawer";
 import { isEqual } from "lodash-es";
 import { FormProvider, useWatch } from "react-hook-form";
-import { Pencil, Plus, Users } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import {
@@ -43,14 +42,7 @@ import {
   useParticipantsStore,
 } from "@/app/receipt/store/participants";
 import { useJoinFlowOverlay } from "@/app/receipt/[id]/join-flow/use-join-flow-overlay";
-import {
-  ButtonGroup,
-  ButtonGroupSeparator,
-} from "@/components/ui/button-group";
-import {
-  iconButtonVariants,
-  iconGroupVariants,
-} from "@/app/receipt/components/ui-styles";
+import { ReceiptActionBar } from "@/app/receipt/components/ReceiptActionBar";
 
 interface EditableReceiptFormProps {
   initialData: ReceiptWithParticipants;
@@ -301,6 +293,29 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
 
             <Card variant="summary" shadow="md" className="mt-4 rounded-2xl">
               <CardContent className="p-4">
+                {canEditModifier && (
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 rounded-lg"
+                      onClick={() => openEditModal("addDiscount")}
+                    >
+                      <Plus className="mr-1 h-3.5 w-3.5" />
+                      {t("addDiscount")}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 rounded-lg"
+                      onClick={() => openEditModal("addFee")}
+                    >
+                      <Plus className="mr-1 h-3.5 w-3.5" />
+                      {t("addFee")}
+                    </Button>
+                  </div>
+                )}
+
                 <div
                   className={canEditTotals ? "cursor-pointer" : ""}
                   onClick={() =>
@@ -339,108 +354,18 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                     </span>
                   </div>
                 </div>
-
-                {canEditModifier && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 rounded-lg"
-                      onClick={() => openEditModal("addDiscount")}
-                    >
-                      <Plus className="mr-1 h-3.5 w-3.5" />
-                      {t("addDiscount")}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 rounded-lg"
-                      onClick={() => openEditModal("addFee")}
-                    >
-                      <Plus className="mr-1 h-3.5 w-3.5" />
-                      {t("addFee")}
-                    </Button>
-                  </div>
-                )}
               </CardContent>
             </Card>
 
-              <div className="sticky bottom-3 z-10 mt-5">
-                {scenarioType === "splitting" ? (
-                  <div className="ml-auto w-full rounded-[32px] border border-white/70 bg-white/35 p-2 shadow-[0_24px_48px_rgba(15,23,42,0.20)] backdrop-blur-2xl">
-                    <div className="flex items-center justify-between gap-3">
-                      <ButtonGroup className={`justify-center ${iconGroupVariants({ density: "compact" })}`}>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className={iconButtonVariants({
-                            size: "liquid",
-                            tone: "muted",
-                          })}
-                          onClick={goBackToEditing}
-                          title={t("edit")}
-                          aria-label={t("edit")}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <ButtonGroupSeparator className="mx-1 h-5 opacity-30" />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className={`relative ${iconButtonVariants({
-                            size: "liquid",
-                            tone: "muted",
-                          })}`}
-                          onClick={() => setParticipantsModalOpen(true)}
-                          title={t("participants")}
-                          aria-label={t("participants")}
-                        >
-                          <span className="pointer-events-none absolute right-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-semibold leading-none opacity-80 text-background">
-                            {participantsCount}
-                          </span>
-                          <Users className="h-4 w-4" />
-                        </Button>
-                        <ButtonGroupSeparator className="mx-1 h-5 opacity-30" />
-                        <ShareReceiptDialog
-                          receiptId={receiptId}
-                          iconOnly={true}
-                          variant="ghost"
-                          size="sm"
-                          className={iconButtonVariants({
-                            size: "liquid",
-                            tone: "muted",
-                          })}
-                          title={t("share")}
-                        />
-                      </ButtonGroup>
-                      <Button
-                        onClick={proceed}
-                        disabled={!canProceed}
-                        className="h-12 px-8 text-base font-semibold"
-                      >
-                        {t("done")}
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="ml-auto w-full rounded-[32px] border border-white/70 bg-white/35 p-2 shadow-[0_24px_48px_rgba(15,23,42,0.20)] backdrop-blur-2xl">
-                    <div className="flex items-center justify-end gap-2">
-                      <ShareReceiptDialog
-                        variant="ghost"
-                        receiptId={receiptId}
-                        className="h-12 rounded-full border border-white/80 bg-white/72 px-5 text-sm font-medium text-muted-foreground shadow-inner hover:text-foreground"
-                      />
-                      <Button
-                        onClick={proceed}
-                        disabled={!canProceed}
-                        className="h-12 rounded-full px-7 text-base font-semibold shadow-[0_14px_30px_rgba(249,115,22,0.36)]"
-                      >
-                        {t("proceed")}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <ReceiptActionBar
+                receiptId={receiptId}
+                isSplitting={scenarioType === "splitting"}
+                participantsCount={participantsCount}
+                canProceed={canProceed}
+                onOpenParticipants={() => setParticipantsModalOpen(true)}
+                onProceed={proceed}
+                onBackToEditing={goBackToEditing}
+              />
             </>
           )}
         </div>
