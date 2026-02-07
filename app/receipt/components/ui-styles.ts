@@ -1,9 +1,36 @@
-export const LIQUID_ICON_GROUP_CLASS =
-  "rounded-full border border-white/80 bg-white/72 shadow-inner [&>*]:border-0";
+import { cva } from "class-variance-authority";
 
-export const LIQUID_ACTION_ICON_BUTTON_CLASS =
-  "h-12 w-14 px-0 text-muted-foreground hover:text-foreground";
+export const iconGroupVariants = cva(
+  "rounded-full border border-white/80 bg-white/72 shadow-inner [&>*]:border-0",
+  {
+    variants: {
+      density: {
+        compact: "p-0",
+        roomy: "p-1",
+      },
+    },
+    defaultVariants: {
+      density: "compact",
+    },
+  },
+);
 
-export const COMPACT_ICON_GROUP_CLASS = LIQUID_ICON_GROUP_CLASS;
-
-export const COMPACT_ICON_BUTTON_CLASS = "h-8 w-8";
+export const iconButtonVariants = cva("px-0", {
+  variants: {
+    size: {
+      compact: "h-8 w-8",
+      liquid: "h-12 w-14 shrink-0",
+    },
+    tone: {
+      muted: "text-muted-foreground hover:text-foreground",
+      danger: "text-destructive hover:text-destructive hover:bg-destructive/10",
+      success: "text-green-600 hover:text-green-700 hover:bg-green-50",
+      neutral: "text-gray-400 hover:text-gray-500",
+      successSoft: "text-green-500 hover:bg-green-500/10",
+    },
+  },
+  defaultVariants: {
+    size: "compact",
+    tone: "muted",
+  },
+});

@@ -47,9 +47,10 @@ import { useWatch } from "react-hook-form";
 import { useUser } from "@/context/AuthContext";
 import { useSplittingLogic } from "./useSplittingLogic";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-  COMPACT_ICON_BUTTON_CLASS,
-  COMPACT_ICON_GROUP_CLASS,
+  iconButtonVariants,
+  iconGroupVariants,
 } from "@/app/receipt/components/ui-styles";
 
 // --- Components ---
@@ -107,11 +108,11 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
         </SelectContent>
       </Select>
       {/* Actions */}
-      <ButtonGroup className={COMPACT_ICON_GROUP_CLASS}>
+      <ButtonGroup className={iconGroupVariants({ density: "compact" })}>
         <Button
           variant="ghost"
           size="icon"
-          className={`${COMPACT_ICON_BUTTON_CLASS} text-destructive hover:text-destructive hover:bg-destructive/10`}
+          className={iconButtonVariants({ size: "compact", tone: "danger" })}
           onClick={onCancel}
         >
           <Trash2 className="h-4 w-4" />
@@ -120,7 +121,7 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className={`${COMPACT_ICON_BUTTON_CLASS} text-green-600 hover:text-green-700 hover:bg-green-50`}
+          className={iconButtonVariants({ size: "compact", tone: "success" })}
           onClick={onSave}
           disabled={claim.value <= 0 || isInvalid}
         >
@@ -387,7 +388,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         <div className="px-4 pb-3">
           <Button
             variant="ghost"
-            className="w-full rounded-full border border-white/80 bg-white/72 text-sm font-medium shadow-inner"
+            className="w-full rounded-full border "
             onClick={startAdding}
           >
             + {t("addShare")}

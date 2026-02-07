@@ -33,8 +33,8 @@ import { t } from "@/app/i18n/translations";
 import { UserPlus, X, Check, Trash2, MoreVertical } from "lucide-react";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 import {
-  COMPACT_ICON_BUTTON_CLASS,
-  COMPACT_ICON_GROUP_CLASS,
+  iconButtonVariants,
+  iconGroupVariants,
 } from "@/app/receipt/components/ui-styles";
 
 interface ParticipantsSheetProps {
@@ -203,13 +203,16 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                     {t("nameConflict")}
                   </span>
                 )}
-                <ButtonGroup className={COMPACT_ICON_GROUP_CLASS}>
+                <ButtonGroup className={iconGroupVariants({ density: "compact" })}>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={handleAddParticipant}
                     disabled={!newParticipantName.trim()}
-                    className={`${COMPACT_ICON_BUTTON_CLASS} text-green-500 hover:bg-green-500/10`}
+                    className={iconButtonVariants({
+                      size: "compact",
+                      tone: "successSoft",
+                    })}
                   >
                     <Check className="h-5 w-5" />
                   </Button>
@@ -221,7 +224,10 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                       setNewParticipantName("");
                       setIsAdding(false);
                     }}
-                    className={`${COMPACT_ICON_BUTTON_CLASS} text-gray-400`}
+                    className={iconButtonVariants({
+                      size: "compact",
+                      tone: "neutral",
+                    })}
                   >
                     <X className="h-4 w-4" />
                   </Button>

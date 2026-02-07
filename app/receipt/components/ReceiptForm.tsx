@@ -48,8 +48,8 @@ import {
   ButtonGroupSeparator,
 } from "@/components/ui/button-group";
 import {
-  LIQUID_ACTION_ICON_BUTTON_CLASS,
-  LIQUID_ICON_GROUP_CLASS,
+  iconButtonVariants,
+  iconGroupVariants,
 } from "@/app/receipt/components/ui-styles";
 
 interface EditableReceiptFormProps {
@@ -369,11 +369,14 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                 {scenarioType === "splitting" ? (
                   <div className="ml-auto w-full rounded-[32px] border border-white/70 bg-white/35 p-2 shadow-[0_24px_48px_rgba(15,23,42,0.20)] backdrop-blur-2xl">
                     <div className="flex items-center justify-between gap-3">
-                      <ButtonGroup className={`justify-center ${LIQUID_ICON_GROUP_CLASS}`}>
+                      <ButtonGroup className={`justify-center ${iconGroupVariants({ density: "compact" })}`}>
                         <Button
                           variant="ghost"
                           size="sm"
-                          className={LIQUID_ACTION_ICON_BUTTON_CLASS}
+                          className={iconButtonVariants({
+                            size: "liquid",
+                            tone: "muted",
+                          })}
                           onClick={goBackToEditing}
                           title={t("edit")}
                           aria-label={t("edit")}
@@ -384,7 +387,10 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className={`relative ${LIQUID_ACTION_ICON_BUTTON_CLASS}`}
+                          className={`relative ${iconButtonVariants({
+                            size: "liquid",
+                            tone: "muted",
+                          })}`}
                           onClick={() => setParticipantsModalOpen(true)}
                           title={t("participants")}
                           aria-label={t("participants")}
@@ -400,7 +406,10 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                           iconOnly={true}
                           variant="ghost"
                           size="sm"
-                          className={LIQUID_ACTION_ICON_BUTTON_CLASS}
+                          className={iconButtonVariants({
+                            size: "liquid",
+                            tone: "muted",
+                          })}
                           title={t("share")}
                         />
                       </ButtonGroup>
