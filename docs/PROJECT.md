@@ -1,203 +1,95 @@
-# Receipt AI Project Documentation
+# Документация Проекта `receipt-ai`
 
-## 1. Project Purpose
+## 1. Общее описание проекта
 
-`receipt-ai` is a collaborative bill-splitting app.
+`receipt-ai` — приложение для совместного деления чека между участниками.
 
-Main product flow:
-- User uploads a receipt photo.
-- AI extracts structured receipt data.
-- Users validate/edit receipt data.
-- Participants split receipt positions.
-- App shows final per-participant summary.
+Какие задачи решает:
+- Автоматически извлекает позиции, суммы, скидки и сборы из фото чека через AI.
+- Позволяет проверить и поправить данные чека перед расчетами.
+- Позволяет распределить позиции чека между участниками.
+- Считает итоговую сумму для каждого участника.
+- Синхронизирует изменения между вкладками/пользователями в реальном времени.
 
-## 2. Tech Stack
+Ключевая идея:
+- Данные чека живут как JSON в `Receipt.data`.
+- Участники хранятся отдельно в реляционных таблицах (`real` и `mock`).
+- Клиент получает объединенный payload `{ receipt, participants }` по SSE.
 
-- Framework: Next.js 16 (App Router), React 19, TypeScript.
-- Styling/UI: Tailwind CSS, Radix UI (via local `components/ui/*`).
-- Forms: React Hook Form.
-- Validation: Zod.
-- State: Zustand (`app/receipt/store/participants.ts`) and RxJS in join flow overlay.
-- Database: PostgreSQL via Prisma.
-- Auth + Realtime + Storage: Supabase.
-- AI parsing: LangChain + Google Gemini (`GOOGLE_API_KEY`, `GOOGLE_API_MODEL`).
-- Testing: Vitest + Testing Library.
+## 2. Поверхностно о технологическом стеке
 
-## 3. High-Level Architecture
+- `Next.js 16` + `React 19` + `TypeScript`.
+- UI: `Tailwind CSS` + `Radix UI` (локальные обертки в `components/ui/*`).
+- Формы: `react-hook-form`.
+- Валидация схем: `zod`.
+- Состояние: `zustand` (участники), локально `rxjs` в `join-flow`.
+- База: `PostgreSQL` через `Prisma`.
+- Auth/Realtime/Storage: `Supabase`.
+- AI-парсинг чека: `LangChain` + `Google Gemini`.
+- Тесты: `Vitest` + `Testing Library`.
 
-Main modules:
-- `app/api/receipt/route.ts`: create receipt from image (AI parse + DB persist).
-- `app/receipt/[id]/page.tsx`: server page that loads receipt + participants.
-- `app/api/receipt/[id]/route.ts`: SSE stream and receipt update endpoint.
-- `app/receipt/components/ReceiptForm.tsx`: main client UI for edit/split/summary modes.
-- `app/receipt/[id]/useReceiptFormState.ts`: scenario logic (validation/editing/splitting/summary).
-- `app/receipt/[id]/join-flow/*`: onboarding/join logic at receipt entry.
-- `app/receipt/store/participants.ts`: current participants client store.
+## 3. Юзер-сценарии
 
-Data shape:
-- Receipt JSON (`model/receipt/schema.ts`) contains positions, modifiers, totals, claims.
-- Participants are stored in relational tables and delivered as DTOs.
+### 3.1 Основной сценарий: от фото до итогов
 
-## 4. Core User Flows
-
-### 4.1 Create Receipt
-
-Entry point:
-- `POST /api/receipt` (`app/api/receipt/route.ts`)
-
-What happens:
-- Upload image to Supabase Storage (`receipts` bucket).
-- Parse image with Gemini into structured schema.
-- Retry AI correction up to 3 times if math validation fails.
-- Save receipt JSON in `Receipt.data`.
-- Auto-create owner participant in `ReceiptUserParticipant`.
-
-### 4.2 Open Receipt Page
-
-Entry point:
-- `app/receipt/[id]/page.tsx`
-
-What happens:
-- Loads receipt and participants.
-- Applies auto-join rule (`join-flow/rules.ts`) when allowed.
-- Renders `ReceiptForm` with initial payload.
-
-### 4.3 Realtime Sync
-
-Entry point:
-- `GET /api/receipt/[id]` (`app/api/receipt/[id]/route.ts`)
-
-Payload:
-- `{ receipt, participants }`
-
-Updates are pushed on:
-- `Receipt` row updates.
-- `ReceiptUserParticipant` changes.
-- `ReceiptMockParticipant` changes.
-
-### 4.4 Join Flow (Split Entry)
-
-Module:
-- `app/receipt/[id]/join-flow/*`
-
-Responsibilities:
-- Decide whether user can proceed, must set name, or can auto-join.
-- Trigger join API call for eligible users.
-- Show settings-required dialog when `displayName` is missing.
-- Show removed-from-receipt dialog when user is removed after being present.
-
-### 4.5 Split + Summary
-
-Main UI:
-- `app/receipt/components/SplittingSheet/*`
-- `app/receipt/components/SummaryScreen/*`
-
-Behavior:
-- Claims are assigned to participant IDs.
-- Summary calculates per-participant amounts.
-- Missing/deleted participants are ignored in totals in current calculation flow.
-
-## 5. Data Model (Prisma)
-
-File:
-- `prisma/schema.prisma`
-
-Main tables:
-- `Receipt`
-- `ReceiptUserParticipant` (real user relation, unique `(receiptId, userId)`)
-- `ReceiptMockParticipant` (local/mock participant scoped to receipt)
-- `auth.users` (Supabase auth schema)
-
-## 6. API Surface
-
-Receipt:
-- `POST /api/receipt` create from image.
-- `GET /api/receipt/[id]` SSE stream.
-- `PUT /api/receipt/[id]` update receipt JSON.
-
-Participants:
-- `POST /api/receipt/[id]/participants/join` join real user.
-- `POST /api/receipt/[id]/participants/mock` create mock participant.
-- `PATCH /api/receipt/[id]/participants/mock/[participantId]` rename mock participant.
-- `DELETE /api/receipt/[id]/participants/mock/[participantId]` delete mock participant.
-- `DELETE /api/receipt/[id]/participants/real/[userId]` remove real participant relation.
-
-Auth:
-- `POST /api/auth/google`
-- `POST /api/auth/auto-login`
-
-## 7. Auth and User Metadata
-
-Auth source:
-- Supabase Auth (`context/AuthContext.tsx`, `utils/supabase/*`)
-
-Important metadata fields:
-- `displayName`
-- `avatarUrl`
-
-Current project policy:
-- Treat `displayName` as a direct field.
-- Do not add fallback heuristics unless explicitly requested.
-
-## 8. State and Reactivity
-
-Current practical split:
-- `participants` list in Zustand store (`app/receipt/store/participants.ts`).
-- SSE -> form/store sync in `ReceiptForm`.
-- Join overlay uses RxJS stream composition in `join-flow/use-join-flow-overlay.tsx`.
-
-## 9. Environment Variables
-
-Required in practice:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
-- `SUPABASE_SECRET_KEY`
-- `GOOGLE_API_KEY`
-- `GOOGLE_API_MODEL`
-- `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
-- `DATABASE_URL`
-- `DIRECT_URL`
-
-Note:
-- `.env.example` exists but does not fully reflect current Supabase naming.
-
-## 10. Local Development
-
-Install:
-```bash
-pnpm install
+```mermaid
+flowchart TD
+  A["Пользователь загружает фото чека"] --> B["POST /api/receipt"]
+  B --> C["AI извлекает структуру чека"]
+  C --> D["Сохранение Receipt + владелец как участник"]
+  D --> E["Открывается /receipt/{id}"]
+  E --> F["Редактирование/валидация"]
+  F --> G["Splitting: распределение позиций по участникам"]
+  G --> H["Summary: итоговые суммы по участникам"]
 ```
 
-Run dev:
-```bash
-pnpm dev
+Текстом:
+1. Пользователь отправляет фото чека.
+2. Бэкенд парсит чек, валидирует математику, сохраняет результат.
+3. Пользователь попадает на страницу чека и при необходимости корректирует данные.
+4. В режиме splitting указывает, кто за что платит.
+5. Видит экран summary с итогами по каждому участнику.
+
+### 3.2 Сценарий входа участника в splitting (join-flow)
+
+```mermaid
+flowchart TD
+  A["Пользователь открыл чек"] --> B{"Нужен join в splitting?"}
+  B -- "Нет" --> Z["Работа с чеком без ограничений"]
+  B -- "Да" --> C{"Есть displayName?"}
+  C -- "Нет" --> D["Показать settings-required dialog"]
+  C -- "Да" --> E["POST /participants/join"]
+  E --> Z
 ```
 
-Build:
-```bash
-pnpm build
-pnpm start
+Текстом:
+1. Система проверяет, должен ли пользователь быть участником в splitting.
+2. Если у пользователя нет `displayName`, показывается обязательное окно настроек.
+3. Если `displayName` есть, выполняется join через API.
+4. После join пользователь участвует в расчётах.
+
+### 3.3 Сценарий совместной работы (SSE)
+
+```mermaid
+flowchart TD
+  A["Клиент подписан на GET /api/receipt/{id} (SSE)"] --> B["Получает начальный payload"]
+  B --> C{"Изменения в БД?"}
+  C -- "Receipt UPDATE" --> D["Обновить receipt в клиенте"]
+  C -- "Participant change" --> E["Пересобрать participants"]
+  D --> F["UI пересчитывается"]
+  E --> F
 ```
 
-Tests:
-```bash
-pnpm test
-```
+Текстом:
+1. Клиент открывает SSE-стрим конкретного чека.
+2. При изменениях `Receipt` и таблиц участников сервер отправляет обновленный payload.
+3. UI автоматически обновляется и пересчитывает состояние/экраны.
 
-Lint:
-```bash
-pnpm lint
-```
+## 4. Что еще хорошо бы документировать
 
-## 11. Project Conventions
-
-- See `AGENTS.md` and `WORKING-FIRST.md`.
-- Focus on working behavior and verified outcomes.
-- Keep diffs minimal and task-scoped.
-
-## 12. Known Gaps / TODOs
-
-From code comments and current behavior:
-- No explicit UI handling when SSE disconnects (`ReceiptForm` TODO).
-- `PUT /api/receipt/[id]` permission model is marked for improvement.
-- `POST /api/receipt` contains a noted FIXME around image upload flow.
+Рекомендуемые следующие документы:
+- **`docs/ARCHITECTURE.md`**: границы модулей, ответственность слоев, data flow между API, stores и UI.
+- **`docs/API.md`**: полный контракт каждого endpoint (request/response/errors).
+- **`docs/REALTIME.md`**: правила SSE, reconnection-стратегия, идемпотентность обновлений.
+- **`docs/TESTING.md`**: какие тесты обязательны для PR и какие сценарии считаются критичными.
+- **`docs/OPERATIONS.md`**: env-переменные, деплой, миграции Prisma, аварийные действия.
