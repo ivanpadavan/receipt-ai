@@ -379,7 +379,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         <div className="px-4 pb-3">
           <Button
             variant="outline"
-            className="w-full border-dashed"
+            className="w-full"
             onClick={startAdding}
           >
             + {t("addShare")}

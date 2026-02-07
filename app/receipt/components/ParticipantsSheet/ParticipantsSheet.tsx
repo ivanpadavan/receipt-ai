@@ -179,7 +179,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
             <Card
               variant="warning"
               shadow="md"
-              className="mb-2 rounded-xl border-2 border-dashed border-amber-500"
+              className="mb-2 rounded-xl border-2 border-amber-500"
             >
               <CardContent className="flex items-center gap-3 px-4 py-3">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center font-semibold shrink-0 text-lg">
