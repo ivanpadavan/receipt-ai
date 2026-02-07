@@ -24,13 +24,13 @@ import {
   ReceiptPosition,
   ReceiptModifier,
   ReceiptPositionClaim,
-  validateReceipt,
   calculateTotal,
   calculateGrandTotal,
 } from "@/model/receipt/model";
 import { apiClient } from "@/app/api-client";
-import { createReceiptResolver } from "./receiptResolver";
 import { useObservable } from "@/hooks/rx/useObservable";
+import { receiptValidationSchema } from "@/app/receipt/[id]/receiptResolver";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 // ============================================================================
 // Types
@@ -154,8 +154,10 @@ export function useReceiptFormState(
   const typeRef = useRef<FormType | null>(null);
 
   if (typeRef.current === null) {
-    const validation = validateReceipt(initialData);
-    typeRef.current = validation.isValid
+    const isValid = receiptValidationSchema.safeParse(
+      initialData,
+    ).success;
+    typeRef.current = isValid
       ? initialData.editingFinished
         ? "splitting"
         : "editing"
@@ -173,7 +175,7 @@ export function useReceiptFormState(
       keepErrors: true,
     },
     mode: "onChange",
-    resolver: createReceiptResolver({ type }),
+    resolver: zodResolver(receiptValidationSchema),
   });
 
   const { control, watch, setValue, getValues, formState, trigger } = form;
@@ -289,20 +291,6 @@ export function useReceiptFormState(
 
     return () => subscription.unsubscribe();
   }, [type, receiptId, watch, getValues]);
-
-  // -------------------------------------------------------------------------
-  // 6. Helper to recalculate totals after manual updates
-  // -------------------------------------------------------------------------
-  const recalculateTotals = useCallback(() => {
-    if (type === "validation") return; // Don't auto-calc in validation mode
-
-    const data = getValues();
-    const total = calculateTotal(data.positions);
-    const grandTotal = calculateGrandTotal(data);
-
-    setValue("totals.total", total, { shouldValidate: true });
-    setValue("totals.grandTotal", grandTotal, { shouldValidate: true });
-  }, [type, getValues, setValue]);
 
   // -------------------------------------------------------------------------
   // 7. Modal state

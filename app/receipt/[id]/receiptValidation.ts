@@ -1,0 +1,104 @@
+import { z } from "zod";
+import {
+  Receipt,
+  calculateGrandTotal,
+  calculateTotal,
+} from "@/model/receipt/model";
+import { receiptSchema } from "@/model/receipt/schema";
+
+export const editablePositionBaseSchema = z.object({
+  name: z.string().trim().min(1, "Name should not be empty"),
+  price: z
+    .number()
+    .refine(
+      (value) => Number.isFinite(value) && value > 0,
+      "Price should be greater than 0",
+    ),
+  quantity: z
+    .number()
+    .refine(
+      (value) => Number.isFinite(value) && value > 0,
+      "Quantity should be greater than 0",
+    ),
+  overall: z.number(),
+});
+
+export const editablePositionValidationSchema =
+  editablePositionBaseSchema.superRefine((value, context) => {
+    const calculatedOverall = value.price * value.quantity;
+    if (Math.abs(calculatedOverall - value.overall) > 0.01) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["overall"],
+        message: "Overall should match quantity x price",
+      });
+    }
+  });
+
+export const editableModifierSchema = z.object({
+  name: z.string().trim().min(1, "Name should not be empty"),
+  value: z
+    .number()
+    .refine(
+      (value) => Number.isFinite(value) && value > 0,
+      "Value should be greater than 0",
+    ),
+});
+
+export const receiptValidationSchema = receiptSchema.superRefine((value: Receipt, context) => {
+    const positionSchema = editablePositionValidationSchema;
+
+    value.positions.forEach((position, index) => {
+      const parsed = positionSchema.safeParse(position);
+      if (parsed.success) return;
+      parsed.error.issues.forEach((issue) => {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["positions", index, ...issue.path],
+          message: issue.message,
+        });
+      });
+    });
+
+    value.fees.forEach((fee, index) => {
+      const parsed = editableModifierSchema.safeParse(fee);
+      if (parsed.success) return;
+      parsed.error.issues.forEach((issue) => {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["fees", index, ...issue.path],
+          message: issue.message,
+        });
+      });
+    });
+
+    value.discounts.forEach((discount, index) => {
+      const parsed = editableModifierSchema.safeParse(discount);
+      if (parsed.success) return;
+      parsed.error.issues.forEach((issue) => {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["discounts", index, ...issue.path],
+          message: issue.message,
+        });
+      });
+    });
+
+    const calculatedTotal = calculateTotal(value.positions);
+    if (Math.abs(calculatedTotal - value.totals.total) > 0.01) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["totals", "total"],
+        message: `Total ${value.totals.total} doesn't match the sum of all position overall values (${calculatedTotal})`,
+      });
+    }
+
+    const calculatedGrandTotal = calculateGrandTotal(value);
+    if (Math.abs(calculatedGrandTotal - value.totals.grandTotal) > 0.01) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["totals", "grandTotal"],
+        message: `Final grand total ${value.totals.grandTotal} doesn't match calculated (${calculatedGrandTotal})`,
+      });
+    }
+  });
