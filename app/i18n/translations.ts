@@ -82,6 +82,11 @@ const ru = {
   removedBody: "У вас больше нет доступа к этому чеку.",
   goHome: "На главную",
   nameConflict: "Совпадает имя",
+  copyLink: "Скопировать ссылку",
+  shareReceiptTitle: "Поделиться чеком",
+  shareReceiptHint: "Отсканируйте QR-код или отправьте ссылку.",
+  shareReceiptQrAlt: "QR-код ссылки на чек",
+  shareViaSystem: "Поделиться через приложение",
 };
 
 export type TranslationKey = keyof typeof ru;
@@ -171,6 +176,11 @@ const en: Translations = {
   removedBody: "You no longer have access to this receipt.",
   goHome: "Go home",
   nameConflict: "Name already exists",
+  copyLink: "Copy link",
+  shareReceiptTitle: "Share receipt",
+  shareReceiptHint: "Scan the QR code or send the link.",
+  shareReceiptQrAlt: "Receipt link QR code",
+  shareViaSystem: "Share via system",
 };
 
 // Available languages

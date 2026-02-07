@@ -27,6 +27,7 @@ import {
   ParticipantsBadge,
 } from "@/app/receipt/components/ParticipantsSheet";
 import { SummaryScreen } from "@/app/receipt/components/SummaryScreen/SummaryScreen";
+import { ShareReceiptDialog } from "@/app/receipt/components/ShareReceiptDialog";
 import { distinctUntilChanged, Observable, startWith } from "rxjs";
 import { receiptWithParticipantsSchema } from "@/model/receipt/schema";
 import { Drawer } from "@/components/ui/drawer";
@@ -189,7 +190,10 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
         </Drawer>
 
         {scenarioType === "summary" ? (
-          <div className="p-4 h-full">
+          <div className="p-4 h-full flex flex-col gap-3">
+            <div className="flex justify-end">
+              <ShareReceiptDialog receiptId={receiptId} />
+            </div>
             <SummaryScreen receipt={currentReceipt} onBack={goBack} />
           </div>
         ) : (
@@ -274,6 +278,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                   />
                 </>
               )}
+              <ShareReceiptDialog receiptId={receiptId} />
               <Button onClick={proceed} disabled={!canProceed}>
                 {scenarioType === "splitting" ? t("done") : t("proceed")}
               </Button>
