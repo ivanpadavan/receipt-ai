@@ -288,43 +288,45 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
   defaultOpen,
 }) => {
   return (
-    <Accordion
-      type="single"
-      collapsible
-      defaultValue={defaultOpen ? "1" : undefined}
+    <Card
+      variant="interactive"
+      shadow={"md"}
+      interactive={true}
+      className="overflow-hidden"
     >
-      <AccordionItem
-        value="1"
-        className="border rounded-md overflow-hidden data-[state=open]:bg-muted/50"
+      <Accordion
+        type="single"
+        collapsible
+        defaultValue={defaultOpen ? "1" : undefined}
       >
-        <AccordionHeader className="flex items-stretch hover:bg-muted/30 transition-colors bg-background h-[4rem]">
-          {header}
-        </AccordionHeader>
+        <AccordionItem value="1">
+          <AccordionHeader className="flex items-stretch hover:bg-muted/30 transition-colors bg-background h-[4rem]">
+            {header}
+          </AccordionHeader>
 
-        <AccordionContent className="p-0">
-          <div className="px-3 py-2 border-t bg-background">
-            <ParticipantsSelector
-              selectedIds={claim.participantIds}
-              participants={participants}
-              onChange={(ids) => onUpdate({ ...claim, participantIds: ids })}
-            />
-          </div>
-        </AccordionContent>
+          <AccordionContent className="p-0">
+            <div className="px-3 py-2 border-t bg-background">
+              <ParticipantsSelector
+                selectedIds={claim.participantIds}
+                participants={participants}
+                onChange={(ids) => onUpdate({ ...claim, participantIds: ids })}
+              />
+            </div>
+          </AccordionContent>
 
-        <DistributionBar data={claim} className="h-2" />
-      </AccordionItem>
-    </Accordion>
+          <DistributionBar data={claim} className="h-2" />
+        </AccordionItem>
+      </Accordion>
+    </Card>
   );
 };
 
 // --- Main Sheet Component ---
 
 export const SplittingSheet: React.FC<EditModalProps> = ({
-  initialValue,
   onSave,
   fieldPath,
 }) => {
-  const position = initialValue as ReceiptPosition;
   const {
     scenario: { form },
   } = useReceiptState();
