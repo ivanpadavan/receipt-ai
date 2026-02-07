@@ -39,6 +39,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Modifiers } from "@/app/receipt/components/Modifiers";
 import { formatMoney } from "@/app/receipt/utils/formatMoney";
+import { hasFormPathError } from "@/app/receipt/utils/hasFormPathError";
 import {
   ParticipantsStoreProvider,
   useParticipantsStore,
@@ -181,6 +182,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   });
 
   const currentReceipt = useWatch({ control: form.control }) as Receipt;
+  const { errors } = form.formState;
   const screenCardClassName =
     "mx-auto my-3 w-full max-w-3xl rounded-3xl border border-border/70 bg-card p-4 text-foreground shadow-[0_14px_38px_rgba(15,23,42,0.10)] md:p-5";
 
@@ -240,6 +242,20 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
 
             <div className="space-y-3">
               {positionFields.map((field, index) => {
+                const hasPriceError = hasFormPathError(
+                  errors,
+                  `positions.${index}.price`,
+                );
+                const hasQuantityError = hasFormPathError(
+                  errors,
+                  `positions.${index}.quantity`,
+                );
+                const hasOverallError = hasFormPathError(
+                  errors,
+                  `positions.${index}.overall`,
+                );
+                const hasRowNumberError =
+                  hasPriceError || hasQuantityError || hasOverallError;
                 return (
                   <Card
                     key={field.id}
@@ -265,19 +281,49 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       }
                     >
                       <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
+                        <div
+                          className={`flex items-center gap-3 ${
+                            hasRowNumberError ? "text-destructive" : ""
+                          }`}
+                        >
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-base font-bold text-foreground">
                               {field.name}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {formatMoney(field.price)} x {field.quantity}
+                              <span
+                                className={
+                                  hasPriceError ? "text-destructive" : ""
+                                }
+                              >
+                                {formatMoney(field.price)}
+                              </span>{" "}
+                              x{" "}
+                              <span
+                                className={
+                                  hasQuantityError ? "text-destructive" : ""
+                                }
+                              >
+                                {field.quantity}
+                              </span>
                             </p>
                           </div>
-                          <span className="rounded-lg border border-border/70 bg-card px-2 py-1 text-xs font-medium text-muted-foreground">
+                          <span
+                            className={`rounded-lg border bg-card px-2 py-1 text-xs font-medium ${
+                              hasQuantityError
+                                ? "border-destructive text-destructive"
+                                : "border-border/70 text-muted-foreground"
+                            }`}
+                          >
                             {field.quantity}x
                           </span>
-                          <span className="text-base font-semibold text-foreground">
+                          <span
+                            className={`text-base font-semibold ${
+                              hasOverallError
+                                ? "text-destructive"
+                                : "text-foreground"
+                            }`}
+                          >
                             {formatMoney(field.overall)}
                           </span>
                         </div>
@@ -332,7 +378,13 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                     }
                   >
                     <span className="text-muted-foreground">{t("total")}</span>
-                    <span className="font-semibold">
+                    <span
+                      className={
+                        hasFormPathError(errors, "totals.total")
+                          ? "font-semibold text-destructive"
+                          : "font-semibold"
+                      }
+                    >
                       {formatMoney(currentReceipt.totals.total)}
                     </span>
                   </button>
@@ -350,7 +402,13 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                     <span className="text-base font-semibold">
                       {t("grandTotal")}
                     </span>
-                    <span className="text-2xl font-bold">
+                    <span
+                      className={
+                        hasFormPathError(errors, "totals.grandTotal")
+                          ? "text-2xl font-bold text-destructive"
+                          : "text-2xl font-bold"
+                      }
+                    >
                       {formatMoney(currentReceipt.totals.grandTotal)}
                     </span>
                   </button>

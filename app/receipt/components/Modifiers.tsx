@@ -6,6 +6,7 @@ import { ReceiptModifier } from "@/model/receipt/model";
 import { useReceiptState } from "@/app/receipt/components/ReceiptForm";
 import { useWatch } from "react-hook-form";
 import { formatMoney } from "@/app/receipt/utils/formatMoney";
+import { hasFormPathError } from "@/app/receipt/utils/hasFormPathError";
 
 interface ModifiersProps {
   type: "discounts" | "fees";
@@ -13,6 +14,7 @@ interface ModifiersProps {
 
 export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
   const { scenario, openEditModal } = useReceiptState();
+  const { errors } = scenario.form.formState;
   const items =
     (useWatch({
       control: scenario.form.control,
@@ -28,7 +30,13 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
         <div className="text-sm text-muted-foreground">-</div>
       ) : (
         <div className="space-y-1">
-          {items.map((item, index) => (
+          {items.map((item, index) => {
+            const hasValueError = hasFormPathError(
+              errors,
+              `${type}.${index}.value`,
+            );
+
+            return (
             <button
               key={item.id}
               type="button"
@@ -49,7 +57,9 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
               </span>
               <span
                 className={
-                  type === "discounts"
+                  hasValueError
+                    ? "font-medium text-destructive"
+                    : type === "discounts"
                     ? "font-medium text-emerald-600"
                     : "font-medium"
                 }
@@ -57,7 +67,8 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
                 {sign} {formatMoney(item.value)}
               </span>
             </button>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
