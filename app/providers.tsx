@@ -17,7 +17,7 @@ export function Providers({ children }: { children: ReactNode }) {
       <Toaster
         style={{ pointerEvents: "auto" }}
         position={"top-center"}
-        richColors={true}
+        richColors={false}
         visibleToasts={1}
       />
       {children}

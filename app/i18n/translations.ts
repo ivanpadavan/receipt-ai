@@ -86,7 +86,7 @@ const ru = {
   shareReceiptTitle: "Поделиться чеком",
   shareReceiptHint: "Отсканируйте QR-код или отправьте ссылку.",
   shareReceiptQrAlt: "QR-код ссылки на чек",
-  shareViaSystem: "Поделиться через приложение",
+  shareViaSystem: "Поделиться",
 };
 
 export type TranslationKey = keyof typeof ru;
@@ -180,7 +180,7 @@ const en: Translations = {
   shareReceiptTitle: "Share receipt",
   shareReceiptHint: "Scan the QR code or send the link.",
   shareReceiptQrAlt: "Receipt link QR code",
-  shareViaSystem: "Share via system",
+  shareViaSystem: "Share",
 };
 
 // Available languages

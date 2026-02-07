@@ -89,10 +89,15 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
           </Button>
         </div>
 
-        <AlertDialogFooter>
-          <AlertDialogCancel>{t("close")}</AlertDialogCancel>
+        <AlertDialogFooter className="sm:flex-row sm:items-stretch gap-2">
+          <AlertDialogCancel className="sm:flex-1">
+            {t("close")}
+          </AlertDialogCancel>
           {canShare && (
-            <AlertDialogAction onClick={handleShare} className="gap-2">
+            <AlertDialogAction
+              onClick={handleShare}
+              className="gap-2 sm:flex-1"
+            >
               <QrCode className="h-4 w-4" />
               {t("shareViaSystem")}
             </AlertDialogAction>
