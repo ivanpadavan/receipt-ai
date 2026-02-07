@@ -27,9 +27,9 @@ export const ParticipantsBadge: React.FC<ParticipantsBadgeProps> = ({
         onClick={onClick}
         disabled={disabled}
         title="Участники"
-        className="h-9 rounded-lg px-2 text-muted-foreground"
+        className="h-10 rounded-xl px-3 text-muted-foreground hover:text-foreground"
       >
-        <Users className="h-4 w-4 mr-1" />
+        <Users className="mr-1 h-4 w-4" />
         <span className="text-sm font-semibold min-w-[1rem] text-center">
           {count}
         </span>
