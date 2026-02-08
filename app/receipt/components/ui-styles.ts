@@ -1,7 +1,10 @@
 import { cva } from "class-variance-authority";
 
+const iconCapsuleSurface =
+  "border border-foreground/15 bg-white/48 shadow-[inset_0_1px_0_rgba(255,255,255,0.32)] backdrop-blur-md";
+
 export const iconGroupVariants = cva(
-  "rounded-full border border-white/95 bg-white/88 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] [&>*]:border-0",
+  `rounded-full ${iconCapsuleSurface} [&>*]:border-0`,
   {
     variants: {
       density: {
@@ -16,7 +19,7 @@ export const iconGroupVariants = cva(
 );
 
 export const iconSoloVariants = cva(
-  "rounded-full border border-white/90 bg-white/82 shadow-inner",
+  `rounded-full ${iconCapsuleSurface}`,
   {
     variants: {
       size: {
