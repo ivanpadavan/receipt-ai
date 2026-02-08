@@ -46,6 +46,7 @@ import {
 } from "@/app/receipt/store/participants";
 import { useJoinFlowOverlay } from "@/app/receipt/[id]/join-flow/use-join-flow-overlay";
 import { ReceiptActionBar } from "@/app/receipt/components/ReceiptActionBar";
+import { DistributionBar } from "@/app/receipt/components/SplittingSheet/DistributionBar";
 
 interface EditableReceiptFormProps {
   initialData: ReceiptWithParticipants;
@@ -324,6 +325,10 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                                 {formatMoney(field.overall)}
                               </span>
                             </div>
+                            <DistributionBar
+                              data={field}
+                              className="mt-2 h-1 rounded-full"
+                            />
                           </CardContent>
                         </button>
                       </Card>
