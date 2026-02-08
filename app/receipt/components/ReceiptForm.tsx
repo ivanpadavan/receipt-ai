@@ -229,7 +229,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                   <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                     {t("receipt")}
                   </h2>
-                  {canEdit.positionForm && (
+                  {canEdit.positionForm === true && (
                     <Button
                       variant="outline"
                       size="sm"
