@@ -54,7 +54,6 @@ export const receiptSchema = z
     totals: receiptTotalsSchema.describe(
       "Total information including discounts and tips",
     ),
-    editingFinished: z.boolean().optional(),
   })
   .describe("Structured data extracted from the receipt");
 

@@ -37,6 +37,7 @@ import {
 } from "@/app/receipt/[id]/receiptValidation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useQueryState } from "nuqs";
 
 // ============================================================================
 // Types
@@ -148,6 +149,19 @@ export const createDefaultModifier = (): ReceiptModifier => ({
   value: 0,
 });
 
+const useSummaryQuery = () => {
+  const [summaryQuery, setSummaryQuery] = useQueryState("summary");
+  const summaryInUrl = summaryQuery === "1";
+  const setSummaryInUrl = useMemo(
+    () =>
+      (enabled: boolean) => {
+        void setSummaryQuery(enabled ? "1" : null, { history: 'push' });
+      },
+    [setSummaryQuery],
+  );
+  return { summaryInUrl, setSummaryInUrl };
+}
+
 // ============================================================================
 // Hook
 // ============================================================================
@@ -159,14 +173,20 @@ export function useReceiptFormState(
   // -------------------------------------------------------------------------
   // 1. Determine form type
   // -------------------------------------------------------------------------
-  const typeRef = useRef<FormType | null>(null);
-
-  if (typeRef.current === null) {
+  const { summaryInUrl, setSummaryInUrl } = useSummaryQuery();
+  const getType = useCallback(() => {
     const isValid = receiptValidationSchema.safeParse(initialData).success;
-    typeRef.current = isValid ? "splitting" : "validation";
-  }
+    if (summaryInUrl && isValid) {
+      return "summary";
+    } else {
+      return isValid ? "splitting" : "validation";
+    }
+  }, [summaryInUrl, initialData]);
+  const [type, setType] = useState<FormType>(getType);
 
-  const type = typeRef.current;
+  useEffect(() => {
+    setType(getType());
+  }, [setType, getType]);
 
   // -------------------------------------------------------------------------
   // 2. Initialize react-hook-form
@@ -495,30 +515,24 @@ export function useReceiptFormState(
   // -------------------------------------------------------------------------
   const proceed$ = useMemo(() => new Subject<void>(), []);
 
-  const [, setForceUpdate] = useState(0);
-
   const proceed = useCallback(() => {
     if (!formState.isValid) return;
 
     if (type === "validation") {
       // Переход в splitting mode
-      typeRef.current = "splitting";
-      setForceUpdate((v) => v + 1);
+      setSummaryInUrl(false);
     } else if (type === "splitting") {
-      // Переход в summary mode
-      typeRef.current = "summary";
-      setForceUpdate((v) => v + 1);
+      setSummaryInUrl(true);
     }
 
     proceed$.next();
-  }, [formState.isValid, type, proceed$]);
+  }, [formState.isValid, type, proceed$, setSummaryInUrl]);
 
   const goBack = useCallback(() => {
     if (type === "summary") {
-      typeRef.current = "splitting";
-      setForceUpdate((v) => v + 1);
+      setSummaryInUrl(false);
     }
-  }, [type]);
+  }, [type, setSummaryInUrl]);
 
   // -------------------------------------------------------------------------
   // 8. Return state

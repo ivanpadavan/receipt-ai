@@ -35,7 +35,6 @@ describe("calculateBalances", () => {
       totals: { total: 200, grandTotal: 200 },
       fees: [],
       discounts: [],
-      editingFinished: true,
     } as unknown as Receipt;
 
     const balances = calculateBalances(receipt, participants);

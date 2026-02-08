@@ -63,7 +63,6 @@ describe("SummaryScreen", () => {
     },
     fees: [],
     discounts: [{ id: "d1", name: "Disc", value: 10 }],
-    editingFinished: true,
   };
 
   it("displays discount with correct formatting (minus sign)", () => {
