@@ -380,20 +380,20 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                 >
                   <CardContent className="py-1.5 px-4">
                     <div>
-                      {currentReceipt.discounts.length > 0 ||
-                        (currentReceipt.fees.length > 0 && (
-                          <>
-                            <div className="gap-1">
-                              {currentReceipt.discounts.length > 0 && (
-                                <Modifiers type="discounts" />
-                              )}
-                              {currentReceipt.fees.length > 0 && (
-                                <Modifiers type="fees" />
-                              )}
-                            </div>
-                            <div className="my-3 border-t border-border/70" />
-                          </>
-                        ))}
+                      {(currentReceipt.discounts.length > 0 ||
+                        currentReceipt.fees.length > 0) && (
+                        <>
+                          <div className="gap-1">
+                            {currentReceipt.discounts.length > 0 && (
+                              <Modifiers type="discounts" />
+                            )}
+                            {currentReceipt.fees.length > 0 && (
+                              <Modifiers type="fees" />
+                            )}
+                          </div>
+                          <div className="my-3 border-t border-border/70" />
+                        </>
+                      )}
 
                       <button
                         type="button"
