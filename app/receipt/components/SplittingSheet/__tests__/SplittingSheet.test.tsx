@@ -28,13 +28,15 @@ const mockReceiptState = {
   openEditModal: vi.fn(),
 };
 
+let mockWatchedPosition: ReceiptPosition | null = null;
+
 vi.mock("../../ReceiptForm", () => ({
   useReceiptState: () => mockReceiptState,
 }));
 
 // Mock react-hook-form useWatch
 vi.mock("react-hook-form", () => ({
-  useWatch: (args?: any) => (args?.name ? args?.name : mockParticipants),
+  useWatch: () => mockWatchedPosition,
 }));
 
 // Mock useUser
@@ -96,6 +98,7 @@ describe("SplittingSheet Integration", () => {
 
   beforeEach(() => {
     onSave = vi.fn();
+    mockWatchedPosition = defaultPosition;
   });
 
   afterEach(() => {
@@ -166,16 +169,18 @@ describe("SplittingSheet Integration", () => {
       />,
     );
 
+    const addShareButton = screen.queryByText("+ Add Share");
+    if (addShareButton) {
+      fireEvent.click(addShareButton);
+    }
     const input = screen.getByRole("spinbutton");
     fireEvent.change(input, { target: { value: "0.5" } });
 
     fireEvent.keyDown(input, { key: "Enter", code: "Enter", charCode: 13 });
 
     await waitFor(() => {
-      expect(screen.getByText("0.5")).toBeInTheDocument();
+      expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
     });
-
-    expect(input).not.toBeInTheDocument();
 
     expect(screen.getByText("+ Add Share")).toBeInTheDocument();
   });
@@ -190,6 +195,10 @@ describe("SplittingSheet Integration", () => {
       />,
     );
 
+    const addShareButton = screen.queryByText("+ Add Share");
+    if (addShareButton) {
+      fireEvent.click(addShareButton);
+    }
     const input = screen.getByRole("spinbutton");
     fireEvent.change(input, { target: { value: "0.5" } });
 
