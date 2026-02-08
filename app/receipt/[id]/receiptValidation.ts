@@ -72,19 +72,19 @@ export const createEditableTotalsSchema = (receipt: Receipt) =>
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["total"],
-        message: `Total ${value.total} doesn't match positions sum (${calculatedTotal})`,
+        message: `Итог ${value.total} не совпадает с суммой позиций (${calculatedTotal})`,
       });
     }
 
-    const calculatedGrandTotal =
-      calculatedTotal - receipt.discounts.reduce((acc, discount) => acc + discount.value, 0) +
-      receipt.fees.reduce((acc, fee) => acc + fee.value, 0);
-    if (Math.abs(calculatedGrandTotal - value.grandTotal) > 0.01) {
+    const modifiersDelta =
+      receipt.fees.reduce((acc, fee) => acc + fee.value, 0) -
+      receipt.discounts.reduce((acc, discount) => acc + discount.value, 0);
+    const expectedGrandTotal = value.total + modifiersDelta;
+    if (Math.abs(expectedGrandTotal - value.grandTotal) > 0.01) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["grandTotal"],
-        message:
-          `Grand total ${value.grandTotal} doesn't match modifiers result (${calculatedGrandTotal})`,
+        message: `С учетом скидок и сборов должно быть ${expectedGrandTotal}`,
       });
     }
   });
