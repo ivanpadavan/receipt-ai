@@ -119,7 +119,8 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
 
   const isValid = Object.keys(errors).length === 0;
   const isSaveDisabled = !isValid || conflict?.type === "deleted";
-  const hideErrorsUntilTouched = !onRemove;
+  const hideErrorsUntilTouched =
+    header === "addPosition" || header === "addDiscount" || header === "addFee";
   const visibleErrors = Object.entries(errors).filter(
     ([key]) => !hideErrorsUntilTouched || touched.has(key),
   );
