@@ -9,7 +9,13 @@ import {
   ButtonGroupSeparator,
 } from "@/components/ui/button-group";
 import { iconButtonVariants, iconGroupVariants } from "@/app/receipt/components/ui-styles";
-import { Pencil, Plus, Users } from "lucide-react";
+import {
+  BadgePercent,
+  CirclePlus,
+  HandCoins,
+  Pencil,
+  Users,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -69,19 +75,19 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
                   <DropdownMenuContent align="start" side="top" sideOffset={10}>
                     {onAddPosition && (
                       <DropdownMenuItem onClick={onAddPosition}>
-                        <Plus className="mr-2 h-4 w-4" />
+                        <CirclePlus className="mr-2 h-4 w-4 text-sky-600" />
                         {t("addPosition")}
                       </DropdownMenuItem>
                     )}
                     {onAddDiscount && (
                       <DropdownMenuItem onClick={onAddDiscount}>
-                        <Plus className="mr-2 h-4 w-4" />
+                        <BadgePercent className="mr-2 h-4 w-4 text-emerald-600" />
                         {t("addDiscount")}
                       </DropdownMenuItem>
                     )}
                     {onAddFee && (
                       <DropdownMenuItem onClick={onAddFee}>
-                        <Plus className="mr-2 h-4 w-4" />
+                        <HandCoins className="mr-2 h-4 w-4 text-amber-600" />
                         {t("addFee")}
                       </DropdownMenuItem>
                     )}
