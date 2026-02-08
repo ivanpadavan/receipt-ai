@@ -9,7 +9,7 @@ import {
   ButtonGroupSeparator,
 } from "@/components/ui/button-group";
 import { iconButtonVariants, iconGroupVariants } from "@/app/receipt/components/ui-styles";
-import { Pencil, Users } from "lucide-react";
+import { Users } from "lucide-react";
 
 interface ReceiptActionBarProps {
   receiptId: string;
@@ -18,7 +18,6 @@ interface ReceiptActionBarProps {
   canProceed: boolean;
   onOpenParticipants: () => void;
   onProceed: () => void;
-  onBackToEditing: () => void;
 }
 
 export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
@@ -28,7 +27,6 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
   canProceed,
   onOpenParticipants,
   onProceed,
-  onBackToEditing,
 }) => {
   return (
     <div className="sticky mb-3 bottom-3 z-10 mx-auto w-full max-w-3xl">
@@ -37,25 +35,6 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
           <ButtonGroup
             className={`justify-center ${iconGroupVariants({ density: "compact" })}`}
           >
-            {isSplitting && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={iconButtonVariants({
-                    size: "liquid",
-                    tone: "muted",
-                  })}
-                  onClick={onBackToEditing}
-                  title={t("edit")}
-                  aria-label={t("edit")}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <ButtonGroupSeparator className="mx-1 h-5 opacity-30" />
-              </>
-            )}
-
             <Button
               variant="ghost"
               size="sm"

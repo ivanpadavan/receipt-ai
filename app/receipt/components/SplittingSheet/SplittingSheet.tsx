@@ -48,6 +48,7 @@ import { useUser } from "@/context/AuthContext";
 import { useSplittingLogic } from "./useSplittingLogic";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { Card } from "@/components/ui/card";
+import { getFormPathErrorMessage, hasFormPathError } from "@/app/receipt/utils/hasFormPathError";
 import {
   iconButtonVariants,
   iconGroupVariants,
@@ -329,9 +330,15 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 }) => {
   const {
     scenario: { form },
+    openEditModal,
   } = useReceiptState();
+  const { errors } = form.formState;
   const participants = useParticipantsStore((s) => s.participants);
   const { user } = useUser();
+  const claimsPath = `${fieldPath}.claims`;
+  const hasClaimsError = hasFormPathError(errors, claimsPath);
+  const claimsErrorMessage = getFormPathErrorMessage(errors, claimsPath);
+  const positionIndex = Number(fieldPath?.match(/^positions\.(\d+)$/)?.[1] ?? -1);
 
   const {
     localPosition,
@@ -362,6 +369,26 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       <DrawerTitle className="px-4 pt-4 text-center">
         {localPosition.name}
       </DrawerTitle>
+      {positionIndex >= 0 && (
+        <div className="px-4 pt-1 pb-2 flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="rounded-full"
+            onClick={() =>
+              openEditModal({
+                type: "position",
+                index: positionIndex,
+                view: "editing",
+              })
+            }
+          >
+            <Pencil className="mr-1 h-3.5 w-3.5" />
+            {t("edit")}
+          </Button>
+        </div>
+      )}
 
       <div className="px-4 py-2 text-center text-sm text-muted-foreground flex flex-col items-center gap-1">
         <div>
@@ -384,6 +411,11 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
             {(localPosition.overall - totalClaimed).toFixed(2)} ₽
           </div>
         )}
+        {hasClaimsError && claimsErrorMessage && (
+          <div className="text-destructive font-medium text-xs bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
+            {claimsErrorMessage}
+          </div>
+        )}
       </div>
 
       {!newDraftClaim && (
@@ -399,7 +431,12 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       )}
 
       {/* Scrollable shares area */}
-      <div className="flex-1 overflow-y-auto px-4 space-y-3">
+      <div
+        className={cn(
+          "flex-1 overflow-y-auto px-4 space-y-3",
+          hasClaimsError && "ring-1 ring-destructive/40 rounded-xl",
+        )}
+      >
         {/* Add View (only if adding new) */}
         {newDraftClaim && (
           <ClaimRow

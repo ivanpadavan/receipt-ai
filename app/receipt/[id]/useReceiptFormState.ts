@@ -42,10 +42,10 @@ import { z } from "zod";
 // Types
 // ============================================================================
 
-type FormType = "validation" | "editing" | "splitting" | "summary";
+type FormType = "validation" | "splitting" | "summary";
 
 export interface CanEdit {
-  positionForm: boolean | "splitting" | false;
+  positionForm: boolean;
   modifierForm: boolean;
   totalsForm: boolean;
 }
@@ -58,6 +58,7 @@ export interface FormScenario {
 
 // EditModalProps - работает с копией данных, как в оригинале
 export interface EditModalProps {
+  view: "splitting" | "editing";
   fields: {
     key: string;
     label: TranslationKey;
@@ -85,7 +86,7 @@ export interface ReceiptState {
   scenario: FormScenario;
   openEditModal: (
     v:
-      | { type: "position"; index: number }
+      | { type: "position"; index: number; view?: "splitting" | "editing" }
       | { type: "modifier"; modifierType: "fees" | "discounts"; index: number }
       | { type: "totals" }
       | "addPosition"
@@ -95,7 +96,6 @@ export interface ReceiptState {
   closeModal: () => void;
   proceed: () => void;
   goBack: () => void;
-  goBackToEditing: () => void;
   canProceed: boolean;
   editModalProps: EditModalProps | null;
 }
@@ -110,14 +110,9 @@ const permissions: Record<FormType, CanEdit> = {
     modifierForm: true,
     totalsForm: true,
   },
-  editing: {
+  splitting: {
     positionForm: true,
     modifierForm: true,
-    totalsForm: false,
-  },
-  splitting: {
-    positionForm: "splitting",
-    modifierForm: false,
     totalsForm: false,
   },
   summary: {
@@ -168,11 +163,7 @@ export function useReceiptFormState(
 
   if (typeRef.current === null) {
     const isValid = receiptValidationSchema.safeParse(initialData).success;
-    typeRef.current = isValid
-      ? initialData.editingFinished
-        ? "splitting"
-        : "editing"
-      : "validation";
+    typeRef.current = isValid ? "splitting" : "validation";
   }
 
   const type = typeRef.current;
@@ -312,7 +303,7 @@ export function useReceiptFormState(
   const openEditModal = useCallback(
     (
       args:
-        | { type: "position"; index: number }
+        | { type: "position"; index: number; view?: "splitting" | "editing" }
         | {
             type: "modifier";
             modifierType: "fees" | "discounts";
@@ -330,6 +321,7 @@ export function useReceiptFormState(
           );
           const idx = args.index;
           setEditModalProps({
+            view: args.view ?? (type === "splitting" ? "splitting" : "editing"),
             validator: editablePositionValidationSchema,
             fields:
               type === "validation"
@@ -365,6 +357,7 @@ export function useReceiptFormState(
           const idx = args.index;
           const modType = args.modifierType;
           setEditModalProps({
+            view: "editing",
             validator: editableModifierSchema,
             fields: [
               { key: "name", label: "modifierName", type: "string" },
@@ -396,6 +389,7 @@ export function useReceiptFormState(
           const receiptSnapshot = getValues();
           const totals = structuredClone(getValues("totals"));
           setEditModalProps({
+            view: "editing",
             validator: createEditableTotalsSchema(receiptSnapshot),
             fields: [
               { key: "total", label: "total", type: "number" },
@@ -415,6 +409,7 @@ export function useReceiptFormState(
       } else if (args === "addPosition") {
         const newPosition = createDefaultPosition(0);
         setEditModalProps({
+          view: "editing",
           validator: editablePositionValidationSchema,
           fields: [
             { key: "name", label: "name", type: "string" },
@@ -424,7 +419,7 @@ export function useReceiptFormState(
               key: "overall",
               label: "overall",
               type: "number",
-              disabled: type === "editing",
+              disabled: type !== "validation",
             },
           ],
           fieldType: "position",
@@ -438,6 +433,7 @@ export function useReceiptFormState(
       } else if (args === "addFee") {
         const newFee = createDefaultModifier();
         setEditModalProps({
+          view: "editing",
           validator: editableModifierSchema,
           fields: [
             { key: "name", label: "modifierName", type: "string" },
@@ -455,6 +451,7 @@ export function useReceiptFormState(
       } else if (args === "addDiscount") {
         const newDiscount = createDefaultModifier();
         setEditModalProps({
+          view: "editing",
           validator: editableModifierSchema,
           fields: [
             { key: "name", label: "modifierName", type: "string" },
@@ -503,20 +500,9 @@ export function useReceiptFormState(
   const proceed = useCallback(() => {
     if (!formState.isValid) return;
 
-    if (type === "editing") {
+    if (type === "validation") {
       // Переход в splitting mode
-      const data = getValues();
-      setValue("editingFinished" as keyof Receipt, true as never);
-
-      apiClient
-        .updateReceipt(receiptId, { ...data, editingFinished: true })
-        .then(() => {
-          typeRef.current = "splitting";
-          setForceUpdate((v) => v + 1);
-        });
-    } else if (type === "validation") {
-      // Переход в editing mode
-      typeRef.current = "editing";
+      typeRef.current = "splitting";
       setForceUpdate((v) => v + 1);
     } else if (type === "splitting") {
       // Переход в summary mode
@@ -525,32 +511,14 @@ export function useReceiptFormState(
     }
 
     proceed$.next();
-  }, [formState.isValid, type, getValues, receiptId, setValue, proceed$]);
-
-  // -------------------------------------------------------------------------
-  // 7.5. Go back to editing logic
-  // -------------------------------------------------------------------------
-  const goBackToEditing = useCallback(() => {
-    if (type !== "splitting") return;
-    setValue("editingFinished" as keyof Receipt, false as never);
-
-    const data = getValues();
-    apiClient
-      .updateReceipt(receiptId, { ...data, editingFinished: false })
-      .then(() => {
-        typeRef.current = "editing";
-        setForceUpdate((v) => v + 1);
-      });
-  }, [type, getValues, receiptId, setValue]);
+  }, [formState.isValid, type, proceed$]);
 
   const goBack = useCallback(() => {
     if (type === "summary") {
       typeRef.current = "splitting";
       setForceUpdate((v) => v + 1);
-    } else if (type === "splitting") {
-      goBackToEditing();
     }
-  }, [type, goBackToEditing]);
+  }, [type]);
 
   // -------------------------------------------------------------------------
   // 8. Return state
@@ -564,7 +532,6 @@ export function useReceiptFormState(
     canProceed: formState.isValid,
     proceed,
     goBack,
-    goBackToEditing,
     openEditModal,
     closeModal: () => setEditModalProps(null),
     editModalProps,

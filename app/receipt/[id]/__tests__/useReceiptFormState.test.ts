@@ -78,10 +78,10 @@ describe("useReceiptFormState", () => {
     vi.clearAllMocks();
   });
 
-  it("should create editing state for a valid receipt", () => {
+  it("should create splitting state for a valid receipt", () => {
     const { result } = renderHook(() => useReceiptFormState(validReceipt));
 
-    expect(result.current.scenario.type).toBe("editing");
+    expect(result.current.scenario.type).toBe("splitting");
     expect(result.current.scenario.form).toBeDefined();
 
     // Check form values via getValues
@@ -164,22 +164,23 @@ describe("useReceiptFormState", () => {
     });
     const props = result.current.editModalProps as {
       initialValue: { id?: string; name: string };
+      fieldType: string;
+      header: string;
+      view: string;
+      onSave: () => void;
     };
     delete props.initialValue.id;
-    expect(props).toMatchInlineSnapshot(`
-          {
-            "fieldType": "position",
-            "header": "addPosition",
-            "initialValue": {
-              "claims": [],
-              "name": "",
-              "overall": 0,
-              "price": 0,
-              "quantity": 0,
-            },
-            "onSave": [Function],
-          }
-        `);
+    expect(props.fieldType).toBe("position");
+    expect(props.header).toBe("addPosition");
+    expect(props.view).toBe("editing");
+    expect(typeof props.onSave).toBe("function");
+    expect(props.initialValue).toMatchObject({
+      name: "",
+      quantity: 0,
+      price: 0,
+      overall: 0,
+      claims: [],
+    });
   });
 
   it("should emit modal props for addFee", () => {

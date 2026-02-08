@@ -39,7 +39,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Modifiers } from "@/app/receipt/components/Modifiers";
 import { formatMoney } from "@/app/receipt/utils/formatMoney";
-import { hasFormPathError } from "@/app/receipt/utils/hasFormPathError";
+import {
+  getFormPathErrorMessage,
+  hasFormPathError,
+} from "@/app/receipt/utils/hasFormPathError";
 import {
   ParticipantsStoreProvider,
   useParticipantsStore,
@@ -169,7 +172,6 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
     closeModal,
     proceed,
     goBack,
-    goBackToEditing,
     canProceed,
     editModalProps,
   } = formState;
@@ -197,7 +199,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
           open={!!editModalProps}
         >
           {editModalProps &&
-            (scenarioType === "splitting" ? (
+            (editModalProps.view === "splitting" ? (
               <SplittingSheet {...editModalProps} />
             ) : (
               <EditingSheet {...editModalProps} />
@@ -256,8 +258,19 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       errors,
                       `positions.${index}.overall`,
                     );
+                    const hasClaimsError = hasFormPathError(
+                      errors,
+                      `positions.${index}.claims`,
+                    );
+                    const claimsErrorMessage = getFormPathErrorMessage(
+                      errors,
+                      `positions.${index}.claims`,
+                    );
                     const hasRowNumberError =
-                      hasPriceError || hasQuantityError || hasOverallError;
+                      hasPriceError ||
+                      hasQuantityError ||
+                      hasOverallError ||
+                      hasClaimsError;
                     return (
                       <Card
                         key={field.id}
@@ -329,6 +342,11 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                               data={field}
                               className="mt-2 h-1 rounded-full"
                             />
+                            {hasClaimsError && claimsErrorMessage && (
+                              <p className="mt-1 text-xs text-destructive">
+                                {claimsErrorMessage}
+                              </p>
+                            )}
                           </CardContent>
                         </button>
                       </Card>
@@ -449,7 +467,6 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
             canProceed={canProceed}
             onOpenParticipants={() => setParticipantsModalOpen(true)}
             onProceed={proceed}
-            onBackToEditing={goBackToEditing}
           />
         </div>
       </FormProvider>

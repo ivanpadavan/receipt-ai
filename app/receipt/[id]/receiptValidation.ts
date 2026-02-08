@@ -104,6 +104,35 @@ export const receiptValidationSchema = receiptSchema.superRefine((value: Receipt
       });
     });
 
+    value.positions.forEach((position, index) => {
+      const nonEmptyClaims = position.claims.filter((claim) => claim.value > 0);
+      if (nonEmptyClaims.length === 0) return;
+
+      const quantityClaimsTotal = nonEmptyClaims
+        .filter((claim) => claim.type === "quantity")
+        .reduce((acc, claim) => acc + claim.value, 0);
+
+      if (quantityClaimsTotal - position.quantity > 0.01) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["positions", index, "claims"],
+          message: "Claimed quantity is greater than position quantity",
+        });
+      }
+
+      const amountClaimsTotal = nonEmptyClaims
+        .filter((claim) => claim.type === "amount")
+        .reduce((acc, claim) => acc + claim.value, 0);
+
+      if (amountClaimsTotal - position.overall > 0.01) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["positions", index, "claims"],
+          message: "Claimed amount is greater than position total",
+        });
+      }
+    });
+
     value.fees.forEach((fee, index) => {
       const parsed = editableModifierSchema.safeParse(fee);
       if (parsed.success) return;

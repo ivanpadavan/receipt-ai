@@ -22,8 +22,10 @@ const mockReceiptState = {
   scenario: {
     form: {
       control: {},
+      formState: { errors: {} },
     },
   },
+  openEditModal: vi.fn(),
 };
 
 vi.mock("../../ReceiptForm", () => ({
