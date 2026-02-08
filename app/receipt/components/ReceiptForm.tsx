@@ -32,7 +32,7 @@ import {
 } from "rxjs";
 import { receiptWithParticipantsSchema } from "@/model/receipt/schema";
 import { Drawer } from "@/components/ui/drawer";
-import { Dialog } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { isEqual } from "lodash-es";
 import { FormProvider, useWatch } from "react-hook-form";
 import { Card, CardContent } from "@/components/ui/card";
@@ -168,6 +168,9 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   const [splittingModalProps, setSplittingModalProps] =
     useState<EditModalProps | null>(null);
   const [splittingSheetOpen, setSplittingSheetOpen] = useState(false);
+  const [editingModalProps, setEditingModalProps] =
+    useState<EditModalProps | null>(null);
+  const [editingDialogOpen, setEditingDialogOpen] = useState(false);
 
   const {
     scenario: { form, canEdit, type: scenarioType },
@@ -185,6 +188,13 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
     if (editModalProps?.view === "splitting") {
       setSplittingModalProps(editModalProps);
       setSplittingSheetOpen(true);
+    }
+  }, [editModalProps]);
+
+  useEffect(() => {
+    if (editModalProps?.view === "editing") {
+      setEditingModalProps(editModalProps);
+      setEditingDialogOpen(true);
     }
   }, [editModalProps]);
 
@@ -226,13 +236,31 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
         </Drawer>
 
         <Dialog
-          open={editModalProps?.view === "editing"}
+          open={editingDialogOpen}
           onOpenChange={(open) => {
-            if (!open) closeModal();
+            if (!open) setEditingDialogOpen(false);
           }}
         >
-          {editModalProps?.view === "editing" && (
-            <EditingDialog {...editModalProps} />
+          {editingModalProps?.view === "editing" && (
+            <DialogContent
+              className="sm:max-w-xl"
+              onAnimationEnd={(e) => {
+                const state = (e.currentTarget as HTMLElement).getAttribute(
+                  "data-state",
+                );
+                if (state === "closed" && !editingDialogOpen) {
+                  setEditingModalProps(null);
+                  if (editModalProps?.view === "editing") {
+                    closeModal();
+                  }
+                }
+              }}
+            >
+              <EditingDialog
+                {...editingModalProps}
+                onRequestClose={() => setEditingDialogOpen(false)}
+              />
+            </DialogContent>
           )}
         </Dialog>
 

@@ -13,8 +13,6 @@ import {
 import { useReceiptState } from "../ReceiptForm";
 import { useRowConflict } from "./useRowConflict";
 import {
-  DialogClose,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
@@ -28,7 +26,11 @@ type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
 const isPosition = (v: EditableValue): v is ReceiptPosition =>
   "quantity" in v && "price" in v;
 
-export const EditingDialog: React.FC<EditModalProps> = ({
+type EditingDialogProps = EditModalProps & {
+  onRequestClose: () => void;
+};
+
+export const EditingDialog: React.FC<EditingDialogProps> = ({
   fields,
   validator,
   initialValue,
@@ -36,11 +38,11 @@ export const EditingDialog: React.FC<EditModalProps> = ({
   onSave,
   onRemove,
   fieldPath,
+  onRequestClose,
 }) => {
   const receiptState = useReceiptState();
   const {
     scenario: { form },
-    closeModal,
   } = receiptState;
   const { setValue } = form;
 
@@ -118,124 +120,114 @@ export const EditingDialog: React.FC<EditModalProps> = ({
 
   const handleSave = () => {
     onSave(localValue);
-    closeModal();
+    onRequestClose();
   };
 
   const handleRemove = () => {
     onRemove?.();
-    closeModal();
+    onRequestClose();
   };
 
   return (
-    <DialogContent className="sm:max-w-xl">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!isSaveDisabled) {
-            handleSave();
-          }
-        }}
-      >
-        <DialogHeader>
-          <DialogTitle className="text-center sm:text-center">
-            {t(header)}
-          </DialogTitle>
-          <DialogDescription className="sr-only">{t(header)}</DialogDescription>
-        </DialogHeader>
-        <div className="mt-4 space-y-4">
-          {conflict && (
-            <div className="rounded-md border border-amber-200 bg-amber-50 p-3">
-              <p className="text-sm text-amber-800">{conflict.message}</p>
-              {conflict.type === "modified" && (
-                <div className="mt-2 flex space-x-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => {
-                      const serverValue = resolveConflict("accept");
-                      if (serverValue && fieldPath) {
-                        setLocalValue(serverValue);
-                        setValue(fieldPath, serverValue as never, {
-                          shouldDirty: true,
-                        });
-                      }
-                    }}
-                  >
-                    {t("useServer")}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      resolveConflict("keep");
-                      if (fieldPath) {
-                        setValue(fieldPath, localValue as never, {
-                          shouldDirty: true,
-                        });
-                      }
-                    }}
-                  >
-                    {t("keepMine")}
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-          {visibleErrors.length > 0 && (
-            <div className="rounded-md border border-red-200 bg-red-50 p-3">
-              <ul className="list-disc space-y-1 pl-5">
-                {visibleErrors.map(([key, error], index) => (
-                  <li key={index} className="text-sm text-red-700">
-                    <strong>{t(key as TranslationKey)}:</strong> {error}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <FieldGroup>
-            {fields.map((field) => (
-              <FormField
-                key={field.key}
-                label={field.label}
-                value={(localValue as Record<string, unknown>)[field.key]}
-                type={field.type}
-                disabled={field.disabled}
-                hasError={
-                  errors[field.key] !== undefined &&
-                  (!hideErrorsUntilTouched || touched.has(field.key))
-                }
-                onChange={(val) => handleChange(field.key, val, field.type)}
-              />
-            ))}
-          </FieldGroup>
-        </div>
-
-        <DialogFooter className="mt-5 flex w-full items-center justify-between sm:justify-between">
-          <div>
-            {onRemove && (
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={handleRemove}
-              >
-                {t("remove")}
-              </Button>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!isSaveDisabled) {
+          handleSave();
+        }
+      }}
+    >
+      <DialogHeader>
+        <DialogTitle className="text-center sm:text-center">{t(header)}</DialogTitle>
+        <DialogDescription className="sr-only">{t(header)}</DialogDescription>
+      </DialogHeader>
+      <div className="mt-4 space-y-4">
+        {conflict && (
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-3">
+            <p className="text-sm text-amber-800">{conflict.message}</p>
+            {conflict.type === "modified" && (
+              <div className="mt-2 flex space-x-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    const serverValue = resolveConflict("accept");
+                    if (serverValue && fieldPath) {
+                      setLocalValue(serverValue);
+                      setValue(fieldPath, serverValue as never, {
+                        shouldDirty: true,
+                      });
+                    }
+                  }}
+                >
+                  {t("useServer")}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    resolveConflict("keep");
+                    if (fieldPath) {
+                      setValue(fieldPath, localValue as never, {
+                        shouldDirty: true,
+                      });
+                    }
+                  }}
+                >
+                  {t("keepMine")}
+                </Button>
+              </div>
             )}
           </div>
-          <div className="flex gap-2">
-            <DialogClose asChild>
-              <Button type="button" variant="secondary" onClick={closeModal}>
-                {t("cancel")}
-              </Button>
-            </DialogClose>
-            <Button type="submit" disabled={isSaveDisabled}>
-              {t("save")}
-            </Button>
+        )}
+        {visibleErrors.length > 0 && (
+          <div className="rounded-md border border-red-200 bg-red-50 p-3">
+            <ul className="list-disc space-y-1 pl-5">
+              {visibleErrors.map(([key, error], index) => (
+                <li key={index} className="text-sm text-red-700">
+                  <strong>{t(key as TranslationKey)}:</strong> {error}
+                </li>
+              ))}
+            </ul>
           </div>
-        </DialogFooter>
-      </form>
-    </DialogContent>
+        )}
+
+        <FieldGroup>
+          {fields.map((field) => (
+            <FormField
+              key={field.key}
+              label={field.label}
+              value={(localValue as Record<string, unknown>)[field.key]}
+              type={field.type}
+              disabled={field.disabled}
+              hasError={
+                errors[field.key] !== undefined &&
+                (!hideErrorsUntilTouched || touched.has(field.key))
+              }
+              onChange={(val) => handleChange(field.key, val, field.type)}
+            />
+          ))}
+        </FieldGroup>
+      </div>
+
+      <DialogFooter className="mt-5 flex w-full items-center justify-between sm:justify-between">
+        <div>
+          {onRemove && (
+            <Button type="button" variant="destructive" onClick={handleRemove}>
+              {t("remove")}
+            </Button>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <Button type="button" variant="secondary" onClick={onRequestClose}>
+            {t("cancel")}
+          </Button>
+          <Button type="submit" disabled={isSaveDisabled}>
+            {t("save")}
+          </Button>
+        </div>
+      </DialogFooter>
+    </form>
   );
 };
 
