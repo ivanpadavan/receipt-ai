@@ -98,4 +98,3 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
     </div>
   );
 };
-
