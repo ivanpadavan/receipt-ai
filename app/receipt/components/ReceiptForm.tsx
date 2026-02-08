@@ -214,220 +214,232 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
           />
         </Drawer>
 
-        <div className={screenCardClassName}>
-          {scenarioType === "summary" ? (
-            <SummaryScreen
-              receipt={currentReceipt}
-              receiptId={receiptId}
-              onBack={goBack}
-            />
-          ) : (
-            <>
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t("receipt")}
-                </h2>
-                {canEdit.positionForm && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 rounded-xl"
-                    onClick={() => openEditModal("addPosition")}
-                  >
-                    <Plus className="mr-1 h-4 w-4" />
-                    {t("addPosition")}
-                  </Button>
-                )}
-              </div>
-
-              <div className="space-y-3">
-                {positionFields.map((field, index) => {
-                  const hasPriceError = hasFormPathError(
-                    errors,
-                    `positions.${index}.price`,
-                  );
-                  const hasQuantityError = hasFormPathError(
-                    errors,
-                    `positions.${index}.quantity`,
-                  );
-                  const hasOverallError = hasFormPathError(
-                    errors,
-                    `positions.${index}.overall`,
-                  );
-                  const hasRowNumberError =
-                    hasPriceError || hasQuantityError || hasOverallError;
-                  return (
-                    <Card
-                      key={field.id}
-                      variant="interactive"
-                      shadow={canEdit.positionForm ? "md" : "sm"}
-                      interactive={!!canEdit.positionForm}
-                      className="overflow-hidden"
+        <div className="min-h-[100dvh] flex flex-col justify-between">
+          <div className={screenCardClassName}>
+            {scenarioType === "summary" ? (
+              <SummaryScreen
+                receipt={currentReceipt}
+                receiptId={receiptId}
+                onBack={goBack}
+              />
+            ) : (
+              <>
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                    {t("receipt")}
+                  </h2>
+                  {canEdit.positionForm && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-9 rounded-xl"
+                      onClick={() => openEditModal("addPosition")}
                     >
+                      <Plus className="mr-1 h-4 w-4" />
+                      {t("addPosition")}
+                    </Button>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  {positionFields.map((field, index) => {
+                    const hasPriceError = hasFormPathError(
+                      errors,
+                      `positions.${index}.price`,
+                    );
+                    const hasQuantityError = hasFormPathError(
+                      errors,
+                      `positions.${index}.quantity`,
+                    );
+                    const hasOverallError = hasFormPathError(
+                      errors,
+                      `positions.${index}.overall`,
+                    );
+                    const hasRowNumberError =
+                      hasPriceError || hasQuantityError || hasOverallError;
+                    return (
+                      <Card
+                        key={field.id}
+                        variant="interactive"
+                        shadow={canEdit.positionForm ? "md" : "sm"}
+                        interactive={!!canEdit.positionForm}
+                        className="overflow-hidden"
+                      >
+                        <button
+                          type="button"
+                          onClick={() =>
+                            canEdit.positionForm &&
+                            openEditModal({ type: "position", index })
+                          }
+                          className={
+                            canEdit.positionForm
+                              ? "w-full cursor-pointer text-left"
+                              : "w-full cursor-default text-left"
+                          }
+                        >
+                          <CardContent className="py-1.5 px-4">
+                            <div
+                              className={`flex items-center gap-3 ${
+                                hasRowNumberError ? "text-destructive" : ""
+                              }`}
+                            >
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-base font-bold text-foreground">
+                                  {field.name}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  <span
+                                    className={
+                                      hasPriceError ? "text-destructive" : ""
+                                    }
+                                  >
+                                    {formatMoney(field.price)}
+                                  </span>{" "}
+                                  x{" "}
+                                  <span
+                                    className={
+                                      hasQuantityError ? "text-destructive" : ""
+                                    }
+                                  >
+                                    {field.quantity}
+                                  </span>
+                                </p>
+                              </div>
+                              <span
+                                className={`rounded-lg border bg-card px-2 py-1 text-xs font-medium ${
+                                  hasQuantityError
+                                    ? "border-destructive text-destructive"
+                                    : "border-border/70 text-muted-foreground"
+                                }`}
+                              >
+                                {field.quantity}x
+                              </span>
+                              <span
+                                className={`text-base font-semibold ${
+                                  hasOverallError
+                                    ? "text-destructive"
+                                    : "text-foreground"
+                                }`}
+                              >
+                                {formatMoney(field.overall)}
+                              </span>
+                            </div>
+                          </CardContent>
+                        </button>
+                      </Card>
+                    );
+                  })}
+                </div>
+
+                <Card
+                  variant="summary"
+                  shadow="md"
+                  className="mt-4 rounded-2xl"
+                >
+                  <CardContent className="py-1.5 px-4">
+                    <div>
+                      {currentReceipt.discounts.length > 0 ||
+                        (currentReceipt.fees.length > 0 && (
+                          <>
+                            <div className="gap-1">
+                              {currentReceipt.discounts.length > 0 && (
+                                <Modifiers type="discounts" />
+                              )}
+                              {currentReceipt.fees.length > 0 && (
+                                <Modifiers type="fees" />
+                              )}
+                            </div>
+                            <div className="my-3 border-t border-border/70" />
+                          </>
+                        ))}
+
                       <button
                         type="button"
+                        className={`mt-3 flex w-full items-center justify-between rounded-md px-1 py-1 text-sm ${
+                          canEdit.totalsForm
+                            ? "cursor-pointer hover:bg-muted/45"
+                            : "cursor-default"
+                        }`}
                         onClick={() =>
-                          canEdit.positionForm &&
-                          openEditModal({ type: "position", index })
-                        }
-                        className={
-                          canEdit.positionForm
-                            ? "w-full cursor-pointer text-left"
-                            : "w-full cursor-default text-left"
+                          canEdit.totalsForm &&
+                          openEditModal({ type: "totals" })
                         }
                       >
-                        <CardContent className="p-4">
-                          <div
-                            className={`flex items-center gap-3 ${
-                              hasRowNumberError ? "text-destructive" : ""
-                            }`}
-                          >
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-base font-bold text-foreground">
-                                {field.name}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                <span
-                                  className={
-                                    hasPriceError ? "text-destructive" : ""
-                                  }
-                                >
-                                  {formatMoney(field.price)}
-                                </span>{" "}
-                                x{" "}
-                                <span
-                                  className={
-                                    hasQuantityError ? "text-destructive" : ""
-                                  }
-                                >
-                                  {field.quantity}
-                                </span>
-                              </p>
-                            </div>
-                            <span
-                              className={`rounded-lg border bg-card px-2 py-1 text-xs font-medium ${
-                                hasQuantityError
-                                  ? "border-destructive text-destructive"
-                                  : "border-border/70 text-muted-foreground"
-                              }`}
-                            >
-                              {field.quantity}x
-                            </span>
-                            <span
-                              className={`text-base font-semibold ${
-                                hasOverallError
-                                  ? "text-destructive"
-                                  : "text-foreground"
-                              }`}
-                            >
-                              {formatMoney(field.overall)}
-                            </span>
-                          </div>
-                        </CardContent>
+                        <span className="text-muted-foreground">
+                          {t("total")}
+                        </span>
+                        <span
+                          className={
+                            hasFormPathError(errors, "totals.total")
+                              ? "font-semibold text-destructive"
+                              : "font-semibold"
+                          }
+                        >
+                          {formatMoney(currentReceipt.totals.total)}
+                        </span>
                       </button>
-                    </Card>
-                  );
-                })}
-              </div>
-
-              <Card variant="summary" shadow="md" className="mt-4 rounded-2xl">
-                <CardContent className="p-4">
-                  {canEdit.modifierForm && (
-                    <div className="mb-3 flex flex-wrap gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 rounded-lg"
-                        onClick={() => openEditModal("addDiscount")}
-                      >
-                        <Plus className="mr-1 h-3.5 w-3.5" />
-                        {t("addDiscount")}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 rounded-lg"
-                        onClick={() => openEditModal("addFee")}
-                      >
-                        <Plus className="mr-1 h-3.5 w-3.5" />
-                        {t("addFee")}
-                      </Button>
-                    </div>
-                  )}
-
-                  <div>
-                    <div className="gap-1">
-                      {currentReceipt.discounts.length > 0 && (
-                        <Modifiers type="discounts" />
-                      )}
-                      {currentReceipt.fees.length > 0 && (
-                        <Modifiers type="fees" />
-                      )}
-                    </div>
-                    <div className="my-3 border-t border-border/70" />
-                    <button
-                      type="button"
-                      className={`mt-3 flex w-full items-center justify-between rounded-md px-1 py-1 text-sm ${
-                        canEdit.totalsForm
-                          ? "cursor-pointer hover:bg-muted/45"
-                          : "cursor-default"
-                      }`}
-                      onClick={() =>
-                        canEdit.totalsForm && openEditModal({ type: "totals" })
-                      }
-                    >
-                      <span className="text-muted-foreground">
-                        {t("total")}
-                      </span>
-                      <span
-                        className={
-                          hasFormPathError(errors, "totals.total")
-                            ? "font-semibold text-destructive"
-                            : "font-semibold"
+                      <button
+                        type="button"
+                        className={`flex w-full items-center justify-between rounded-md px-1 py-1 ${
+                          canEdit.totalsForm
+                            ? "cursor-pointer hover:bg-muted/45"
+                            : "cursor-default"
+                        }`}
+                        onClick={() =>
+                          canEdit.totalsForm &&
+                          openEditModal({ type: "totals" })
                         }
                       >
-                        {formatMoney(currentReceipt.totals.total)}
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      className={`flex w-full items-center justify-between rounded-md px-1 py-1 ${
-                        canEdit.totalsForm
-                          ? "cursor-pointer hover:bg-muted/45"
-                          : "cursor-default"
-                      }`}
-                      onClick={() =>
-                        canEdit.totalsForm && openEditModal({ type: "totals" })
-                      }
-                    >
-                      <span className="text-base font-semibold">
-                        {t("grandTotal")}
-                      </span>
-                      <span
-                        className={
-                          hasFormPathError(errors, "totals.grandTotal")
-                            ? "text-2xl font-bold text-destructive"
-                            : "text-2xl font-bold"
-                        }
-                      >
-                        {formatMoney(currentReceipt.totals.grandTotal)}
-                      </span>
-                    </button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <ReceiptActionBar
-                receiptId={receiptId}
-                isSplitting={scenarioType === "splitting"}
-                participantsCount={participantsCount}
-                canProceed={canProceed}
-                onOpenParticipants={() => setParticipantsModalOpen(true)}
-                onProceed={proceed}
-                onBackToEditing={goBackToEditing}
-              />
-            </>
-          )}
+                        <span className="text-base font-semibold">
+                          {t("grandTotal")}
+                        </span>
+                        <span
+                          className={
+                            hasFormPathError(errors, "totals.grandTotal")
+                              ? "text-2xl font-bold text-destructive"
+                              : "text-2xl font-bold"
+                          }
+                        >
+                          {formatMoney(currentReceipt.totals.grandTotal)}
+                        </span>
+                      </button>
+                    </div>
+                    {canEdit.modifierForm && (
+                      <div className="mb-3 flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 rounded-lg"
+                          onClick={() => openEditModal("addDiscount")}
+                        >
+                          <Plus className="mr-1 h-3.5 w-3.5" />
+                          {t("addDiscount")}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 rounded-lg"
+                          onClick={() => openEditModal("addFee")}
+                        >
+                          <Plus className="mr-1 h-3.5 w-3.5" />
+                          {t("addFee")}
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </div>
+          <ReceiptActionBar
+            receiptId={receiptId}
+            isSplitting={scenarioType === "splitting"}
+            participantsCount={participantsCount}
+            canProceed={canProceed}
+            onOpenParticipants={() => setParticipantsModalOpen(true)}
+            onProceed={proceed}
+            onBackToEditing={goBackToEditing}
+          />
         </div>
       </FormProvider>
     </ReceiptFormContext.Provider>

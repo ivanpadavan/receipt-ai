@@ -31,7 +31,7 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
   onBackToEditing,
 }) => {
   return (
-    <div className="sticky bottom-3 z-10 mt-5">
+    <div className="sticky mb-3 bottom-3 z-10 mx-auto w-full max-w-3xl">
       <div className="ml-auto w-full rounded-[32px] border border-white/70 bg-white/35 p-2 shadow-[0_24px_48px_rgba(15,23,42,0.20)] backdrop-blur-2xl">
         <div className="flex items-center justify-between gap-3">
           <ButtonGroup
