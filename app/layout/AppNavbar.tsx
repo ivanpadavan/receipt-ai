@@ -69,7 +69,7 @@ export const AppNavbar = () => {
 
           {/* Menu button - only visible on mobile */}
           <div className="flex items-center md:hidden">
-            {!isAuthenticated && <GoogleLogin onSuccess={handleSignIn} />}
+            {!isAuthenticated && <GoogleLogin shape="circle" containerProps={{className: 'mr-3'}} type="icon" onSuccess={handleSignIn} />}
             <Button
               variant="ghost"
               className="text-foreground hover:bg-accent hover:text-accent-foreground"
@@ -154,6 +154,7 @@ export const AppNavbar = () => {
             ) : (
               <GoogleLogin
                 containerProps={{ className: "hidden md:flex" }}
+                shape="pill"
                 onSuccess={handleSignIn}
               />
             )}
