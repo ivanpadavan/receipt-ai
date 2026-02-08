@@ -2,10 +2,10 @@
 
 import { t } from "@/app/i18n/translations";
 import {
+  EditModalProps,
   ReceiptState,
   useReceiptFormState,
 } from "@/app/receipt/[id]/useReceiptFormState";
-import { Button } from "@/components/ui/button";
 import { forceSync, useObservable } from "@/hooks/rx/useObservable";
 import { Receipt, ReceiptWithParticipants } from "@/model/receipt/model";
 import React, {
@@ -15,7 +15,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { EditingSheet } from "@/app/receipt/components/EdititngSheet/EditingSheet";
+import { EditingDialog } from "@/app/receipt/components/EdititngSheet/EditingDialog";
 import { SplittingSheet } from "@/app/receipt/components/SplittingSheet/SplittingSheet";
 import { ParticipantsSheet } from "@/app/receipt/components/ParticipantsSheet";
 import { SummaryScreen } from "@/app/receipt/components/SummaryScreen/SummaryScreen";
@@ -32,9 +32,9 @@ import {
 } from "rxjs";
 import { receiptWithParticipantsSchema } from "@/model/receipt/schema";
 import { Drawer } from "@/components/ui/drawer";
+import { Dialog } from "@/components/ui/dialog";
 import { isEqual } from "lodash-es";
 import { FormProvider, useWatch } from "react-hook-form";
-import { Plus } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Modifiers } from "@/app/receipt/components/Modifiers";
@@ -165,6 +165,9 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   const formState = useReceiptFormState(receipt, receiptId);
 
   const [participantsModalOpen, setParticipantsModalOpen] = useState(false);
+  const [splittingModalProps, setSplittingModalProps] =
+    useState<EditModalProps | null>(null);
+  const [splittingSheetOpen, setSplittingSheetOpen] = useState(false);
 
   const {
     scenario: { form, canEdit, type: scenarioType },
@@ -177,6 +180,20 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   } = formState;
 
   const UiGate = useJoinFlowOverlay(scenarioType, receiptId);
+
+  useEffect(() => {
+    if (editModalProps?.view === "splitting") {
+      setSplittingModalProps(editModalProps);
+      setSplittingSheetOpen(true);
+    }
+  }, [editModalProps]);
+
+  useEffect(() => {
+    if (scenarioType !== "splitting") {
+      setSplittingSheetOpen(false);
+      setSplittingModalProps(null);
+    }
+  }, [scenarioType]);
 
   // Get field array for positions
   const positionFields = useWatch({
@@ -193,18 +210,31 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
     <ReceiptFormContext.Provider value={formState}>
       <FormProvider {...form}>
         {UiGate}
-        {/* Edit Modal Drawer */}
         <Drawer
-          onCloseAnimationEnd={() => closeModal()}
-          open={!!editModalProps}
+          onCloseAnimationEnd={() => {
+            setSplittingSheetOpen(false);
+            setSplittingModalProps(null);
+            if (editModalProps?.view === "splitting") {
+              closeModal();
+            }
+          }}
+          open={splittingSheetOpen}
         >
-          {editModalProps &&
-            (editModalProps.view === "splitting" ? (
-              <SplittingSheet {...editModalProps} />
-            ) : (
-              <EditingSheet {...editModalProps} />
-            ))}
+          {splittingModalProps?.view === "splitting" && (
+            <SplittingSheet {...splittingModalProps} />
+          )}
         </Drawer>
+
+        <Dialog
+          open={editModalProps?.view === "editing"}
+          onOpenChange={(open) => {
+            if (!open) closeModal();
+          }}
+        >
+          {editModalProps?.view === "editing" && (
+            <EditingDialog {...editModalProps} />
+          )}
+        </Dialog>
 
         {/* Participants Modal Drawer */}
         <Drawer
@@ -231,17 +261,6 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                   <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                     {t("receipt")}
                   </h2>
-                  {canEdit.positionForm === true && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-9 rounded-xl"
-                      onClick={() => openEditModal("addPosition")}
-                    >
-                      <Plus className="mr-1 h-4 w-4" />
-                      {t("addPosition")}
-                    </Button>
-                  )}
                 </div>
 
                 <div className="space-y-1.5">
@@ -427,28 +446,6 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                         </span>
                       </button>
                     </div>
-                    {canEdit.modifierForm && (
-                      <div className="mb-3 flex flex-wrap gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 rounded-lg"
-                          onClick={() => openEditModal("addDiscount")}
-                        >
-                          <Plus className="mr-1 h-3.5 w-3.5" />
-                          {t("addDiscount")}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 rounded-lg"
-                          onClick={() => openEditModal("addFee")}
-                        >
-                          <Plus className="mr-1 h-3.5 w-3.5" />
-                          {t("addFee")}
-                        </Button>
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
               </>
@@ -467,6 +464,13 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
             canProceed={canProceed}
             onOpenParticipants={() => setParticipantsModalOpen(true)}
             onProceed={proceed}
+            onAddPosition={
+              canEdit.positionForm ? () => openEditModal("addPosition") : undefined
+            }
+            onAddDiscount={
+              canEdit.modifierForm ? () => openEditModal("addDiscount") : undefined
+            }
+            onAddFee={canEdit.modifierForm ? () => openEditModal("addFee") : undefined}
           />
         </div>
       </FormProvider>

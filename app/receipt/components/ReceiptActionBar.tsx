@@ -9,7 +9,13 @@ import {
   ButtonGroupSeparator,
 } from "@/components/ui/button-group";
 import { iconButtonVariants, iconGroupVariants } from "@/app/receipt/components/ui-styles";
-import { Users } from "lucide-react";
+import { Pencil, Plus, Users } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ReceiptActionBarProps {
   receiptId: string;
@@ -18,6 +24,9 @@ interface ReceiptActionBarProps {
   canProceed: boolean;
   onOpenParticipants: () => void;
   onProceed: () => void;
+  onAddPosition?: () => void;
+  onAddDiscount?: () => void;
+  onAddFee?: () => void;
 }
 
 export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
@@ -27,7 +36,12 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
   canProceed,
   onOpenParticipants,
   onProceed,
+  onAddPosition,
+  onAddDiscount,
+  onAddFee,
 }) => {
+  const canEditActions = !!(onAddPosition || onAddDiscount || onAddFee);
+
   return (
     <div className="sticky mb-3 bottom-3 z-10 mx-auto w-full max-w-3xl">
       <div className="ml-auto w-full rounded-[32px] border border-white/70 bg-white/35 p-2 shadow-[0_24px_48px_rgba(15,23,42,0.20)] backdrop-blur-2xl">
@@ -35,6 +49,47 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
           <ButtonGroup
             className={`justify-center ${iconGroupVariants({ density: "compact" })}`}
           >
+            {canEditActions && (
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={iconButtonVariants({
+                        size: "liquid",
+                        tone: "muted",
+                      })}
+                      title={t("edit")}
+                      aria-label={t("edit")}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" side="top" sideOffset={10}>
+                    {onAddPosition && (
+                      <DropdownMenuItem onClick={onAddPosition}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        {t("addPosition")}
+                      </DropdownMenuItem>
+                    )}
+                    {onAddDiscount && (
+                      <DropdownMenuItem onClick={onAddDiscount}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        {t("addDiscount")}
+                      </DropdownMenuItem>
+                    )}
+                    {onAddFee && (
+                      <DropdownMenuItem onClick={onAddFee}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        {t("addFee")}
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <ButtonGroupSeparator className="mx-1 h-5 opacity-30" />
+              </>
+            )}
             <Button
               variant="ghost"
               size="sm"
