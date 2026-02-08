@@ -25,12 +25,11 @@ import {
 
 interface ReceiptActionBarProps {
   receiptId: string;
-  isSplitting: boolean;
-  proceedLabel: TranslationKey;
+  primaryLabel: TranslationKey;
   participantsCount: number;
   canProceed: boolean;
   onOpenParticipants: () => void;
-  onProceed: () => void;
+  onPrimaryAction: () => void;
   onAddPosition?: () => void;
   onAddDiscount?: () => void;
   onAddFee?: () => void;
@@ -38,12 +37,11 @@ interface ReceiptActionBarProps {
 
 export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
   receiptId,
-  isSplitting,
-  proceedLabel,
+  primaryLabel,
   participantsCount,
   canProceed,
   onOpenParticipants,
-  onProceed,
+  onPrimaryAction,
   onAddPosition,
   onAddDiscount,
   onAddFee,
@@ -129,11 +127,11 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
           </ButtonGroup>
 
           <Button
-            onClick={onProceed}
+            onClick={onPrimaryAction}
             disabled={!canProceed}
             className="h-12 rounded-full px-7 text-base font-semibold shadow-[0_14px_30px_rgba(249,115,22,0.36)]"
           >
-            {isSplitting ? t("done") : t(proceedLabel)}
+            {t(primaryLabel)}
           </Button>
         </div>
       </div>

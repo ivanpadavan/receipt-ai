@@ -216,8 +216,11 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   const screenCardClassName =
     "mx-auto my-3 w-full max-w-3xl rounded-3xl border border-border/70 bg-card p-4 text-foreground shadow-[0_14px_38px_rgba(15,23,42,0.10)] md:p-5";
   const reviewToastId = `receipt-review-${receiptId}`;
-  const proceedLabel: TranslationKey =
-    scenarioType === "validation" ? "toSplitting" : "proceed";
+  const primaryLabel: TranslationKey =
+    scenarioType === "splitting"
+        ? "done"
+        : "toSplitting";
+  const canPrimaryAction = scenarioType === "summary" ? true : canProceed;
 
   useEffect(() => {
     if (scenarioType === "validation") {
@@ -495,20 +498,21 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
               </>
             )}
           </div>
-          <div className="sticky bottom-[5.50rem] z-10 mx-auto mb-1 w-full max-w-3xl px-2">
-            <DistributionBar
-              data={currentReceipt}
-              className="h-1.5 rounded-full border border-white/70 bg-white/55 backdrop-blur-xl"
-            />
-          </div>
+          {scenarioType !== "summary" && (
+            <div className="sticky bottom-[5.50rem] z-10 mx-auto mb-1 w-full max-w-3xl px-2">
+              <DistributionBar
+                data={currentReceipt}
+                className="h-1.5 rounded-full border border-white/70 bg-white/55 backdrop-blur-xl"
+              />
+            </div>
+          )}
           <ReceiptActionBar
             receiptId={receiptId}
-            isSplitting={scenarioType === "splitting"}
-            proceedLabel={proceedLabel}
+            primaryLabel={primaryLabel}
             participantsCount={participantsCount}
-            canProceed={canProceed}
+            canProceed={canPrimaryAction}
             onOpenParticipants={() => setParticipantsModalOpen(true)}
-            onProceed={proceed}
+            onPrimaryAction={scenarioType === "summary" ? goBack : proceed}
             onAddPosition={
               canEdit.positionForm ? () => openEditModal("addPosition") : undefined
             }
