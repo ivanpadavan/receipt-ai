@@ -182,7 +182,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
     editModalProps,
   } = formState;
 
-  const UiGate = useJoinFlowOverlay(scenarioType, receiptId);
+  const JoinFlow = useJoinFlowOverlay(scenarioType, receiptId);
 
   useEffect(() => {
     if (editModalProps?.view === "splitting") {
@@ -238,7 +238,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   return (
     <ReceiptFormContext.Provider value={formState}>
       <FormProvider {...form}>
-        {UiGate}
+        {JoinFlow}
         <Drawer
           onCloseAnimationEnd={() => {
             setSplittingSheetOpen(false);
