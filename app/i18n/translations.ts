@@ -10,6 +10,7 @@ const ru = {
   total: "Итого:",
   grandTotal: "С учетом скидок и сборов:",
   proceed: "Продолжить",
+  toSplitting: "Распределить",
 
   // Modifiers section titles
   discounts: "Скидки",
@@ -89,6 +90,8 @@ const ru = {
   shareViaSystem: "Поделиться",
   sseDisconnected: "Потеряно соединение с сервером",
   sseReconnected: "Соединение восстановлено",
+  receiptNeedsReview:
+    "Чек распознан не полностью. Проверьте и исправьте данные перед распределением.",
   receiptScannerTitle: "Сканер чеков",
   receiptImageAlt: "Изображение чека",
   clearImage: "Очистить изображение",
@@ -150,6 +153,7 @@ const en: Translations = {
   total: "Total:",
   grandTotal: "Grand Total:",
   proceed: "Proceed",
+  toSplitting: "Split",
 
   // Modifiers section titles
   discounts: "Discounts",
@@ -229,6 +233,8 @@ const en: Translations = {
   shareViaSystem: "Share",
   sseDisconnected: "Connection to server lost",
   sseReconnected: "Connection restored",
+  receiptNeedsReview:
+    "Receipt was parsed partially. Please review and fix values before splitting.",
   receiptScannerTitle: "Receipt Scanner",
   receiptImageAlt: "Receipt image",
   clearImage: "Clear image",

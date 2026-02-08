@@ -1,6 +1,6 @@
 "use client";
 
-import { t } from "@/app/i18n/translations";
+import { t, TranslationKey } from "@/app/i18n/translations";
 import {
   EditModalProps,
   ReceiptState,
@@ -215,6 +215,22 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   const { errors } = form.formState;
   const screenCardClassName =
     "mx-auto my-3 w-full max-w-3xl rounded-3xl border border-border/70 bg-card p-4 text-foreground shadow-[0_14px_38px_rgba(15,23,42,0.10)] md:p-5";
+  const reviewToastId = `receipt-review-${receiptId}`;
+  const proceedLabel: TranslationKey =
+    scenarioType === "validation" ? "toSplitting" : "proceed";
+
+  useEffect(() => {
+    if (scenarioType === "validation") {
+      toast(t("receiptNeedsReview"), {
+        id: reviewToastId,
+        duration: Infinity,
+        closeButton: true,
+      });
+      return;
+    }
+
+    toast.dismiss(reviewToastId);
+  }, [scenarioType, reviewToastId]);
 
   return (
     <ReceiptFormContext.Provider value={formState}>
@@ -488,6 +504,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
           <ReceiptActionBar
             receiptId={receiptId}
             isSplitting={scenarioType === "splitting"}
+            proceedLabel={proceedLabel}
             participantsCount={participantsCount}
             canProceed={canProceed}
             onOpenParticipants={() => setParticipantsModalOpen(true)}

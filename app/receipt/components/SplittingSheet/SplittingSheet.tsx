@@ -370,30 +370,6 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       <DrawerTitle className="px-4 pt-4 text-center">
         {localPosition.name}
       </DrawerTitle>
-      {positionIndex >= 0 && (
-        <div className="px-4 pt-1 pb-2 flex justify-end">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className={cn(
-              iconSoloVariants({ size: "compact" }),
-              iconButtonVariants({ size: "compact", tone: "muted" }),
-            )}
-            onClick={() =>
-              openEditModal({
-                type: "position",
-                index: positionIndex,
-                view: "editing",
-              })
-            }
-            aria-label={t("edit")}
-            title={t("edit")}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
 
       <div className="px-4 py-2 text-center text-sm text-muted-foreground flex flex-col items-center gap-1">
         <div>
@@ -530,14 +506,37 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
             className="h-3 rounded-full"
           />
         </div>
-        <DrawerClose asChild>
+        <div className="flex gap-2">
           <Button
-            onClick={handleDone}
-            disabled={totalClaimed > localPosition.overall + 0.01}
+            type="button"
+            variant="ghost"
+            size="icon"
+            className={cn(
+              iconSoloVariants({ size: "compact" }),
+              iconButtonVariants({ size: "compact", tone: "muted" }),
+            )}
+            onClick={() =>
+              openEditModal({
+                type: "position",
+                index: positionIndex,
+                view: "editing",
+              })
+            }
+            aria-label={t("edit")}
+            title={t("edit")}
           >
-            {t("done")}
+            <Pencil className="h-4 w-4" />
           </Button>
-        </DrawerClose>
+          <DrawerClose asChild>
+            <Button
+              className="grow"
+              onClick={handleDone}
+              disabled={totalClaimed > localPosition.overall + 0.01}
+            >
+              {t("done")}
+            </Button>
+          </DrawerClose>
+        </div>
       </DrawerFooter>
     </DrawerContent>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { t } from "@/app/i18n/translations";
+import { t, TranslationKey } from "@/app/i18n/translations";
 import { Button } from "@/components/ui/button";
 import { ShareReceiptDialog } from "@/app/receipt/components/ShareReceiptDialog";
 import {
@@ -26,6 +26,7 @@ import {
 interface ReceiptActionBarProps {
   receiptId: string;
   isSplitting: boolean;
+  proceedLabel: TranslationKey;
   participantsCount: number;
   canProceed: boolean;
   onOpenParticipants: () => void;
@@ -38,6 +39,7 @@ interface ReceiptActionBarProps {
 export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
   receiptId,
   isSplitting,
+  proceedLabel,
   participantsCount,
   canProceed,
   onOpenParticipants,
@@ -131,7 +133,7 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
             disabled={!canProceed}
             className="h-12 rounded-full px-7 text-base font-semibold shadow-[0_14px_30px_rgba(249,115,22,0.36)]"
           >
-            {isSplitting ? t("done") : t("proceed")}
+            {isSplitting ? t("done") : t(proceedLabel)}
           </Button>
         </div>
       </div>

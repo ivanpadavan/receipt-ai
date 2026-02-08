@@ -217,7 +217,7 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
         </FieldGroup>
       </div>
 
-      <div className="mt-5 flex w-full items-center justify-between sm:justify-between">
+      <div className="mt-5 flex w-full items-center gap-2">
           {onRemove && (
             <Button
               type="button"
@@ -234,7 +234,7 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
               <Trash2 className="h-4 w-4" />
             </Button>
           )}
-          <Button type="submit" disabled={isSaveDisabled}>
+          <Button type="submit" disabled={isSaveDisabled} className="grow">
             {t("save")}
           </Button>
       </div>
