@@ -12,15 +12,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { ButtonGroup, ButtonGroupSeparator } from "@/components/ui/button-group";
 import { useReceiptState } from "../ReceiptForm";
-import { Check, Pencil, Trash2, MoreVertical } from "lucide-react";
+import { Check, Pencil, Trash2, MoreVertical, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +30,7 @@ import {
 import { cn } from "@/utils/cn";
 import { ParticipantAvatar } from "@/components/ui/participant-avatar";
 import { DistributionBar } from "./DistributionBar";
+import { DistributionStatus } from "@/app/receipt/components/DistributionStatus";
 import {
   ParticipantDTO,
   ReceiptPosition,
@@ -94,30 +88,44 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
         }}
       />
 
-      {/* Type Select */}
-      <Select
-        value={claim.type}
-        onValueChange={(v: "quantity" | "amount") =>
-          onUpdate({ ...claim, type: v })
-        }
-      >
-        <SelectTrigger className="w-[140px] h-9 bg-background">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="quantity">{t("quantity")}</SelectItem>
-          <SelectItem value="amount">{t("amount")}</SelectItem>
-        </SelectContent>
-      </Select>
+      {/* Type Switch */}
+      <div className="flex items-center rounded-full border border-border/60 bg-muted/30 p-1 shadow-sm">
+        <button
+          type="button"
+          className={cn(
+            "h-8 w-16 rounded-full text-xs font-semibold transition",
+            claim.type === "quantity"
+              ? "bg-white text-foreground shadow"
+              : "text-muted-foreground",
+          )}
+          aria-pressed={claim.type === "quantity"}
+          onClick={() => onUpdate({ ...claim, type: "quantity" })}
+        >
+          ШТ
+        </button>
+        <button
+          type="button"
+          className={cn(
+            "h-8 w-16 rounded-full text-xs font-semibold transition",
+            claim.type === "amount"
+              ? "bg-white text-foreground shadow"
+              : "text-muted-foreground",
+          )}
+          aria-pressed={claim.type === "amount"}
+          onClick={() => onUpdate({ ...claim, type: "amount" })}
+        >
+          ₽
+        </button>
+      </div>
       {/* Actions */}
       <ButtonGroup className={iconGroupVariants({ density: "compact" })}>
         <Button
           variant="ghost"
           size="icon"
-          className={iconButtonVariants({ size: "compact", tone: "danger" })}
+          className={iconButtonVariants({ size: "compact", tone: "muted" })}
           onClick={onCancel}
         >
-          <Trash2 className="h-4 w-4" />
+          <X className="h-4 w-4" />
         </Button>
         <ButtonGroupSeparator className="mx-0 h-5 opacity-30" />
         <Button
@@ -379,19 +387,10 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
           </span>
         </div>
 
-        {/* Validation Status */}
-        {totalClaimed > localPosition.overall + 0.01 && (
-          <div className="text-destructive font-medium text-xs bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
-            {t("overpaid")}: {(totalClaimed - localPosition.overall).toFixed(2)}{" "}
-            ₽
-          </div>
-        )}
-        {totalClaimed < localPosition.overall - 0.01 && (
-          <div className="text-amber-600 font-medium text-xs bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-            {t("remaining")}:{" "}
-            {(localPosition.overall - totalClaimed).toFixed(2)} ₽
-          </div>
-        )}
+        <DistributionStatus
+          distributed={totalClaimed}
+          total={localPosition.overall}
+        />
         {hasClaimsError && claimsErrorMessage && (
           <div className="text-destructive font-medium text-xs bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
             {claimsErrorMessage}

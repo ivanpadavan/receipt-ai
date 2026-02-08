@@ -5,11 +5,9 @@ import { Receipt } from "@/model/receipt/model";
 import { calculateBalances } from "@/app/receipt/utils/calculator";
 import { t } from "@/app/i18n/translations";
 import { ParticipantAvatar } from "@/components/ui/participant-avatar";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, AlertCircle } from "lucide-react";
-import { cn } from "@/utils/cn";
+import { AlertCircle } from "lucide-react";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
-import { ShareReceiptDialog } from "@/app/receipt/components/ShareReceiptDialog";
+import { DistributionStatus } from "@/app/receipt/components/DistributionStatus";
 
 interface SummaryScreenProps {
   receipt: Receipt;
@@ -54,20 +52,14 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
           <span className="text-2xl text-muted-foreground">₽</span>
         </div>
 
-        {/* Remaining Warning */}
+        {/* Remaining Indicator */}
         {Math.abs(remaining) > 1 && (
-          <div
-            className={cn(
-              "mt-4 flex items-center justify-center gap-2 text-sm font-medium px-3 py-1 rounded-full",
-              remaining > 0
-                ? "bg-amber-100 text-amber-700"
-                : "bg-red-100 text-red-700",
-            )}
-          >
-            <AlertCircle className="h-4 w-4" />
-            {remaining > 0
-              ? `${t("remaining")}: ${remaining.toFixed(0)} ₽`
-              : `${t("overpaid")}: ${Math.abs(remaining).toFixed(0)} ₽`}
+          <div className="mt-4 flex justify-center">
+            <DistributionStatus
+              distributed={distributedTotal}
+              total={realGrandTotal}
+              precision={0}
+            />
           </div>
         )}
       </div>
