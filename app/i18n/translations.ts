@@ -115,6 +115,24 @@ const ru = {
   signOut: "Выйти",
   genericTryAgain: "Что-то пошло не так. Попробуйте еще раз.",
   genericTryAgainLater: "Что-то пошло не так. Попробуйте позже.",
+  validationNameRequired: "Название не должно быть пустым",
+  validationPricePositive: "Цена должна быть больше 0",
+  validationQuantityPositive: "Количество должно быть больше 0",
+  validationOverallPositive: "Сумма должна быть больше 0",
+  validationOverallMatchesQuantityPrice:
+    "Сумма должна совпадать с цена × количество",
+  validationModifierValuePositive: "Значение должно быть больше 0",
+  validationTotalPositive: "Итог должен быть больше 0",
+  validationGrandTotalPositive: "Итог с учетом скидок и сборов должен быть больше 0",
+  validationTotalMismatchPrefix: "Итог",
+  validationTotalMismatchSuffix: "не совпадает с суммой позиций",
+  validationGrandTotalExpectedPrefix: "С учетом скидок и сборов должно быть",
+  validationClaimedQuantityExceeds:
+    "Распределенное количество больше количества позиции",
+  validationClaimedAmountExceeds: "Распределенная сумма больше суммы позиции",
+  validationFinalGrandTotalMismatchPrefix:
+    "Итог с учетом скидок и сборов",
+  validationFinalGrandTotalMismatchSuffix: "не совпадает с расчетным значением",
 };
 
 export type TranslationKey = keyof typeof ru;
@@ -237,6 +255,24 @@ const en: Translations = {
   signOut: "Sign out",
   genericTryAgain: "Something went wrong. Please try again.",
   genericTryAgainLater: "Something went wrong. Please try again later.",
+  validationNameRequired: "Name should not be empty",
+  validationPricePositive: "Price should be greater than 0",
+  validationQuantityPositive: "Quantity should be greater than 0",
+  validationOverallPositive: "Overall should be greater than 0",
+  validationOverallMatchesQuantityPrice:
+    "Overall should match quantity × price",
+  validationModifierValuePositive: "Value should be greater than 0",
+  validationTotalPositive: "Total should be greater than 0",
+  validationGrandTotalPositive: "Grand total should be greater than 0",
+  validationTotalMismatchPrefix: "Total",
+  validationTotalMismatchSuffix: "doesn't match positions sum",
+  validationGrandTotalExpectedPrefix: "Grand total should be",
+  validationClaimedQuantityExceeds:
+    "Claimed quantity is greater than position quantity",
+  validationClaimedAmountExceeds: "Claimed amount is greater than position total",
+  validationFinalGrandTotalMismatchPrefix: "Final grand total",
+  validationFinalGrandTotalMismatchSuffix:
+    "doesn't match calculated value",
 };
 
 // Available languages

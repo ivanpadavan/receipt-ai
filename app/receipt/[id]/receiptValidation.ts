@@ -5,26 +5,27 @@ import {
   calculateTotal,
 } from "@/model/receipt/model";
 import { receiptSchema } from "@/model/receipt/schema";
+import { t } from "@/app/i18n/translations";
 
 const editablePositionBaseSchema = z.object({
-  name: z.string().trim().min(1, "Name should not be empty"),
+  name: z.string().trim().min(1, t("validationNameRequired")),
   price: z
     .number()
     .refine(
       (value) => Number.isFinite(value) && value > 0,
-      "Price should be greater than 0",
+      t("validationPricePositive"),
     ),
   quantity: z
     .number()
     .refine(
       (value) => Number.isFinite(value) && value > 0,
-      "Quantity should be greater than 0",
+      t("validationQuantityPositive"),
     ),
   overall: z
     .number()
     .refine(
       (value) => Number.isFinite(value) && value > 0,
-      "Overall should be greater than 0",
+      t("validationOverallPositive"),
     ),
 });
 
@@ -35,18 +36,18 @@ export const editablePositionValidationSchema =
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["overall"],
-        message: "Overall should match quantity x price",
+        message: t("validationOverallMatchesQuantityPrice"),
       });
     }
   });
 
 export const editableModifierSchema = z.object({
-  name: z.string().trim().min(1, "Name should not be empty"),
+  name: z.string().trim().min(1, t("validationNameRequired")),
   value: z
     .number()
     .refine(
       (value) => Number.isFinite(value) && value > 0,
-      "Value should be greater than 0",
+      t("validationModifierValuePositive"),
     ),
 });
 
@@ -55,13 +56,13 @@ export const editableTotalsSchema = z.object({
     .number()
     .refine(
       (value) => Number.isFinite(value) && value > 0,
-      "Total should be greater than 0",
+      t("validationTotalPositive"),
     ),
   grandTotal: z
     .number()
     .refine(
       (value) => Number.isFinite(value) && value > 0,
-      "Grand total should be greater than 0",
+      t("validationGrandTotalPositive"),
     ),
 });
 
@@ -72,7 +73,7 @@ export const createEditableTotalsSchema = (receipt: Receipt) =>
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["total"],
-        message: `Итог ${value.total} не совпадает с суммой позиций (${calculatedTotal})`,
+        message: `${t("validationTotalMismatchPrefix")} ${value.total} ${t("validationTotalMismatchSuffix")} (${calculatedTotal})`,
       });
     }
 
@@ -84,7 +85,7 @@ export const createEditableTotalsSchema = (receipt: Receipt) =>
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["grandTotal"],
-        message: `С учетом скидок и сборов должно быть ${expectedGrandTotal}`,
+        message: `${t("validationGrandTotalExpectedPrefix")} ${expectedGrandTotal}`,
       });
     }
   });
@@ -116,7 +117,7 @@ export const receiptValidationSchema = receiptSchema.superRefine((value: Receipt
         context.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["positions", index, "claims"],
-          message: "Claimed quantity is greater than position quantity",
+          message: t("validationClaimedQuantityExceeds"),
         });
       }
 
@@ -128,7 +129,7 @@ export const receiptValidationSchema = receiptSchema.superRefine((value: Receipt
         context.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["positions", index, "claims"],
-          message: "Claimed amount is greater than position total",
+          message: t("validationClaimedAmountExceeds"),
         });
       }
     });
@@ -162,7 +163,7 @@ export const receiptValidationSchema = receiptSchema.superRefine((value: Receipt
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["totals", "total"],
-        message: `Total ${value.totals.total} doesn't match the sum of all position overall values (${calculatedTotal})`,
+        message: `${t("validationTotalMismatchPrefix")} ${value.totals.total} ${t("validationTotalMismatchSuffix")} (${calculatedTotal})`,
       });
     }
 
@@ -171,7 +172,7 @@ export const receiptValidationSchema = receiptSchema.superRefine((value: Receipt
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["totals", "grandTotal"],
-        message: `Final grand total ${value.totals.grandTotal} doesn't match calculated (${calculatedGrandTotal})`,
+        message: `${t("validationFinalGrandTotalMismatchPrefix")} ${value.totals.grandTotal} ${t("validationFinalGrandTotalMismatchSuffix")} (${calculatedGrandTotal})`,
       });
     }
   });
