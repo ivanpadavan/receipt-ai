@@ -506,11 +506,12 @@ export function useReceiptFormState(
     if (type === "editing") {
       // Переход в splitting mode
       const data = getValues();
+      setValue("editingFinished" as keyof Receipt, true as never);
+
       apiClient
         .updateReceipt(receiptId, { ...data, editingFinished: true })
         .then(() => {
           typeRef.current = "splitting";
-          setValue("editingFinished" as keyof Receipt, true as never);
           setForceUpdate((v) => v + 1);
         });
     } else if (type === "validation") {
@@ -531,13 +532,13 @@ export function useReceiptFormState(
   // -------------------------------------------------------------------------
   const goBackToEditing = useCallback(() => {
     if (type !== "splitting") return;
+    setValue("editingFinished" as keyof Receipt, false as never);
 
     const data = getValues();
     apiClient
       .updateReceipt(receiptId, { ...data, editingFinished: false })
       .then(() => {
         typeRef.current = "editing";
-        setValue("editingFinished" as keyof Receipt, false as never);
         setForceUpdate((v) => v + 1);
       });
   }, [type, getValues, receiptId, setValue]);
