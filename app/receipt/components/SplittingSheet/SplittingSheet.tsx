@@ -52,6 +52,7 @@ import { getFormPathErrorMessage, hasFormPathError } from "@/app/receipt/utils/h
 import {
   iconButtonVariants,
   iconGroupVariants,
+  iconSoloVariants,
 } from "@/app/receipt/components/ui-styles";
 
 // --- Components ---
@@ -373,9 +374,12 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         <div className="px-4 pt-1 pb-2 flex justify-end">
           <Button
             type="button"
-            variant="outline"
-            size="sm"
-            className="rounded-full"
+            variant="ghost"
+            size="icon"
+            className={cn(
+              iconSoloVariants({ size: "compact" }),
+              iconButtonVariants({ size: "compact", tone: "muted" }),
+            )}
             onClick={() =>
               openEditModal({
                 type: "position",
@@ -383,9 +387,10 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
                 view: "editing",
               })
             }
+            aria-label={t("edit")}
+            title={t("edit")}
           >
-            <Pencil className="mr-1 h-3.5 w-3.5" />
-            {t("edit")}
+            <Pencil className="h-4 w-4" />
           </Button>
         </div>
       )}
@@ -401,8 +406,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         {/* Validation Status */}
         {totalClaimed > localPosition.overall + 0.01 && (
           <div className="text-destructive font-medium text-xs bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
-            {t("overpaid")}:{" "}
-            {(totalClaimed - localPosition.overall).toFixed(2)} ₽
+            {t("overpaid")}: {(totalClaimed - localPosition.overall).toFixed(2)}{" "}
+            ₽
           </div>
         )}
         {totalClaimed < localPosition.overall - 0.01 && (

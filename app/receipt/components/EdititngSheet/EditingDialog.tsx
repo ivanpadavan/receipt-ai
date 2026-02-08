@@ -20,6 +20,12 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldGroup } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
+import { Trash2 } from "lucide-react";
+import {
+  iconButtonVariants,
+  iconSoloVariants,
+} from "@/app/receipt/components/ui-styles";
+import { cn } from "@/utils/cn";
 
 type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
 
@@ -213,8 +219,19 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
       <DialogFooter className="mt-5 flex w-full items-center justify-between sm:justify-between">
         <div>
           {onRemove && (
-            <Button type="button" variant="destructive" onClick={handleRemove}>
-              {t("remove")}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={cn(
+                iconSoloVariants({ size: "compact" }),
+                iconButtonVariants({ size: "compact", tone: "danger" }),
+              )}
+              onClick={handleRemove}
+              aria-label={t("remove")}
+              title={t("remove")}
+            >
+              <Trash2 className="h-4 w-4" />
             </Button>
           )}
         </div>
