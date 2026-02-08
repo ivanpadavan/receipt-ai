@@ -46,14 +46,6 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header / Hero */}
       <div className="p-6 text-center border-b bg-card relative">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute left-2 top-2 text-muted-foreground"
-          onClick={onBack}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
         <h2 className="text-lg font-medium text-muted-foreground mb-1">
           {t("total")}
         </h2>
@@ -149,17 +141,6 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
             {t("noClaims")}
           </div>
         )}
-      </div>
-
-      {/* Footer */}
-      <div className="border-t bg-background p-4">
-        <div className="rounded-[28px] border border-white/70 bg-white/35 p-2 shadow-[0_20px_44px_rgba(15,23,42,0.18)] backdrop-blur-2xl">
-          <ShareReceiptDialog
-            className="h-11 w-full rounded-full border border-white/80 bg-white/72 text-sm font-medium text-muted-foreground shadow-inner hover:text-foreground"
-            variant="ghost"
-            receiptId={receiptId}
-          />
-        </div>
       </div>
     </div>
   );

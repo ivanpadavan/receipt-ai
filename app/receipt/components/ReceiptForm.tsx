@@ -214,7 +214,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
           />
         </Drawer>
 
-        <div className="min-h-[100dvh] flex flex-col justify-between">
+        <div className="flex-1 flex flex-col justify-between">
           <div className={screenCardClassName}>
             {scenarioType === "summary" ? (
               <SummaryScreen
