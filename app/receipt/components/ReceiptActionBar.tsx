@@ -55,8 +55,37 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
           <ButtonGroup
             className={`justify-center ${iconGroupVariants({ density: "compact" })}`}
           >
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`relative ${iconButtonVariants({
+                size: "liquid",
+                tone: "muted",
+              })}`}
+              onClick={onOpenParticipants}
+              title={t("participants")}
+              aria-label={t("participants")}
+            >
+              <span className="pointer-events-none absolute right-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-semibold leading-none opacity-80 text-background">
+                {participantsCount}
+              </span>
+              <Users className="h-4 w-4" />
+            </Button>
+            <ButtonGroupSeparator className="mx-1 h-5 opacity-30" />
+            <ShareReceiptDialog
+              receiptId={receiptId}
+              iconOnly
+              variant="ghost"
+              size="sm"
+              className={iconButtonVariants({
+                size: "liquid",
+                tone: "muted",
+              })}
+              title={t("share")}
+            />
             {canEditActions && (
               <>
+                <ButtonGroupSeparator className="mx-1 h-5 opacity-30" />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -93,37 +122,8 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <ButtonGroupSeparator className="mx-1 h-5 opacity-30" />
               </>
             )}
-            <Button
-              variant="ghost"
-              size="sm"
-              className={`relative ${iconButtonVariants({
-                size: "liquid",
-                tone: "muted",
-              })}`}
-              onClick={onOpenParticipants}
-              title={t("participants")}
-              aria-label={t("participants")}
-            >
-              <span className="pointer-events-none absolute right-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-semibold leading-none opacity-80 text-background">
-                {participantsCount}
-              </span>
-              <Users className="h-4 w-4" />
-            </Button>
-            <ButtonGroupSeparator className="mx-1 h-5 opacity-30" />
-            <ShareReceiptDialog
-              receiptId={receiptId}
-              iconOnly
-              variant="ghost"
-              size="sm"
-              className={iconButtonVariants({
-                size: "liquid",
-                tone: "muted",
-              })}
-              title={t("share")}
-            />
           </ButtonGroup>
 
           <Button
