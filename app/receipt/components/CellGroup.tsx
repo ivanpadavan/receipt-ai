@@ -4,6 +4,25 @@ import { useState } from "react";
 import { useFormContext, FieldPath } from "react-hook-form";
 import { Receipt } from "@/model/receipt/model";
 import { useReceiptState } from "./ReceiptForm";
+import { cva } from "class-variance-authority";
+import { cn } from "@/utils/cn";
+
+const cellGroupVariants = cva("", {
+  variants: {
+    tone: {
+      default: "",
+      danger: "bg-red-50",
+    },
+    interactive: {
+      true: "cursor-pointer bg-gray-100",
+      false: "",
+    },
+  },
+  defaultVariants: {
+    tone: "default",
+    interactive: false,
+  },
+});
 
 interface CellGroupProps {
   /** Field path prefix for this group (e.g., "positions.0") */
@@ -64,9 +83,12 @@ export const CellGroup = ({
     onMouseEnter: () => canEdit && setHoverWithin(true),
     onMouseLeave: () => canEdit && setHoverWithin(false),
     onClick: handleClick,
-    className:
-      (hasError ? "bg-red-50 " : "") +
-      (canEdit && hoverWithin ? "cursor-pointer bg-gray-100 " : ""),
+    className: cn(
+      cellGroupVariants({
+        tone: hasError ? "danger" : "default",
+        interactive: !!canEdit && hoverWithin,
+      }),
+    ),
   };
 
   return children(props);
