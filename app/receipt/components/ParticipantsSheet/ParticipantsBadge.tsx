@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { cn } from "@/utils/cn";
 import { pillVariants } from "@/app/receipt/components/ui-styles";
+import { cva } from "class-variance-authority";
+
+const countTextVariants = cva("text-sm font-semibold");
 
 interface ParticipantsBadgeProps {
   onClick: () => void;
@@ -38,7 +41,7 @@ export const ParticipantsBadge: React.FC<ParticipantsBadgeProps> = ({
         )}
       >
         <Users className="mr-1 h-4 w-4" />
-        <span className="text-sm font-semibold min-w-[1rem] text-center">
+        <span className={cn("min-w-[1rem] text-center", countTextVariants())}>
           {count}
         </span>
       </Button>
@@ -61,7 +64,7 @@ export const ParticipantsBadge: React.FC<ParticipantsBadgeProps> = ({
       )}
     >
       <Users className="w-[1.125rem] h-[1.125rem]" />
-      <span className="text-sm font-semibold min-w-[1.25rem] text-center">
+      <span className={cn("min-w-[1.25rem] text-center", countTextVariants())}>
         {count}
       </span>
     </Button>

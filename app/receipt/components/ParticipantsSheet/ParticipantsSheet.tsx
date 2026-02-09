@@ -45,6 +45,7 @@ const headerTitleVariants = cva("text-xl font-semibold text-gray-900");
 const emptyStateIconVariants = cva("text-gray-300");
 
 const emptyStateTextVariants = cva("text-gray-500 text-sm");
+const emptyStateContainerVariants = cva("text-center");
 
 const rowNameVariants = cva("font-medium text-gray-800");
 
@@ -69,6 +70,9 @@ const doneButtonVariants = cva(
 const footerVariants = cva("border-t border-gray-100 bg-white");
 
 const conflictTextVariants = cva("text-xs text-amber-600");
+const dialogContentVariants = cva("rounded-xl");
+const deleteNameVariants = cva("font-semibold text-gray-900");
+const deleteActionVariants = cva("bg-red-500 hover:bg-red-600 text-white");
 
 interface ParticipantsSheetProps {
   onClose?: () => void;
@@ -170,7 +174,12 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
 
         <div className="flex-1 overflow-y-auto px-4 py-3 min-h-[200px]">
           {participants.length === 0 && !isAdding && (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div
+              className={cn(
+                "flex flex-col items-center justify-center py-12",
+                emptyStateContainerVariants(),
+              )}
+            >
               <UserPlus className={cn("h-12 w-12 mb-3", emptyStateIconVariants())} />
               <p className={emptyStateTextVariants()}>{t("participantsEmpty")}</p>
             </div>
@@ -288,13 +297,13 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
         open={deleteConfirm !== null}
         onOpenChange={(open) => !open && setDeleteConfirm(null)}
       >
-        <AlertDialogContent className="rounded-xl">
+        <AlertDialogContent className={dialogContentVariants()}>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("deleteParticipant")}</AlertDialogTitle>
             <AlertDialogDescription>
               {t("deleteParticipantConfirm")}
               {deleteConfirm && (
-                <span className="block mt-2 font-semibold text-gray-900">
+                <span className={cn("block mt-2", deleteNameVariants())}>
                   {deleteConfirm.displayName}
                 </span>
               )}
@@ -304,7 +313,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className="bg-red-500 hover:bg-red-600 text-white"
+              className={deleteActionVariants()}
             >
               {t("delete")}
             </AlertDialogAction>
