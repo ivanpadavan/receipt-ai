@@ -66,7 +66,6 @@ import {
   stickyBarPaddingVariants,
   totalValueVariants,
   textRoleVariants,
-  textVariants,
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
 

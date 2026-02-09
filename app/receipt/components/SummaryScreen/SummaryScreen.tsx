@@ -19,7 +19,6 @@ import {
   summaryItemIndentVariants,
   summaryItemListVariants,
   summaryItemRowPaddingVariants,
-  textVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -29,11 +28,7 @@ interface SummaryScreenProps {
   onBack: () => void;
 }
 
-export const SummaryScreen: React.FC<SummaryScreenProps> = ({
-  receipt,
-  receiptId,
-  onBack,
-}) => {
+export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
   const participants = useParticipantsStore((s) => s.participants);
   const balances = useMemo(() => {
     const all = calculateBalances(receipt, participants);
