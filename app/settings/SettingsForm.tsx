@@ -21,6 +21,7 @@ import { User, UserMetadata } from "@supabase/supabase-js";
 import { UserAvatar } from "@/app/receipt/components/ui/user-avatar";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
+import { textVariants } from "@/app/receipt/components/ui-styles";
 
 const captureSupported =
   typeof document === "object" &&
@@ -73,15 +74,11 @@ const getCroppedBlob = async (imageSrc: string, pixelCrop: Area) => {
 
 export type SettingsFormValues = UserMetadata & { avatarFile?: File } ;
 
-const emailTextVariants = cva("text-sm text-muted-foreground");
 const uploadCardVariants = cva(
   "rounded-xl border-2 border-dashed border-amber-200 bg-amber-50/40 hover:bg-amber-50 transition-colors",
 );
 const uploadCardPaddingVariants = cva("p-4");
-const uploadTitleVariants = cva("text-sm font-medium");
-const uploadHintVariants = cva("text-xs text-muted-foreground");
 const cropFrameVariants = cva("bg-black/80 rounded-lg overflow-hidden");
-const zoomLabelVariants = cva("text-sm text-muted-foreground");
 
 interface SettingsFormProps {
   user: User;
@@ -200,7 +197,9 @@ export const SettingsForm = ({
           userMetadata={{ avatarUrl, displayName }}
         />
         {user.email && (
-          <div className={emailTextVariants()}>{user.email}</div>
+          <div className={textVariants({ size: "sm", tone: "muted" })}>
+            {user.email}
+          </div>
         )}
       </div>
 
@@ -263,10 +262,12 @@ export const SettingsForm = ({
                       userMetadata={{ avatarUrl, displayName }}
                     />
                     <div className="flex flex-col gap-1">
-                      <div className={uploadTitleVariants()}>
+                      <div
+                        className={textVariants({ size: "sm", weight: "medium" })}
+                      >
                         {value ? t("changeAvatar") : t("uploadAvatar")}
                       </div>
-                      <div className={uploadHintVariants()}>
+                      <div className={textVariants({ size: "xs", tone: "muted" })}>
                         {t("avatarUploadHint")}
                       </div>
                     </div>
@@ -314,7 +315,7 @@ export const SettingsForm = ({
                         )}
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className={zoomLabelVariants()}>
+                        <span className={textVariants({ size: "sm", tone: "muted" })}>
                           {t("zoom")}
                         </span>
                         <input

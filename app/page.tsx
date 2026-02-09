@@ -9,22 +9,18 @@ import { useRouter } from "next/navigation";
 import { t } from "@/app/i18n/translations";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
+import { textVariants } from "@/app/receipt/components/ui-styles";
 
 const pageShellVariants = cva("bg-amber-50 p-4");
-const pageTitleVariants = cva("text-3xl font-bold text-center text-amber-800");
 const previewImageVariants = cva("object-contain rounded-md");
 const actionButtonVariants = cva("shadow-md");
 const dropzoneVariants = cva(
   "border-2 border-dashed border-input rounded-lg cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors",
 );
-const dropzoneIconVariants = cva("text-muted-foreground");
-const dropzoneTitleVariants = cva("text-lg font-medium text-foreground text-center");
-const dropzoneHintVariants = cva("text-sm text-muted-foreground text-center");
 const captureButtonVariants = cva("shadow-md");
 const loadingSpinnerVariants = cva(
   "animate-spin rounded-full border-b-2 border-amber-500",
 );
-const loadingTextVariants = cva("text-amber-800 text-sm font-medium");
 const errorBoxVariants = cva(
   "bg-red-50 border border-red-300 text-red-700 rounded-lg shadow-sm p-4",
 );
@@ -122,7 +118,17 @@ export default function ImagePastePage() {
         )}
       >
         <div className="w-full max-w-md mx-auto">
-          <h1 className={cn("mb-6", pageTitleVariants())}>
+          <h1
+            className={cn(
+              "mb-6",
+              textVariants({
+                size: "3xl",
+                weight: "bold",
+                tone: "brandStrong",
+                align: "center",
+              }),
+            )}
+          >
             {t("receiptScannerTitle")}
           </h1>
 
@@ -187,7 +193,10 @@ export default function ImagePastePage() {
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className={cn("h-12 w-12 mb-4", dropzoneIconVariants())}
+                  className={cn(
+                    "h-12 w-12 mb-4",
+                    textVariants({ tone: "muted" }),
+                  )}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -199,10 +208,26 @@ export default function ImagePastePage() {
                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                <p className={cn("mb-2", dropzoneTitleVariants())}>
+                <p
+                  className={cn(
+                    "mb-2",
+                    textVariants({
+                      size: "lg",
+                      weight: "medium",
+                      tone: "default",
+                      align: "center",
+                    }),
+                  )}
+                >
                   {t("uploadReceiptImage")}
                 </p>
-                <p className={dropzoneHintVariants()}>
+                <p
+                  className={textVariants({
+                    size: "sm",
+                    tone: "muted",
+                    align: "center",
+                  })}
+                >
                   {t("tapToSelectOrPaste")}
                 </p>
               </div>
@@ -259,7 +284,13 @@ export default function ImagePastePage() {
               )}
             >
               <div className={cn("h-12 w-12 mb-4", loadingSpinnerVariants())} />
-              <span className={loadingTextVariants()}>
+              <span
+                className={textVariants({
+                  size: "sm",
+                  weight: "medium",
+                  tone: "brandStrong",
+                })}
+              >
                 {t("processingReceipt")}
               </span>
             </div>

@@ -43,7 +43,12 @@ import { useSplittingLogic } from "./useSplittingLogic";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 import { getFormPathErrorMessage, hasFormPathError } from "@/app/receipt/utils/hasFormPathError";
-import { iconButtonVariants, iconSoloVariants, pillVariants } from "@/app/receipt/components/ui-styles";
+import {
+  iconButtonVariants,
+  iconSoloVariants,
+  pillVariants,
+  textVariants,
+} from "@/app/receipt/components/ui-styles";
 import { cva } from "class-variance-authority";
 
 // --- Components ---
@@ -101,7 +106,6 @@ const addShareButtonVariants = cva("rounded-full border");
 const claimsErrorRingVariants = cva("ring-1 ring-destructive/40 rounded-xl");
 
 const claimInfoVariants = cva("text-foreground");
-const claimMetaVariants = cva("text-sm text-muted-foreground");
 const participantButtonVariants = cva("relative rounded-full transition-all", {
   variants: {
     selected: {
@@ -116,12 +120,9 @@ const participantButtonVariants = cva("relative rounded-full transition-all", {
 
 const accordionContentVariants = cva("border-t bg-background px-3 py-2");
 
-const sheetTitleVariants = cva("text-center px-4 pt-4");
-const sheetSubtitleVariants = cva("text-sm text-muted-foreground text-center px-4 py-2");
+const sheetTitleVariants = cva("px-4 pt-4");
+const sheetSubtitleVariants = cva("px-4 py-2");
 const footerVariants = cva("border-t bg-background pt-2");
-const footerLabelVariants = cva("text-muted-foreground");
-const sheetOverallValueVariants = cva("font-semibold text-foreground");
-const footerRowVariants = cva("text-sm");
 const accordionTriggerPaddingVariants = cva("px-3 py-3");
 const headerActionPaddingVariants = cva("px-1");
 const addSharePaddingVariants = cva("px-4 pb-3");
@@ -221,12 +222,14 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
         <div className="flex justify-between items-center w-full">
           {/* Claim info - left side */}
           <div className={cn("flex items-baseline gap-2", claimInfoVariants())}>
-            <span className="font-semibold">{claim.value}</span>
-            <span className={claimMetaVariants()}>
+            <span className={textVariants({ weight: "semibold" })}>
+              {claim.value}
+            </span>
+            <span className={textVariants({ size: "sm", tone: "muted" })}>
               {claim.type === "amount" ? "₽" : t("pcs")}
             </span>
             {claim.type !== "amount" && (
-              <span className={claimMetaVariants()}>
+              <span className={textVariants({ size: "sm", tone: "muted" })}>
                 = {amount.toFixed(0)} ₽
               </span>
             )}
@@ -429,16 +432,22 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
   return (
     <DrawerContent className="h-[85vh] flex flex-col">
-      <DrawerTitle className={sheetTitleVariants()}>
+      <DrawerTitle
+        className={cn(sheetTitleVariants(), textVariants({ align: "center" }))}
+      >
         {localPosition.name}
       </DrawerTitle>
 
       <div
-        className={cn("flex flex-col items-center gap-1", sheetSubtitleVariants())}
+        className={cn(
+          "flex flex-col items-center gap-1",
+          sheetSubtitleVariants(),
+          textVariants({ size: "sm", tone: "muted", align: "center" }),
+        )}
       >
         <div>
           {localPosition.quantity} {t("pcs")} × {localPosition.price} ₽ ={" "}
-          <span className={sheetOverallValueVariants()}>
+          <span className={textVariants({ weight: "semibold", tone: "default" })}>
             {localPosition.overall} ₽
           </span>
         </div>
@@ -555,8 +564,15 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
       <DrawerFooter className={footerVariants()}>
         <div className={footerContentPaddingVariants()}>
-          <div className={cn("flex justify-between mb-2", footerRowVariants())}>
-            <span className={footerLabelVariants()}>{t("distributed")}</span>
+          <div
+            className={cn(
+              "flex justify-between mb-2",
+              textVariants({ size: "sm" }),
+            )}
+          >
+            <span className={textVariants({ tone: "muted" })}>
+              {t("distributed")}
+            </span>
             <span className="font-medium">
               {totalClaimed.toFixed(0)} / {localPosition.overall} ₽
             </span>

@@ -35,19 +35,16 @@ import { UserPlus, X, Trash2, MoreVertical } from "lucide-react";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
+import { textVariants } from "@/app/receipt/components/ui-styles";
 
 const sheetBackgroundVariants = cva("bg-gradient-to-b from-white to-gray-50");
 
 const headerVariants = cva("border-b border-gray-100 px-5 py-4");
 
-const headerTitleVariants = cva("text-xl font-semibold text-gray-900");
-
 const emptyStateIconVariants = cva("text-gray-300");
 
-const emptyStateTextVariants = cva("text-gray-500 text-sm");
 const emptyStateContainerVariants = cva("text-center py-12");
 
-const rowNameVariants = cva("font-medium text-gray-800");
 
 const rowMenuButtonVariants = cva("text-gray-500");
 const rowContentPaddingVariants = cva("px-4 py-3");
@@ -70,9 +67,7 @@ const doneButtonVariants = cva(
 
 const footerVariants = cva("border-t border-gray-100 bg-white p-4");
 
-const conflictTextVariants = cva("text-xs text-amber-600");
 const dialogContentVariants = cva("rounded-xl");
-const deleteNameVariants = cva("font-semibold text-gray-900");
 const deleteActionVariants = cva("bg-red-500 hover:bg-red-600 text-white");
 const listPaddingVariants = cva("px-4 py-3");
 const addButtonContainerVariants = cva("px-4 pb-4 pt-2");
@@ -161,7 +156,13 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
         <DrawerHeader
           className={cn("flex items-center justify-between", headerVariants())}
         >
-          <DrawerTitle className={headerTitleVariants()}>
+          <DrawerTitle
+            className={textVariants({
+              size: "xl",
+              weight: "semibold",
+              tone: "default",
+            })}
+          >
             {t("participants")}
           </DrawerTitle>
           <DrawerClose asChild>
@@ -189,7 +190,15 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
               )}
             >
               <UserPlus className={cn("h-12 w-12 mb-3", emptyStateIconVariants())} />
-              <p className={emptyStateTextVariants()}>{t("participantsEmpty")}</p>
+              <p
+                className={textVariants({
+                  size: "sm",
+                  tone: "muted",
+                  align: "center",
+                })}
+              >
+                {t("participantsEmpty")}
+              </p>
             </div>
           )}
 
@@ -207,7 +216,12 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                     participant={participant}
                     className="shrink-0"
                   />
-                  <span className={cn("flex-1", rowNameVariants())}>
+                  <span
+                    className={cn(
+                      "flex-1",
+                      textVariants({ weight: "medium", tone: "default" }),
+                    )}
+                  >
                     {participant.displayName}
                   </span>
                   <DropdownMenu>
@@ -260,7 +274,9 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                   className={cn("flex-1", addInputVariants())}
                 />
                 {hasNameConflict && (
-                  <span className={conflictTextVariants()}>
+                  <span
+                    className={textVariants({ size: "xs", tone: "warning" })}
+                  >
                     {t("nameConflict")}
                   </span>
                 )}
@@ -311,7 +327,12 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
             <AlertDialogDescription>
               {t("deleteParticipantConfirm")}
               {deleteConfirm && (
-                <span className={cn("block mt-2", deleteNameVariants())}>
+                <span
+                  className={cn(
+                    "block mt-2",
+                    textVariants({ weight: "semibold", tone: "default" }),
+                  )}
+                >
                   {deleteConfirm.displayName}
                 </span>
               )}

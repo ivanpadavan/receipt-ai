@@ -9,6 +9,7 @@ import { formatMoney } from "@/app/receipt/utils/formatMoney";
 import { hasFormPathError } from "@/app/receipt/utils/hasFormPathError";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
+import { textVariants } from "@/app/receipt/components/ui-styles";
 
 const modifierRowVariants = cva("rounded-md px-1 py-1", {
   variants: {
@@ -22,7 +23,6 @@ const modifierRowVariants = cva("rounded-md px-1 py-1", {
   },
 });
 
-const modifierLabelVariants = cva("text-sm text-muted-foreground");
 
 const modifierValueVariants = cva("font-medium", {
   variants: {
@@ -56,7 +56,12 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
 
   return (
     <div className="mt-2">
-      <div className={cn("mb-1", modifierLabelVariants())}>
+      <div
+        className={cn(
+          "mb-1",
+          textVariants({ size: "sm", tone: "muted" }),
+        )}
+      >
         {t(type)}:
       </div>
       <div className="space-y-1">
@@ -80,7 +85,7 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
                 })
               }
             >
-              <span className={modifierLabelVariants()}>
+              <span className={textVariants({ tone: "muted" })}>
                 {item.name || t("modifierName")}
               </span>
               <span

@@ -7,18 +7,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { t } from "@/app/i18n/translations";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
+import { textVariants } from "@/app/receipt/components/ui-styles";
 
 const historyShellVariants = cva("bg-amber-50 p-4");
-const historyTitleVariants = cva("text-3xl font-bold text-amber-800");
 const emptyCardTextVariants = cva("text-center");
 const ctaButtonVariants = cva(
   "rounded-full bg-amber-500 px-4 py-2 font-bold text-white shadow-md hover:bg-amber-600",
 );
 const receiptCardVariants = cva("border-amber-200 hover:border-amber-400");
-const receiptTitleVariants = cva("text-lg font-semibold text-amber-800");
-const receiptDateVariants = cva("text-sm text-amber-600");
-const receiptMetaVariants = cva("text-sm text-amber-700");
-const receiptTotalVariants = cva("font-medium");
 const emptyCardContentVariants = cva("p-6");
 const receiptCardPaddingVariants = cva("p-4");
 
@@ -47,7 +43,13 @@ export default async function HistoryPage() {
     >
       <div className="w-full max-w-md mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className={historyTitleVariants()}>
+          <h1
+            className={textVariants({
+              size: "3xl",
+              weight: "bold",
+              tone: "brandStrong",
+            })}
+          >
             {t("receiptHistory")}
           </h1>
         </div>
@@ -90,18 +92,46 @@ export default async function HistoryPage() {
                     className={cn("w-full", receiptCardVariants(), receiptCardPaddingVariants())}
                   >
                     <div className="mb-2 flex items-center justify-between">
-                      <h2 className={receiptTitleVariants()}>
+                      <h2
+                        className={cn(
+                          receiptTitleVariants(),
+                          textVariants({
+                            size: "lg",
+                            weight: "semibold",
+                            tone: "brandStrong",
+                          }),
+                        )}
+                      >
                         {t("receipt")} #{receipt.id.slice(-6)}
                       </h2>
-                      <span className={receiptDateVariants()}>
+                      <span
+                        className={cn(
+                          receiptDateVariants(),
+                          textVariants({
+                            size: "sm",
+                            tone: "brand",
+                          }),
+                        )}
+                      >
                         {new Date(receipt.createdAt).toLocaleDateString()}
                       </span>
                     </div>
-                    <div className={cn("flex justify-between", receiptMetaVariants())}>
+                    <div
+                      className={cn(
+                        "flex justify-between",
+                        receiptMetaVariants(),
+                        textVariants({ size: "sm", tone: "brandStrong" }),
+                      )}
+                    >
                       <span>
                         {itemCount} {itemCount === 1 ? t("itemSingle") : t("itemPlural")}
                       </span>
-                      <span className={receiptTotalVariants()}>
+                      <span
+                        className={cn(
+                          receiptTotalVariants(),
+                          textVariants({ weight: "medium", tone: "brandStrong" }),
+                        )}
+                      >
                         ${totalAmount.toFixed(2)}
                       </span>
                     </div>

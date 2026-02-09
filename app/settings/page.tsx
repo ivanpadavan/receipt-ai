@@ -11,9 +11,9 @@ import { UserMetadata } from "@supabase/supabase-js";
 import { Card, CardContent } from "@/components/ui/card";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
+import { textVariants } from "@/app/receipt/components/ui-styles";
 
 const settingsShellVariants = cva("bg-amber-50 p-4");
-const settingsTitleVariants = cva("text-2xl font-bold text-center");
 const settingsCardPaddingVariants = cva("p-6");
 const settingsCardContentVariants = cva("p-0");
 
@@ -67,7 +67,17 @@ export default function SettingsPage() {
         shadow="md"
         className={cn("mx-auto w-full max-w-md", settingsCardPaddingVariants())}
       >
-        <h1 className={cn("mb-6", settingsTitleVariants())}>
+        <h1
+          className={cn(
+            "mb-6",
+            settingsTitleVariants(),
+            textVariants({
+              size: "2xl",
+              weight: "bold",
+              align: "center",
+            }),
+          )}
+        >
           {t("settings")}
         </h1>
         <CardContent className={settingsCardContentVariants()}>

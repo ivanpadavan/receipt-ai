@@ -10,18 +10,10 @@ import { DistributionStatus } from "@/app/receipt/components/ui/DistributionStat
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
+import { textVariants } from "@/app/receipt/components/ui-styles";
 
 const summaryHeaderVariants = cva("border-b bg-card text-center");
-const summaryLabelVariants = cva("text-lg font-medium text-muted-foreground");
-const summaryTotalVariants = cva("text-4xl font-bold text-foreground");
-const summaryCurrencyVariants = cva("text-2xl text-muted-foreground");
-const balanceNameVariants = cva("font-medium text-lg text-left truncate");
-const balanceAmountVariants = cva("font-bold text-xl block");
-const balanceDiffVariants = cva("text-xs text-muted-foreground");
-const itemListVariants = cva("text-sm text-muted-foreground border-t pt-2 border-border/40");
-const itemNameVariants = cva("truncate text-foreground");
-const itemDescVariants = cva("text-xs text-muted-foreground truncate");
-const emptyStateVariants = cva("text-center text-muted-foreground py-8");
+const itemListVariants = cva("border-t pt-2 border-border/40");
 const balanceAmountWrapperVariants = cva("text-right");
 const summaryHeaderPaddingVariants = cva("p-6");
 const summaryListPaddingVariants = cva("p-4");
@@ -30,6 +22,7 @@ const summaryItemIndentVariants = cva("pl-12");
 const summaryItemContainerPaddingVariants = cva("pr-2");
 const summaryItemRowPaddingVariants = cva("py-1");
 const summaryAmountVariants = cva("whitespace-nowrap font-medium");
+const emptyStateVariants = cva("py-8");
 
 interface SummaryScreenProps {
   receipt: Receipt;
@@ -72,12 +65,23 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
           summaryHeaderPaddingVariants(),
         )}
       >
-        <h2 className={cn("mb-1", summaryLabelVariants())}>
+        <h2
+          className={cn(
+            "mb-1",
+            textVariants({ size: "lg", weight: "medium", tone: "muted" }),
+          )}
+        >
           {t("total")}
         </h2>
-        <div className={summaryTotalVariants()}>
+        <div
+          className={textVariants({
+            size: "4xl",
+            weight: "bold",
+            tone: "default",
+          })}
+        >
           {realGrandTotal.toFixed(0)}{" "}
-          <span className={summaryCurrencyVariants()}>₽</span>
+          <span className={textVariants({ size: "2xl", tone: "muted" })}>₽</span>
         </div>
 
         {/* Remaining Indicator */}
@@ -114,15 +118,31 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
             >
               <div className="flex items-center gap-3 w-full mb-2">
                 <ParticipantAvatar participant={participant} />
-                <span className={cn("flex-1", balanceNameVariants())}>
+                <span
+                  className={cn(
+                    "flex-1 truncate",
+                    textVariants({
+                      size: "lg",
+                      weight: "medium",
+                      tone: "default",
+                      align: "left",
+                    }),
+                  )}
+                >
                   {participant.displayName}
                 </span>
                 <div className={balanceAmountWrapperVariants()}>
-                  <span className={balanceAmountVariants()}>
+                  <span
+                    className={textVariants({
+                      size: "xl",
+                      weight: "bold",
+                      tone: "default",
+                    })}
+                  >
                     {balance.finalAmount.toFixed(0)} ₽
                   </span>
                   {Math.abs(balance.finalAmount - balance.baseAmount) > 0.1 && (
-                    <span className={balanceDiffVariants()}>
+                    <span className={textVariants({ size: "xs", tone: "muted" })}>
                       {balance.baseAmount.toFixed(0)}{" "}
                       {balance.finalAmount - balance.baseAmount > 0 ? "+" : "−"}{" "}
                       {Math.abs(
@@ -135,7 +155,13 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
 
               {balance.items.length > 0 && (
                 <div className={cn("w-full", summaryItemIndentVariants())}>
-                  <ul className={cn("space-y-1", itemListVariants())}>
+                  <ul
+                    className={cn(
+                      "space-y-1",
+                      itemListVariants(),
+                      textVariants({ size: "sm", tone: "muted" }),
+                    )}
+                  >
                     {balance.items.map((item, idx) => (
                       <li
                         key={idx}
@@ -150,16 +176,27 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
                             summaryItemContainerPaddingVariants(),
                           )}
                         >
-                          <div className={itemNameVariants()}>
+                          <div
+                            className={textVariants({
+                              tone: "default",
+                            })}
+                          >
                             {item.positionName}
                           </div>
                           {item.description && (
-                            <div className={itemDescVariants()}>
+                            <div
+                              className={textVariants({ size: "xs", tone: "muted" })}
+                            >
                               {item.description}
                             </div>
                           )}
                         </div>
-                        <span className={summaryAmountVariants()}>
+                        <span
+                          className={cn(
+                            summaryAmountVariants(),
+                            textVariants({ weight: "medium", tone: "default" }),
+                          )}
+                        >
                           {item.rawAmount.toFixed(0)} ₽
                         </span>
                       </li>
@@ -172,7 +209,14 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
         })}
 
         {balances.length === 0 && (
-          <div className={emptyStateVariants()}>{t("noClaims")}</div>
+          <div
+            className={cn(
+              emptyStateVariants(),
+              textVariants({ tone: "muted", align: "center" }),
+            )}
+          >
+            {t("noClaims")}
+          </div>
         )}
       </div>
     </div>

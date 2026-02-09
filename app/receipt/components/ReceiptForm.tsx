@@ -51,13 +51,9 @@ import {
 import { useJoinFlowOverlay } from "@/app/receipt/[id]/join-flow/use-join-flow-overlay";
 import { DistributionBar } from "@/app/receipt/components/ui/DistributionBar";
 import { ReceiptActionBar } from "@/app/receipt/components/ui/ReceiptActionBar";
-import { pillVariants } from "@/app/receipt/components/ui-styles";
+import { pillVariants, textVariants } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
 import { cva } from "class-variance-authority";
-
-const sectionTitleVariants = cva(
-  "text-sm font-semibold uppercase tracking-wide text-muted-foreground",
-);
 
 const receiptRowVariants = cva("rounded-md px-1 py-1 text-sm", {
   variants: {
@@ -71,8 +67,6 @@ const receiptRowVariants = cva("rounded-md px-1 py-1 text-sm", {
   },
 });
 
-const rowLabelVariants = cva("text-muted-foreground");
-
 const totalValueVariants = cva("font-semibold", {
   variants: {
     tone: {
@@ -84,8 +78,6 @@ const totalValueVariants = cva("font-semibold", {
     tone: "default",
   },
 });
-
-const grandTotalLabelVariants = cva("text-base font-semibold");
 
 const grandTotalValueVariants = cva("text-2xl font-bold", {
   variants: {
@@ -122,9 +114,6 @@ const positionHeaderVariants = cva("", {
     tone: "default",
   },
 });
-
-const positionNameVariants = cva("text-base font-bold text-foreground");
-const positionMetaVariants = cva("text-xs text-muted-foreground");
 
 const positionMetaValueVariants = cva("", {
   variants: {
@@ -418,7 +407,16 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
             ) : (
               <>
                 <div className="mb-3 flex items-center justify-between">
-                  <h2 className={sectionTitleVariants()}>{t("receipt")}</h2>
+                  <h2
+                    className={textVariants({
+                        size: "sm",
+                        weight: "semibold",
+                        tone: "muted",
+                        style: "caps",
+                      })}
+                  >
+                    {t("receipt")}
+                  </h2>
                 </div>
 
                 <div className="space-y-1.5">
@@ -479,10 +477,24 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                               )}
                             >
                               <div className="min-w-0 flex-1">
-                                <p className={cn("truncate", positionNameVariants())}>
+                                <p
+                                  className={cn(
+                                    "truncate",
+                                    textVariants({
+                                      size: "base",
+                                      weight: "bold",
+                                      tone: "default",
+                                    }),
+                                  )}
+                                >
                                   {field.name}
                                 </p>
-                                <p className={positionMetaVariants()}>
+                                <p
+                                  className={textVariants({
+                                    size: "xs",
+                                    tone: "muted",
+                                  })}
+                                >
                                   <span
                                     className={positionMetaValueVariants({
                                       tone: hasPriceError ? "danger" : "default",
@@ -571,7 +583,9 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                           openEditModal({ type: "totals" })
                         }
                       >
-                        <span className={rowLabelVariants()}>{t("total")}</span>
+                        <span className={textVariants({ tone: "muted" })}>
+                          {t("total")}
+                        </span>
                         <span
                           className={totalValueVariants({
                             tone: hasFormPathError(errors, "totals.total")
@@ -595,7 +609,13 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                           openEditModal({ type: "totals" })
                         }
                       >
-                        <span className={grandTotalLabelVariants()}>
+                        <span
+                          className={textVariants({
+                            size: "base",
+                            weight: "semibold",
+                            tone: "default",
+                          })}
+                        >
                           {t("grandTotal")}
                         </span>
                         <span

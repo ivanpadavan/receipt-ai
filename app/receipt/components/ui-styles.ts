@@ -188,3 +188,52 @@ export const inputStateVariants = cva("", {
 });
 
 export const centeredTitleVariants = cva("text-center");
+
+export const textVariants = cva("", {
+  variants: {
+    size: {
+      none: "",
+      xs: "text-xs",
+      sm: "text-sm",
+      base: "text-base",
+      lg: "text-lg",
+      xl: "text-xl",
+      "2xl": "text-2xl",
+      "3xl": "text-3xl",
+      "4xl": "text-4xl",
+    },
+    weight: {
+      normal: "font-normal",
+      medium: "font-medium",
+      semibold: "font-semibold",
+      bold: "font-bold",
+    },
+    tone: {
+      default: "text-foreground",
+      muted: "text-muted-foreground",
+      subtle: "text-foreground/80",
+      brandStrong: "text-amber-800",
+      brand: "text-amber-600",
+      danger: "text-destructive",
+      warning: "text-amber-600",
+      success: "text-emerald-600",
+      inverse: "text-background",
+    },
+    align: {
+      left: "text-left",
+      center: "text-center",
+      right: "text-right",
+    },
+    style: {
+      default: "",
+      caps: "uppercase tracking-wide",
+    },
+  },
+  defaultVariants: {
+    size: "none",
+    weight: "normal",
+    tone: "default",
+    align: "left",
+    style: "default",
+  },
+});

@@ -11,11 +11,10 @@ import { joinReceiptServer } from "@/app/receipt/[id]/join-flow/join-receipt-ser
 import { t } from "@/app/i18n/translations";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
+import { textVariants } from "@/app/receipt/components/ui-styles";
 
 const notFoundShellVariants = cva("p-4");
 const notFoundCardPaddingVariants = cva("p-6");
-const notFoundTitleVariants = cva("text-2xl font-bold text-center text-foreground");
-const notFoundBodyVariants = cva("text-center text-muted-foreground");
 const notFoundButtonVariants = cva("font-bold py-2 px-4 rounded-full shadow-md");
 
 // This is a server component that fetches the receipt data from the database
@@ -47,10 +46,26 @@ export default async function ReceiptPage({
           shadow="md"
           className={cn("w-full max-w-md", notFoundCardPaddingVariants())}
         >
-          <h1 className={cn("mb-6", notFoundTitleVariants())}>
+          <h1
+            className={cn(
+              "mb-6",
+              notFoundTitleVariants(),
+              textVariants({
+                size: "2xl",
+                weight: "bold",
+                align: "center",
+              }),
+            )}
+          >
             {t("receiptNotFound")}
           </h1>
-          <p className={cn("mb-6", notFoundBodyVariants())}>
+          <p
+            className={cn(
+              "mb-6",
+              notFoundBodyVariants(),
+              textVariants({ tone: "muted", align: "center" }),
+            )}
+          >
             {t("receiptNotFoundBody")}
           </p>
           <div className="flex justify-center">
