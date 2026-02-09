@@ -9,6 +9,12 @@ import { t } from "@/app/i18n/translations";
 import { SettingsForm } from "@/app/settings/SettingsForm";
 import { UserMetadata } from "@supabase/supabase-js";
 import { Card, CardContent } from "@/components/ui/card";
+import { cva } from "class-variance-authority";
+import { cn } from "@/utils/cn";
+
+const settingsShellVariants = cva("bg-amber-50");
+const settingsCardVariants = cva("mx-auto w-full max-w-md p-6");
+const settingsTitleVariants = cva("text-2xl font-bold text-center");
 
 export default function SettingsPage() {
   const { user } = useUser();
@@ -49,13 +55,18 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 gap-4 bg-amber-50">
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center p-4 gap-4",
+        settingsShellVariants(),
+      )}
+    >
       <Card
         variant="default"
         shadow="md"
-        className="mx-auto w-full max-w-md p-6"
+        className={settingsCardVariants()}
       >
-        <h1 className="text-2xl font-bold mb-6 text-center">
+        <h1 className={cn("mb-6", settingsTitleVariants())}>
           {t("settings")}
         </h1>
         <CardContent className="p-0">
