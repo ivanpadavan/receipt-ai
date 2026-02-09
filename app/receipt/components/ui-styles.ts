@@ -53,3 +53,49 @@ export const iconButtonVariants = cva("px-0", {
     tone: "muted",
   },
 });
+
+export const surfaceVariants = cva(
+  "rounded-2xl border border-border/70 bg-card text-foreground",
+  {
+    variants: {
+      tone: {
+        default: "",
+        soft: "bg-muted/30",
+        warm: "bg-amber-50/60 border-amber-200/70",
+        danger: "bg-red-50 border-red-200 text-red-950",
+      },
+      shadow: {
+        none: "shadow-none",
+        sm: "shadow-sm",
+        md: "shadow-[0_10px_22px_rgba(15,23,42,0.08),0_2px_6px_rgba(15,23,42,0.05)]",
+        lg: "shadow-[0_16px_34px_rgba(15,23,42,0.12),0_4px_10px_rgba(15,23,42,0.08)]",
+      },
+      interactive: {
+        true: "cursor-pointer transition hover:shadow-[0_16px_34px_rgba(15,23,42,0.12),0_4px_10px_rgba(15,23,42,0.08)]",
+        false: "",
+      },
+    },
+    defaultVariants: {
+      tone: "default",
+      shadow: "sm",
+      interactive: false,
+    },
+  },
+);
+
+export const pillVariants = cva(
+  "inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold",
+  {
+    variants: {
+      tone: {
+        neutral: "border-border/70 bg-muted/30 text-muted-foreground",
+        accent: "border-amber-200 bg-amber-50 text-amber-700",
+        success: "border-emerald-200 bg-emerald-50 text-emerald-700",
+        danger: "border-red-200 bg-red-50 text-red-700",
+      },
+    },
+    defaultVariants: {
+      tone: "neutral",
+    },
+  },
+);
