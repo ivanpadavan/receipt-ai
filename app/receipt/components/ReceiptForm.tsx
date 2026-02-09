@@ -51,6 +51,8 @@ import {
 import { useJoinFlowOverlay } from "@/app/receipt/[id]/join-flow/use-join-flow-overlay";
 import { DistributionBar } from "@/app/receipt/components/ui/DistributionBar";
 import { ReceiptActionBar } from "@/app/receipt/components/ui/ReceiptActionBar";
+import { pillVariants } from "@/app/receipt/components/ui-styles";
+import { cn } from "@/utils/cn";
 
 interface EditableReceiptFormProps {
   initialData: ReceiptWithParticipants;
@@ -389,11 +391,13 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                                 </p>
                               </div>
                               <span
-                                className={`rounded-lg border bg-card px-2 py-1 text-xs font-medium ${
-                                  hasQuantityError
-                                    ? "border-destructive text-destructive"
-                                    : "border-border/70 text-muted-foreground"
-                                }`}
+                                className={cn(
+                                  pillVariants({
+                                    tone: hasQuantityError ? "danger" : "neutral",
+                                    radius: "lg",
+                                  }),
+                                  "px-2 py-1 text-xs font-medium",
+                                )}
                               >
                                 {field.quantity}x
                               </span>

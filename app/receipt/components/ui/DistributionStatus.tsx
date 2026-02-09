@@ -1,26 +1,10 @@
 "use client";
 
 import React from "react";
-import { cva } from "class-variance-authority";
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { t } from "@/app/i18n/translations";
 import { cn } from "@/utils/cn";
-
-const badgeVariants = cva(
-  "inline-flex items-center gap-1.5 font-medium text-xs px-2 py-0.5 rounded-full border",
-  {
-    variants: {
-      tone: {
-        success: "text-emerald-700 bg-emerald-50 border-emerald-200",
-        danger: "text-destructive bg-red-50 border-red-200",
-        warning: "text-amber-600 bg-amber-50 border-amber-200",
-      },
-    },
-    defaultVariants: {
-      tone: "success",
-    },
-  },
-);
+import { pillVariants } from "@/app/receipt/components/ui-styles";
 
 interface DistributionStatusProps {
   distributed: number;
@@ -39,7 +23,13 @@ export const DistributionStatus: React.FC<DistributionStatusProps> = ({
 
   if (Math.abs(remaining) <= 0.01) {
     return (
-      <div className={cn(badgeVariants({ tone: "success" }), className)}>
+      <div
+        className={cn(
+          pillVariants({ tone: "success", radius: "full" }),
+          "px-2 py-0.5 text-xs font-medium",
+          className,
+        )}
+      >
         <CheckCircle2 className="h-3.5 w-3.5" />
         {t("distributed")}
       </div>
@@ -48,7 +38,13 @@ export const DistributionStatus: React.FC<DistributionStatusProps> = ({
 
   if (remaining < -0.01) {
     return (
-      <div className={cn(badgeVariants({ tone: "danger" }), className)}>
+      <div
+        className={cn(
+          pillVariants({ tone: "danger", radius: "full" }),
+          "px-2 py-0.5 text-xs font-medium",
+          className,
+        )}
+      >
         <XCircle className="h-3.5 w-3.5" />
         {t("overpaid")}: {Math.abs(remaining).toFixed(precision)} ₽
       </div>
@@ -56,7 +52,13 @@ export const DistributionStatus: React.FC<DistributionStatusProps> = ({
   }
 
   return (
-    <div className={cn(badgeVariants({ tone: "warning" }), className)}>
+    <div
+      className={cn(
+        pillVariants({ tone: "warning", radius: "full" }),
+        "px-2 py-0.5 text-xs font-medium",
+        className,
+      )}
+    >
       <AlertTriangle className="h-3.5 w-3.5" />
       {t("remaining")}: {remaining.toFixed(precision)} ₽
     </div>

@@ -96,22 +96,34 @@ export const surfaceVariants = cva(
   },
 );
 
-export const pillVariants = cva(
-  "inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold",
-  {
-    variants: {
-      tone: {
-        neutral: "border-border/70 bg-muted/30 text-muted-foreground",
-        accent: "border-amber-200 bg-amber-50 text-amber-700",
-        success: "border-emerald-200 bg-emerald-50 text-emerald-700",
-        danger: "border-red-200 bg-red-50 text-red-700",
-      },
+export const pillVariants = cva("inline-flex items-center gap-1.5 border", {
+  variants: {
+    tone: {
+      neutral: "border-border/70 bg-card text-muted-foreground",
+      ghost: "border-transparent bg-transparent text-muted-foreground",
+      accent: "border-amber-200 bg-amber-50 text-amber-700",
+      success: "border-emerald-200 bg-emerald-50 text-emerald-700",
+      danger: "border-red-200 bg-red-50 text-destructive",
+      warning: "border-amber-200 bg-amber-50 text-amber-600",
     },
-    defaultVariants: {
-      tone: "neutral",
+    radius: {
+      full: "rounded-full",
+      lg: "rounded-lg",
+      xl: "rounded-xl",
+    },
+    interaction: {
+      none: "",
+      subtle: "transition-colors hover:text-foreground",
+      accent:
+        "transition-all duration-200 hover:border-amber-500 hover:text-amber-500 hover:bg-amber-500/5 hover:shadow-md",
     },
   },
-);
+  defaultVariants: {
+    tone: "neutral",
+    radius: "full",
+    interaction: "none",
+  },
+});
 
 export const actionBarVariants = cva(
   "rounded-[32px] border border-white/70 bg-white/35 shadow-[0_24px_48px_rgba(15,23,42,0.20)] backdrop-blur-2xl",

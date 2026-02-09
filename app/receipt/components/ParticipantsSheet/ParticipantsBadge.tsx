@@ -5,6 +5,7 @@ import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { cn } from "@/utils/cn";
+import { pillVariants } from "@/app/receipt/components/ui-styles";
 
 interface ParticipantsBadgeProps {
   onClick: () => void;
@@ -27,7 +28,14 @@ export const ParticipantsBadge: React.FC<ParticipantsBadgeProps> = ({
         onClick={onClick}
         disabled={disabled}
         title="Участники"
-        className="h-10 rounded-xl px-3 text-muted-foreground hover:text-foreground"
+        className={cn(
+          pillVariants({
+            tone: "ghost",
+            radius: "xl",
+            interaction: "subtle",
+          }),
+          "h-10 px-3 text-sm font-semibold",
+        )}
       >
         <Users className="mr-1 h-4 w-4" />
         <span className="text-sm font-semibold min-w-[1rem] text-center">
@@ -44,8 +52,12 @@ export const ParticipantsBadge: React.FC<ParticipantsBadgeProps> = ({
       disabled={disabled}
       title="Участники"
       className={cn(
-        "inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-500 font-medium transition-all duration-200",
-        "hover:border-amber-500 hover:text-amber-500 hover:bg-amber-500/5 hover:shadow-md",
+        pillVariants({
+          tone: "neutral",
+          radius: "xl",
+          interaction: "accent",
+        }),
+        "gap-2 px-3 py-2 text-sm font-medium",
       )}
     >
       <Users className="w-[1.125rem] h-[1.125rem]" />
