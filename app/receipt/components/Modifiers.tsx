@@ -22,7 +22,7 @@ const modifierRowVariants = cva("rounded-md px-1 py-1", {
   },
 });
 
-const modifierLabelVariants = cva("text-muted-foreground");
+const modifierLabelVariants = cva("text-sm text-muted-foreground");
 
 const modifierValueVariants = cva("font-medium", {
   variants: {
@@ -56,7 +56,7 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
 
   return (
     <div className="mt-2">
-      <div className={cn("mb-1 text-sm", modifierLabelVariants())}>
+      <div className={cn("mb-1", modifierLabelVariants())}>
         {t(type)}:
       </div>
       <div className="space-y-1">

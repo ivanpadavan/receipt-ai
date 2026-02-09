@@ -11,7 +11,7 @@ import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
 
-const summaryHeaderVariants = cva("border-b bg-card");
+const summaryHeaderVariants = cva("border-b bg-card text-center");
 const summaryLabelVariants = cva("text-lg font-medium text-muted-foreground");
 const summaryTotalVariants = cva("text-4xl font-bold text-foreground");
 const summaryCurrencyVariants = cva("text-2xl text-muted-foreground");
@@ -58,7 +58,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header / Hero */}
-      <div className={cn("p-6 text-center relative", summaryHeaderVariants())}>
+      <div className={cn("p-6 relative", summaryHeaderVariants())}>
         <h2 className={cn("mb-1", summaryLabelVariants())}>
           {t("total")}
         </h2>

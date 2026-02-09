@@ -18,8 +18,8 @@ const dropzoneVariants = cva(
   "border-2 border-dashed border-input rounded-lg cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors",
 );
 const dropzoneIconVariants = cva("text-muted-foreground");
-const dropzoneTitleVariants = cva("text-lg font-medium text-foreground");
-const dropzoneHintVariants = cva("text-sm text-muted-foreground");
+const dropzoneTitleVariants = cva("text-lg font-medium text-foreground text-center");
+const dropzoneHintVariants = cva("text-sm text-muted-foreground text-center");
 const captureButtonVariants = cva("shadow-md");
 const loadingSpinnerVariants = cva(
   "animate-spin rounded-full border-b-2 border-amber-500",
@@ -187,10 +187,10 @@ export default function ImagePastePage() {
                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                <p className={cn("mb-2 text-center", dropzoneTitleVariants())}>
+                <p className={cn("mb-2", dropzoneTitleVariants())}>
                   {t("uploadReceiptImage")}
                 </p>
-                <p className={cn("text-center", dropzoneHintVariants())}>
+                <p className={dropzoneHintVariants()}>
                   {t("tapToSelectOrPaste")}
                 </p>
               </div>
