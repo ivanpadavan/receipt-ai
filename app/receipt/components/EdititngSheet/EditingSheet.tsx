@@ -20,6 +20,8 @@ import {
 } from "@/model/receipt/model";
 import { useReceiptState } from "../ReceiptForm";
 import { useRowConflict } from "./useRowConflict";
+import { cn } from "@/utils/cn";
+import { noticeVariants } from "@/app/receipt/components/ui-styles";
 
 type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
 
@@ -147,8 +149,8 @@ export const EditingSheet: React.FC<EditModalProps> = ({
       <DrawerTitle className={"px-4 pt-4 text-center"}>{t(header)}</DrawerTitle>
       <div className={"p-4"}>
         {conflict && (
-          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
-            <p className="text-sm text-amber-800">{conflict.message}</p>
+          <div className={cn("mb-4", noticeVariants({ tone: "warning" }))}>
+            <p>{conflict.message}</p>
             {conflict.type === "modified" && (
               <div className="mt-2 flex space-x-2">
                 <Button
@@ -185,10 +187,10 @@ export const EditingSheet: React.FC<EditModalProps> = ({
           </div>
         )}
         {visibleErrors.length > 0 && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+          <div className={cn("mb-4", noticeVariants({ tone: "danger" }))}>
             <ul className="list-disc pl-5 space-y-1">
               {visibleErrors.map(([key, error], index) => (
-                <li key={index} className="text-sm text-red-700">
+                <li key={index}>
                   <strong>{t(key as TranslationKey)}:</strong> {error}
                 </li>
               ))}

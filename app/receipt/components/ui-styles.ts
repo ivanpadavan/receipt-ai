@@ -132,3 +132,18 @@ export const actionBarVariants = cva(
 export const primaryActionVariants = cva(
   "rounded-full text-base font-semibold shadow-[0_14px_30px_rgba(249,115,22,0.36)]",
 );
+
+export const noticeVariants = cva(
+  "rounded-md border px-3 py-3 text-sm",
+  {
+    variants: {
+      tone: {
+        warning: "border-amber-200 bg-amber-50 text-amber-800",
+        danger: "border-red-200 bg-red-50 text-red-700",
+      },
+    },
+    defaultVariants: {
+      tone: "warning",
+    },
+  },
+);

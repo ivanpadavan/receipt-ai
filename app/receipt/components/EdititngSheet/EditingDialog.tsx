@@ -24,6 +24,7 @@ import { Trash2 } from "lucide-react";
 import {
   iconButtonVariants,
   iconSoloVariants,
+  noticeVariants,
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
 
@@ -150,8 +151,8 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
       </DialogHeader>
       <div className="mt-4 space-y-4">
         {conflict && (
-          <div className="rounded-md border border-amber-200 bg-amber-50 p-3">
-            <p className="text-sm text-amber-800">{conflict.message}</p>
+          <div className={noticeVariants({ tone: "warning" })}>
+            <p>{conflict.message}</p>
             {conflict.type === "modified" && (
               <div className="mt-2 flex space-x-2">
                 <Button
@@ -188,10 +189,10 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
           </div>
         )}
         {visibleErrors.length > 0 && (
-          <div className="rounded-md border border-red-200 bg-red-50 p-3">
+          <div className={noticeVariants({ tone: "danger" })}>
             <ul className="list-disc space-y-1 pl-5">
               {visibleErrors.map(([key, error], index) => (
-                <li key={index} className="text-sm text-red-700">
+                <li key={index}>
                   <strong>{t(key as TranslationKey)}:</strong> {error}
                 </li>
               ))}
