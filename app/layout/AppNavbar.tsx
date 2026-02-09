@@ -6,13 +6,43 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/utils/cn";
 import { Menu, X, LogOut } from "lucide-react";
 import { useUser } from "@/context/AuthContext";
-import {
-  GoogleLogin,
-} from "@react-oauth/google";
+import { GoogleLogin } from "@react-oauth/google";
 import Logo from "@/app/layout/Logo";
 import { Button } from "@/components/ui/button";
 import { handleSignIn, handleSignOut } from "@/app/receipt/utils/auth";
 import { t } from "@/app/i18n/translations";
+import { cva } from "class-variance-authority";
+
+const navLinkVariants = cva(
+  "px-4 py-2 rounded-[18px] whitespace-nowrap flex items-center gap-2 text-sm transition-all",
+  {
+    variants: {
+      active: {
+        true: "bg-primary text-primary-foreground",
+        false: "text-foreground hover:bg-accent hover:text-accent-foreground",
+      },
+    },
+    defaultVariants: {
+      active: false,
+    },
+  },
+);
+
+const navContainerVariants = cva("bg-background border-b shadow-sm");
+
+const mobileMenuButtonVariants = cva(
+  "text-foreground hover:bg-accent hover:text-accent-foreground",
+);
+
+const menuPanelVariants = cva(
+  "flex flex-col md:flex-row items-start md:items-center md:space-x-4 bg-background",
+);
+
+const menuPanelFrameVariants = cva(
+  "absolute md:static left-0 right-0 top-16 md:top-auto border-t md:border-t-0",
+);
+
+const userNameVariants = cva("text-foreground font-medium");
 
 // Custom NavLink component with amber color scheme
 const NavLink = ({
@@ -32,10 +62,7 @@ const NavLink = ({
       href={href}
       onClick={onClick}
       className={cn(
-        "px-4 py-2 rounded-[18px] whitespace-nowrap flex items-center gap-2 text-sm transition-all",
-        isActive
-          ? "bg-primary text-primary-foreground"
-          : "text-foreground hover:bg-accent hover:text-accent-foreground",
+        navLinkVariants({ active: isActive }),
       )}
     >
       {children}
@@ -58,7 +85,7 @@ export const AppNavbar = () => {
   };
 
   return (
-    <nav className="bg-background border-b shadow-sm">
+    <nav className={navContainerVariants()}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -69,10 +96,17 @@ export const AppNavbar = () => {
 
           {/* Menu button - only visible on mobile */}
           <div className="flex items-center md:hidden">
-            {!isAuthenticated && <GoogleLogin shape="circle" containerProps={{className: 'mr-3'}} type="icon" onSuccess={handleSignIn} />}
+            {!isAuthenticated && (
+              <GoogleLogin
+                shape="circle"
+                containerProps={{ className: "mr-3" }}
+                type="icon"
+                onSuccess={handleSignIn}
+              />
+            )}
             <Button
               variant="ghost"
-              className="text-foreground hover:bg-accent hover:text-accent-foreground"
+              className={mobileMenuButtonVariants()}
               onClick={toggleMenu}
             >
               {isMenuOpen ? (
@@ -86,8 +120,8 @@ export const AppNavbar = () => {
           {/* Unified navigation menu - styled differently for mobile/desktop */}
           <div
             className={cn(
-              "flex flex-col md:flex-row items-start md:items-center md:space-x-4 bg-background",
-              "absolute md:static left-0 right-0 top-16 md:top-auto border-t md:border-t-0",
+              menuPanelVariants(),
+              menuPanelFrameVariants(),
               "md:flex",
               isMenuOpen ? "flex" : "hidden",
             )}
@@ -113,7 +147,7 @@ export const AppNavbar = () => {
               {isAuthenticated && (
                 <>
                   <div className="block md:hidden py-2 px-3 text-center">
-                    <span className="text-foreground font-medium">
+                    <span className={userNameVariants()}>
                       {user.user_metadata.displayName}
                     </span>
                   </div>
@@ -139,7 +173,7 @@ export const AppNavbar = () => {
             {/* User info and auth buttons - only visible on desktop */}
             {isAuthenticated ? (
               <div className="hidden md:flex items-center gap-2 ml-2">
-                <span className="text-foreground font-medium">
+                <span className={userNameVariants()}>
                   {user.user_metadata.displayName}
                 </span>
                 <Button
