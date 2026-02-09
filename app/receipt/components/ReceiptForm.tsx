@@ -154,6 +154,11 @@ const positionRowButtonVariants = cva("", {
   },
 });
 
+const receiptCardPaddingVariants = cva("p-4 md:p-5");
+const positionCardContentPaddingVariants = cva("py-1.5 px-4");
+const summaryCardContentPaddingVariants = cva("py-1.5 px-4");
+const stickyBarPaddingVariants = cva("px-2");
+
 interface EditableReceiptFormProps {
   initialData: ReceiptWithParticipants;
   receiptId: string;
@@ -399,7 +404,10 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
           <ReceiptCard
             shadow="lg"
             radius="3xl"
-            className="mx-auto my-3 w-full max-w-3xl p-4 md:p-5"
+            className={cn(
+              "mx-auto my-3 w-full max-w-3xl",
+              receiptCardPaddingVariants(),
+            )}
           >
             {scenarioType === "summary" ? (
               <SummaryScreen
@@ -461,7 +469,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                           }),
                         )}
                         >
-                          <CardContent className="py-1.5 px-4">
+                          <CardContent className={positionCardContentPaddingVariants()}>
                             <div
                               className={cn(
                                 "flex items-center gap-3",
@@ -533,7 +541,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                   radius="2xl"
                   className="mt-4"
                 >
-                  <CardContent className="py-1.5 px-4">
+                  <CardContent className={summaryCardContentPaddingVariants()}>
                     <div>
                       {(currentReceipt.discounts.length > 0 ||
                         currentReceipt.fees.length > 0) && (
@@ -607,7 +615,12 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
             )}
           </ReceiptCard>
           {scenarioType !== "summary" && (
-            <div className="sticky bottom-[5.50rem] z-10 mx-auto mb-1 w-full max-w-3xl px-2">
+            <div
+              className={cn(
+                "sticky bottom-[5.50rem] z-10 mx-auto mb-1 w-full max-w-3xl",
+                stickyBarPaddingVariants(),
+              )}
+            >
               <DistributionBar
                 data={currentReceipt}
                 tone="glass"

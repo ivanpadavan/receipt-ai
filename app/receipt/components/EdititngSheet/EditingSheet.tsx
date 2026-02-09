@@ -27,6 +27,11 @@ import {
   noticeVariants,
   centeredTitleVariants,
 } from "@/app/receipt/components/ui-styles";
+import { cva } from "class-variance-authority";
+
+const drawerTitlePaddingVariants = cva("px-4 pt-4");
+const sheetBodyPaddingVariants = cva("p-4");
+const errorListVariants = cva("list-disc pl-5");
 
 type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
 
@@ -151,10 +156,12 @@ export const EditingSheet: React.FC<EditModalProps> = ({
 
   return (
     <DrawerContent>
-      <DrawerTitle className={cn("px-4 pt-4", centeredTitleVariants())}>
+      <DrawerTitle
+        className={cn(drawerTitlePaddingVariants(), centeredTitleVariants())}
+      >
         {t(header)}
       </DrawerTitle>
-      <div className={"p-4"}>
+      <div className={sheetBodyPaddingVariants()}>
         {conflict && (
           <div className={cn("mb-4", noticeVariants({ tone: "warning" }))}>
             <p>{conflict.message}</p>
@@ -195,7 +202,7 @@ export const EditingSheet: React.FC<EditModalProps> = ({
         )}
         {visibleErrors.length > 0 && (
           <div className={cn("mb-4", noticeVariants({ tone: "danger" }))}>
-            <ul className="list-disc pl-5 space-y-1">
+            <ul className={cn("space-y-1", errorListVariants())}>
               {visibleErrors.map(([key, error], index) => (
                 <li key={index}>
                   <strong>{t(key as TranslationKey)}:</strong> {error}

@@ -12,8 +12,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
 
-const settingsShellVariants = cva("bg-amber-50");
+const settingsShellVariants = cva("bg-amber-50 p-4");
 const settingsTitleVariants = cva("text-2xl font-bold text-center");
+const settingsCardPaddingVariants = cva("p-6");
+const settingsCardContentVariants = cva("p-0");
 
 export default function SettingsPage() {
   const { user } = useUser();
@@ -56,19 +58,19 @@ export default function SettingsPage() {
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center p-4 gap-4",
+        "flex flex-col items-center justify-center gap-4",
         settingsShellVariants(),
       )}
     >
       <Card
         variant="default"
         shadow="md"
-        className="mx-auto w-full max-w-md p-6"
+        className={cn("mx-auto w-full max-w-md", settingsCardPaddingVariants())}
       >
         <h1 className={cn("mb-6", settingsTitleVariants())}>
           {t("settings")}
         </h1>
-        <CardContent className="p-0">
+        <CardContent className={settingsCardContentVariants()}>
           <SettingsForm user={user} onSubmit={handleSave} />
         </CardContent>
       </Card>

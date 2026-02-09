@@ -10,7 +10,7 @@ import { t } from "@/app/i18n/translations";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
 
-const pageShellVariants = cva("bg-amber-50");
+const pageShellVariants = cva("bg-amber-50 p-4");
 const pageTitleVariants = cva("text-3xl font-bold text-center text-amber-800");
 const previewImageVariants = cva("object-contain rounded-md");
 const actionButtonVariants = cva("shadow-md");
@@ -26,8 +26,12 @@ const loadingSpinnerVariants = cva(
 );
 const loadingTextVariants = cva("text-amber-800 text-sm font-medium");
 const errorBoxVariants = cva(
-  "bg-red-50 border border-red-300 text-red-700 rounded-lg shadow-sm",
+  "bg-red-50 border border-red-300 text-red-700 rounded-lg shadow-sm p-4",
 );
+const pageCardPaddingVariants = cva("p-6");
+const previewCardPaddingVariants = cva("p-4");
+const dropzonePaddingVariants = cva("p-6");
+const loadingContainerVariants = cva("p-6");
 
 const captureSupported =
   typeof document === "object" &&
@@ -113,7 +117,7 @@ export default function ImagePastePage() {
     <>
       <div
         className={cn(
-          "flex flex-col items-center justify-center flex-1 p-4 gap-4",
+          "flex flex-col items-center justify-center flex-1 gap-4",
           pageShellVariants(),
         )}
       >
@@ -135,7 +139,10 @@ export default function ImagePastePage() {
             <Card
               variant="interactive"
               shadow="md"
-              className="flex w-full flex-col items-center gap-4 p-4"
+              className={cn(
+                "flex w-full flex-col items-center gap-4",
+                previewCardPaddingVariants(),
+              )}
             >
               <img
                 src={picture.imageBase64}
@@ -165,11 +172,16 @@ export default function ImagePastePage() {
             </Card>
           )}
           {picture.status === "idle" && (
-            <Card variant="default" shadow="md" className="p-6">
+            <Card
+              variant="default"
+              shadow="md"
+              className={pageCardPaddingVariants()}
+            >
               <div
                 className={cn(
-                  "w-full p-6 min-h-[200px] flex flex-col items-center justify-center",
+                  "w-full min-h-[200px] flex flex-col items-center justify-center",
                   dropzoneVariants(),
+                  dropzonePaddingVariants(),
                 )}
                 onClick={triggerFileInput}
               >
@@ -240,7 +252,12 @@ export default function ImagePastePage() {
           )}
 
           {picture.status === "loading" && (
-            <div className="w-full flex flex-col items-center justify-center p-6">
+            <div
+              className={cn(
+                "w-full flex flex-col items-center justify-center",
+                loadingContainerVariants(),
+              )}
+            >
               <div className={cn("h-12 w-12 mb-4", loadingSpinnerVariants())} />
               <span className={loadingTextVariants()}>
                 {t("processingReceipt")}
@@ -249,7 +266,7 @@ export default function ImagePastePage() {
           )}
 
           {error.errorMessage && (
-            <div className={cn("w-full mt-4 p-4", errorBoxVariants())}>
+            <div className={cn("w-full mt-4", errorBoxVariants())}>
               <p className="font-bold">{t("errorLabel")}</p>
               <p>{error.errorMessage}</p>
             </div>

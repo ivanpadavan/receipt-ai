@@ -18,9 +18,11 @@ import { Copy, Share2, QrCode } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 import { cva } from "class-variance-authority";
+import { cn } from "@/utils/cn";
 
 const qrContainerVariants = cva("rounded-xl border bg-white p-3");
 const triggerLabelVariants = cva("text-[11px] font-medium");
+const shareContentPaddingVariants = cva("py-2");
 
 type ShareReceiptDialogProps = {
   receiptId: string;
@@ -90,7 +92,12 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
           <AlertDialogDescription>{t("shareReceiptHint")}</AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="flex flex-col items-center gap-4 py-2">
+        <div
+          className={cn(
+            "flex flex-col items-center gap-4",
+            shareContentPaddingVariants(),
+          )}
+        >
           <div className={qrContainerVariants()}>
             <QRCodeSVG
               value={receiptUrl}

@@ -18,11 +18,18 @@ const summaryCurrencyVariants = cva("text-2xl text-muted-foreground");
 const balanceNameVariants = cva("font-medium text-lg text-left truncate");
 const balanceAmountVariants = cva("font-bold text-xl block");
 const balanceDiffVariants = cva("text-xs text-muted-foreground");
-const itemListVariants = cva("text-sm space-y-1 text-muted-foreground border-t pt-2 border-border/40");
+const itemListVariants = cva("text-sm text-muted-foreground border-t pt-2 border-border/40");
 const itemNameVariants = cva("truncate text-foreground");
 const itemDescVariants = cva("text-xs text-muted-foreground truncate");
-const emptyStateVariants = cva("text-center text-muted-foreground");
+const emptyStateVariants = cva("text-center text-muted-foreground py-8");
 const balanceAmountWrapperVariants = cva("text-right");
+const summaryHeaderPaddingVariants = cva("p-6");
+const summaryListPaddingVariants = cva("p-4");
+const summaryCardPaddingVariants = cva("p-3");
+const summaryItemIndentVariants = cva("pl-12");
+const summaryItemContainerPaddingVariants = cva("pr-2");
+const summaryItemRowPaddingVariants = cva("py-1");
+const summaryAmountVariants = cva("whitespace-nowrap font-medium");
 
 interface SummaryScreenProps {
   receipt: Receipt;
@@ -58,7 +65,13 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header / Hero */}
-      <div className={cn("p-6 relative", summaryHeaderVariants())}>
+      <div
+        className={cn(
+          "relative",
+          summaryHeaderVariants(),
+          summaryHeaderPaddingVariants(),
+        )}
+      >
         <h2 className={cn("mb-1", summaryLabelVariants())}>
           {t("total")}
         </h2>
@@ -80,7 +93,12 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div
+        className={cn(
+          "flex-1 overflow-y-auto space-y-3",
+          summaryListPaddingVariants(),
+        )}
+      >
         {balances.map((balance) => {
           const participant = participants.find(
             (p) => p.id === balance.participantId,
@@ -92,7 +110,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
               key={balance.participantId}
               shadow="sm"
               radius="xl"
-              className="p-3"
+              className={summaryCardPaddingVariants()}
             >
               <div className="flex items-center gap-3 w-full mb-2">
                 <ParticipantAvatar participant={participant} />
@@ -116,14 +134,22 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
               </div>
 
               {balance.items.length > 0 && (
-                <div className="pl-12 w-full">
-                  <ul className={itemListVariants()}>
+                <div className={cn("w-full", summaryItemIndentVariants())}>
+                  <ul className={cn("space-y-1", itemListVariants())}>
                     {balance.items.map((item, idx) => (
                       <li
                         key={idx}
-                        className="flex justify-between items-start py-1"
+                        className={cn(
+                          "flex justify-between items-start",
+                          summaryItemRowPaddingVariants(),
+                        )}
                       >
-                        <div className="overflow-hidden pr-2 flex-1">
+                        <div
+                          className={cn(
+                            "overflow-hidden flex-1",
+                            summaryItemContainerPaddingVariants(),
+                          )}
+                        >
                           <div className={itemNameVariants()}>
                             {item.positionName}
                           </div>
@@ -133,7 +159,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
                             </div>
                           )}
                         </div>
-                        <span className="whitespace-nowrap font-medium">
+                        <span className={summaryAmountVariants()}>
                           {item.rawAmount.toFixed(0)} ₽
                         </span>
                       </li>
@@ -146,9 +172,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
         })}
 
         {balances.length === 0 && (
-          <div className={cn("py-8", emptyStateVariants())}>
-            {t("noClaims")}
-          </div>
+          <div className={emptyStateVariants()}>{t("noClaims")}</div>
         )}
       </div>
     </div>

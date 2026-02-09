@@ -44,6 +44,10 @@ const menuPanelFrameVariants = cva(
 
 const userNameVariants = cva("text-foreground font-medium");
 const mobileUserContainerVariants = cva("text-center");
+const navOuterPaddingVariants = cva("px-4 sm:px-6 lg:px-8");
+const menuListPaddingVariants = cva("px-2 pt-2 pb-3 sm:px-3 md:p-0");
+const menuItemPaddingVariants = cva("py-2 px-3 md:p-0");
+const mobileActionPaddingVariants = cva("py-2 px-3");
 
 // Custom NavLink component with amber color scheme
 const NavLink = ({
@@ -87,7 +91,7 @@ export const AppNavbar = () => {
 
   return (
     <nav className={navContainerVariants()}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className={cn("max-w-7xl mx-auto", navOuterPaddingVariants())}>
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0 flex items-center">
@@ -127,19 +131,39 @@ export const AppNavbar = () => {
               isMenuOpen ? "flex" : "hidden",
             )}
           >
-            <div className="w-full md:w-auto px-2 pt-2 pb-3 md:p-0 space-y-1 md:space-y-0 sm:px-3">
-              <div className="block md:inline-block py-2 px-3 md:p-0 md:mr-4">
+            <div
+              className={cn(
+                "w-full md:w-auto space-y-1 md:space-y-0",
+                menuListPaddingVariants(),
+              )}
+            >
+              <div
+                className={cn(
+                  "block md:inline-block md:mr-4",
+                  menuItemPaddingVariants(),
+                )}
+              >
                 <NavLink href="/" onClick={closeMenu}>
                   {t("scanNew")}
                 </NavLink>
               </div>
-              <div className="block md:inline-block py-2 px-3 md:p-0 md:mr-4">
+              <div
+                className={cn(
+                  "block md:inline-block md:mr-4",
+                  menuItemPaddingVariants(),
+                )}
+              >
                 <NavLink href="/history" onClick={closeMenu}>
                   {t("history")}
                 </NavLink>
               </div>
               {isAuthenticated && (
-                <div className="block md:inline-block py-2 px-3 md:p-0 md:mr-4">
+                <div
+                  className={cn(
+                    "block md:inline-block md:mr-4",
+                    menuItemPaddingVariants(),
+                  )}
+                >
                   <NavLink href="/settings" onClick={closeMenu}>
                     {t("settings")}
                   </NavLink>
@@ -149,15 +173,21 @@ export const AppNavbar = () => {
                 <>
                   <div
                     className={cn(
-                      "block md:hidden py-2 px-3",
+                      "block md:hidden",
                       mobileUserContainerVariants(),
+                      mobileActionPaddingVariants(),
                     )}
                   >
                     <span className={userNameVariants()}>
                       {user.user_metadata.displayName}
                     </span>
                   </div>
-                  <div className="block md:hidden py-2 px-3">
+                  <div
+                    className={cn(
+                      "block md:hidden",
+                      mobileActionPaddingVariants(),
+                    )}
+                  >
                     <Button
                       onClick={() => {
                         closeMenu();

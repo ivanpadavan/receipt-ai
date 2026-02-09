@@ -56,7 +56,7 @@ interface EditingHeaderProps {
   onCancel: () => void;
 }
 
-const editingHeaderVariants = cva("border-b bg-muted/20");
+const editingHeaderVariants = cva("border-b bg-muted/20 p-3");
 
 const editingInputVariants = cva("bg-background");
 
@@ -114,14 +114,20 @@ const participantButtonVariants = cva("relative rounded-full transition-all", {
   },
 });
 
-const accordionContentVariants = cva("border-t bg-background");
+const accordionContentVariants = cva("border-t bg-background px-3 py-2");
 
-const sheetTitleVariants = cva("text-center");
-const sheetSubtitleVariants = cva("text-sm text-muted-foreground text-center");
-const footerVariants = cva("border-t bg-background");
+const sheetTitleVariants = cva("text-center px-4 pt-4");
+const sheetSubtitleVariants = cva("text-sm text-muted-foreground text-center px-4 py-2");
+const footerVariants = cva("border-t bg-background pt-2");
 const footerLabelVariants = cva("text-muted-foreground");
 const sheetOverallValueVariants = cva("font-semibold text-foreground");
 const footerRowVariants = cva("text-sm");
+const accordionTriggerPaddingVariants = cva("px-3 py-3");
+const headerActionPaddingVariants = cva("px-1");
+const addSharePaddingVariants = cva("px-4 pb-3");
+const claimsListPaddingVariants = cva("px-4");
+const footerContentPaddingVariants = cva("px-4 py-3");
+const accordionContentPaddingVariants = cva("p-0");
 
 const EditingHeader: React.FC<EditingHeaderProps> = ({
   claim,
@@ -131,7 +137,7 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
   onCancel,
 }) => {
   return (
-    <div className={cn("flex items-center gap-2 p-3 w-full", editingHeaderVariants())}>
+    <div className={cn("flex items-center gap-2 w-full", editingHeaderVariants())}>
       {/* Input Value */}
       <Input
         type="number"
@@ -209,7 +215,9 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
 
   return (
     <>
-      <AccordionTrigger className="flex-1 px-3 py-3 hover:no-underline">
+      <AccordionTrigger
+        className={cn("flex-1 hover:no-underline", accordionTriggerPaddingVariants())}
+      >
         <div className="flex justify-between items-center w-full">
           {/* Claim info - left side */}
           <div className={cn("flex items-baseline gap-2", claimInfoVariants())}>
@@ -251,7 +259,7 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
       </AccordionTrigger>
 
       {/* Actions - outside trigger */}
-      <div className="flex items-center px-1">
+      <div className={cn("flex items-center", headerActionPaddingVariants())}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -360,8 +368,8 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
             {header}
           </AccordionHeader>
 
-          <AccordionContent className="p-0">
-            <div className={cn("px-3 py-2", accordionContentVariants())}>
+          <AccordionContent className={accordionContentPaddingVariants()}>
+            <div className={accordionContentVariants()}>
               <ParticipantsSelector
                 selectedIds={claim.participantIds}
                 participants={participants}
@@ -421,15 +429,12 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
   return (
     <DrawerContent className="h-[85vh] flex flex-col">
-      <DrawerTitle className={cn("px-4 pt-4", sheetTitleVariants())}>
+      <DrawerTitle className={sheetTitleVariants()}>
         {localPosition.name}
       </DrawerTitle>
 
       <div
-        className={cn(
-          "px-4 py-2 flex flex-col items-center gap-1",
-          sheetSubtitleVariants(),
-        )}
+        className={cn("flex flex-col items-center gap-1", sheetSubtitleVariants())}
       >
         <div>
           {localPosition.quantity} {t("pcs")} × {localPosition.price} ₽ ={" "}
@@ -454,7 +459,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       </div>
 
       {!newDraftClaim && (
-        <div className="px-4 pb-3">
+        <div className={addSharePaddingVariants()}>
           <Button
             variant="ghost"
             className={cn("w-full", addShareButtonVariants())}
@@ -468,7 +473,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       {/* Scrollable shares area */}
       <div
         className={cn(
-          "flex-1 overflow-y-auto px-4 space-y-3",
+          "flex-1 overflow-y-auto space-y-3",
+          claimsListPaddingVariants(),
           hasClaimsError && claimsErrorRingVariants(),
         )}
       >
@@ -547,8 +553,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
       {/* Footer - Distribution + Done button */}
 
-      <DrawerFooter className={cn("pt-2", footerVariants())}>
-        <div className="px-4 py-3">
+      <DrawerFooter className={footerVariants()}>
+        <div className={footerContentPaddingVariants()}>
           <div className={cn("flex justify-between mb-2", footerRowVariants())}>
             <span className={footerLabelVariants()}>{t("distributed")}</span>
             <span className="font-medium">

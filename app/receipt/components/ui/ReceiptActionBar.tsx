@@ -43,6 +43,9 @@ const menuIconVariants = cva("", {
     },
   },
 });
+const barContainerPaddingVariants = cva("px-5");
+const barPaddingVariants = cva("p-2");
+const primaryActionPaddingVariants = cva("px-7");
 
 interface ReceiptActionBarProps {
   receiptId: string;
@@ -71,11 +74,12 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
 
   return (
     <div className="sticky mb-3 bottom-3 z-10 mx-auto w-full max-w-3xl">
-      <div className="w-full px-5">
+      <div className={cn("w-full", barContainerPaddingVariants())}>
         <div
           className={cn(
-            "flex items-center justify-between gap-3 p-2",
+            "flex items-center justify-between gap-3",
             actionBarVariants(),
+            barPaddingVariants(),
           )}
         >
           <ButtonGroup
@@ -170,7 +174,7 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
           <Button
             onClick={onPrimaryAction}
             disabled={!canProceed}
-            className={cn("h-12 px-7", primaryActionVariants())}
+            className={cn("h-12", primaryActionVariants(), primaryActionPaddingVariants())}
           >
             {t(primaryLabel)}
           </Button>

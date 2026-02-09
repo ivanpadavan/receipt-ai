@@ -77,6 +77,7 @@ const emailTextVariants = cva("text-sm text-muted-foreground");
 const uploadCardVariants = cva(
   "rounded-xl border-2 border-dashed border-amber-200 bg-amber-50/40 hover:bg-amber-50 transition-colors",
 );
+const uploadCardPaddingVariants = cva("p-4");
 const uploadTitleVariants = cva("text-sm font-medium");
 const uploadHintVariants = cva("text-xs text-muted-foreground");
 const cropFrameVariants = cva("bg-black/80 rounded-lg overflow-hidden");
@@ -249,13 +250,14 @@ export const SettingsForm = ({
                       }
                     />
                   )}
-                  <div
-                    onClick={triggerFileInput}
-                    className={cn(
-                      "flex items-center gap-4 p-4 cursor-pointer",
-                      uploadCardVariants(),
-                    )}
-                  >
+                    <div
+                      onClick={triggerFileInput}
+                      className={cn(
+                        "flex items-center gap-4 cursor-pointer",
+                        uploadCardVariants(),
+                        uploadCardPaddingVariants(),
+                      )}
+                    >
                     <UserAvatar
                       className="h-16 w-16"
                       userMetadata={{ avatarUrl, displayName }}

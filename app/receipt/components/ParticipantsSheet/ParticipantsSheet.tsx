@@ -38,18 +38,19 @@ import { cn } from "@/utils/cn";
 
 const sheetBackgroundVariants = cva("bg-gradient-to-b from-white to-gray-50");
 
-const headerVariants = cva("border-b border-gray-100");
+const headerVariants = cva("border-b border-gray-100 px-5 py-4");
 
 const headerTitleVariants = cva("text-xl font-semibold text-gray-900");
 
 const emptyStateIconVariants = cva("text-gray-300");
 
 const emptyStateTextVariants = cva("text-gray-500 text-sm");
-const emptyStateContainerVariants = cva("text-center");
+const emptyStateContainerVariants = cva("text-center py-12");
 
 const rowNameVariants = cva("font-medium text-gray-800");
 
 const rowMenuButtonVariants = cva("text-gray-500");
+const rowContentPaddingVariants = cva("px-4 py-3");
 
 const dangerMenuItemVariants = cva(
   "text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50",
@@ -64,15 +65,17 @@ const addInputVariants = cva(
 );
 
 const doneButtonVariants = cva(
-  "bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold rounded-xl active:scale-[0.98] transition-transform",
+  "bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold rounded-xl active:scale-[0.98] transition-transform py-3",
 );
 
-const footerVariants = cva("border-t border-gray-100 bg-white");
+const footerVariants = cva("border-t border-gray-100 bg-white p-4");
 
 const conflictTextVariants = cva("text-xs text-amber-600");
 const dialogContentVariants = cva("rounded-xl");
 const deleteNameVariants = cva("font-semibold text-gray-900");
 const deleteActionVariants = cva("bg-red-500 hover:bg-red-600 text-white");
+const listPaddingVariants = cva("px-4 py-3");
+const addButtonContainerVariants = cva("px-4 pb-4 pt-2");
 
 interface ParticipantsSheetProps {
   onClose?: () => void;
@@ -156,7 +159,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
         className={cn("h-[85vh] flex flex-col", sheetBackgroundVariants())}
       >
         <DrawerHeader
-          className={cn("flex items-center justify-between px-5 py-4", headerVariants())}
+          className={cn("flex items-center justify-between", headerVariants())}
         >
           <DrawerTitle className={headerTitleVariants()}>
             {t("participants")}
@@ -172,11 +175,16 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
           </DrawerClose>
         </DrawerHeader>
 
-        <div className="flex-1 overflow-y-auto px-4 py-3 min-h-[200px]">
+        <div
+          className={cn(
+            "flex-1 overflow-y-auto min-h-[200px]",
+            listPaddingVariants(),
+          )}
+        >
           {participants.length === 0 && !isAdding && (
             <div
               className={cn(
-                "flex flex-col items-center justify-center py-12",
+                "flex flex-col items-center justify-center",
                 emptyStateContainerVariants(),
               )}
             >
@@ -194,7 +202,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                 radius="xl"
                 className="mb-2"
               >
-                <CardContent className="flex items-center gap-3 px-4 py-3">
+                <CardContent className={cn("flex items-center gap-3", rowContentPaddingVariants())}>
                   <ParticipantAvatar
                     participant={participant}
                     className="shrink-0"
@@ -234,7 +242,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
               radius="xl"
               className="mb-2"
             >
-              <CardContent className="flex items-center gap-3 px-4 py-3">
+              <CardContent className={cn("flex items-center gap-3", rowContentPaddingVariants())}>
                 <div
                   className={cn(
                     "w-8 h-8 shrink-0",
@@ -270,7 +278,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
         </div>
 
         {!isAdding && (
-          <div className="px-4 pb-4 pt-2">
+          <div className={addButtonContainerVariants()}>
             <Button
               variant="outline"
               onClick={() => setIsAdding(true)}
@@ -282,10 +290,10 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
           </div>
         )}
 
-        <div className={cn("p-4", footerVariants())}>
+        <div className={footerVariants()}>
           <Button
             onClick={onClose}
-            className={cn("w-full py-3", doneButtonVariants())}
+            className={cn("w-full", doneButtonVariants())}
           >
             {t("done")}
           </Button>

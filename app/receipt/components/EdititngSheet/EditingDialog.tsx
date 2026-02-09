@@ -30,6 +30,9 @@ import {
   centeredTitleVariants,
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
+import { cva } from "class-variance-authority";
+
+const errorListVariants = cva("list-disc pl-5");
 
 type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
 
@@ -195,7 +198,7 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
         )}
         {visibleErrors.length > 0 && (
           <div className={noticeVariants({ tone: "danger" })}>
-            <ul className="list-disc space-y-1 pl-5">
+            <ul className={cn("space-y-1", errorListVariants())}>
               {visibleErrors.map(([key, error], index) => (
                 <li key={index}>
                   <strong>{t(key as TranslationKey)}:</strong> {error}

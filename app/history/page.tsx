@@ -8,7 +8,7 @@ import { t } from "@/app/i18n/translations";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
 
-const historyShellVariants = cva("bg-amber-50");
+const historyShellVariants = cva("bg-amber-50 p-4");
 const historyTitleVariants = cva("text-3xl font-bold text-amber-800");
 const emptyCardTextVariants = cva("text-center");
 const ctaButtonVariants = cva(
@@ -19,6 +19,8 @@ const receiptTitleVariants = cva("text-lg font-semibold text-amber-800");
 const receiptDateVariants = cva("text-sm text-amber-600");
 const receiptMetaVariants = cva("text-sm text-amber-700");
 const receiptTotalVariants = cva("font-medium");
+const emptyCardContentVariants = cva("p-6");
+const receiptCardPaddingVariants = cva("p-4");
 
 // export const runtime = 'edge';
 
@@ -39,7 +41,7 @@ export default async function HistoryPage() {
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center p-4 gap-4",
+        "flex flex-col items-center justify-center gap-4",
         historyShellVariants(),
       )}
     >
@@ -56,7 +58,7 @@ export default async function HistoryPage() {
             shadow="md"
             className={cn("w-full", emptyCardTextVariants())}
           >
-            <CardContent className="p-6">
+            <CardContent className={emptyCardContentVariants()}>
               <p className="mb-4">
                 {t("noReceiptsYet")}
               </p>
@@ -85,7 +87,7 @@ export default async function HistoryPage() {
                     variant="interactive"
                     shadow="md"
                     interactive
-                    className={cn("w-full p-4", receiptCardVariants())}
+                    className={cn("w-full", receiptCardVariants(), receiptCardPaddingVariants())}
                   >
                     <div className="mb-2 flex items-center justify-between">
                       <h2 className={receiptTitleVariants()}>
