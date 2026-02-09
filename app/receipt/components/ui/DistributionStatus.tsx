@@ -25,8 +25,7 @@ export const DistributionStatus: React.FC<DistributionStatusProps> = ({
     return (
       <div
         className={cn(
-          pillVariants({ tone: "success", radius: "full" }),
-          "px-2 py-0.5 text-xs font-medium",
+          pillVariants({ tone: "success", radius: "full", size: "sm" }),
           className,
         )}
       >
@@ -40,8 +39,7 @@ export const DistributionStatus: React.FC<DistributionStatusProps> = ({
     return (
       <div
         className={cn(
-          pillVariants({ tone: "danger", radius: "full" }),
-          "px-2 py-0.5 text-xs font-medium",
+          pillVariants({ tone: "danger", radius: "full", size: "sm" }),
           className,
         )}
       >
@@ -54,8 +52,7 @@ export const DistributionStatus: React.FC<DistributionStatusProps> = ({
   return (
     <div
       className={cn(
-        pillVariants({ tone: "warning", radius: "full" }),
-        "px-2 py-0.5 text-xs font-medium",
+        pillVariants({ tone: "warning", radius: "full", size: "sm" }),
         className,
       )}
     >

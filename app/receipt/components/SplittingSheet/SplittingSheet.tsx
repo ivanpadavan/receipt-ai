@@ -117,7 +117,7 @@ const participantButtonVariants = cva("relative rounded-full transition-all", {
 const accordionContentVariants = cva("border-t bg-background");
 
 const sheetTitleVariants = cva("text-center");
-const sheetSubtitleVariants = cva("text-sm text-muted-foreground");
+const sheetSubtitleVariants = cva("text-sm text-muted-foreground text-center");
 const footerVariants = cva("border-t bg-background");
 const footerLabelVariants = cva("text-muted-foreground");
 const sheetOverallValueVariants = cva("font-semibold text-foreground");
@@ -427,7 +427,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
       <div
         className={cn(
-          "px-4 py-2 text-center flex flex-col items-center gap-1",
+          "px-4 py-2 flex flex-col items-center gap-1",
           sheetSubtitleVariants(),
         )}
       >
@@ -445,8 +445,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         {hasClaimsError && claimsErrorMessage && (
           <div
             className={cn(
-              pillVariants({ tone: "danger", radius: "full" }),
-              "px-2 py-0.5 text-xs font-medium",
+              pillVariants({ tone: "danger", radius: "full", size: "sm" }),
             )}
           >
             {claimsErrorMessage}

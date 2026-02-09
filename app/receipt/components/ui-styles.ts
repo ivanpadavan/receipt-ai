@@ -111,6 +111,11 @@ export const pillVariants = cva("inline-flex items-center gap-1.5 border", {
       lg: "rounded-lg",
       xl: "rounded-xl",
     },
+    size: {
+      xs: "px-2 py-1 text-xs font-medium",
+      sm: "px-2 py-0.5 text-xs font-medium",
+      md: "px-3 py-2 text-sm font-semibold",
+    },
     interaction: {
       none: "",
       subtle: "transition-colors hover:text-foreground",
@@ -121,6 +126,7 @@ export const pillVariants = cva("inline-flex items-center gap-1.5 border", {
   defaultVariants: {
     tone: "neutral",
     radius: "full",
+    size: "sm",
     interaction: "none",
   },
 });
