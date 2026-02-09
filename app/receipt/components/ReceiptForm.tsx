@@ -111,6 +111,49 @@ const overallValueVariants = cva("text-base font-semibold", {
   },
 });
 
+const positionHeaderVariants = cva("flex items-center gap-3", {
+  variants: {
+    tone: {
+      default: "",
+      danger: "text-destructive",
+    },
+  },
+  defaultVariants: {
+    tone: "default",
+  },
+});
+
+const positionNameVariants = cva("text-base font-bold text-foreground");
+const positionMetaVariants = cva("text-xs text-muted-foreground");
+
+const positionMetaValueVariants = cva("", {
+  variants: {
+    tone: {
+      default: "",
+      danger: "text-destructive",
+    },
+  },
+  defaultVariants: {
+    tone: "default",
+  },
+});
+
+const claimsErrorVariants = cva("text-xs text-destructive");
+
+const dividerVariants = cva("border-t border-border/70");
+
+const positionRowButtonVariants = cva("w-full text-left", {
+  variants: {
+    interactive: {
+      true: "cursor-pointer",
+      false: "cursor-default",
+    },
+  },
+  defaultVariants: {
+    interactive: false,
+  },
+});
+
 interface EditableReceiptFormProps {
   initialData: ReceiptWithParticipants;
   receiptId: string;
@@ -411,35 +454,33 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                             canEdit.positionForm &&
                             openEditModal({ type: "position", index })
                           }
-                          className={
-                            canEdit.positionForm
-                              ? "w-full cursor-pointer text-left"
-                              : "w-full cursor-default text-left"
-                          }
+                        className={positionRowButtonVariants({
+                          interactive: canEdit.positionForm,
+                        })}
                         >
                           <CardContent className="py-1.5 px-4">
                             <div
-                              className={`flex items-center gap-3 ${
-                                hasRowNumberError ? "text-destructive" : ""
-                              }`}
+                              className={positionHeaderVariants({
+                                tone: hasRowNumberError ? "danger" : "default",
+                              })}
                             >
                               <div className="min-w-0 flex-1">
-                                <p className="truncate text-base font-bold text-foreground">
+                                <p className={cn("truncate", positionNameVariants())}>
                                   {field.name}
                                 </p>
-                                <p className="text-xs text-muted-foreground">
+                                <p className={positionMetaVariants()}>
                                   <span
-                                    className={
-                                      hasPriceError ? "text-destructive" : ""
-                                    }
+                                    className={positionMetaValueVariants({
+                                      tone: hasPriceError ? "danger" : "default",
+                                    })}
                                   >
                                     {formatMoney(field.price)}
                                   </span>{" "}
                                   x{" "}
                                   <span
-                                    className={
-                                      hasQuantityError ? "text-destructive" : ""
-                                    }
+                                    className={positionMetaValueVariants({
+                                      tone: hasQuantityError ? "danger" : "default",
+                                    })}
                                   >
                                     {field.quantity}
                                   </span>
@@ -466,10 +507,10 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                             </div>
                             <DistributionBar
                               data={field}
-                              className="mt-2 h-1 rounded-full"
+                              className="mt-2 h-1"
                             />
                             {hasClaimsError && claimsErrorMessage && (
-                              <p className="mt-1 text-xs text-destructive">
+                              <p className={cn("mt-1", claimsErrorVariants())}>
                                 {claimsErrorMessage}
                               </p>
                             )}
@@ -499,7 +540,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                               <Modifiers type="fees" />
                             )}
                           </div>
-                          <div className="my-3 border-t border-border/70" />
+                          <div className={cn("my-3", dividerVariants())} />
                         </>
                       )}
 
