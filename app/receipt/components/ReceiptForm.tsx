@@ -35,7 +35,8 @@ import { Drawer } from "@/components/ui/drawer";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { isEqual } from "lodash-es";
 import { FormProvider, useWatch } from "react-hook-form";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 import { toast } from "sonner";
 import { Modifiers } from "@/app/receipt/components/Modifiers";
 import { formatMoney } from "@/app/receipt/utils/formatMoney";
@@ -338,11 +339,11 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       hasOverallError ||
                       hasClaimsError;
                     return (
-                      <Card
+                      <ReceiptCard
                         key={field.id}
-                        variant="interactive"
                         shadow={canEdit.positionForm ? "md" : "sm"}
                         interactive={!!canEdit.positionForm}
+                        radius="2xl"
                         className="overflow-hidden"
                       >
                         <button
@@ -415,15 +416,16 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                             )}
                           </CardContent>
                         </button>
-                      </Card>
+                      </ReceiptCard>
                     );
                   })}
                 </div>
 
-                <Card
-                  variant="summary"
+                <ReceiptCard
+                  tone="soft"
                   shadow="md"
-                  className="mt-4 rounded-2xl"
+                  radius="2xl"
+                  className="mt-4"
                 >
                   <CardContent className="py-1.5 px-4">
                     <div>
@@ -494,7 +496,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       </button>
                     </div>
                   </CardContent>
-                </Card>
+                </ReceiptCard>
               </>
             )}
           </div>

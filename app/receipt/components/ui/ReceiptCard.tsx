@@ -9,6 +9,7 @@ interface ReceiptCardProps extends React.HTMLAttributes<HTMLDivElement> {
   tone?: "default" | "soft" | "warm" | "warmStrong" | "danger";
   shadow?: "none" | "sm" | "md" | "lg";
   interactive?: boolean;
+  state?: "default" | "active";
   radius?: "xl" | "2xl" | "3xl";
 }
 
@@ -16,6 +17,7 @@ export const ReceiptCard: React.FC<ReceiptCardProps> = ({
   tone,
   shadow,
   interactive,
+  state,
   radius,
   className,
   ...props
@@ -24,7 +26,7 @@ export const ReceiptCard: React.FC<ReceiptCardProps> = ({
     <Card
       shadow="none"
       className={cn(
-        surfaceVariants({ tone, shadow, interactive, radius }),
+        surfaceVariants({ tone, shadow, interactive, state, radius }),
         className,
       )}
       {...props}

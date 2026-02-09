@@ -8,6 +8,7 @@ import { ParticipantAvatar } from "@/app/receipt/components/ui/participant-avata
 import { AlertCircle } from "lucide-react";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { DistributionStatus } from "@/app/receipt/components/ui/DistributionStatus";
+import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 
 interface SummaryScreenProps {
   receipt: Receipt;
@@ -73,9 +74,11 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
           if (!participant) return null;
 
           return (
-            <div
+            <ReceiptCard
               key={balance.participantId}
-              className="flex flex-col w-full p-3 border rounded-lg bg-card"
+              shadow="sm"
+              radius="xl"
+              className="p-3"
             >
               <div className="flex items-center gap-3 w-full mb-2">
                 <ParticipantAvatar participant={participant} />
@@ -124,7 +127,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
                   </ul>
                 </div>
               )}
-            </div>
+            </ReceiptCard>
           );
         })}
 

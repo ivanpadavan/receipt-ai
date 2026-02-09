@@ -75,6 +75,11 @@ export const surfaceVariants = cva(
         true: "cursor-pointer transition hover:shadow-[0_16px_34px_rgba(15,23,42,0.12),0_4px_10px_rgba(15,23,42,0.08)]",
         false: "",
       },
+      state: {
+        default: "",
+        active:
+          "bg-amber-50/70 border-amber-300 shadow-[inset_0_0_0_2px_rgba(251,146,60,0.55)] hover:shadow-[inset_0_0_0_2px_rgba(251,146,60,0.55)]",
+      },
       radius: {
         xl: "rounded-xl",
         "2xl": "rounded-2xl",
@@ -85,6 +90,7 @@ export const surfaceVariants = cva(
       tone: "default",
       shadow: "sm",
       interactive: false,
+      state: "default",
       radius: "2xl",
     },
   },

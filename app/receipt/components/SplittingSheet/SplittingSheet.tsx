@@ -41,7 +41,7 @@ import { useWatch } from "react-hook-form";
 import { useUser } from "@/context/AuthContext";
 import { useSplittingLogic } from "./useSplittingLogic";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
-import { Card } from "@/components/ui/card";
+import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 import { getFormPathErrorMessage, hasFormPathError } from "@/app/receipt/utils/hasFormPathError";
 import { iconButtonVariants, iconSoloVariants } from "@/app/receipt/components/ui-styles";
 
@@ -278,10 +278,10 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
   defaultOpen,
 }) => {
   return (
-    <Card
-      variant="interactive"
-      shadow={"md"}
-      interactive={true}
+    <ReceiptCard
+      interactive
+      shadow="md"
+      radius="2xl"
       className="overflow-hidden"
     >
       <Accordion
@@ -307,7 +307,7 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
           <DistributionBar data={claim} className="h-1" />
         </AccordionItem>
       </Accordion>
-    </Card>
+    </ReceiptCard>
   );
 };
 
