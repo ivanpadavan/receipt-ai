@@ -7,38 +7,12 @@ import { useReceiptState } from "@/app/receipt/components/ReceiptForm";
 import { useWatch } from "react-hook-form";
 import { formatMoney } from "@/app/receipt/utils/formatMoney";
 import { hasFormPathError } from "@/app/receipt/utils/hasFormPathError";
-import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
 import {
-  radiusTokens,
+  modifierRowVariants,
+  modifierValueVariants,
   textVariants,
 } from "@/app/receipt/components/ui-styles";
-
-const modifierRowVariants = cva(`${radiusTokens.sm} px-1 py-1 text-sm`, {
-  variants: {
-    interactive: {
-      true: "cursor-pointer hover:bg-muted/45",
-      false: "cursor-default",
-    },
-  },
-  defaultVariants: {
-    interactive: false,
-  },
-});
-
-
-const modifierValueVariants = cva("font-medium", {
-  variants: {
-    tone: {
-      danger: "text-destructive",
-      success: "text-emerald-600",
-      default: "",
-    },
-  },
-  defaultVariants: {
-    tone: "default",
-  },
-});
 
 interface ModifiersProps {
   type: "discounts" | "fees";

@@ -4,25 +4,8 @@ import { useState } from "react";
 import { useFormContext, FieldPath } from "react-hook-form";
 import { Receipt } from "@/model/receipt/model";
 import { useReceiptState } from "./ReceiptForm";
-import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
-
-const cellGroupVariants = cva("", {
-  variants: {
-    tone: {
-      default: "",
-      danger: "bg-red-50",
-    },
-    interactive: {
-      true: "cursor-pointer bg-gray-100",
-      false: "",
-    },
-  },
-  defaultVariants: {
-    tone: "default",
-    interactive: false,
-  },
-});
+import { cellGroupVariants } from "@/app/receipt/components/ui-styles";
 
 interface CellGroupProps {
   /** Field path prefix for this group (e.g., "positions.0") */

@@ -8,21 +8,21 @@ import { ParticipantAvatar } from "@/app/receipt/components/ui/participant-avata
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { DistributionStatus } from "@/app/receipt/components/ui/DistributionStatus";
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
-import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
-import { textVariants } from "@/app/receipt/components/ui-styles";
-
-const summaryHeaderVariants = cva("border-b bg-card text-center");
-const itemListVariants = cva("border-t pt-2 border-border/40");
-const balanceAmountWrapperVariants = cva("text-right");
-const summaryHeaderPaddingVariants = cva("p-6");
-const summaryListPaddingVariants = cva("p-4");
-const summaryCardPaddingVariants = cva("p-3");
-const summaryItemIndentVariants = cva("pl-12");
-const summaryItemContainerPaddingVariants = cva("pr-2");
-const summaryItemRowPaddingVariants = cva("py-1");
-const summaryAmountVariants = cva("whitespace-nowrap font-medium");
-const emptyStateVariants = cva("py-8");
+import {
+  summaryAmountVariants,
+  summaryBalanceAmountWrapperVariants,
+  summaryCardPaddingVariants,
+  summaryEmptyStateVariants,
+  summaryHeaderPaddingVariants,
+  summaryHeaderVariants,
+  summaryItemContainerPaddingVariants,
+  summaryItemIndentVariants,
+  summaryItemListVariants,
+  summaryItemRowPaddingVariants,
+  summaryListPaddingVariants,
+  textVariants,
+} from "@/app/receipt/components/ui-styles";
 
 interface SummaryScreenProps {
   receipt: Receipt;
@@ -131,7 +131,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
                 >
                   {participant.displayName}
                 </span>
-                <div className={balanceAmountWrapperVariants()}>
+                <div className={summaryBalanceAmountWrapperVariants()}>
                   <span
                     className={textVariants({
                       size: "xl",
@@ -158,7 +158,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
                   <ul
                     className={cn(
                       "space-y-1",
-                      itemListVariants(),
+                      summaryItemListVariants(),
                       textVariants({ size: "sm", tone: "muted" }),
                     )}
                   >
@@ -211,7 +211,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
         {balances.length === 0 && (
           <div
             className={cn(
-              emptyStateVariants(),
+              summaryEmptyStateVariants(),
               textVariants({ tone: "muted", align: "center" }),
             )}
           >

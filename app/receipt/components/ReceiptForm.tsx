@@ -52,105 +52,23 @@ import { useJoinFlowOverlay } from "@/app/receipt/[id]/join-flow/use-join-flow-o
 import { DistributionBar } from "@/app/receipt/components/ui/DistributionBar";
 import { ReceiptActionBar } from "@/app/receipt/components/ui/ReceiptActionBar";
 import {
+  claimsErrorVariants,
+  dividerVariants,
+  grandTotalValueVariants,
+  overallValueVariants,
   pillVariants,
-  radiusTokens,
+  positionCardContentPaddingVariants,
+  positionHeaderVariants,
+  positionMetaValueVariants,
+  positionRowButtonVariants,
+  receiptCardPaddingVariants,
+  receiptRowVariants,
+  stickyBarPaddingVariants,
+  summaryCardContentPaddingVariants,
+  totalValueVariants,
   textVariants,
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
-import { cva } from "class-variance-authority";
-
-const receiptRowVariants = cva(`${radiusTokens.sm} px-1 py-1 text-sm`, {
-  variants: {
-    interactive: {
-      true: "cursor-pointer hover:bg-muted/45",
-      false: "cursor-default",
-    },
-  },
-  defaultVariants: {
-    interactive: false,
-  },
-});
-
-const totalValueVariants = cva("font-semibold", {
-  variants: {
-    tone: {
-      danger: "text-destructive",
-      default: "",
-    },
-  },
-  defaultVariants: {
-    tone: "default",
-  },
-});
-
-const grandTotalValueVariants = cva("text-2xl font-bold", {
-  variants: {
-    tone: {
-      danger: "text-destructive",
-      default: "",
-    },
-  },
-  defaultVariants: {
-    tone: "default",
-  },
-});
-
-const overallValueVariants = cva("text-base font-semibold", {
-  variants: {
-    tone: {
-      danger: "text-destructive",
-      default: "text-foreground",
-    },
-  },
-  defaultVariants: {
-    tone: "default",
-  },
-});
-
-const positionHeaderVariants = cva("", {
-  variants: {
-    tone: {
-      default: "",
-      danger: "text-destructive",
-    },
-  },
-  defaultVariants: {
-    tone: "default",
-  },
-});
-
-const positionMetaValueVariants = cva("", {
-  variants: {
-    tone: {
-      default: "",
-      danger: "text-destructive",
-    },
-  },
-  defaultVariants: {
-    tone: "default",
-  },
-});
-
-const claimsErrorVariants = cva("text-xs text-destructive");
-
-const dividerVariants = cva("border-t border-border/70");
-
-const positionRowButtonVariants = cva("", {
-  variants: {
-    interactive: {
-      true: "cursor-pointer",
-      false: "cursor-default",
-    },
-  },
-  defaultVariants: {
-    interactive: false,
-  },
-});
-
-const receiptCardPaddingVariants = cva("p-4 md:p-5");
-const positionCardContentPaddingVariants = cva("py-1.5 px-4");
-const summaryCardContentPaddingVariants = cva("py-1.5 px-4");
-const stickyBarPaddingVariants = cva("px-2");
 
 interface EditableReceiptFormProps {
   initialData: ReceiptWithParticipants;

@@ -5,21 +5,11 @@ import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { cn } from "@/utils/cn";
-import { pillVariants } from "@/app/receipt/components/ui-styles";
-import { cva } from "class-variance-authority";
-import { textVariants } from "@/app/receipt/components/ui-styles";
-
-const badgeButtonVariants = cva("", {
-  variants: {
-    size: {
-      compact: "h-10",
-      full: "",
-    },
-  },
-  defaultVariants: {
-    size: "full",
-  },
-});
+import {
+  participantsBadgeButtonVariants,
+  pillVariants,
+  textVariants,
+} from "@/app/receipt/components/ui-styles";
 
 interface ParticipantsBadgeProps {
   onClick: () => void;
@@ -49,7 +39,7 @@ export const ParticipantsBadge: React.FC<ParticipantsBadgeProps> = ({
             interaction: "subtle",
             size: "md",
           }),
-          badgeButtonVariants({ size: "compact" }),
+          participantsBadgeButtonVariants({ size: "compact" }),
         )}
       >
         <Users className="mr-1 h-4 w-4" />
@@ -79,7 +69,7 @@ export const ParticipantsBadge: React.FC<ParticipantsBadgeProps> = ({
           size: "md",
         }),
         "gap-2",
-        badgeButtonVariants({ size: "full" }),
+        participantsBadgeButtonVariants({ size: "full" }),
       )}
     >
       <Users className="w-[1.125rem] h-[1.125rem]" />

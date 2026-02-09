@@ -9,15 +9,13 @@ import { getUser } from "@/utils/supabase/server";
 import { shouldAutoJoinReceipt } from "@/app/receipt/[id]/join-flow/rules";
 import { joinReceiptServer } from "@/app/receipt/[id]/join-flow/join-receipt-server";
 import { t } from "@/app/i18n/translations";
-import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
-import { radiusTokens, textVariants } from "@/app/receipt/components/ui-styles";
-
-const notFoundShellVariants = cva("p-4");
-const notFoundCardPaddingVariants = cva("p-6");
-const notFoundButtonVariants = cva(
-  `font-bold py-2 px-4 ${radiusTokens.full} shadow-md`,
-);
+import {
+  notFoundButtonVariants,
+  notFoundCardPaddingVariants,
+  notFoundShellVariants,
+  textVariants,
+} from "@/app/receipt/components/ui-styles";
 
 // This is a server component that fetches the receipt data from the database
 export default async function ReceiptPage({

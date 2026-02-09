@@ -3,20 +3,8 @@
 import React from "react";
 import { useFormContext, useWatch, FieldPath } from "react-hook-form";
 import { Receipt } from "@/model/receipt/model";
-import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
-
-const cellVariants = cva("", {
-  variants: {
-    tone: {
-      default: "",
-      danger: "text-red-500",
-    },
-  },
-  defaultVariants: {
-    tone: "default",
-  },
-});
+import { cellVariants } from "@/app/receipt/components/ui-styles";
 
 interface CellProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
   name: FieldPath<Receipt>;

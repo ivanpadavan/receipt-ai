@@ -5,18 +5,16 @@ import Link from "next/link";
 import { Receipt } from "@/model/receipt/model";
 import { Card, CardContent } from "@/components/ui/card";
 import { t } from "@/app/i18n/translations";
-import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
-import { radiusTokens, textVariants } from "@/app/receipt/components/ui-styles";
-
-const historyShellVariants = cva("bg-amber-50 p-4");
-const emptyCardTextVariants = cva("text-center");
-const ctaButtonVariants = cva(
-  `${radiusTokens.full} bg-amber-500 px-4 py-2 font-bold text-white shadow-md hover:bg-amber-600`,
-);
-const receiptCardVariants = cva("border-amber-200 hover:border-amber-400");
-const emptyCardContentVariants = cva("p-6");
-const receiptCardPaddingVariants = cva("p-4");
+import {
+  historyCtaButtonVariants,
+  historyEmptyCardContentVariants,
+  historyEmptyCardTextVariants,
+  historyReceiptCardPaddingVariants,
+  historyReceiptCardVariants,
+  historyShellVariants,
+  textVariants,
+} from "@/app/receipt/components/ui-styles";
 
 // export const runtime = 'edge';
 
@@ -58,14 +56,14 @@ export default async function HistoryPage() {
           <Card
             variant="warning"
             shadow="md"
-            className={cn("w-full", emptyCardTextVariants())}
+            className={cn("w-full", historyEmptyCardTextVariants())}
           >
-            <CardContent className={emptyCardContentVariants()}>
+            <CardContent className={historyEmptyCardContentVariants()}>
               <p className="mb-4">
                 {t("noReceiptsYet")}
               </p>
               <Link href="/">
-                <Button className={ctaButtonVariants()}>
+                <Button className={historyCtaButtonVariants()}>
                   {t("scanFirstReceipt")}
                 </Button>
               </Link>
@@ -89,7 +87,11 @@ export default async function HistoryPage() {
                     variant="interactive"
                     shadow="md"
                     interactive
-                    className={cn("w-full", receiptCardVariants(), receiptCardPaddingVariants())}
+                    className={cn(
+                      "w-full",
+                      historyReceiptCardVariants(),
+                      historyReceiptCardPaddingVariants(),
+                    )}
                   >
                     <div className="mb-2 flex items-center justify-between">
                       <h2

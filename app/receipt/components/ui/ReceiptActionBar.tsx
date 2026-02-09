@@ -13,7 +13,11 @@ import {
   iconButtonVariants,
   iconGroupVariants,
   primaryActionVariants,
-  radiusTokens,
+  receiptActionBarContainerPaddingVariants,
+  receiptActionBarMenuIconVariants,
+  receiptActionBarPaddingVariants,
+  receiptActionBarParticipantBadgeVariants,
+  receiptActionPrimaryPaddingVariants,
 } from "@/app/receipt/components/ui-styles";
 import {
   BadgePercent,
@@ -29,24 +33,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/utils/cn";
-import { cva } from "class-variance-authority";
-
-const participantBadgeVariants = cva(
-  `${radiusTokens.full} pointer-events-none absolute right-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center bg-foreground px-1 text-[10px] font-semibold leading-none opacity-80 text-background`,
-);
-
-const menuIconVariants = cva("", {
-  variants: {
-    tone: {
-      position: "text-sky-600",
-      discount: "text-emerald-600",
-      fee: "text-amber-600",
-    },
-  },
-});
-const barContainerPaddingVariants = cva("px-5");
-const barPaddingVariants = cva("p-2");
-const primaryActionPaddingVariants = cva("px-7");
 
 interface ReceiptActionBarProps {
   receiptId: string;
@@ -75,12 +61,12 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
 
   return (
     <div className="sticky mb-3 bottom-3 z-10 mx-auto w-full max-w-3xl">
-      <div className={cn("w-full", barContainerPaddingVariants())}>
+      <div className={cn("w-full", receiptActionBarContainerPaddingVariants())}>
         <div
           className={cn(
             "flex items-center justify-between gap-3",
             actionBarVariants(),
-            barPaddingVariants(),
+            receiptActionBarPaddingVariants(),
           )}
         >
           <ButtonGroup
@@ -97,7 +83,7 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
               title={t("participants")}
               aria-label={t("participants")}
             >
-              <span className={participantBadgeVariants()}>
+              <span className={receiptActionBarParticipantBadgeVariants()}>
                 {participantsCount}
               </span>
               <Users className="h-4 w-4" />
@@ -138,7 +124,7 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
                         <CirclePlus
                           className={cn(
                             "mr-2 h-4 w-4",
-                            menuIconVariants({ tone: "position" }),
+                            receiptActionBarMenuIconVariants({ tone: "position" }),
                           )}
                         />
                         {t("addPosition")}
@@ -149,7 +135,7 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
                         <BadgePercent
                           className={cn(
                             "mr-2 h-4 w-4",
-                            menuIconVariants({ tone: "discount" }),
+                            receiptActionBarMenuIconVariants({ tone: "discount" }),
                           )}
                         />
                         {t("addDiscount")}
@@ -160,7 +146,7 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
                         <HandCoins
                           className={cn(
                             "mr-2 h-4 w-4",
-                            menuIconVariants({ tone: "fee" }),
+                            receiptActionBarMenuIconVariants({ tone: "fee" }),
                           )}
                         />
                         {t("addFee")}
@@ -175,7 +161,11 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
           <Button
             onClick={onPrimaryAction}
             disabled={!canProceed}
-            className={cn("h-12", primaryActionVariants(), primaryActionPaddingVariants())}
+            className={cn(
+              "h-12",
+              primaryActionVariants(),
+              receiptActionPrimaryPaddingVariants(),
+            )}
           >
             {t(primaryLabel)}
           </Button>

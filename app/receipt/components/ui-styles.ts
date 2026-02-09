@@ -458,3 +458,220 @@ export const splittingAddSharePaddingVariants = cva("px-4 pb-3");
 export const splittingClaimsListPaddingVariants = cva("px-4");
 export const splittingFooterContentPaddingVariants = cva("px-4 py-3");
 export const splittingAccordionContentPaddingVariants = cva("p-0");
+
+export const appShellVariants = cva("bg-amber-50");
+
+export const historyShellVariants = cva("bg-amber-50 p-4");
+export const historyEmptyCardTextVariants = cva("text-center");
+export const historyCtaButtonVariants = cva(
+  `${radiusTokens.full} bg-amber-500 px-4 py-2 font-bold text-white shadow-md hover:bg-amber-600`,
+);
+export const historyReceiptCardVariants = cva(
+  "border-amber-200 hover:border-amber-400",
+);
+export const historyEmptyCardContentVariants = cva("p-6");
+export const historyReceiptCardPaddingVariants = cva("p-4");
+
+export const settingsShellVariants = cva("bg-amber-50 p-4");
+export const settingsCardPaddingVariants = cva("p-6");
+export const settingsCardContentVariants = cva("p-0");
+
+export const notFoundShellVariants = cva("p-4");
+export const notFoundCardPaddingVariants = cva("p-6");
+export const notFoundButtonVariants = cva(
+  `font-bold py-2 px-4 ${radiusTokens.full} shadow-md`,
+);
+
+export const receiptRowVariants = cva(`${radiusTokens.sm} px-1 py-1 text-sm`, {
+  variants: {
+    interactive: {
+      true: "cursor-pointer hover:bg-muted/45",
+      false: "cursor-default",
+    },
+  },
+  defaultVariants: {
+    interactive: false,
+  },
+});
+
+export const totalValueVariants = cva("font-semibold", {
+  variants: {
+    tone: {
+      danger: "text-destructive",
+      default: "",
+    },
+  },
+  defaultVariants: {
+    tone: "default",
+  },
+});
+
+export const grandTotalValueVariants = cva("text-2xl font-bold", {
+  variants: {
+    tone: {
+      danger: "text-destructive",
+      default: "",
+    },
+  },
+  defaultVariants: {
+    tone: "default",
+  },
+});
+
+export const overallValueVariants = cva("text-base font-semibold", {
+  variants: {
+    tone: {
+      danger: "text-destructive",
+      default: "text-foreground",
+    },
+  },
+  defaultVariants: {
+    tone: "default",
+  },
+});
+
+export const positionHeaderVariants = cva("", {
+  variants: {
+    tone: {
+      default: "",
+      danger: "text-destructive",
+    },
+  },
+  defaultVariants: {
+    tone: "default",
+  },
+});
+
+export const positionMetaValueVariants = cva("", {
+  variants: {
+    tone: {
+      default: "",
+      danger: "text-destructive",
+    },
+  },
+  defaultVariants: {
+    tone: "default",
+  },
+});
+
+export const claimsErrorVariants = cva("text-xs text-destructive");
+
+export const dividerVariants = cva("border-t border-border/70");
+
+export const positionRowButtonVariants = cva("", {
+  variants: {
+    interactive: {
+      true: "cursor-pointer",
+      false: "cursor-default",
+    },
+  },
+  defaultVariants: {
+    interactive: false,
+  },
+});
+
+export const receiptCardPaddingVariants = cva("p-4 md:p-5");
+export const positionCardContentPaddingVariants = cva("py-1.5 px-4");
+export const summaryCardContentPaddingVariants = cva("py-1.5 px-4");
+export const stickyBarPaddingVariants = cva("px-2");
+
+export const summaryHeaderVariants = cva("border-b bg-card text-center");
+export const summaryItemListVariants = cva("border-t pt-2 border-border/40");
+export const summaryBalanceAmountWrapperVariants = cva("text-right");
+export const summaryHeaderPaddingVariants = cva("p-6");
+export const summaryListPaddingVariants = cva("p-4");
+export const summaryCardPaddingVariants = cva("p-3");
+export const summaryItemIndentVariants = cva("pl-12");
+export const summaryItemContainerPaddingVariants = cva("pr-2");
+export const summaryItemRowPaddingVariants = cva("py-1");
+export const summaryAmountVariants = cva("whitespace-nowrap font-medium");
+export const summaryEmptyStateVariants = cva("py-8");
+
+export const modifierRowVariants = cva(`${radiusTokens.sm} px-1 py-1 text-sm`, {
+  variants: {
+    interactive: {
+      true: "cursor-pointer hover:bg-muted/45",
+      false: "cursor-default",
+    },
+  },
+  defaultVariants: {
+    interactive: false,
+  },
+});
+
+export const modifierValueVariants = cva("font-medium", {
+  variants: {
+    tone: {
+      danger: "text-destructive",
+      success: "text-emerald-600",
+      default: "",
+    },
+  },
+  defaultVariants: {
+    tone: "default",
+  },
+});
+
+export const drawerTitlePaddingVariants = cva("px-4 pt-4");
+export const sheetBodyPaddingVariants = cva("p-4");
+export const errorListVariants = cva("list-disc pl-5");
+
+export const receiptActionBarParticipantBadgeVariants = cva(
+  `${radiusTokens.full} pointer-events-none absolute right-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center bg-foreground px-1 text-[10px] font-semibold leading-none opacity-80 text-background`,
+);
+
+export const receiptActionBarMenuIconVariants = cva("", {
+  variants: {
+    tone: {
+      position: "text-sky-600",
+      discount: "text-emerald-600",
+      fee: "text-amber-600",
+    },
+  },
+});
+export const receiptActionBarContainerPaddingVariants = cva("px-5");
+export const receiptActionBarPaddingVariants = cva("p-2");
+export const receiptActionPrimaryPaddingVariants = cva("px-7");
+
+export const participantsBadgeButtonVariants = cva("", {
+  variants: {
+    size: {
+      compact: "h-10",
+      full: "",
+    },
+  },
+  defaultVariants: {
+    size: "full",
+  },
+});
+
+export const cellVariants = cva("", {
+  variants: {
+    tone: {
+      default: "",
+      danger: "text-red-500",
+    },
+  },
+  defaultVariants: {
+    tone: "default",
+  },
+});
+
+export const cellGroupVariants = cva("", {
+  variants: {
+    tone: {
+      default: "",
+      danger: "bg-red-50",
+    },
+    interactive: {
+      true: "cursor-pointer bg-gray-100",
+      false: "",
+    },
+  },
+  defaultVariants: {
+    tone: "default",
+    interactive: false,
+  },
+});
+
+export const joinFlowOverlayVariants = cva("bg-black/40");

@@ -11,10 +11,8 @@ import { useUser } from "@/context/AuthContext";
 import { supabase } from "@/utils/supabase/client";
 import { useGoogleOneTapLogin } from "@react-oauth/google";
 import { handleSignIn } from "@/app/receipt/utils/auth";
-import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
-
-const overlayVariants = cva("bg-black/40");
+import { joinFlowOverlayVariants } from "@/app/receipt/components/ui-styles";
 
 export function JoinFlowSettingsDialog() {
   useGoogleOneTapLogin({
@@ -64,7 +62,7 @@ export function JoinFlowSettingsDialog() {
   return (
     <>
       {open && (
-        <div className={cn("fixed inset-0 z-30", overlayVariants())} />
+        <div className={cn("fixed inset-0 z-30", joinFlowOverlayVariants())} />
       )}
       <AlertDialog open={open}>
         <AlertDialogContent className="max-w-lg">

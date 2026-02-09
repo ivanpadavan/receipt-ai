@@ -28,11 +28,9 @@ import {
   fieldLabelVariants,
   inputStateVariants,
   centeredTitleVariants,
+  errorListVariants,
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
-import { cva } from "class-variance-authority";
-
-const errorListVariants = cva("list-disc pl-5");
 
 type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
 

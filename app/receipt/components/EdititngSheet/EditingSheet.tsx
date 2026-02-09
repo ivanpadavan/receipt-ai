@@ -22,16 +22,14 @@ import { useReceiptState } from "../ReceiptForm";
 import { useRowConflict } from "./useRowConflict";
 import { cn } from "@/utils/cn";
 import {
+  drawerTitlePaddingVariants,
   fieldLabelVariants,
   inputStateVariants,
   noticeVariants,
   centeredTitleVariants,
+  sheetBodyPaddingVariants,
+  errorListVariants,
 } from "@/app/receipt/components/ui-styles";
-import { cva } from "class-variance-authority";
-
-const drawerTitlePaddingVariants = cva("px-4 pt-4");
-const sheetBodyPaddingVariants = cva("p-4");
-const errorListVariants = cva("list-disc pl-5");
 
 type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
 

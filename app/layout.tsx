@@ -7,12 +7,10 @@ import { Providers } from "./providers";
 import { AuthProvider } from "@/context/AuthContext";
 import { getUser } from "@/utils/supabase/server";
 import { AppNavbar } from "@/app/layout/AppNavbar";
-import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
+import { appShellVariants } from "@/app/receipt/components/ui-styles";
 
 const publicSans = Public_Sans({ subsets: ["latin"] });
-const appShellVariants = cva("bg-amber-50");
-
 export default async function RootLayout({
   children,
 }: {

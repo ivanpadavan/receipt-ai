@@ -9,13 +9,13 @@ import { t } from "@/app/i18n/translations";
 import { SettingsForm } from "@/app/settings/SettingsForm";
 import { UserMetadata } from "@supabase/supabase-js";
 import { Card, CardContent } from "@/components/ui/card";
-import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
-import { textVariants } from "@/app/receipt/components/ui-styles";
-
-const settingsShellVariants = cva("bg-amber-50 p-4");
-const settingsCardPaddingVariants = cva("p-6");
-const settingsCardContentVariants = cva("p-0");
+import {
+  settingsCardContentVariants,
+  settingsCardPaddingVariants,
+  settingsShellVariants,
+  textVariants,
+} from "@/app/receipt/components/ui-styles";
 
 export default function SettingsPage() {
   const { user } = useUser();
