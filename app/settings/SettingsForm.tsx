@@ -26,6 +26,7 @@ import {
   dialogFooterVariants,
   dialogHeaderTitleVariants,
   dialogHeaderVariants,
+  captureButtonVariants,
   fieldLabelVariants,
   inputStateVariants,
   settingsCropFrameVariants,
@@ -224,17 +225,11 @@ export const SettingsForm = ({
             control={control}
             name="avatarFile"
             render={({ field: { onChange, value } }) => (
-              <div
-                className={cn(
-                  "flex flex-col",
-                  stackGapVariants({ size: "md" }),
-                )}
-              >
+              <>
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  capture="user"
                   className="hidden"
                   onChange={(e) =>
                     handleAvatarFileChange(
@@ -248,6 +243,7 @@ export const SettingsForm = ({
                     ref={cameraInputRef}
                     type="file"
                     accept="image/*"
+                    capture="user"
                     className="hidden"
                     onChange={(e) =>
                       handleAvatarFileChange(
@@ -258,112 +254,110 @@ export const SettingsForm = ({
                   />
                 )}
                 <div
-                  onClick={triggerFileInput}
                   className={cn(
-                    "flex items-center cursor-pointer",
-                    inlineGapVariants({ size: "lg" }),
-                    uploadPanelVariants(),
-                    settingsUploadCardPaddingVariants(),
+                    "flex flex-col",
+                    stackGapVariants({ size: "md" }),
                   )}
                 >
-                  <UserAvatar
-                    className={avatarSizeVariants({ size: "lg" })}
-                    userMetadata={{ avatarUrl, displayName }}
-                  />
                   <div
+                    onClick={triggerFileInput}
                     className={cn(
-                      "flex flex-col",
-                      stackGapVariants({ size: "xs" }),
+                      "flex items-center cursor-pointer",
+                      inlineGapVariants({ size: "lg" }),
+                      uploadPanelVariants(),
+                      settingsUploadCardPaddingVariants(),
                     )}
                   >
-                    <div className={textRoleVariants({ role: "labelSm" })}>
-                      {value ? t("changeAvatar") : t("uploadAvatar")}
-                    </div>
+                    <UserAvatar
+                      className={avatarSizeVariants({ size: "lg" })}
+                      userMetadata={{ avatarUrl, displayName }}
+                    />
                     <div
-                      className={textRoleVariants({ role: "captionXsMuted" })}
+                      className={cn(
+                        "flex flex-col",
+                        stackGapVariants({ size: "xs" }),
+                      )}
                     >
-                      {t("avatarUploadHint")}
+                      <div className={textRoleVariants({ role: "labelSm" })}>
+                        {value ? t("changeAvatar") : t("uploadAvatar")}
+                      </div>
+                      <div
+                        className={textRoleVariants({ role: "captionXsMuted" })}
+                      >
+                        {t("avatarUploadHint")}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className={cn("flex", inlineGapVariants({ size: "sm" }))}>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={triggerFileInput}
-                  >
-                    {t("uploadAvatar")}
-                  </Button>
                   {captureSupported && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={triggerCameraInput}
-                    >
-                      {t("takeAvatarPhoto")}
-                    </Button>
+                      <Button
+                        type="button"
+                        onClick={triggerCameraInput}
+                        className={captureButtonVariants()}
+                      >
+                        {t("takeAvatarPhoto")}
+                      </Button>
                   )}
-                </div>
 
-                <AlertDialog open={cropOpen} onOpenChange={setCropOpen}>
-                  <AlertDialogContent className={dialogContentWideVariants()}>
-                    <AlertDialogHeader className={dialogHeaderVariants()}>
-                      <AlertDialogTitle className={dialogHeaderTitleVariants()}>
-                        {t("cropAvatar")}
-                      </AlertDialogTitle>
-                    </AlertDialogHeader>
-                    <div
-                      className={cn(
-                        "relative w-full h-72",
-                        settingsCropFrameVariants(),
-                      )}
-                    >
-                      {cropImage && (
-                        <Cropper
-                          image={cropImage}
-                          crop={crop}
-                          zoom={zoom}
-                          aspect={1}
-                          onCropChange={setCrop}
-                          onZoomChange={setZoom}
-                          onCropComplete={onCropComplete}
+                  <AlertDialog open={cropOpen} onOpenChange={setCropOpen}>
+                    <AlertDialogContent className={dialogContentWideVariants()}>
+                      <AlertDialogHeader className={dialogHeaderVariants()}>
+                        <AlertDialogTitle className={dialogHeaderTitleVariants()}>
+                          {t("cropAvatar")}
+                        </AlertDialogTitle>
+                      </AlertDialogHeader>
+                      <div
+                        className={cn(
+                          "relative w-full h-72",
+                          settingsCropFrameVariants(),
+                        )}
+                      >
+                        {cropImage && (
+                          <Cropper
+                            image={cropImage}
+                            crop={crop}
+                            zoom={zoom}
+                            aspect={1}
+                            onCropChange={setCrop}
+                            onZoomChange={setZoom}
+                            onCropComplete={onCropComplete}
+                          />
+                        )}
+                      </div>
+                      <div
+                        className={cn(
+                          "flex items-center",
+                          inlineGapVariants({ size: "md" }),
+                        )}
+                      >
+                        <span
+                          className={textRoleVariants({ role: "labelSmMuted" })}
+                        >
+                          {t("zoom")}
+                        </span>
+                        <input
+                          type="range"
+                          min={1}
+                          max={3}
+                          step={0.05}
+                          value={zoom}
+                          onChange={(e) => setZoom(Number(e.target.value))}
+                          className="w-full"
                         />
-                      )}
-                    </div>
-                    <div
-                      className={cn(
-                        "flex items-center",
-                        inlineGapVariants({ size: "md" }),
-                      )}
-                    >
-                      <span
-                        className={textRoleVariants({ role: "labelSmMuted" })}
-                      >
-                        {t("zoom")}
-                      </span>
-                      <input
-                        type="range"
-                        min={1}
-                        max={3}
-                        step={0.05}
-                        value={zoom}
-                        onChange={(e) => setZoom(Number(e.target.value))}
-                        className="w-full"
-                      />
-                    </div>
-                    <AlertDialogFooter className={dialogFooterVariants()}>
-                      <AlertDialogCancel onClick={() => setCropOpen(false)}>
-                        {t("cancel")}
-                      </AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleApplyCrop(onChange)}
-                      >
-                        {t("save")}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
+                      </div>
+                      <AlertDialogFooter className={dialogFooterVariants()}>
+                        <AlertDialogCancel onClick={() => setCropOpen(false)}>
+                          {t("cancel")}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleApplyCrop(onChange)}
+                        >
+                          {t("save")}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </>
             )}
           />
         </Field>
