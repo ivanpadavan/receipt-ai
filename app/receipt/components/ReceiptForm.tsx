@@ -59,7 +59,7 @@ const sectionTitleVariants = cva(
   "text-sm font-semibold uppercase tracking-wide text-muted-foreground",
 );
 
-const receiptRowVariants = cva("rounded-md", {
+const receiptRowVariants = cva("rounded-md px-1 py-1 text-sm", {
   variants: {
     interactive: {
       true: "cursor-pointer hover:bg-muted/45",
@@ -553,7 +553,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       <button
                         type="button"
                         className={cn(
-                          "mt-3 flex w-full items-center justify-between text-sm px-1 py-1",
+                          "mt-3 flex w-full items-center justify-between",
                           receiptRowVariants({
                             interactive: canEdit.totalsForm,
                           }),
@@ -577,7 +577,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       <button
                         type="button"
                         className={cn(
-                          "flex w-full items-center justify-between px-1 py-1",
+                          "flex w-full items-center justify-between",
                           receiptRowVariants({
                             interactive: canEdit.totalsForm,
                           }),
