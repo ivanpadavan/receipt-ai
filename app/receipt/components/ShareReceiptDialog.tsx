@@ -24,6 +24,8 @@ import {
   shareReceiptContentPaddingVariants,
   shareReceiptQrContainerVariants,
   shareReceiptTriggerLabelVariants,
+  stackGapVariants,
+  inlineGapVariants,
 } from "@/app/receipt/components/ui-styles";
 
 type ShareReceiptDialogProps = {
@@ -98,7 +100,8 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
 
         <div
           className={cn(
-            "flex flex-col items-center gap-4",
+            "flex flex-col items-center",
+            stackGapVariants({ size: "lg" }),
             shareReceiptContentPaddingVariants(),
           )}
         >
@@ -125,7 +128,12 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
           </Button>
         </div>
 
-        <AlertDialogFooter className="sm:flex-row sm:items-stretch gap-2">
+        <AlertDialogFooter
+          className={cn(
+            "sm:flex-row sm:items-stretch",
+            inlineGapVariants({ size: "sm" }),
+          )}
+        >
           <AlertDialogCancel className="sm:flex-1">
             {t("close")}
           </AlertDialogCancel>

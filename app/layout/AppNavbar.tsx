@@ -14,6 +14,7 @@ import { t } from "@/app/i18n/translations";
 import {
   iconSizeVariants,
   buttonContentVariants,
+  inlineGapVariants,
   menuItemPaddingVariants,
   menuListPaddingVariants,
   menuPanelFrameVariants,
@@ -189,7 +190,12 @@ export const AppNavbar = () => {
 
             {/* User info and auth buttons - only visible on desktop */}
             {isAuthenticated ? (
-              <div className="hidden md:flex items-center gap-2 ml-2">
+              <div
+                className={cn(
+                  "hidden md:flex items-center ml-2",
+                  inlineGapVariants({ size: "sm" }),
+                )}
+              >
                 <span className={userNameVariants()}>
                   {user.user_metadata.displayName}
                 </span>

@@ -25,6 +25,8 @@ import {
   settingsCropFrameVariants,
   settingsUploadCardPaddingVariants,
   settingsUploadCardVariants,
+  inlineGapVariants,
+  stackGapVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -189,8 +191,11 @@ export const SettingsForm = ({
   };
 
   return (
-    <form className="flex flex-col gap-6" onSubmit={handleSubmit(handleSave)}>
-      <div className="flex items-center gap-4">
+    <form
+      className={cn("flex flex-col", stackGapVariants({ size: "xl" }))}
+      onSubmit={handleSubmit(handleSave)}
+    >
+      <div className={cn("flex items-center", inlineGapVariants({ size: "lg" }))}>
         <UserAvatar
           className={avatarSizeVariants({ size: "md" })}
           userMetadata={{ avatarUrl, displayName }}
@@ -220,7 +225,7 @@ export const SettingsForm = ({
               control={control}
               name="avatarFile"
               render={({ field: { onChange, value } }) => (
-                <div className="flex flex-col gap-3">
+                <div className={cn("flex flex-col", stackGapVariants({ size: "md" }))}>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -251,7 +256,8 @@ export const SettingsForm = ({
                     <div
                       onClick={triggerFileInput}
                       className={cn(
-                        "flex items-center gap-4 cursor-pointer",
+                        "flex items-center cursor-pointer",
+                        inlineGapVariants({ size: "lg" }),
                         settingsUploadCardVariants(),
                         settingsUploadCardPaddingVariants(),
                       )}
@@ -260,7 +266,7 @@ export const SettingsForm = ({
                       className={avatarSizeVariants({ size: "lg" })}
                       userMetadata={{ avatarUrl, displayName }}
                     />
-                    <div className="flex flex-col gap-1">
+                    <div className={cn("flex flex-col", stackGapVariants({ size: "xs" }))}>
                       <div
                         className={textRoleVariants({ role: "labelSm" })}
                       >
@@ -271,7 +277,7 @@ export const SettingsForm = ({
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className={cn("flex", inlineGapVariants({ size: "sm" }))}>
                     <Button
                       type="button"
                       variant="outline"
@@ -313,7 +319,7 @@ export const SettingsForm = ({
                           />
                         )}
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className={cn("flex items-center", inlineGapVariants({ size: "md" }))}>
                         <span className={textRoleVariants({ role: "labelSmMuted" })}>
                           {t("zoom")}
                         </span>

@@ -30,6 +30,8 @@ import {
   inputStateVariants,
   centeredTitleVariants,
   errorListVariants,
+  stackGapVariants,
+  inlineGapVariants,
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
 
@@ -156,7 +158,7 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
         </DialogTitle>
         <DialogDescription className="sr-only">{t(header)}</DialogDescription>
       </DialogHeader>
-      <div className="mt-4 space-y-4">
+      <div className={cn("mt-4", stackGapVariants({ size: "lg" }))}>
         {conflict && (
           <div className={noticeVariants({ tone: "warning" })}>
             <p>{conflict.message}</p>
@@ -197,7 +199,7 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
         )}
         {visibleErrors.length > 0 && (
           <div className={noticeVariants({ tone: "danger" })}>
-            <ul className={cn("space-y-1", errorListVariants())}>
+            <ul className={cn(stackGapVariants({ size: "xs" }), errorListVariants())}>
               {visibleErrors.map(([key, error], index) => (
                 <li key={index}>
                   <strong>{t(key as TranslationKey)}:</strong> {error}
@@ -225,7 +227,12 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
         </FieldGroup>
       </div>
 
-      <div className="mt-5 flex w-full items-center gap-2">
+      <div
+        className={cn(
+          "mt-5 flex w-full items-center",
+          inlineGapVariants({ size: "sm" }),
+        )}
+      >
           {onRemove && (
             <Button
               type="button"

@@ -17,6 +17,7 @@ import {
   loadingSpinnerVariants,
   screenShellVariants,
   iconSizeVariants,
+  inlineGapVariants,
   textRoleVariants,
   previewImageVariants,
 } from "@/app/receipt/components/ui-styles";
@@ -145,7 +146,12 @@ export default function ImagePastePage() {
                   previewImageVariants(),
                 )}
               />
-              <div className="flex flex-wrap gap-2 justify-center w-full">
+              <div
+                className={cn(
+                  "flex flex-wrap justify-center w-full",
+                  inlineGapVariants({ size: "sm" }),
+                )}
+              >
                 <Button
                   onClick={picture.clear}
                   variant="destructive"
@@ -215,7 +221,8 @@ export default function ImagePastePage() {
                   <Button
                     asChild
                     className={cn(
-                      "flex items-center gap-2 cursor-pointer",
+                      "flex items-center cursor-pointer",
+                      inlineGapVariants({ size: "sm" }),
                       captureButtonVariants(),
                     )}
                   >

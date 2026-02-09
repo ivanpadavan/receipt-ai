@@ -75,6 +75,8 @@ import {
   iconButtonCompactVariants,
   iconSizeVariants,
   iconLeadSpacingVariants,
+  inlineGapVariants,
+  stackGapVariants,
   statusPillVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
@@ -99,7 +101,8 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 w-full",
+        "flex items-center w-full",
+        inlineGapVariants({ size: "sm" }),
         splittingEditingHeaderVariants(),
       )}
     >
@@ -197,7 +200,11 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
         <div className="flex justify-between items-center w-full">
           {/* Claim info - left side */}
           <div
-            className={cn("flex items-baseline gap-2", splittingClaimInfoVariants())}
+            className={cn(
+              "flex items-baseline",
+              inlineGapVariants({ size: "sm" }),
+              splittingClaimInfoVariants(),
+            )}
           >
             <span className={textRoleVariants({ role: "amountSemibold" })}>
               {claim.value}
@@ -318,7 +325,7 @@ const ParticipantsSelector: React.FC<ParticipantsSelectorProps> = ({
   };
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className={cn("flex flex-wrap", inlineGapVariants({ size: "sm" }))}>
       {participants.map((p) => {
         const isSelected = selectedIds.includes(p.id);
         return (
@@ -452,7 +459,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
       <div
         className={cn(
-          "flex flex-col items-center gap-1",
+          "flex flex-col items-center",
+          inlineGapVariants({ size: "xs" }),
           splittingSheetSubtitleVariants(),
           textRoleVariants({ role: "labelSmMutedCenter" }),
         )}
@@ -494,7 +502,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       {/* Scrollable shares area */}
       <div
         className={cn(
-          "flex-1 overflow-y-auto space-y-3",
+          "flex-1 overflow-y-auto",
+          stackGapVariants({ size: "md" }),
           splittingClaimsListPaddingVariants(),
           hasClaimsError && splittingClaimsErrorRingVariants(),
         )}
@@ -594,7 +603,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
             className="h-3"
           />
         </div>
-        <div className="flex gap-2">
+        <div className={cn("flex", inlineGapVariants({ size: "sm" }))}>
           <Button
             type="button"
             variant="ghost"

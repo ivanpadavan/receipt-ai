@@ -12,6 +12,7 @@ import {
   historyEmptyCardTextVariants,
   historyReceiptCardVariants,
   screenShellVariants,
+  stackGapVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -65,7 +66,7 @@ export default async function HistoryPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className={stackGapVariants({ size: "lg" })}>
             {receipts.map((receipt) => {
               // Parse the receipt data from JSON
               const receiptData = receipt.data as unknown as Receipt;

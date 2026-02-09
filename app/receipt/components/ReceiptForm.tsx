@@ -63,6 +63,8 @@ import {
   receiptCardPaddingVariants,
   receiptRowVariants,
   rowContentPaddingVariants,
+  stackGapVariants,
+  inlineGapVariants,
   stickyBarPaddingVariants,
   totalValueVariants,
   textRoleVariants,
@@ -335,7 +337,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                   </h2>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className={stackGapVariants({ size: "sm" })}>
                   {positionFields.map((field, index) => {
                     const hasPriceError = hasFormPathError(
                       errors,
@@ -386,7 +388,8 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
           <CardContent className={rowContentPaddingVariants({ density: "tight" })}>
                             <div
                               className={cn(
-                                "flex items-center gap-3",
+                                "flex items-center",
+                                inlineGapVariants({ size: "md" }),
                                 positionHeaderVariants({
                                   tone: hasRowNumberError ? "danger" : "default",
                                 }),
@@ -466,7 +469,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       {(currentReceipt.discounts.length > 0 ||
                         currentReceipt.fees.length > 0) && (
                         <>
-                          <div className="gap-1">
+                          <div className={inlineGapVariants({ size: "xs" })}>
                             {currentReceipt.discounts.length > 0 && (
                               <Modifiers type="discounts" />
                             )}

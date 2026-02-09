@@ -11,6 +11,7 @@ import { cn } from "@/utils/cn";
 import {
   modifierRowVariants,
   modifierValueVariants,
+  stackGapVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -41,7 +42,7 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
       >
         {t(type)}:
       </div>
-      <div className="space-y-1">
+      <div className={stackGapVariants({ size: "xs" })}>
         {items.map((item, index) => {
           const hasValueError = hasFormPathError(errors, `${type}.${index}.value`);
 

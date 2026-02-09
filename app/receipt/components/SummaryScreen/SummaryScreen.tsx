@@ -19,6 +19,8 @@ import {
   summaryItemIndentVariants,
   summaryItemListVariants,
   summaryItemRowPaddingVariants,
+  stackGapVariants,
+  inlineGapVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -91,7 +93,8 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
       {/* List */}
       <div
         className={cn(
-          "flex-1 overflow-y-auto space-y-3",
+          "flex-1 overflow-y-auto",
+          stackGapVariants({ size: "md" }),
           cardPaddingVariants({ size: "md" }),
         )}
       >
@@ -108,7 +111,12 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
               radius="xl"
               className={cardPaddingVariants({ size: "sm" })}
             >
-              <div className="flex items-center gap-3 w-full mb-2">
+              <div
+                className={cn(
+                  "flex items-center w-full mb-2",
+                  inlineGapVariants({ size: "md" }),
+                )}
+              >
                 <ParticipantAvatar participant={participant} />
                 <span
                     className={cn(
@@ -140,7 +148,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
                 <div className={cn("w-full", summaryItemIndentVariants())}>
                   <ul
                     className={cn(
-                      "space-y-1",
+                      stackGapVariants({ size: "xs" }),
                       summaryItemListVariants(),
                       textRoleVariants({ role: "labelSmMuted" }),
                     )}

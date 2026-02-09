@@ -29,6 +29,8 @@ import {
   sheetTitlePaddingVariants,
   sheetBodyPaddingVariants,
   errorListVariants,
+  stackGapVariants,
+  inlineGapVariants,
 } from "@/app/receipt/components/ui-styles";
 
 type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
@@ -164,7 +166,7 @@ export const EditingSheet: React.FC<EditModalProps> = ({
           <div className={cn("mb-4", noticeVariants({ tone: "warning" }))}>
             <p>{conflict.message}</p>
             {conflict.type === "modified" && (
-              <div className="mt-2 flex space-x-2">
+              <div className={cn("mt-2 flex", inlineGapVariants({ size: "sm" }))}>
                 <Button
                   type="button"
                   variant="secondary"
@@ -200,7 +202,7 @@ export const EditingSheet: React.FC<EditModalProps> = ({
         )}
         {visibleErrors.length > 0 && (
           <div className={cn("mb-4", noticeVariants({ tone: "danger" }))}>
-            <ul className={cn("space-y-1", errorListVariants())}>
+            <ul className={cn(stackGapVariants({ size: "xs" }), errorListVariants())}>
               {visibleErrors.map(([key, error], index) => (
                 <li key={index}>
                   <strong>{t(key as TranslationKey)}:</strong> {error}
@@ -210,7 +212,7 @@ export const EditingSheet: React.FC<EditModalProps> = ({
           </div>
         )}
 
-        <div className="space-y-4">
+        <div className={stackGapVariants({ size: "lg" })}>
           {fields.map((field) => (
             <FormField
               key={field.key}
@@ -242,7 +244,7 @@ export const EditingSheet: React.FC<EditModalProps> = ({
               </DrawerClose>
             )}
           </div>
-          <div className="flex space-x-2">
+          <div className={cn("flex", inlineGapVariants({ size: "sm" }))}>
             <DrawerClose asChild>
               <Button type="button" variant="secondary">
                 {t("cancel")}

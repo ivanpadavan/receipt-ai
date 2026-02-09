@@ -1,11 +1,15 @@
 "use client";
 
 import { cn } from "@/utils/cn";
-import { iconSizeVariants, textRoleVariants } from "@/app/receipt/components/ui-styles";
+import {
+  iconSizeVariants,
+  inlineGapVariants,
+  textRoleVariants,
+} from "@/app/receipt/components/ui-styles";
 
 
 const Logo = () => (
-  <div className="flex items-center gap-2">
+  <div className={cn("flex items-center", inlineGapVariants({ size: "sm" }))}>
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"

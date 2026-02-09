@@ -54,6 +54,7 @@ import {
   iconLeadSpacingVariants,
   iconSizeVariants,
   iconButtonCompactVariants,
+  inlineGapVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -202,7 +203,8 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
               >
                 <CardContent
                   className={cn(
-                    "flex items-center gap-3",
+                    "flex items-center",
+                    inlineGapVariants({ size: "md" }),
                     rowContentPaddingVariants({ density: "regular" }),
                   )}
                 >
@@ -260,7 +262,8 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
             >
               <CardContent
                 className={cn(
-                  "flex items-center gap-3",
+                  "flex items-center",
+                  inlineGapVariants({ size: "md" }),
                   rowContentPaddingVariants({ density: "regular" }),
                 )}
               >

@@ -397,6 +397,36 @@ export const quantityPillVariants = cva(
   },
 );
 
+export const inlineGapVariants = cva("", {
+  variants: {
+    size: {
+      xs: "gap-1",
+      sm: "gap-2",
+      md: "gap-3",
+      lg: "gap-4",
+      xl: "gap-6",
+    },
+  },
+  defaultVariants: {
+    size: "sm",
+  },
+});
+
+export const stackGapVariants = cva("", {
+  variants: {
+    size: {
+      xs: "space-y-1",
+      sm: "space-y-1.5",
+      md: "space-y-3",
+      lg: "space-y-4",
+      xl: "space-y-6",
+    },
+  },
+  defaultVariants: {
+    size: "md",
+  },
+});
+
 export const screenShellVariants = cva("bg-amber-50 p-4");
 
 export const cardPaddingVariants = cva("", {
