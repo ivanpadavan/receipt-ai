@@ -53,6 +53,63 @@ import { DistributionBar } from "@/app/receipt/components/ui/DistributionBar";
 import { ReceiptActionBar } from "@/app/receipt/components/ui/ReceiptActionBar";
 import { pillVariants } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
+import { cva } from "class-variance-authority";
+
+const sectionTitleVariants = cva(
+  "text-sm font-semibold uppercase tracking-wide text-muted-foreground",
+);
+
+const receiptRowVariants = cva("rounded-md px-1 py-1", {
+  variants: {
+    interactive: {
+      true: "cursor-pointer hover:bg-muted/45",
+      false: "cursor-default",
+    },
+  },
+  defaultVariants: {
+    interactive: false,
+  },
+});
+
+const rowLabelVariants = cva("text-muted-foreground");
+
+const totalValueVariants = cva("font-semibold", {
+  variants: {
+    tone: {
+      danger: "text-destructive",
+      default: "",
+    },
+  },
+  defaultVariants: {
+    tone: "default",
+  },
+});
+
+const grandTotalLabelVariants = cva("text-base font-semibold");
+
+const grandTotalValueVariants = cva("text-2xl font-bold", {
+  variants: {
+    tone: {
+      danger: "text-destructive",
+      default: "",
+    },
+  },
+  defaultVariants: {
+    tone: "default",
+  },
+});
+
+const overallValueVariants = cva("text-base font-semibold", {
+  variants: {
+    tone: {
+      danger: "text-destructive",
+      default: "text-foreground",
+    },
+  },
+  defaultVariants: {
+    tone: "default",
+  },
+});
 
 interface EditableReceiptFormProps {
   initialData: ReceiptWithParticipants;
@@ -310,9 +367,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
             ) : (
               <>
                 <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                    {t("receipt")}
-                  </h2>
+                  <h2 className={sectionTitleVariants()}>{t("receipt")}</h2>
                 </div>
 
                 <div className="space-y-1.5">
@@ -402,11 +457,9 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                                 {field.quantity}x
                               </span>
                               <span
-                                className={`text-base font-semibold ${
-                                  hasOverallError
-                                    ? "text-destructive"
-                                    : "text-foreground"
-                                }`}
+                                className={overallValueVariants({
+                                  tone: hasOverallError ? "danger" : "default",
+                                })}
                               >
                                 {formatMoney(field.overall)}
                               </span>
@@ -452,50 +505,50 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
 
                       <button
                         type="button"
-                        className={`mt-3 flex w-full items-center justify-between rounded-md px-1 py-1 text-sm ${
-                          canEdit.totalsForm
-                            ? "cursor-pointer hover:bg-muted/45"
-                            : "cursor-default"
-                        }`}
+                        className={cn(
+                          "mt-3 flex w-full items-center justify-between text-sm",
+                          receiptRowVariants({
+                            interactive: canEdit.totalsForm,
+                          }),
+                        )}
                         onClick={() =>
                           canEdit.totalsForm &&
                           openEditModal({ type: "totals" })
                         }
                       >
-                        <span className="text-muted-foreground">
-                          {t("total")}
-                        </span>
+                        <span className={rowLabelVariants()}>{t("total")}</span>
                         <span
-                          className={
-                            hasFormPathError(errors, "totals.total")
-                              ? "font-semibold text-destructive"
-                              : "font-semibold"
-                          }
+                          className={totalValueVariants({
+                            tone: hasFormPathError(errors, "totals.total")
+                              ? "danger"
+                              : "default",
+                          })}
                         >
                           {formatMoney(currentReceipt.totals.total)}
                         </span>
                       </button>
                       <button
                         type="button"
-                        className={`flex w-full items-center justify-between rounded-md px-1 py-1 ${
-                          canEdit.totalsForm
-                            ? "cursor-pointer hover:bg-muted/45"
-                            : "cursor-default"
-                        }`}
+                        className={cn(
+                          "flex w-full items-center justify-between",
+                          receiptRowVariants({
+                            interactive: canEdit.totalsForm,
+                          }),
+                        )}
                         onClick={() =>
                           canEdit.totalsForm &&
                           openEditModal({ type: "totals" })
                         }
                       >
-                        <span className="text-base font-semibold">
+                        <span className={grandTotalLabelVariants()}>
                           {t("grandTotal")}
                         </span>
                         <span
-                          className={
-                            hasFormPathError(errors, "totals.grandTotal")
-                              ? "text-2xl font-bold text-destructive"
-                              : "text-2xl font-bold"
-                          }
+                          className={grandTotalValueVariants({
+                            tone: hasFormPathError(errors, "totals.grandTotal")
+                              ? "danger"
+                              : "default",
+                          })}
                         >
                           {formatMoney(currentReceipt.totals.grandTotal)}
                         </span>
