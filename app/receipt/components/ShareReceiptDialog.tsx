@@ -20,6 +20,8 @@ import { toast } from "sonner";
 import { cva } from "class-variance-authority";
 
 const qrContainerVariants = cva("rounded-xl border bg-white p-3");
+const triggerLabelVariants = cva("text-[11px] font-medium");
+const dialogContentVariants = cva("max-w-md");
 
 type ShareReceiptDialogProps = {
   receiptId: string;
@@ -73,7 +75,7 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
           {stacked ? (
             <span className="flex flex-col items-center gap-1 leading-none">
               <Share2 className="h-4 w-4" />
-              <span className="text-[11px] font-medium">{triggerLabel}</span>
+              <span className={triggerLabelVariants()}>{triggerLabel}</span>
             </span>
           ) : (
             <>
@@ -83,7 +85,7 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
           )}
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="max-w-md">
+      <AlertDialogContent className={dialogContentVariants()}>
         <AlertDialogHeader>
           <AlertDialogTitle>{t("shareReceiptTitle")}</AlertDialogTitle>
           <AlertDialogDescription>{t("shareReceiptHint")}</AlertDialogDescription>
