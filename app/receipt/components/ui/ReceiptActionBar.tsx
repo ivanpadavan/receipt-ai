@@ -8,7 +8,12 @@ import {
   ButtonGroup,
   ButtonGroupSeparator,
 } from "@/components/ui/button-group";
-import { iconButtonVariants, iconGroupVariants } from "@/app/receipt/components/ui-styles";
+import {
+  actionBarVariants,
+  iconButtonVariants,
+  iconGroupVariants,
+  primaryActionVariants,
+} from "@/app/receipt/components/ui-styles";
 import {
   BadgePercent,
   CirclePlus,
@@ -22,6 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/utils/cn";
 
 interface ReceiptActionBarProps {
   receiptId: string;
@@ -51,7 +57,12 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
   return (
     <div className="sticky mb-3 bottom-3 z-10 mx-auto w-full max-w-3xl">
       <div className="w-full px-5">
-        <div className="flex items-center justify-between gap-3 rounded-[32px] border border-white/70 bg-white/35 p-2 shadow-[0_24px_48px_rgba(15,23,42,0.20)] backdrop-blur-2xl">
+        <div
+          className={cn(
+            "flex items-center justify-between gap-3 p-2",
+            actionBarVariants(),
+          )}
+        >
           <ButtonGroup
             className={`justify-center ${iconGroupVariants({ density: "compact" })}`}
           >
@@ -129,7 +140,7 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
           <Button
             onClick={onPrimaryAction}
             disabled={!canProceed}
-            className="h-12 rounded-full px-7 text-base font-semibold shadow-[0_14px_30px_rgba(249,115,22,0.36)]"
+            className={cn("h-12 px-7", primaryActionVariants())}
           >
             {t(primaryLabel)}
           </Button>

@@ -112,3 +112,11 @@ export const pillVariants = cva(
     },
   },
 );
+
+export const actionBarVariants = cva(
+  "rounded-[32px] border border-white/70 bg-white/35 shadow-[0_24px_48px_rgba(15,23,42,0.20)] backdrop-blur-2xl",
+);
+
+export const primaryActionVariants = cva(
+  "rounded-full text-base font-semibold shadow-[0_14px_30px_rgba(249,115,22,0.36)]",
+);
