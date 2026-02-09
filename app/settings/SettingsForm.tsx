@@ -21,7 +21,7 @@ import { User, UserMetadata } from "@supabase/supabase-js";
 import { UserAvatar } from "@/app/receipt/components/ui/user-avatar";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
-import { textVariants } from "@/app/receipt/components/ui-styles";
+import { radiusTokens, textVariants } from "@/app/receipt/components/ui-styles";
 
 const captureSupported =
   typeof document === "object" &&
@@ -75,10 +75,12 @@ const getCroppedBlob = async (imageSrc: string, pixelCrop: Area) => {
 export type SettingsFormValues = UserMetadata & { avatarFile?: File } ;
 
 const uploadCardVariants = cva(
-  "rounded-xl border-2 border-dashed border-amber-200 bg-amber-50/40 hover:bg-amber-50 transition-colors",
+  `${radiusTokens.xl} border-2 border-dashed border-amber-200 bg-amber-50/40 hover:bg-amber-50 transition-colors`,
 );
 const uploadCardPaddingVariants = cva("p-4");
-const cropFrameVariants = cva("bg-black/80 rounded-lg overflow-hidden");
+const cropFrameVariants = cva(
+  `bg-black/80 ${radiusTokens.lg} overflow-hidden`,
+);
 
 interface SettingsFormProps {
   user: User;

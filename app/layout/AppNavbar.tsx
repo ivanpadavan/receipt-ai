@@ -11,10 +11,11 @@ import Logo from "@/app/layout/Logo";
 import { Button } from "@/components/ui/button";
 import { handleSignIn, handleSignOut } from "@/app/receipt/utils/auth";
 import { t } from "@/app/i18n/translations";
+import { radiusTokens } from "@/app/receipt/components/ui-styles";
 import { cva } from "class-variance-authority";
 
 const navLinkVariants = cva(
-  "px-4 py-2 rounded-[18px] whitespace-nowrap flex items-center gap-2 text-sm transition-all",
+  `px-4 py-2 ${radiusTokens.nav} whitespace-nowrap flex items-center gap-2 text-sm transition-all`,
   {
     variants: {
       active: {

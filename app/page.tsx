@@ -9,20 +9,20 @@ import { useRouter } from "next/navigation";
 import { t } from "@/app/i18n/translations";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
-import { textVariants } from "@/app/receipt/components/ui-styles";
+import { radiusTokens, textVariants } from "@/app/receipt/components/ui-styles";
 
 const pageShellVariants = cva("bg-amber-50 p-4");
-const previewImageVariants = cva("object-contain rounded-md");
+const previewImageVariants = cva(`object-contain ${radiusTokens.sm}`);
 const actionButtonVariants = cva("shadow-md");
 const dropzoneVariants = cva(
-  "border-2 border-dashed border-input rounded-lg cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors",
+  `border-2 border-dashed border-input ${radiusTokens.lg} cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors`,
 );
 const captureButtonVariants = cva("shadow-md");
 const loadingSpinnerVariants = cva(
-  "animate-spin rounded-full border-b-2 border-amber-500",
+  `animate-spin ${radiusTokens.full} border-b-2 border-amber-500`,
 );
 const errorBoxVariants = cva(
-  "bg-red-50 border border-red-300 text-red-700 rounded-lg shadow-sm p-4",
+  `bg-red-50 border border-red-300 text-red-700 ${radiusTokens.lg} shadow-sm p-4`,
 );
 const pageCardPaddingVariants = cva("p-6");
 const previewCardPaddingVariants = cva("p-4");

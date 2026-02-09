@@ -1,10 +1,30 @@
 import { cva } from "class-variance-authority";
 
+export const radiusTokens = {
+  xs: "rounded-sm",
+  sm: "rounded-md",
+  lg: "rounded-lg",
+  xl: "rounded-xl",
+  "2xl": "rounded-2xl",
+  "3xl": "rounded-3xl",
+  full: "rounded-full",
+  action: "rounded-[32px]",
+  nav: "rounded-[18px]",
+};
+
+export const shadowTokens = {
+  sm: "shadow-sm",
+  md: "shadow-[0_10px_22px_rgba(15,23,42,0.08),0_2px_6px_rgba(15,23,42,0.05)]",
+  lg: "shadow-[0_16px_34px_rgba(15,23,42,0.12),0_4px_10px_rgba(15,23,42,0.08)]",
+  glass: "shadow-[0_24px_48px_rgba(15,23,42,0.20)]",
+  orange: "shadow-[0_14px_30px_rgba(249,115,22,0.36)]",
+};
+
 const iconCapsuleSurface =
   "border border-foreground/15 bg-white/48 shadow-[inset_0_1px_0_rgba(255,255,255,0.32)] backdrop-blur-md";
 
 export const iconGroupVariants = cva(
-  `rounded-full ${iconCapsuleSurface} [&>*]:border-0`,
+  `${radiusTokens.full} ${iconCapsuleSurface} [&>*]:border-0`,
   {
     variants: {
       density: {
@@ -19,7 +39,7 @@ export const iconGroupVariants = cva(
 );
 
 export const iconSoloVariants = cva(
-  `rounded-full ${iconCapsuleSurface}`,
+  `${radiusTokens.full} ${iconCapsuleSurface}`,
   {
     variants: {
       size: {
@@ -67,9 +87,9 @@ export const surfaceVariants = cva(
       },
       shadow: {
         none: "shadow-none",
-        sm: "shadow-sm",
-        md: "shadow-[0_10px_22px_rgba(15,23,42,0.08),0_2px_6px_rgba(15,23,42,0.05)]",
-        lg: "shadow-[0_16px_34px_rgba(15,23,42,0.12),0_4px_10px_rgba(15,23,42,0.08)]",
+        sm: shadowTokens.sm,
+        md: shadowTokens.md,
+        lg: shadowTokens.lg,
       },
       interactive: {
         true: "cursor-pointer transition hover:shadow-[0_16px_34px_rgba(15,23,42,0.12),0_4px_10px_rgba(15,23,42,0.08)]",
@@ -81,9 +101,9 @@ export const surfaceVariants = cva(
           "bg-amber-50/70 border-amber-300 shadow-[inset_0_0_0_2px_rgba(251,146,60,0.55)] hover:shadow-[inset_0_0_0_2px_rgba(251,146,60,0.55)]",
       },
       radius: {
-        xl: "rounded-xl",
-        "2xl": "rounded-2xl",
-        "3xl": "rounded-3xl",
+        xl: radiusTokens.xl,
+        "2xl": radiusTokens["2xl"],
+        "3xl": radiusTokens["3xl"],
       },
     },
     defaultVariants: {
@@ -107,9 +127,9 @@ export const pillVariants = cva("inline-flex items-center gap-1.5 border", {
       warning: "border-amber-200 bg-amber-50 text-amber-600",
     },
     radius: {
-      full: "rounded-full",
-      lg: "rounded-lg",
-      xl: "rounded-xl",
+      full: radiusTokens.full,
+      lg: radiusTokens.lg,
+      xl: radiusTokens.xl,
     },
     size: {
       xs: "px-2 py-1 text-xs font-medium",
@@ -132,15 +152,15 @@ export const pillVariants = cva("inline-flex items-center gap-1.5 border", {
 });
 
 export const actionBarVariants = cva(
-  "rounded-[32px] border border-white/70 bg-white/35 shadow-[0_24px_48px_rgba(15,23,42,0.20)] backdrop-blur-2xl",
+  `${radiusTokens.action} border border-white/70 bg-white/35 ${shadowTokens.glass} backdrop-blur-2xl`,
 );
 
 export const primaryActionVariants = cva(
-  "rounded-full text-base font-semibold shadow-[0_14px_30px_rgba(249,115,22,0.36)]",
+  `${radiusTokens.full} text-base font-semibold ${shadowTokens.orange}`,
 );
 
 export const noticeVariants = cva(
-  "rounded-md border px-3 py-3 text-sm",
+  `${radiusTokens.sm} border px-3 py-3 text-sm`,
   {
     variants: {
       tone: {
@@ -162,8 +182,8 @@ export const barVariants = cva("w-full overflow-hidden flex relative", {
       none: "",
     },
     radius: {
-      full: "rounded-full",
-      md: "rounded-md",
+      full: radiusTokens.full,
+      md: radiusTokens.sm,
     },
   },
   defaultVariants: {

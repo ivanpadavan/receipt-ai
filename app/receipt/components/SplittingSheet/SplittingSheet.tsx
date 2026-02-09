@@ -47,6 +47,7 @@ import {
   iconButtonVariants,
   iconSoloVariants,
   pillVariants,
+  radiusTokens,
   textVariants,
 } from "@/app/receipt/components/ui-styles";
 import { cva } from "class-variance-authority";
@@ -66,11 +67,11 @@ const editingHeaderVariants = cva("border-b bg-muted/20 p-3");
 const editingInputVariants = cva("bg-background");
 
 const typeSwitchWrapperVariants = cva(
-  "rounded-full border border-border/60 bg-muted/30 p-1 shadow-sm",
+  "border border-border/60 bg-muted/30 p-1 shadow-sm",
 );
 
 const typeSwitchButtonVariants = cva(
-  "h-8 w-16 rounded-full text-xs font-semibold transition",
+  "h-8 w-16 text-xs font-semibold transition",
   {
     variants: {
       active: {
@@ -87,36 +88,41 @@ const menuDangerItemVariants = cva(
   "text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50",
 );
 
-const avatarRingVariants = cva("ring-2 ring-background rounded-full");
+const avatarRingVariants = cva("ring-2 ring-background");
 
 const avatarFallbackVariants = cva(
-  "rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground",
+  "bg-muted flex items-center justify-center text-xs text-muted-foreground",
 );
 
 const avatarOverflowVariants = cva(
-  "rounded-full bg-muted flex items-center justify-center text-xs font-medium ring-2 ring-muted-foreground/30",
+  "bg-muted flex items-center justify-center text-xs font-medium ring-2 ring-muted-foreground/30",
 );
 
 const claimHeaderVariants = cva(
   "hover:bg-muted/30 transition-colors bg-background",
 );
 
-const addShareButtonVariants = cva("rounded-full border");
+const addShareButtonVariants = cva(`${radiusTokens.full} border`);
 
-const claimsErrorRingVariants = cva("ring-1 ring-destructive/40 rounded-xl");
+const claimsErrorRingVariants = cva(
+  `ring-1 ring-destructive/40 ${radiusTokens.xl}`,
+);
 
 const claimInfoVariants = cva("text-foreground");
-const participantButtonVariants = cva("relative rounded-full transition-all", {
-  variants: {
-    selected: {
-      true: "",
-      false: "opacity-50 hover:opacity-80",
+const participantButtonVariants = cva(
+  `relative ${radiusTokens.full} transition-all`,
+  {
+    variants: {
+      selected: {
+        true: "",
+        false: "opacity-50 hover:opacity-80",
+      },
+    },
+    defaultVariants: {
+      selected: true,
     },
   },
-  defaultVariants: {
-    selected: true,
-  },
-});
+);
 
 const accordionContentVariants = cva("border-t bg-background px-3 py-2");
 
@@ -161,13 +167,20 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
       />
 
       {/* Type Switch */}
-      <div className={cn("flex items-center", typeSwitchWrapperVariants())}>
+      <div
+        className={cn(
+          "flex items-center",
+          typeSwitchWrapperVariants(),
+          radiusTokens.full,
+        )}
+      >
         <button
           type="button"
           className={cn(
             typeSwitchButtonVariants({
               active: claim.type === "quantity",
             }),
+            radiusTokens.full,
           )}
           aria-pressed={claim.type === "quantity"}
           onClick={() => onUpdate({ ...claim, type: "quantity" })}
@@ -178,6 +191,7 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
           type="button"
           className={cn(
             typeSwitchButtonVariants({ active: claim.type === "amount" }),
+            radiusTokens.full,
           )}
           aria-pressed={claim.type === "amount"}
           onClick={() => onUpdate({ ...claim, type: "amount" })}
@@ -241,19 +255,27 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
               selectedParticipants.slice(0, 4).map((p, idx) => (
                 <div
                   key={p.id}
-                  className={cn("relative", avatarRingVariants())}
+                  className={cn("relative", avatarRingVariants(), radiusTokens.full)}
                   style={{ zIndex: selectedParticipants.length - idx }}
                 >
                   <ParticipantAvatar participant={p} className="h-7 w-7" />
                 </div>
               ))
             ) : (
-              <div className={cn("w-7 h-7", avatarFallbackVariants())}>
+              <div
+                className={cn("w-7 h-7", avatarFallbackVariants(), radiusTokens.full)}
+              >
                 ?
               </div>
             )}
             {selectedParticipants.length > 4 && (
-              <div className={cn("w-7 h-7", avatarOverflowVariants())}>
+              <div
+                className={cn(
+                  "w-7 h-7",
+                  avatarOverflowVariants(),
+                  radiusTokens.full,
+                )}
+              >
                 +{selectedParticipants.length - 4}
               </div>
             )}

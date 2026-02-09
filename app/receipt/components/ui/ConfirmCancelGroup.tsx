@@ -5,9 +5,10 @@ import { cva } from "class-variance-authority";
 import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils/cn";
+import { radiusTokens, shadowTokens } from "@/app/receipt/components/ui-styles";
 
 const groupVariants = cva(
-  "inline-flex items-center rounded-full border border-border/60 bg-white/70 shadow-sm",
+  `inline-flex items-center ${radiusTokens.full} border border-border/60 bg-white/70 ${shadowTokens.sm}`,
   {
     variants: {
       size: {
@@ -21,7 +22,7 @@ const groupVariants = cva(
   },
 );
 
-const buttonVariants = cva("rounded-full transition", {
+const buttonVariants = cva(`${radiusTokens.full} transition`, {
   variants: {
     size: {
       sm: "h-8 w-10",

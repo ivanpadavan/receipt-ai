@@ -35,7 +35,10 @@ import { UserPlus, X, Trash2, MoreVertical } from "lucide-react";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
-import { textVariants } from "@/app/receipt/components/ui-styles";
+import {
+  radiusTokens,
+  textVariants,
+} from "@/app/receipt/components/ui-styles";
 
 const sheetBackgroundVariants = cva("bg-gradient-to-b from-white to-gray-50");
 
@@ -54,7 +57,7 @@ const dangerMenuItemVariants = cva(
 );
 
 const avatarPlaceholderVariants = cva(
-  "rounded-full flex items-center justify-center font-semibold text-lg",
+  `${radiusTokens.full} flex items-center justify-center font-semibold text-lg`,
 );
 
 const addInputVariants = cva(
@@ -62,12 +65,12 @@ const addInputVariants = cva(
 );
 
 const doneButtonVariants = cva(
-  "bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold rounded-xl active:scale-[0.98] transition-transform py-3",
+  `bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold ${radiusTokens.xl} active:scale-[0.98] transition-transform py-3`,
 );
 
 const footerVariants = cva("border-t border-gray-100 bg-white p-4");
 
-const dialogContentVariants = cva("rounded-xl");
+const dialogContentVariants = cva(radiusTokens.xl);
 const deleteActionVariants = cva("bg-red-500 hover:bg-red-600 text-white");
 const listPaddingVariants = cva("px-4 py-3");
 const addButtonContainerVariants = cva("px-4 pb-4 pt-2");

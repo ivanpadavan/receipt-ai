@@ -19,8 +19,11 @@ import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
+import { radiusTokens } from "@/app/receipt/components/ui-styles";
 
-const qrContainerVariants = cva("rounded-xl border bg-white p-3");
+const qrContainerVariants = cva(
+  `${radiusTokens.xl} border bg-white p-3`,
+);
 const triggerLabelVariants = cva("text-[11px] font-medium");
 const shareContentPaddingVariants = cva("py-2");
 
