@@ -6,7 +6,7 @@ import { cn } from "@/utils/cn";
 import { surfaceVariants } from "@/app/receipt/components/ui-styles";
 
 interface ReceiptCardProps extends React.HTMLAttributes<HTMLDivElement> {
-  tone?: "default" | "soft" | "warm" | "danger";
+  tone?: "default" | "soft" | "warm" | "warmStrong" | "danger";
   shadow?: "none" | "sm" | "md" | "lg";
   interactive?: boolean;
   radius?: "xl" | "2xl" | "3xl";

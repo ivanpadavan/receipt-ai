@@ -5,8 +5,9 @@ import { ParticipantDTO } from "@/model/receipt/model";
 import { ParticipantAvatar } from "@/app/receipt/components/ui/participant-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import { ConfirmCancelGroup } from "@/app/receipt/components/ui/ConfirmCancelGroup";
+import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 import {
   DrawerContent,
   DrawerHeader,
@@ -137,11 +138,12 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
 
           {participants.map((participant) => {
             return (
-              <Card
+              <ReceiptCard
                 key={participant.id}
-                variant="interactive"
+                interactive
                 shadow="md"
-                className="mb-2 rounded-xl"
+                radius="xl"
+                className="mb-2"
               >
                 <CardContent className="flex items-center gap-3 px-4 py-3">
                   <ParticipantAvatar
@@ -172,15 +174,16 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </CardContent>
-              </Card>
+              </ReceiptCard>
             );
           })}
 
           {isAdding && (
-            <Card
-              variant="warning"
+            <ReceiptCard
+              tone="warmStrong"
               shadow="md"
-              className="mb-2 rounded-xl border-2 border-amber-500"
+              radius="xl"
+              className="mb-2"
             >
               <CardContent className="flex items-center gap-3 px-4 py-3">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center font-semibold shrink-0 text-lg">
@@ -208,7 +211,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                   confirmDisabled={!newParticipantName.trim()}
                 />
               </CardContent>
-            </Card>
+            </ReceiptCard>
           )}
         </div>
 
