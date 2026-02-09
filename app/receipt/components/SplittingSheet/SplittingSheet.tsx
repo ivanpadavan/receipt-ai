@@ -46,7 +46,6 @@ import { getFormPathErrorMessage, hasFormPathError } from "@/app/receipt/utils/h
 import {
   iconButtonVariants,
   iconSoloVariants,
-  pillVariants,
   radiusTokens,
   splittingAccordionContentPaddingVariants,
   splittingAccordionContentVariants,
@@ -75,6 +74,8 @@ import {
   avatarSizeVariants,
   iconButtonCompactVariants,
   iconSizeVariants,
+  iconLeadSpacingVariants,
+  statusPillVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -270,14 +271,24 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={onEditStart}>
-              <Pencil className={cn("mr-2", iconSizeVariants({ size: "sm" }))} />
+              <Pencil
+                className={cn(
+                  iconLeadSpacingVariants(),
+                  iconSizeVariants({ size: "sm" }),
+                )}
+              />
               {t("edit")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={onRemove}
               className={splittingMenuDangerItemVariants()}
             >
-              <Trash2 className={cn("mr-2", iconSizeVariants({ size: "sm" }))} />
+              <Trash2
+                className={cn(
+                  iconLeadSpacingVariants(),
+                  iconSizeVariants({ size: "sm" }),
+                )}
+              />
               {t("delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -460,7 +471,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         {hasClaimsError && claimsErrorMessage && (
           <div
             className={cn(
-              pillVariants({ tone: "danger", radius: "full", size: "sm" }),
+              statusPillVariants({ tone: "danger", radius: "full" }),
             )}
           >
             {claimsErrorMessage}

@@ -332,6 +332,71 @@ export const avatarSizeVariants = cva("", {
 
 export const iconButtonCompactVariants = cva("h-8 w-8");
 
+export const iconLeadSpacingVariants = cva("", {
+  variants: {
+    size: {
+      sm: "mr-1",
+      md: "mr-2",
+    },
+  },
+  defaultVariants: {
+    size: "md",
+  },
+});
+
+export const buttonContentVariants = cva("", {
+  variants: {
+    layout: {
+      inline: "inline-flex items-center gap-2",
+      inlineTight: "inline-flex items-center gap-1.5",
+      stacked: "flex flex-col items-center gap-1 leading-none",
+    },
+  },
+  defaultVariants: {
+    layout: "inline",
+  },
+});
+
+export const statusPillVariants = cva(
+  "inline-flex items-center gap-1.5 border px-2 py-0.5 text-xs font-medium",
+  {
+    variants: {
+      tone: {
+        success: "border-emerald-200 bg-emerald-50 text-emerald-700",
+        danger: "border-red-200 bg-red-50 text-destructive",
+        warning: "border-amber-200 bg-amber-50 text-amber-600",
+      },
+      radius: {
+        full: radiusTokens.full,
+        lg: radiusTokens.lg,
+      },
+    },
+    defaultVariants: {
+      tone: "warning",
+      radius: "full",
+    },
+  },
+);
+
+export const quantityPillVariants = cva(
+  "inline-flex items-center gap-1.5 border px-2 py-1 text-xs font-medium",
+  {
+    variants: {
+      tone: {
+        neutral: "border-border/70 bg-card text-muted-foreground",
+        danger: "border-red-200 bg-red-50 text-destructive",
+      },
+      radius: {
+        lg: radiusTokens.lg,
+      },
+    },
+    defaultVariants: {
+      tone: "neutral",
+      radius: "lg",
+    },
+  },
+);
+
 export const screenShellVariants = cva("bg-amber-50 p-4");
 
 export const cardPaddingVariants = cva("", {

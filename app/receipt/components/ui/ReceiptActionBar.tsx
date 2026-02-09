@@ -14,6 +14,7 @@ import {
   iconGroupVariants,
   iconSizeVariants,
   primaryActionVariants,
+  iconLeadSpacingVariants,
   receiptActionBarContainerPaddingVariants,
   receiptActionBarMenuIconVariants,
   receiptActionBarPaddingVariants,
@@ -124,7 +125,7 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
                       <DropdownMenuItem onClick={onAddPosition}>
                         <CirclePlus
                           className={cn(
-                            "mr-2",
+                            iconLeadSpacingVariants(),
                             iconSizeVariants({ size: "sm" }),
                             receiptActionBarMenuIconVariants({ tone: "position" }),
                           )}
@@ -136,7 +137,7 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
                       <DropdownMenuItem onClick={onAddDiscount}>
                         <BadgePercent
                           className={cn(
-                            "mr-2",
+                            iconLeadSpacingVariants(),
                             iconSizeVariants({ size: "sm" }),
                             receiptActionBarMenuIconVariants({ tone: "discount" }),
                           )}
@@ -148,7 +149,7 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
                       <DropdownMenuItem onClick={onAddFee}>
                         <HandCoins
                           className={cn(
-                            "mr-2",
+                            iconLeadSpacingVariants(),
                             iconSizeVariants({ size: "sm" }),
                             receiptActionBarMenuIconVariants({ tone: "fee" }),
                           )}

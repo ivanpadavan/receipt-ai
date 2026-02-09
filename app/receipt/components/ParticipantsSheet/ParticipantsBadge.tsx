@@ -9,6 +9,7 @@ import {
   participantsBadgeButtonVariants,
   pillVariants,
   iconSizeVariants,
+  buttonContentVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -33,17 +34,18 @@ export const ParticipantsBadge: React.FC<ParticipantsBadgeProps> = ({
         onClick={onClick}
         disabled={disabled}
         title="Участники"
-        className={cn(
-          pillVariants({
-            tone: "ghost",
-            radius: "xl",
-            interaction: "subtle",
-            size: "md",
-          }),
-          participantsBadgeButtonVariants({ size: "compact" }),
-        )}
-      >
-        <Users className={cn("mr-1", iconSizeVariants({ size: "sm" }))} />
+      className={cn(
+        pillVariants({
+          tone: "ghost",
+          radius: "xl",
+          interaction: "subtle",
+          size: "md",
+        }),
+        buttonContentVariants({ layout: "inlineTight" }),
+        participantsBadgeButtonVariants({ size: "compact" }),
+      )}
+    >
+        <Users className={iconSizeVariants({ size: "sm" })} />
         <span
           className={cn(
             "min-w-[1rem]",
@@ -62,14 +64,14 @@ export const ParticipantsBadge: React.FC<ParticipantsBadgeProps> = ({
       onClick={onClick}
       disabled={disabled}
       title="Участники"
-      className={cn(
+        className={cn(
         pillVariants({
           tone: "neutral",
           radius: "xl",
           interaction: "accent",
           size: "md",
         }),
-        "gap-2",
+        buttonContentVariants({ layout: "inline" }),
         participantsBadgeButtonVariants({ size: "full" }),
       )}
     >

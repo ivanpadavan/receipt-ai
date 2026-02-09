@@ -56,7 +56,7 @@ import {
   dividerVariants,
   grandTotalValueVariants,
   overallValueVariants,
-  pillVariants,
+  quantityPillVariants,
   positionHeaderVariants,
   positionMetaValueVariants,
   positionRowButtonVariants,
@@ -423,10 +423,9 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                               </div>
                               <span
                                 className={cn(
-                                  pillVariants({
+                                  quantityPillVariants({
                                     tone: hasQuantityError ? "danger" : "neutral",
                                     radius: "lg",
-                                    size: "xs",
                                   }),
                                 )}
                               >

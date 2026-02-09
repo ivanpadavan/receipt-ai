@@ -13,6 +13,7 @@ import { handleSignIn, handleSignOut } from "@/app/receipt/utils/auth";
 import { t } from "@/app/i18n/translations";
 import {
   iconSizeVariants,
+  buttonContentVariants,
   menuItemPaddingVariants,
   menuListPaddingVariants,
   menuPanelFrameVariants,
@@ -172,7 +173,10 @@ export const AppNavbar = () => {
                           ? handleSignOut()
                           : (window.location.href = "/auth/sign-in");
                       }}
-                      className="w-full flex items-center justify-center gap-2"
+                      className={cn(
+                        "w-full justify-center",
+                        buttonContentVariants({ layout: "inline" }),
+                      )}
                       variant={isAuthenticated ? "outline" : "default"}
                     >
                       <LogOut className={iconSizeVariants({ size: "sm" })} />
@@ -192,7 +196,7 @@ export const AppNavbar = () => {
                 <Button
                   onClick={handleSignOut}
                   variant="ghost"
-                  className="flex items-center gap-2"
+                  className={buttonContentVariants({ layout: "inline" })}
                 >
                   <LogOut className={iconSizeVariants({ size: "sm" })} />
                   {t("signOut")}

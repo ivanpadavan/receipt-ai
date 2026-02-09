@@ -4,7 +4,10 @@ import React from "react";
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { t } from "@/app/i18n/translations";
 import { cn } from "@/utils/cn";
-import { iconSizeVariants, pillVariants } from "@/app/receipt/components/ui-styles";
+import {
+  iconSizeVariants,
+  statusPillVariants,
+} from "@/app/receipt/components/ui-styles";
 
 interface DistributionStatusProps {
   distributed: number;
@@ -25,7 +28,7 @@ export const DistributionStatus: React.FC<DistributionStatusProps> = ({
     return (
       <div
         className={cn(
-          pillVariants({ tone: "success", radius: "full", size: "sm" }),
+          statusPillVariants({ tone: "success", radius: "full" }),
           className,
         )}
       >
@@ -39,7 +42,7 @@ export const DistributionStatus: React.FC<DistributionStatusProps> = ({
     return (
       <div
         className={cn(
-          pillVariants({ tone: "danger", radius: "full", size: "sm" }),
+          statusPillVariants({ tone: "danger", radius: "full" }),
           className,
         )}
       >
@@ -52,7 +55,7 @@ export const DistributionStatus: React.FC<DistributionStatusProps> = ({
   return (
     <div
       className={cn(
-        pillVariants({ tone: "warning", radius: "full", size: "sm" }),
+        statusPillVariants({ tone: "warning", radius: "full" }),
         className,
       )}
     >

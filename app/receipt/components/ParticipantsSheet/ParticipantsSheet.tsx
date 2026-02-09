@@ -51,6 +51,7 @@ import {
   participantsSheetHeaderVariants,
   participantsDeleteActionVariants,
   avatarSizeVariants,
+  iconLeadSpacingVariants,
   iconSizeVariants,
   iconButtonCompactVariants,
   textRoleVariants,
@@ -237,7 +238,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                     >
                       <Trash2
                         className={cn(
-                          "mr-2",
+                          iconLeadSpacingVariants(),
                           iconSizeVariants({ size: "sm" }),
                         )}
                       />
@@ -308,7 +309,10 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
               className="w-full"
             >
               <UserPlus
-                className={cn("mr-2", iconSizeVariants({ size: "sm" }))}
+                className={cn(
+                  iconLeadSpacingVariants(),
+                  iconSizeVariants({ size: "sm" }),
+                )}
               />
               {t("addParticipant")}
             </Button>
