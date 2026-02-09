@@ -9,9 +9,12 @@ import { formatMoney } from "@/app/receipt/utils/formatMoney";
 import { hasFormPathError } from "@/app/receipt/utils/hasFormPathError";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
-import { textVariants } from "@/app/receipt/components/ui-styles";
+import {
+  radiusTokens,
+  textVariants,
+} from "@/app/receipt/components/ui-styles";
 
-const modifierRowVariants = cva("rounded-md px-1 py-1", {
+const modifierRowVariants = cva(`${radiusTokens.sm} px-1 py-1 text-sm`, {
   variants: {
     interactive: {
       true: "cursor-pointer hover:bg-muted/45",
@@ -73,7 +76,7 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
               key={item.id}
               type="button"
               className={cn(
-                "flex w-full items-center justify-between text-sm",
+                "flex w-full items-center justify-between",
                 modifierRowVariants({ interactive: canEdit }),
               )}
               onClick={() =>

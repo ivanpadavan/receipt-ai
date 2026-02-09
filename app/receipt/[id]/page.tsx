@@ -11,11 +11,13 @@ import { joinReceiptServer } from "@/app/receipt/[id]/join-flow/join-receipt-ser
 import { t } from "@/app/i18n/translations";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
-import { textVariants } from "@/app/receipt/components/ui-styles";
+import { radiusTokens, textVariants } from "@/app/receipt/components/ui-styles";
 
 const notFoundShellVariants = cva("p-4");
 const notFoundCardPaddingVariants = cva("p-6");
-const notFoundButtonVariants = cva("font-bold py-2 px-4 rounded-full shadow-md");
+const notFoundButtonVariants = cva(
+  `font-bold py-2 px-4 ${radiusTokens.full} shadow-md`,
+);
 
 // This is a server component that fetches the receipt data from the database
 export default async function ReceiptPage({
@@ -49,7 +51,6 @@ export default async function ReceiptPage({
           <h1
             className={cn(
               "mb-6",
-              notFoundTitleVariants(),
               textVariants({
                 size: "2xl",
                 weight: "bold",
@@ -62,7 +63,6 @@ export default async function ReceiptPage({
           <p
             className={cn(
               "mb-6",
-              notFoundBodyVariants(),
               textVariants({ tone: "muted", align: "center" }),
             )}
           >

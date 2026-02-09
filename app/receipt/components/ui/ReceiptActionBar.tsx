@@ -13,6 +13,7 @@ import {
   iconButtonVariants,
   iconGroupVariants,
   primaryActionVariants,
+  radiusTokens,
 } from "@/app/receipt/components/ui-styles";
 import {
   BadgePercent,
@@ -31,7 +32,7 @@ import { cn } from "@/utils/cn";
 import { cva } from "class-variance-authority";
 
 const participantBadgeVariants = cva(
-  "pointer-events-none absolute right-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-semibold leading-none opacity-80 text-background",
+  `${radiusTokens.full} pointer-events-none absolute right-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center bg-foreground px-1 text-[10px] font-semibold leading-none opacity-80 text-background`,
 );
 
 const menuIconVariants = cva("", {

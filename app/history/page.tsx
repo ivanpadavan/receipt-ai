@@ -7,12 +7,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { t } from "@/app/i18n/translations";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
-import { textVariants } from "@/app/receipt/components/ui-styles";
+import { radiusTokens, textVariants } from "@/app/receipt/components/ui-styles";
 
 const historyShellVariants = cva("bg-amber-50 p-4");
 const emptyCardTextVariants = cva("text-center");
 const ctaButtonVariants = cva(
-  "rounded-full bg-amber-500 px-4 py-2 font-bold text-white shadow-md hover:bg-amber-600",
+  `${radiusTokens.full} bg-amber-500 px-4 py-2 font-bold text-white shadow-md hover:bg-amber-600`,
 );
 const receiptCardVariants = cva("border-amber-200 hover:border-amber-400");
 const emptyCardContentVariants = cva("p-6");
@@ -93,25 +93,19 @@ export default async function HistoryPage() {
                   >
                     <div className="mb-2 flex items-center justify-between">
                       <h2
-                        className={cn(
-                          receiptTitleVariants(),
-                          textVariants({
-                            size: "lg",
-                            weight: "semibold",
-                            tone: "brandStrong",
-                          }),
-                        )}
+                        className={textVariants({
+                          size: "lg",
+                          weight: "semibold",
+                          tone: "brandStrong",
+                        })}
                       >
                         {t("receipt")} #{receipt.id.slice(-6)}
                       </h2>
                       <span
-                        className={cn(
-                          receiptDateVariants(),
-                          textVariants({
-                            size: "sm",
-                            tone: "brand",
-                          }),
-                        )}
+                        className={textVariants({
+                          size: "sm",
+                          tone: "brand",
+                        })}
                       >
                         {new Date(receipt.createdAt).toLocaleDateString()}
                       </span>
@@ -119,7 +113,6 @@ export default async function HistoryPage() {
                     <div
                       className={cn(
                         "flex justify-between",
-                        receiptMetaVariants(),
                         textVariants({ size: "sm", tone: "brandStrong" }),
                       )}
                     >
@@ -127,10 +120,10 @@ export default async function HistoryPage() {
                         {itemCount} {itemCount === 1 ? t("itemSingle") : t("itemPlural")}
                       </span>
                       <span
-                        className={cn(
-                          receiptTotalVariants(),
-                          textVariants({ weight: "medium", tone: "brandStrong" }),
-                        )}
+                        className={textVariants({
+                          weight: "medium",
+                          tone: "brandStrong",
+                        })}
                       >
                         ${totalAmount.toFixed(2)}
                       </span>

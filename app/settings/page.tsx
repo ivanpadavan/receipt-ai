@@ -70,7 +70,6 @@ export default function SettingsPage() {
         <h1
           className={cn(
             "mb-6",
-            settingsTitleVariants(),
             textVariants({
               size: "2xl",
               weight: "bold",

@@ -51,11 +51,15 @@ import {
 import { useJoinFlowOverlay } from "@/app/receipt/[id]/join-flow/use-join-flow-overlay";
 import { DistributionBar } from "@/app/receipt/components/ui/DistributionBar";
 import { ReceiptActionBar } from "@/app/receipt/components/ui/ReceiptActionBar";
-import { pillVariants, textVariants } from "@/app/receipt/components/ui-styles";
+import {
+  pillVariants,
+  radiusTokens,
+  textVariants,
+} from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
 import { cva } from "class-variance-authority";
 
-const receiptRowVariants = cva("rounded-md px-1 py-1 text-sm", {
+const receiptRowVariants = cva(`${radiusTokens.sm} px-1 py-1 text-sm`, {
   variants: {
     interactive: {
       true: "cursor-pointer hover:bg-muted/45",
