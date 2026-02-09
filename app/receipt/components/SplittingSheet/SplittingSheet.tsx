@@ -121,6 +121,7 @@ const sheetSubtitleVariants = cva("text-sm text-muted-foreground");
 const footerVariants = cva("border-t bg-background");
 const footerLabelVariants = cva("text-muted-foreground");
 const sheetOverallValueVariants = cva("font-semibold text-foreground");
+const footerRowVariants = cva("text-sm");
 
 const EditingHeader: React.FC<EditingHeaderProps> = ({
   claim,
@@ -549,7 +550,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
       <DrawerFooter className={cn("pt-2", footerVariants())}>
         <div className="px-4 py-3">
-          <div className="flex justify-between text-sm mb-2">
+          <div className={cn("flex justify-between mb-2", footerRowVariants())}>
             <span className={footerLabelVariants()}>{t("distributed")}</span>
             <span className="font-medium">
               {totalClaimed.toFixed(0)} / {localPosition.overall} ₽

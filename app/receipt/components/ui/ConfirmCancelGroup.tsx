@@ -38,6 +38,8 @@ const buttonVariants = cva("rounded-full transition", {
   },
 });
 
+const dividerVariants = cva("bg-border/60");
+
 interface ConfirmCancelGroupProps {
   onCancel: () => void;
   onConfirm: () => void;
@@ -63,7 +65,7 @@ export const ConfirmCancelGroup: React.FC<ConfirmCancelGroupProps> = ({
       >
         <X className="h-4 w-4" />
       </Button>
-      <div className="h-6 w-px bg-border/60" />
+      <div className={cn("h-6 w-px", dividerVariants())} />
       <Button
         variant="ghost"
         size="icon"
