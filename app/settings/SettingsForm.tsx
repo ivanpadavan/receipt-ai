@@ -22,6 +22,10 @@ import { UserAvatar } from "@/app/receipt/components/ui/user-avatar";
 import { cn } from "@/utils/cn";
 import {
   avatarSizeVariants,
+  dialogContentWideVariants,
+  dialogFooterVariants,
+  dialogHeaderTitleVariants,
+  dialogHeaderVariants,
   settingsCropFrameVariants,
   settingsUploadCardPaddingVariants,
   settingsUploadCardVariants,
@@ -297,9 +301,11 @@ export const SettingsForm = ({
                   </div>
 
                   <AlertDialog open={cropOpen} onOpenChange={setCropOpen}>
-                    <AlertDialogContent className="max-w-lg">
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>{t("cropAvatar")}</AlertDialogTitle>
+                    <AlertDialogContent className={dialogContentWideVariants()}>
+                      <AlertDialogHeader className={dialogHeaderVariants()}>
+                        <AlertDialogTitle className={dialogHeaderTitleVariants()}>
+                          {t("cropAvatar")}
+                        </AlertDialogTitle>
                       </AlertDialogHeader>
                       <div
                         className={cn(
@@ -333,7 +339,7 @@ export const SettingsForm = ({
                           className="w-full"
                         />
                       </div>
-                      <AlertDialogFooter>
+                      <AlertDialogFooter className={dialogFooterVariants()}>
                         <AlertDialogCancel onClick={() => setCropOpen(false)}>
                           {t("cancel")}
                         </AlertDialogCancel>

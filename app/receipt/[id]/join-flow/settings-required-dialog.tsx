@@ -11,12 +11,10 @@ import { useUser } from "@/context/AuthContext";
 import { supabase } from "@/utils/supabase/client";
 import { useGoogleOneTapLogin } from "@react-oauth/google";
 import { handleSignIn } from "@/app/receipt/utils/auth";
-import { cn } from "@/utils/cn";
 import {
   dialogContentWideVariants,
   dialogHeaderTitleVariants,
   dialogHeaderVariants,
-  joinFlowOverlayVariants,
 } from "@/app/receipt/components/ui-styles";
 
 export function JoinFlowSettingsDialog() {
@@ -65,24 +63,19 @@ export function JoinFlowSettingsDialog() {
   );
 
   return (
-    <>
-      {open && (
-        <div className={cn("fixed inset-0 z-30", joinFlowOverlayVariants())} />
-      )}
-      <AlertDialog open={open}>
-        <AlertDialogContent className={dialogContentWideVariants()}>
-          <AlertDialogHeader className={dialogHeaderVariants()}>
-            <AlertDialogTitle className={dialogHeaderTitleVariants()}>
-              {t("settings")}
-            </AlertDialogTitle>
-          </AlertDialogHeader>
-          <SettingsForm
-            user={user}
-            onSubmit={handleSettingsSubmit}
-            submitLabel={t("save")}
-          />
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+    <AlertDialog open={open}>
+      <AlertDialogContent className={dialogContentWideVariants()}>
+        <AlertDialogHeader className={dialogHeaderVariants()}>
+          <AlertDialogTitle className={dialogHeaderTitleVariants()}>
+            {t("settings")}
+          </AlertDialogTitle>
+        </AlertDialogHeader>
+        <SettingsForm
+          user={user}
+          onSubmit={handleSettingsSubmit}
+          submitLabel={t("save")}
+        />
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

@@ -606,7 +606,6 @@ export const participantsDoneButtonVariants = cva(
 export const participantsFooterVariants = cva(
   "border-t border-gray-100 bg-white p-4",
 );
-export const participantsDialogContentVariants = cva(radiusTokens.xl);
 export const participantsDeleteActionVariants = cva(
   "bg-red-500 hover:bg-red-600 text-white",
 );
@@ -927,5 +926,3 @@ export const cellGroupVariants = cva("", {
     interactive: false,
   },
 });
-
-export const joinFlowOverlayVariants = cva("bg-black/40");

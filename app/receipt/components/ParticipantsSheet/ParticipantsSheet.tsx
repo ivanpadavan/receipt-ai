@@ -40,7 +40,7 @@ import {
   participantsAddInputVariants,
   participantsAvatarPlaceholderVariants,
   participantsDangerMenuItemVariants,
-  participantsDialogContentVariants,
+  dialogContentVariants,
   participantsDoneButtonVariants,
   participantsEmptyStateContainerVariants,
   participantsEmptyStateIconVariants,
@@ -341,7 +341,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
         open={deleteConfirm !== null}
         onOpenChange={(open) => !open && setDeleteConfirm(null)}
       >
-        <AlertDialogContent className={participantsDialogContentVariants()}>
+        <AlertDialogContent className={dialogContentVariants()}>
           <AlertDialogHeader className={dialogHeaderVariants()}>
             <AlertDialogTitle className={dialogHeaderTitleVariants()}>
               {t("deleteParticipant")}
