@@ -209,6 +209,9 @@ export const inputStateVariants = cva("", {
 
 export const centeredTitleVariants = cva("text-center");
 
+export const sheetHeaderTitleVariants = cva("text-center px-4 pt-4");
+export const dialogHeaderTitleVariants = cva("text-center");
+
 export const textVariants = cva("", {
   variants: {
     size: {

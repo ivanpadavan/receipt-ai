@@ -28,7 +28,7 @@ import {
   noticeVariants,
   fieldLabelVariants,
   inputStateVariants,
-  centeredTitleVariants,
+  dialogHeaderTitleVariants,
   errorListVariants,
   stackGapVariants,
   inlineGapVariants,
@@ -153,7 +153,7 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
       }}
     >
       <DialogHeader>
-        <DialogTitle className={centeredTitleVariants()}>
+        <DialogTitle className={dialogHeaderTitleVariants()}>
           {t(header)}
         </DialogTitle>
         <DialogDescription className="sr-only">{t(header)}</DialogDescription>

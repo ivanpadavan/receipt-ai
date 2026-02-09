@@ -70,7 +70,6 @@ import {
   splittingTypeSwitchButtonVariants,
   splittingTypeSwitchWrapperVariants,
   splittingClaimsListPaddingVariants,
-  sheetTitlePaddingVariants,
   avatarSizeVariants,
   iconButtonCompactVariants,
   iconSizeVariants,
@@ -79,6 +78,7 @@ import {
   stackGapVariants,
   rowVariants,
   statusPillVariants,
+  sheetHeaderTitleVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -456,7 +456,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
     <DrawerContent className="h-[85vh] flex flex-col">
       <DrawerTitle
         className={cn(
-          sheetTitlePaddingVariants(),
+          sheetHeaderTitleVariants(),
           textRoleVariants({ role: "sectionTitleCenter" }),
         )}
       >

@@ -25,8 +25,7 @@ import {
   fieldLabelVariants,
   inputStateVariants,
   noticeVariants,
-  centeredTitleVariants,
-  sheetTitlePaddingVariants,
+  sheetHeaderTitleVariants,
   sheetBodyPaddingVariants,
   errorListVariants,
   stackGapVariants,
@@ -156,9 +155,7 @@ export const EditingSheet: React.FC<EditModalProps> = ({
 
   return (
     <DrawerContent>
-    <DrawerTitle
-        className={cn(sheetTitlePaddingVariants(), centeredTitleVariants())}
-      >
+    <DrawerTitle className={sheetHeaderTitleVariants()}>
         {t(header)}
       </DrawerTitle>
       <div className={sheetBodyPaddingVariants()}>
