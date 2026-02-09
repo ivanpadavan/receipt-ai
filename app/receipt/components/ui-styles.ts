@@ -55,7 +55,7 @@ export const iconButtonVariants = cva("px-0", {
 });
 
 export const surfaceVariants = cva(
-  "rounded-2xl border border-border/70 bg-card text-foreground",
+  "border border-border/70 bg-card text-foreground",
   {
     variants: {
       tone: {
@@ -74,11 +74,17 @@ export const surfaceVariants = cva(
         true: "cursor-pointer transition hover:shadow-[0_16px_34px_rgba(15,23,42,0.12),0_4px_10px_rgba(15,23,42,0.08)]",
         false: "",
       },
+      radius: {
+        xl: "rounded-xl",
+        "2xl": "rounded-2xl",
+        "3xl": "rounded-3xl",
+      },
     },
     defaultVariants: {
       tone: "default",
       shadow: "sm",
       interactive: false,
+      radius: "2xl",
     },
   },
 );
