@@ -59,7 +59,7 @@ const sectionTitleVariants = cva(
   "text-sm font-semibold uppercase tracking-wide text-muted-foreground",
 );
 
-const receiptRowVariants = cva("rounded-md px-1 py-1 text-sm", {
+const receiptRowVariants = cva("rounded-md", {
   variants: {
     interactive: {
       true: "cursor-pointer hover:bg-muted/45",
@@ -111,7 +111,7 @@ const overallValueVariants = cva("text-base font-semibold", {
   },
 });
 
-const positionHeaderVariants = cva("flex items-center gap-3", {
+const positionHeaderVariants = cva("", {
   variants: {
     tone: {
       default: "",
@@ -142,7 +142,7 @@ const claimsErrorVariants = cva("text-xs text-destructive");
 
 const dividerVariants = cva("border-t border-border/70");
 
-const positionRowButtonVariants = cva("w-full text-left", {
+const positionRowButtonVariants = cva("", {
   variants: {
     interactive: {
       true: "cursor-pointer",
@@ -454,15 +454,21 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                             canEdit.positionForm &&
                             openEditModal({ type: "position", index })
                           }
-                        className={positionRowButtonVariants({
-                          interactive: canEdit.positionForm,
-                        })}
+                        className={cn(
+                          "w-full text-left",
+                          positionRowButtonVariants({
+                            interactive: canEdit.positionForm,
+                          }),
+                        )}
                         >
                           <CardContent className="py-1.5 px-4">
                             <div
-                              className={positionHeaderVariants({
-                                tone: hasRowNumberError ? "danger" : "default",
-                              })}
+                              className={cn(
+                                "flex items-center gap-3",
+                                positionHeaderVariants({
+                                  tone: hasRowNumberError ? "danger" : "default",
+                                }),
+                              )}
                             >
                               <div className="min-w-0 flex-1">
                                 <p className={cn("truncate", positionNameVariants())}>
@@ -547,7 +553,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       <button
                         type="button"
                         className={cn(
-                          "mt-3 flex w-full items-center justify-between",
+                          "mt-3 flex w-full items-center justify-between text-sm px-1 py-1",
                           receiptRowVariants({
                             interactive: canEdit.totalsForm,
                           }),
@@ -571,7 +577,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       <button
                         type="button"
                         className={cn(
-                          "flex w-full items-center justify-between",
+                          "flex w-full items-center justify-between px-1 py-1",
                           receiptRowVariants({
                             interactive: canEdit.totalsForm,
                           }),

@@ -73,7 +73,6 @@ const getCroppedBlob = async (imageSrc: string, pixelCrop: Area) => {
 
 export type SettingsFormValues = UserMetadata & { avatarFile?: File } ;
 
-const formShellVariants = cva("flex flex-col");
 const emailTextVariants = cva("text-sm text-muted-foreground");
 const uploadCardVariants = cva(
   "rounded-xl border-2 border-dashed border-amber-200 bg-amber-50/40 hover:bg-amber-50 transition-colors",
@@ -193,10 +192,7 @@ export const SettingsForm = ({
   };
 
   return (
-    <form
-      className={cn("gap-6", formShellVariants())}
-      onSubmit={handleSubmit(handleSave)}
-    >
+    <form className="flex flex-col gap-6" onSubmit={handleSubmit(handleSave)}>
       <div className="flex items-center gap-4">
         <UserAvatar
           className="h-12 w-12"

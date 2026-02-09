@@ -12,8 +12,6 @@ import { t } from "@/app/i18n/translations";
 import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
 
-const notFoundShellVariants = cva("min-h-screen");
-const notFoundCardVariants = cva("w-full max-w-md p-6");
 const notFoundTitleVariants = cva("text-2xl font-bold text-center text-foreground");
 const notFoundBodyVariants = cva("text-center text-muted-foreground");
 const notFoundButtonVariants = cva("font-bold py-2 px-4 rounded-full shadow-md");
@@ -36,13 +34,12 @@ export default async function ReceiptPage({
   // Check if the receipt exists and belongs to the user
   if (!receipt) {
     return (
-      <div
-        className={cn(
-          "flex flex-col items-center justify-center p-4 gap-4",
-          notFoundShellVariants(),
-        )}
-      >
-        <Card variant="warning" shadow="md" className={notFoundCardVariants()}>
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4">
+        <Card
+          variant="warning"
+          shadow="md"
+          className={cn("w-full max-w-md p-6", notFoundCardVariants())}
+        >
           <h1 className={cn("mb-6", notFoundTitleVariants())}>
             {t("receiptNotFound")}
           </h1>

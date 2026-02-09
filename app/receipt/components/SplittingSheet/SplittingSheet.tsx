@@ -58,7 +58,7 @@ interface EditingHeaderProps {
 
 const editingHeaderVariants = cva("border-b bg-muted/20");
 
-const editingInputVariants = cva("h-9 bg-background");
+const editingInputVariants = cva("bg-background");
 
 const typeSwitchWrapperVariants = cva(
   "rounded-full border border-border/60 bg-muted/30 p-1 shadow-sm",
@@ -76,7 +76,7 @@ const typeSwitchButtonVariants = cva(
   },
 );
 
-const menuButtonVariants = cva("h-8 w-8 text-gray-500");
+const menuButtonVariants = cva("text-gray-500");
 
 const menuDangerItemVariants = cva(
   "text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50",
@@ -136,7 +136,7 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
       <Input
         type="number"
         className={cn(
-          "flex-1",
+          "flex-1 h-9",
           editingInputVariants(),
           isInvalid && "border-destructive focus-visible:ring-destructive",
         )}
@@ -257,7 +257,7 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
             <Button
               variant="ghost"
               size="icon"
-              className={menuButtonVariants()}
+              className={cn("h-8 w-8", menuButtonVariants())}
             >
               <MoreVertical className="h-4 w-4" />
             </Button>

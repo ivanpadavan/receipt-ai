@@ -15,7 +15,6 @@ import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
 
 const overlayVariants = cva("bg-black/40");
-const dialogContentVariants = cva("max-w-lg");
 
 export function JoinFlowSettingsDialog() {
   useGoogleOneTapLogin({
@@ -68,7 +67,7 @@ export function JoinFlowSettingsDialog() {
         <div className={cn("fixed inset-0 z-30", overlayVariants())} />
       )}
       <AlertDialog open={open}>
-        <AlertDialogContent className={dialogContentVariants()}>
+        <AlertDialogContent className="max-w-lg">
           <AlertDialogHeader>
             <AlertDialogTitle>{t("settings")}</AlertDialogTitle>
           </AlertDialogHeader>

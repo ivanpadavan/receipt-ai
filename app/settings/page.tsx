@@ -13,7 +13,6 @@ import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
 
 const settingsShellVariants = cva("bg-amber-50");
-const settingsCardVariants = cva("mx-auto w-full max-w-md p-6");
 const settingsTitleVariants = cva("text-2xl font-bold text-center");
 
 export default function SettingsPage() {
@@ -64,7 +63,7 @@ export default function SettingsPage() {
       <Card
         variant="default"
         shadow="md"
-        className={settingsCardVariants()}
+        className="mx-auto w-full max-w-md p-6"
       >
         <h1 className={cn("mb-6", settingsTitleVariants())}>
           {t("settings")}

@@ -34,7 +34,7 @@ const participantBadgeVariants = cva(
   "pointer-events-none absolute right-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-semibold leading-none opacity-80 text-background",
 );
 
-const menuIconVariants = cva("mr-2 h-4 w-4", {
+const menuIconVariants = cva("", {
   variants: {
     tone: {
       position: "text-sky-600",
@@ -130,19 +130,34 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
                   <DropdownMenuContent align="start" side="top" sideOffset={10}>
                     {onAddPosition && (
                       <DropdownMenuItem onClick={onAddPosition}>
-                        <CirclePlus className={menuIconVariants({ tone: "position" })} />
+                        <CirclePlus
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            menuIconVariants({ tone: "position" }),
+                          )}
+                        />
                         {t("addPosition")}
                       </DropdownMenuItem>
                     )}
                     {onAddDiscount && (
                       <DropdownMenuItem onClick={onAddDiscount}>
-                        <BadgePercent className={menuIconVariants({ tone: "discount" })} />
+                        <BadgePercent
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            menuIconVariants({ tone: "discount" }),
+                          )}
+                        />
                         {t("addDiscount")}
                       </DropdownMenuItem>
                     )}
                     {onAddFee && (
                       <DropdownMenuItem onClick={onAddFee}>
-                        <HandCoins className={menuIconVariants({ tone: "fee" })} />
+                        <HandCoins
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            menuIconVariants({ tone: "fee" }),
+                          )}
+                        />
                         {t("addFee")}
                       </DropdownMenuItem>
                     )}

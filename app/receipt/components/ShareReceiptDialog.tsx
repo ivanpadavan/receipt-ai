@@ -21,7 +21,6 @@ import { cva } from "class-variance-authority";
 
 const qrContainerVariants = cva("rounded-xl border bg-white p-3");
 const triggerLabelVariants = cva("text-[11px] font-medium");
-const dialogContentVariants = cva("max-w-md");
 
 type ShareReceiptDialogProps = {
   receiptId: string;
@@ -85,7 +84,7 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
           )}
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className={dialogContentVariants()}>
+      <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
           <AlertDialogTitle>{t("shareReceiptTitle")}</AlertDialogTitle>
           <AlertDialogDescription>{t("shareReceiptHint")}</AlertDialogDescription>

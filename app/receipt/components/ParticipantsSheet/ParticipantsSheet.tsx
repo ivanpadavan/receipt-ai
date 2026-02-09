@@ -49,7 +49,7 @@ const emptyStateContainerVariants = cva("text-center");
 
 const rowNameVariants = cva("font-medium text-gray-800");
 
-const rowMenuButtonVariants = cva("h-8 w-8 text-gray-500");
+const rowMenuButtonVariants = cva("text-gray-500");
 
 const dangerMenuItemVariants = cva(
   "text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50",
@@ -207,7 +207,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className={rowMenuButtonVariants()}
+                        className={cn("h-8 w-8", rowMenuButtonVariants())}
                       >
                         <MoreVertical className="h-4 w-4" />
                       </Button>
