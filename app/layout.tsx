@@ -7,8 +7,11 @@ import { Providers } from "./providers";
 import { AuthProvider } from "@/context/AuthContext";
 import { getUser } from "@/utils/supabase/server";
 import { AppNavbar } from "@/app/layout/AppNavbar";
+import { cva } from "class-variance-authority";
+import { cn } from "@/utils/cn";
 
 const publicSans = Public_Sans({ subsets: ["latin"] });
+const appShellVariants = cva("bg-amber-50");
 
 export default async function RootLayout({
   children,
@@ -52,7 +55,12 @@ export default async function RootLayout({
         <NuqsAdapter>
           <Providers>
             <AuthProvider initialUser={user}>
-              <div className="bg-amber-50 min-h-[100dvh] flex flex-col">
+              <div
+                className={cn(
+                  "min-h-[100dvh] flex flex-col",
+                  appShellVariants(),
+                )}
+              >
                 <AppNavbar />
                 <main className="flex-1 flex flex-col">{children}</main>
               </div>
