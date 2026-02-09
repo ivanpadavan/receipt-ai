@@ -1,5 +1,11 @@
 "use client";
 
+import { cva } from "class-variance-authority";
+import { cn } from "@/utils/cn";
+
+const logoIconVariants = cva("text-amber-600");
+const logoTextVariants = cva("font-bold text-xl text-amber-800");
+
 const Logo = () => (
   <div className="flex items-center gap-2">
     <svg
@@ -10,14 +16,14 @@ const Logo = () => (
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-8 w-8 text-amber-600"
+      className={cn("h-8 w-8", logoIconVariants())}
     >
       <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z" />
       <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
       <path d="M12 17.5v.5" />
       <path d="M12 6.5v.5" />
     </svg>
-    <span className="font-bold text-xl text-amber-800">ReceiptScan</span>
+    <span className={logoTextVariants()}>ReceiptScan</span>
   </div>
 );
 
