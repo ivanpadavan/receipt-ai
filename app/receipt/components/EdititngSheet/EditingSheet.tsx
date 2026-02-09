@@ -21,7 +21,11 @@ import {
 import { useReceiptState } from "../ReceiptForm";
 import { useRowConflict } from "./useRowConflict";
 import { cn } from "@/utils/cn";
-import { noticeVariants } from "@/app/receipt/components/ui-styles";
+import {
+  fieldLabelVariants,
+  inputStateVariants,
+  noticeVariants,
+} from "@/app/receipt/components/ui-styles";
 
 type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
 
@@ -277,7 +281,7 @@ const FormField: React.FC<FormFieldProps> = ({
 
   return (
     <div className="mb-4">
-      <label className="block text-sm font-medium text-foreground mb-1">
+      <label className={cn("block mb-1", fieldLabelVariants())}>
         {t(label)}
       </label>
       <Input
@@ -286,7 +290,11 @@ const FormField: React.FC<FormFieldProps> = ({
         value={displayValue}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className={`${hasError ? "border-destructive focus-visible:ring-destructive" : ""} ${disabled ? "bg-muted text-muted-foreground" : ""}`}
+        className={cn(
+          inputStateVariants({
+            state: hasError ? "error" : disabled ? "disabled" : "default",
+          }),
+        )}
       />
     </div>
   );

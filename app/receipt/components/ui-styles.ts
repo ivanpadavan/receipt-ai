@@ -165,3 +165,18 @@ export const barVariants = cva("w-full overflow-hidden flex relative", {
     radius: "full",
   },
 });
+
+export const fieldLabelVariants = cva("text-sm font-medium text-foreground");
+
+export const inputStateVariants = cva("", {
+  variants: {
+    state: {
+      default: "",
+      error: "border-destructive focus-visible:ring-destructive",
+      disabled: "bg-muted text-muted-foreground",
+    },
+  },
+  defaultVariants: {
+    state: "default",
+  },
+});

@@ -25,6 +25,8 @@ import {
   iconButtonVariants,
   iconSoloVariants,
   noticeVariants,
+  fieldLabelVariants,
+  inputStateVariants,
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
 
@@ -267,7 +269,7 @@ const FormField: React.FC<FormFieldProps> = ({
 
   return (
     <Field>
-      <Label className="mb-1 block text-sm font-medium text-foreground">
+      <Label className={cn("mb-1 block", fieldLabelVariants())}>
         {t(label)}
       </Label>
       <Input
@@ -276,7 +278,11 @@ const FormField: React.FC<FormFieldProps> = ({
         value={displayValue}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className={`${hasError ? "border-destructive focus-visible:ring-destructive" : ""} ${disabled ? "bg-muted text-muted-foreground" : ""}`}
+        className={cn(
+          inputStateVariants({
+            state: hasError ? "error" : disabled ? "disabled" : "default",
+          }),
+        )}
       />
     </Field>
   );
