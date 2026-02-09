@@ -9,6 +9,14 @@ import { getUser } from "@/utils/supabase/server";
 import { shouldAutoJoinReceipt } from "@/app/receipt/[id]/join-flow/rules";
 import { joinReceiptServer } from "@/app/receipt/[id]/join-flow/join-receipt-server";
 import { t } from "@/app/i18n/translations";
+import { cva } from "class-variance-authority";
+import { cn } from "@/utils/cn";
+
+const notFoundShellVariants = cva("min-h-screen");
+const notFoundCardVariants = cva("w-full max-w-md p-6");
+const notFoundTitleVariants = cva("text-2xl font-bold text-center text-foreground");
+const notFoundBodyVariants = cva("text-center text-muted-foreground");
+const notFoundButtonVariants = cva("font-bold py-2 px-4 rounded-full shadow-md");
 
 // This is a server component that fetches the receipt data from the database
 export default async function ReceiptPage({
@@ -28,17 +36,22 @@ export default async function ReceiptPage({
   // Check if the receipt exists and belongs to the user
   if (!receipt) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4">
-        <Card variant="warning" shadow="md" className="w-full max-w-md p-6">
-          <h1 className="text-2xl font-bold mb-6 text-center text-foreground">
+      <div
+        className={cn(
+          "flex flex-col items-center justify-center p-4 gap-4",
+          notFoundShellVariants(),
+        )}
+      >
+        <Card variant="warning" shadow="md" className={notFoundCardVariants()}>
+          <h1 className={cn("mb-6", notFoundTitleVariants())}>
             {t("receiptNotFound")}
           </h1>
-          <p className="text-center mb-6 text-muted-foreground">
+          <p className={cn("mb-6", notFoundBodyVariants())}>
             {t("receiptNotFoundBody")}
           </p>
           <div className="flex justify-center">
             <Link href="/">
-              <Button className="font-bold py-2 px-4 rounded-full shadow-md">
+              <Button className={notFoundButtonVariants()}>
                 {t("returnHome")}
               </Button>
             </Link>
