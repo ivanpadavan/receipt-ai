@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { useReceiptState } from "../ReceiptForm";
-import { Check, Pencil, Trash2, MoreVertical } from "lucide-react";
+import { Pencil, Trash2, MoreVertical } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -43,7 +43,8 @@ import { useSplittingLogic } from "./useSplittingLogic";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 import { getFormPathErrorMessage, hasFormPathError } from "@/app/receipt/utils/hasFormPathError";
-import { iconButtonVariants, iconSoloVariants } from "@/app/receipt/components/ui-styles";
+import { iconButtonVariants, iconSoloVariants, pillVariants } from "@/app/receipt/components/ui-styles";
+import { cva } from "class-variance-authority";
 
 // --- Components ---
 
@@ -55,6 +56,26 @@ interface EditingHeaderProps {
   onCancel: () => void;
 }
 
+const editingHeaderVariants = cva("border-b bg-muted/20");
+
+const editingInputVariants = cva("h-9 bg-background");
+
+const typeSwitchWrapperVariants = cva(
+  "rounded-full border border-border/60 bg-muted/30 p-1 shadow-sm",
+);
+
+const typeSwitchButtonVariants = cva(
+  "h-8 w-16 rounded-full text-xs font-semibold transition",
+  {
+    variants: {
+      active: {
+        true: "bg-white text-foreground shadow",
+        false: "text-muted-foreground",
+      },
+    },
+  },
+);
+
 const EditingHeader: React.FC<EditingHeaderProps> = ({
   claim,
   isInvalid,
@@ -63,12 +84,13 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
   onCancel,
 }) => {
   return (
-    <div className="flex items-center gap-2 p-3 w-full border-b bg-muted/20">
+    <div className={cn("flex items-center gap-2 p-3 w-full", editingHeaderVariants())}>
       {/* Input Value */}
       <Input
         type="number"
         className={cn(
-          "flex-1 h-9 bg-background",
+          "flex-1",
+          editingInputVariants(),
           isInvalid && "border-destructive focus-visible:ring-destructive",
         )}
         value={claim.value || ""}
@@ -85,14 +107,13 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
       />
 
       {/* Type Switch */}
-      <div className="flex items-center rounded-full border border-border/60 bg-muted/30 p-1 shadow-sm">
+      <div className={cn("flex items-center", typeSwitchWrapperVariants())}>
         <button
           type="button"
           className={cn(
-            "h-8 w-16 rounded-full text-xs font-semibold transition",
-            claim.type === "quantity"
-              ? "bg-white text-foreground shadow"
-              : "text-muted-foreground",
+            typeSwitchButtonVariants({
+              active: claim.type === "quantity",
+            }),
           )}
           aria-pressed={claim.type === "quantity"}
           onClick={() => onUpdate({ ...claim, type: "quantity" })}
@@ -102,10 +123,7 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
         <button
           type="button"
           className={cn(
-            "h-8 w-16 rounded-full text-xs font-semibold transition",
-            claim.type === "amount"
-              ? "bg-white text-foreground shadow"
-              : "text-muted-foreground",
+            typeSwitchButtonVariants({ active: claim.type === "amount" }),
           )}
           aria-pressed={claim.type === "amount"}
           onClick={() => onUpdate({ ...claim, type: "amount" })}
@@ -372,7 +390,12 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
           total={localPosition.overall}
         />
         {hasClaimsError && claimsErrorMessage && (
-          <div className="text-destructive font-medium text-xs bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
+          <div
+            className={cn(
+              pillVariants({ tone: "danger", radius: "full" }),
+              "px-2 py-0.5 text-xs font-medium",
+            )}
+          >
             {claimsErrorMessage}
           </div>
         )}
