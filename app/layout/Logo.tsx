@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/utils/cn";
-import { textVariants } from "@/app/receipt/components/ui-styles";
+import { textRoleVariants } from "@/app/receipt/components/ui-styles";
 
 
 const Logo = () => (
@@ -16,7 +16,7 @@ const Logo = () => (
       strokeLinejoin="round"
       className={cn(
         "h-8 w-8",
-        textVariants({ tone: "brand" }),
+        textRoleVariants({ role: "logoMark" }),
       )}
     >
       <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z" />
@@ -25,13 +25,7 @@ const Logo = () => (
       <path d="M12 6.5v.5" />
     </svg>
     <span
-      className={cn(
-        textVariants({
-          size: "xl",
-          weight: "bold",
-          tone: "brandStrong",
-        }),
-      )}
+      className={textRoleVariants({ role: "logoType" })}
     >
       ReceiptScan
     </span>

@@ -164,9 +164,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
                             summaryItemContainerPaddingVariants(),
                           )}
                         >
-                          <div
-                            className={textVariants({ tone: "default" })}
-                          >
+                          <div className={textRoleVariants({ role: "bodyDefault" })}>
                             {item.positionName}
                           </div>
                           {item.description && (
