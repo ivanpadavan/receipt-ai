@@ -1,5 +1,5 @@
 import { ParticipantDTO } from "@/model/receipt/model";
-import { UserAvatar } from "@/components/ui/user-avatar";
+import { UserAvatar } from "@/app/receipt/components/ui/user-avatar";
 
 interface ParticipantAvatarProps {
     participant: ParticipantDTO;

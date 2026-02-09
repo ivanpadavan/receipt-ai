@@ -20,7 +20,7 @@ vi.mock("@/app/i18n/translations", () => ({
 }));
 
 // Mock Avatar
-vi.mock("@/components/ui/participant-avatar", () => ({
+vi.mock("@/app/receipt/components/ui/participant-avatar", () => ({
   ParticipantAvatar: ({ participant }: { participant: any }) => (
     <div>{participant.displayName[0]}</div>
   ),

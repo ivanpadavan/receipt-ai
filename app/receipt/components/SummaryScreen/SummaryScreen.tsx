@@ -4,10 +4,10 @@ import React, { useMemo } from "react";
 import { Receipt } from "@/model/receipt/model";
 import { calculateBalances } from "@/app/receipt/utils/calculator";
 import { t } from "@/app/i18n/translations";
-import { ParticipantAvatar } from "@/components/ui/participant-avatar";
+import { ParticipantAvatar } from "@/app/receipt/components/ui/participant-avatar";
 import { AlertCircle } from "lucide-react";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
-import { DistributionStatus } from "@/app/receipt/components/DistributionStatus";
+import { DistributionStatus } from "@/app/receipt/components/ui/DistributionStatus";
 
 interface SummaryScreenProps {
   receipt: Receipt;

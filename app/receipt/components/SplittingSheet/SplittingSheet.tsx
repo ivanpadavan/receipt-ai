@@ -27,9 +27,9 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { cn } from "@/utils/cn";
-import { ParticipantAvatar } from "@/components/ui/participant-avatar";
-import { DistributionBar } from "./DistributionBar";
-import { DistributionStatus } from "@/app/receipt/components/DistributionStatus";
+import { ParticipantAvatar } from "@/app/receipt/components/ui/participant-avatar";
+import { DistributionBar } from "@/app/receipt/components/ui/DistributionBar";
+import { DistributionStatus } from "@/app/receipt/components/ui/DistributionStatus";
 import { ConfirmCancelGroup } from "@/app/receipt/components/ui/ConfirmCancelGroup";
 import {
   ParticipantDTO,

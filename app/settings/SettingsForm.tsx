@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { t } from "@/app/i18n/translations";
 import { User, UserMetadata } from "@supabase/supabase-js";
-import { UserAvatar } from "@/components/ui/user-avatar";
+import { UserAvatar } from "@/app/receipt/components/ui/user-avatar";
 
 const captureSupported =
   typeof document === "object" &&

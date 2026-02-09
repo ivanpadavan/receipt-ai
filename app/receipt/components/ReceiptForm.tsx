@@ -48,8 +48,8 @@ import {
   useParticipantsStore,
 } from "@/app/receipt/store/participants";
 import { useJoinFlowOverlay } from "@/app/receipt/[id]/join-flow/use-join-flow-overlay";
-import { ReceiptActionBar } from "@/app/receipt/components/ReceiptActionBar";
-import { DistributionBar } from "@/app/receipt/components/SplittingSheet/DistributionBar";
+import { DistributionBar } from "@/app/receipt/components/ui/DistributionBar";
+import { ReceiptActionBar } from "@/app/receipt/components/ui/ReceiptActionBar";
 
 interface EditableReceiptFormProps {
   initialData: ReceiptWithParticipants;

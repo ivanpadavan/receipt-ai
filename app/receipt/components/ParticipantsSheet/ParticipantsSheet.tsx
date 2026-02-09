@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { ParticipantDTO } from "@/model/receipt/model";
-import { ParticipantAvatar } from "@/components/ui/participant-avatar";
+import { ParticipantAvatar } from "@/app/receipt/components/ui/participant-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
