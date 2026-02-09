@@ -33,6 +33,42 @@ import {
 import { t } from "@/app/i18n/translations";
 import { UserPlus, X, Trash2, MoreVertical } from "lucide-react";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
+import { cva } from "class-variance-authority";
+import { cn } from "@/utils/cn";
+
+const sheetBackgroundVariants = cva("bg-gradient-to-b from-white to-gray-50");
+
+const headerVariants = cva("border-b border-gray-100");
+
+const headerTitleVariants = cva("text-xl font-semibold text-gray-900");
+
+const emptyStateIconVariants = cva("text-gray-300");
+
+const emptyStateTextVariants = cva("text-gray-500 text-sm");
+
+const rowNameVariants = cva("font-medium text-gray-800");
+
+const rowMenuButtonVariants = cva("h-8 w-8 text-gray-500");
+
+const dangerMenuItemVariants = cva(
+  "text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50",
+);
+
+const avatarPlaceholderVariants = cva(
+  "rounded-full flex items-center justify-center font-semibold text-lg",
+);
+
+const addInputVariants = cva(
+  "border-none bg-transparent p-0 text-base focus:ring-0 focus-visible:ring-0",
+);
+
+const doneButtonVariants = cva(
+  "bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold rounded-xl active:scale-[0.98] transition-transform",
+);
+
+const footerVariants = cva("border-t border-gray-100 bg-white");
+
+const conflictTextVariants = cva("text-xs text-amber-600");
 
 interface ParticipantsSheetProps {
   onClose?: () => void;
@@ -112,9 +148,13 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
 
   return (
     <>
-      <DrawerContent className="h-[85vh] flex flex-col bg-gradient-to-b from-white to-gray-50">
-        <DrawerHeader className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <DrawerTitle className="text-xl font-semibold text-gray-900">
+      <DrawerContent
+        className={cn("h-[85vh] flex flex-col", sheetBackgroundVariants())}
+      >
+        <DrawerHeader
+          className={cn("flex items-center justify-between px-5 py-4", headerVariants())}
+        >
+          <DrawerTitle className={headerTitleVariants()}>
             {t("participants")}
           </DrawerTitle>
           <DrawerClose asChild>
@@ -131,8 +171,8 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
         <div className="flex-1 overflow-y-auto px-4 py-3 min-h-[200px]">
           {participants.length === 0 && !isAdding && (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <UserPlus className="h-12 w-12 text-gray-300 mb-3" />
-              <p className="text-gray-500 text-sm">{t("participantsEmpty")}</p>
+              <UserPlus className={cn("h-12 w-12 mb-3", emptyStateIconVariants())} />
+              <p className={emptyStateTextVariants()}>{t("participantsEmpty")}</p>
             </div>
           )}
 
@@ -150,7 +190,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                     participant={participant}
                     className="shrink-0"
                   />
-                  <span className="flex-1 font-medium text-gray-800">
+                  <span className={cn("flex-1", rowNameVariants())}>
                     {participant.displayName}
                   </span>
                   <DropdownMenu>
@@ -158,7 +198,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-gray-500"
+                        className={rowMenuButtonVariants()}
                       >
                         <MoreVertical className="h-4 w-4" />
                       </Button>
@@ -166,7 +206,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
                         onClick={() => handleDeleteClick(participant)}
-                        className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50"
+                        className={dangerMenuItemVariants()}
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
                         {t("delete")}
@@ -186,7 +226,12 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
               className="mb-2"
             >
               <CardContent className="flex items-center gap-3 px-4 py-3">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center font-semibold shrink-0 text-lg">
+                <div
+                  className={cn(
+                    "w-8 h-8 shrink-0",
+                    avatarPlaceholderVariants(),
+                  )}
+                >
                   ?
                 </div>
                 <Input
@@ -195,10 +240,10 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                   onChange={(e) => setNewParticipantName(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder={t("newParticipantNamePlaceholder")}
-                  className="flex-1 border-none bg-transparent p-0 text-base focus:ring-0 focus-visible:ring-0"
+                  className={cn("flex-1", addInputVariants())}
                 />
                 {hasNameConflict && (
-                  <span className="text-xs text-amber-600">
+                  <span className={conflictTextVariants()}>
                     {t("nameConflict")}
                   </span>
                 )}
@@ -228,10 +273,10 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
           </div>
         )}
 
-        <div className="p-4 border-t border-gray-100 bg-white">
+        <div className={cn("p-4", footerVariants())}>
           <Button
             onClick={onClose}
-            className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold py-3 rounded-xl active:scale-[0.98] transition-transform"
+            className={cn("w-full py-3", doneButtonVariants())}
           >
             {t("done")}
           </Button>
