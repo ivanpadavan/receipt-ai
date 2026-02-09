@@ -7,6 +7,27 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { t } from "@/app/i18n/translations";
+import { cva } from "class-variance-authority";
+import { cn } from "@/utils/cn";
+
+const pageShellVariants = cva("bg-amber-50");
+const pageTitleVariants = cva("text-3xl font-bold text-center text-amber-800");
+const previewImageVariants = cva("object-contain rounded-md");
+const actionButtonVariants = cva("shadow-md");
+const dropzoneVariants = cva(
+  "border-2 border-dashed border-input rounded-lg cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors",
+);
+const dropzoneIconVariants = cva("text-muted-foreground");
+const dropzoneTitleVariants = cva("text-lg font-medium text-foreground");
+const dropzoneHintVariants = cva("text-sm text-muted-foreground");
+const captureButtonVariants = cva("shadow-md");
+const loadingSpinnerVariants = cva(
+  "animate-spin rounded-full border-b-2 border-amber-500",
+);
+const loadingTextVariants = cva("text-amber-800 text-sm font-medium");
+const errorBoxVariants = cva(
+  "bg-red-50 border border-red-300 text-red-700 rounded-lg shadow-sm",
+);
 
 const captureSupported =
   typeof document === "object" &&
@@ -90,9 +111,14 @@ export default function ImagePastePage() {
 
   return (
     <>
-      <div className="flex flex-col items-center justify-center flex-1 p-4 gap-4 bg-amber-50">
+      <div
+        className={cn(
+          "flex flex-col items-center justify-center flex-1 p-4 gap-4",
+          pageShellVariants(),
+        )}
+      >
         <div className="w-full max-w-md mx-auto">
-          <h1 className="text-3xl font-bold mb-6 text-center text-amber-800">
+          <h1 className={cn("mb-6", pageTitleVariants())}>
             {t("receiptScannerTitle")}
           </h1>
 
@@ -106,17 +132,24 @@ export default function ImagePastePage() {
           />
 
           {picture.status === "picture-in" && (
-            <Card variant="interactive" shadow="md" className="flex w-full flex-col items-center gap-4 p-4">
+            <Card
+              variant="interactive"
+              shadow="md"
+              className="flex w-full flex-col items-center gap-4 p-4"
+            >
               <img
                 src={picture.imageBase64}
                 alt={t("receiptImageAlt")}
-                className="max-w-full max-h-[400px] object-contain rounded-md"
+                className={cn(
+                  "max-w-full max-h-[400px]",
+                  previewImageVariants(),
+                )}
               />
               <div className="flex flex-wrap gap-2 justify-center w-full">
                 <Button
                   onClick={picture.clear}
                   variant="destructive"
-                  className="shadow-md"
+                  className={actionButtonVariants()}
                 >
                   {t("clearImage")}
                 </Button>
@@ -124,7 +157,7 @@ export default function ImagePastePage() {
                   onClick={() => {
                     picture.proceed();
                   }}
-                  className="shadow-md"
+                  className={actionButtonVariants()}
                 >
                   {t("extractReceiptData")}
                 </Button>
@@ -134,12 +167,15 @@ export default function ImagePastePage() {
           {picture.status === "idle" && (
             <Card variant="default" shadow="md" className="p-6">
               <div
-                className="w-full border-2 border-dashed border-input rounded-lg p-6 min-h-[200px] flex flex-col items-center justify-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors"
+                className={cn(
+                  "w-full p-6 min-h-[200px] flex flex-col items-center justify-center",
+                  dropzoneVariants(),
+                )}
                 onClick={triggerFileInput}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-12 w-12 text-muted-foreground mb-4"
+                  className={cn("h-12 w-12 mb-4", dropzoneIconVariants())}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -151,10 +187,10 @@ export default function ImagePastePage() {
                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                <p className="text-lg font-medium text-foreground mb-2 text-center">
+                <p className={cn("mb-2 text-center", dropzoneTitleVariants())}>
                   {t("uploadReceiptImage")}
                 </p>
-                <p className="text-sm text-muted-foreground text-center">
+                <p className={cn("text-center", dropzoneHintVariants())}>
                   {t("tapToSelectOrPaste")}
                 </p>
               </div>
@@ -162,7 +198,10 @@ export default function ImagePastePage() {
                 <div className="mt-4 flex justify-center">
                   <Button
                     asChild
-                    className="shadow-md flex items-center gap-2 cursor-pointer"
+                    className={cn(
+                      "flex items-center gap-2 cursor-pointer",
+                      captureButtonVariants(),
+                    )}
                   >
                     <label>
                       <input
@@ -202,15 +241,15 @@ export default function ImagePastePage() {
 
           {picture.status === "loading" && (
             <div className="w-full flex flex-col items-center justify-center p-6">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mb-4"></div>
-              <span className="text-amber-800 text-sm font-medium">
+              <div className={cn("h-12 w-12 mb-4", loadingSpinnerVariants())} />
+              <span className={loadingTextVariants()}>
                 {t("processingReceipt")}
               </span>
             </div>
           )}
 
           {error.errorMessage && (
-            <div className="w-full mt-4 p-4 bg-red-50 border border-red-300 text-red-700 rounded-lg shadow-sm">
+            <div className={cn("w-full mt-4 p-4", errorBoxVariants())}>
               <p className="font-bold">{t("errorLabel")}</p>
               <p>{error.errorMessage}</p>
             </div>
