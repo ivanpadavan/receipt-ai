@@ -147,3 +147,21 @@ export const noticeVariants = cva(
     },
   },
 );
+
+export const barVariants = cva("w-full overflow-hidden flex relative", {
+  variants: {
+    tone: {
+      muted: "bg-secondary",
+      glass: "border border-white/70 bg-white/55 backdrop-blur-xl",
+      none: "",
+    },
+    radius: {
+      full: "rounded-full",
+      md: "rounded-md",
+    },
+  },
+  defaultVariants: {
+    tone: "muted",
+    radius: "full",
+  },
+});

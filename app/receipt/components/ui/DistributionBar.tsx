@@ -1,5 +1,6 @@
 import React from "react";
 import { cn } from "@/utils/cn";
+import { barVariants } from "@/app/receipt/components/ui-styles";
 
 import {
   Receipt,
@@ -15,6 +16,8 @@ interface DistributionBarProps {
   data: DistributionData;
   className?: string;
   children?: React.ReactNode;
+  tone?: "muted" | "glass" | "none";
+  radius?: "full" | "md";
 }
 
 const isReceipt = (data: DistributionData): data is Receipt => {
@@ -29,6 +32,8 @@ export const DistributionBar = ({
   data,
   className,
   children,
+  tone,
+  radius,
 }: DistributionBarProps) => {
   const participants = useParticipantsStore((s) => s.participants);
 
@@ -85,7 +90,10 @@ export const DistributionBar = ({
   return (
     <div
       className={cn(
-        "w-full overflow-hidden flex relative " + (bars.length > 0 ? 'bg-secondary' : ''),
+        barVariants({
+          tone: bars.length > 0 ? (tone ?? "muted") : "none",
+          radius,
+        }),
         className,
       )}
     >
