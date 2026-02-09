@@ -43,6 +43,7 @@ const menuPanelFrameVariants = cva(
 );
 
 const userNameVariants = cva("text-foreground font-medium");
+const mobileUserContainerVariants = cva("text-center");
 
 // Custom NavLink component with amber color scheme
 const NavLink = ({
@@ -146,7 +147,12 @@ export const AppNavbar = () => {
               )}
               {isAuthenticated && (
                 <>
-                  <div className="block md:hidden py-2 px-3 text-center">
+                  <div
+                    className={cn(
+                      "block md:hidden py-2 px-3",
+                      mobileUserContainerVariants(),
+                    )}
+                  >
                     <span className={userNameVariants()}>
                       {user.user_metadata.displayName}
                     </span>
