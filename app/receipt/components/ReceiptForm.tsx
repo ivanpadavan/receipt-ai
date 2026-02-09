@@ -214,8 +214,6 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
 
   const currentReceipt = useWatch({ control: form.control }) as Receipt;
   const { errors } = form.formState;
-  const screenCardClassName =
-    "mx-auto my-3 w-full max-w-3xl rounded-3xl border border-border/70 bg-card p-4 text-foreground shadow-[0_14px_38px_rgba(15,23,42,0.10)] md:p-5";
   const reviewToastId = `receipt-review-${receiptId}`;
   const primaryLabel: TranslationKey =
     scenarioType === "splitting"
@@ -296,7 +294,11 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
         </Drawer>
 
         <div className="flex-1 flex flex-col justify-between">
-          <div className={screenCardClassName}>
+          <ReceiptCard
+            shadow="lg"
+            radius="3xl"
+            className="mx-auto my-3 w-full max-w-3xl p-4 md:p-5"
+          >
             {scenarioType === "summary" ? (
               <SummaryScreen
                 receipt={currentReceipt}
@@ -499,7 +501,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                 </ReceiptCard>
               </>
             )}
-          </div>
+          </ReceiptCard>
           {scenarioType !== "summary" && (
             <div className="sticky bottom-[5.50rem] z-10 mx-auto mb-1 w-full max-w-3xl px-2">
               <DistributionBar
