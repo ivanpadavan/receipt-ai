@@ -427,6 +427,60 @@ export const stackGapVariants = cva("", {
   },
 });
 
+export const rowVariants = cva("flex", {
+  variants: {
+    align: {
+      center: "items-center",
+      start: "items-start",
+      baseline: "items-baseline",
+      stretch: "items-stretch",
+    },
+    justify: {
+      start: "justify-start",
+      between: "justify-between",
+      center: "justify-center",
+    },
+    wrap: {
+      true: "flex-wrap",
+      false: "",
+    },
+    width: {
+      full: "w-full",
+      auto: "",
+    },
+  },
+  defaultVariants: {
+    align: "center",
+    justify: "start",
+    wrap: false,
+    width: "auto",
+  },
+});
+
+export const columnVariants = cva("flex flex-col", {
+  variants: {
+    align: {
+      start: "items-start",
+      center: "items-center",
+      stretch: "items-stretch",
+    },
+    justify: {
+      start: "justify-start",
+      center: "justify-center",
+      between: "justify-between",
+    },
+    width: {
+      full: "w-full",
+      auto: "",
+    },
+  },
+  defaultVariants: {
+    align: "start",
+    justify: "start",
+    width: "auto",
+  },
+});
+
 export const screenShellVariants = cva("bg-amber-50 p-4");
 
 export const cardPaddingVariants = cva("", {

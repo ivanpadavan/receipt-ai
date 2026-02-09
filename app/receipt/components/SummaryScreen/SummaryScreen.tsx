@@ -21,6 +21,7 @@ import {
   summaryItemRowPaddingVariants,
   stackGapVariants,
   inlineGapVariants,
+  rowVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -113,8 +114,9 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
             >
               <div
                 className={cn(
-                  "flex items-center w-full mb-2",
+                  rowVariants({ align: "center", width: "full" }),
                   inlineGapVariants({ size: "md" }),
+                  "mb-2",
                 )}
               >
                 <ParticipantAvatar participant={participant} />
@@ -157,7 +159,11 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
                       <li
                         key={idx}
                         className={cn(
-                          "flex justify-between items-start",
+                          rowVariants({
+                            align: "start",
+                            justify: "between",
+                            width: "full",
+                          }),
                           summaryItemRowPaddingVariants(),
                         )}
                       >

@@ -65,6 +65,7 @@ import {
   rowContentPaddingVariants,
   stackGapVariants,
   inlineGapVariants,
+  rowVariants,
   stickyBarPaddingVariants,
   totalValueVariants,
   textRoleVariants,
@@ -329,7 +330,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
               />
             ) : (
               <>
-                <div className="mb-3 flex items-center justify-between">
+                <div className={cn(rowVariants({ align: "center", justify: "between", width: "full" }), "mb-3")}>
                   <h2
                     className={textRoleVariants({ role: "overlineMuted" })}
                   >
@@ -388,7 +389,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
           <CardContent className={rowContentPaddingVariants({ density: "tight" })}>
                             <div
                               className={cn(
-                                "flex items-center",
+                                rowVariants({ align: "center", width: "full" }),
                                 inlineGapVariants({ size: "md" }),
                                 positionHeaderVariants({
                                   tone: hasRowNumberError ? "danger" : "default",
@@ -484,7 +485,12 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       <button
                         type="button"
                         className={cn(
-                          "mt-3 flex w-full items-center justify-between",
+                          "mt-3",
+                          rowVariants({
+                            align: "center",
+                            justify: "between",
+                            width: "full",
+                          }),
                           receiptRowVariants({
                             interactive: canEdit.totalsForm,
                           }),
@@ -510,7 +516,11 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       <button
                         type="button"
                         className={cn(
-                          "flex w-full items-center justify-between",
+                          rowVariants({
+                            align: "center",
+                            justify: "between",
+                            width: "full",
+                          }),
                           receiptRowVariants({
                             interactive: canEdit.totalsForm,
                           }),

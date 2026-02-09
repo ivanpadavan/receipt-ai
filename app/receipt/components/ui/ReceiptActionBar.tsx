@@ -21,6 +21,7 @@ import {
   receiptActionBarParticipantBadgeVariants,
   receiptActionPrimaryPaddingVariants,
   inlineGapVariants,
+  rowVariants,
 } from "@/app/receipt/components/ui-styles";
 import {
   BadgePercent,
@@ -67,7 +68,7 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
       <div className={cn("w-full", receiptActionBarContainerPaddingVariants())}>
         <div
           className={cn(
-            "flex items-center justify-between",
+            rowVariants({ align: "center", justify: "between", width: "full" }),
             inlineGapVariants({ size: "md" }),
             actionBarVariants(),
             receiptActionBarPaddingVariants(),

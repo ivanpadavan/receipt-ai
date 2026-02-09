@@ -77,6 +77,7 @@ import {
   iconLeadSpacingVariants,
   inlineGapVariants,
   stackGapVariants,
+  rowVariants,
   statusPillVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
@@ -101,7 +102,7 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
   return (
     <div
       className={cn(
-        "flex items-center w-full",
+        rowVariants({ align: "center", width: "full" }),
         inlineGapVariants({ size: "sm" }),
         splittingEditingHeaderVariants(),
       )}
@@ -197,11 +198,11 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
           splittingAccordionTriggerPaddingVariants(),
         )}
       >
-        <div className="flex justify-between items-center w-full">
+        <div className={rowVariants({ align: "center", justify: "between", width: "full" })}>
           {/* Claim info - left side */}
           <div
             className={cn(
-              "flex items-baseline",
+              rowVariants({ align: "baseline" }),
               inlineGapVariants({ size: "sm" }),
               splittingClaimInfoVariants(),
             )}
@@ -262,7 +263,12 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
       </AccordionTrigger>
 
       {/* Actions - outside trigger */}
-      <div className={cn("flex items-center", splittingHeaderActionPaddingVariants())}>
+      <div
+        className={cn(
+          rowVariants({ align: "center" }),
+          splittingHeaderActionPaddingVariants(),
+        )}
+      >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button

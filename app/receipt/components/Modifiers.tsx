@@ -11,6 +11,7 @@ import { cn } from "@/utils/cn";
 import {
   modifierRowVariants,
   modifierValueVariants,
+  rowVariants,
   stackGapVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
@@ -51,7 +52,11 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
               key={item.id}
               type="button"
               className={cn(
-                "flex w-full items-center justify-between",
+                rowVariants({
+                  align: "center",
+                  justify: "between",
+                  width: "full",
+                }),
                 modifierRowVariants({ interactive: canEdit }),
               )}
               onClick={() =>

@@ -1,6 +1,6 @@
 import React from "react";
 import { cn } from "@/utils/cn";
-import { barVariants } from "@/app/receipt/components/ui-styles";
+import { barVariants, rowVariants } from "@/app/receipt/components/ui-styles";
 
 import {
   Receipt,
@@ -118,7 +118,10 @@ export const DistributionBar = ({
             key={bar.id}
             style={style}
             title={`${bar.displayName}: ${bar.amount.toFixed(2)}`}
-            className="h-full transition-all flex items-center justify-center relative overflow-hidden"
+            className={cn(
+              "h-full transition-all relative overflow-hidden",
+              rowVariants({ align: "center", justify: "center", width: "full" }),
+            )}
           />
         );
       })}

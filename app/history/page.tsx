@@ -12,6 +12,7 @@ import {
   historyEmptyCardTextVariants,
   historyReceiptCardVariants,
   screenShellVariants,
+  rowVariants,
   stackGapVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
@@ -40,7 +41,7 @@ export default async function HistoryPage() {
       )}
     >
       <div className="w-full max-w-md mx-auto">
-        <div className="flex justify-between items-center mb-6">
+        <div className={cn(rowVariants({ align: "center", justify: "between", width: "full" }), "mb-6")}>
           <h1
             className={textRoleVariants({ role: "pageTitle" })}
           >
@@ -89,7 +90,7 @@ export default async function HistoryPage() {
                       cardPaddingVariants({ size: "md" }),
                     )}
                   >
-                    <div className="mb-2 flex items-center justify-between">
+                    <div className={cn(rowVariants({ align: "center", justify: "between", width: "full" }), "mb-2")}>
                       <h2
                         className={textRoleVariants({ role: "titleLgBrandStrong" })}
                       >

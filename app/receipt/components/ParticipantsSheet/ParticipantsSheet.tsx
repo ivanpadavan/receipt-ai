@@ -55,6 +55,7 @@ import {
   iconSizeVariants,
   iconButtonCompactVariants,
   inlineGapVariants,
+  rowVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -144,7 +145,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
       >
         <DrawerHeader
           className={cn(
-            "flex items-center justify-between",
+            rowVariants({ align: "center", justify: "between", width: "full" }),
             participantsSheetHeaderVariants(),
           )}
         >
@@ -203,7 +204,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
               >
                 <CardContent
                   className={cn(
-                    "flex items-center",
+                    rowVariants({ align: "center", width: "full" }),
                     inlineGapVariants({ size: "md" }),
                     rowContentPaddingVariants({ density: "regular" }),
                   )}
@@ -262,7 +263,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
             >
               <CardContent
                 className={cn(
-                  "flex items-center",
+                  rowVariants({ align: "center", width: "full" }),
                   inlineGapVariants({ size: "md" }),
                   rowContentPaddingVariants({ density: "regular" }),
                 )}
