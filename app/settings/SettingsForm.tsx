@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Controller, useForm } from "react-hook-form";
-import { Field, FieldContent, FieldGroup } from "@/components/ui/field";
+import { Field, FieldGroup } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import Cropper, { Area } from "react-easy-crop";
 import {
@@ -26,6 +26,8 @@ import {
   dialogFooterVariants,
   dialogHeaderTitleVariants,
   dialogHeaderVariants,
+  fieldLabelVariants,
+  inputStateVariants,
   settingsCropFrameVariants,
   settingsUploadCardPaddingVariants,
   settingsUploadCardVariants,
@@ -196,42 +198,54 @@ export const SettingsForm = ({
 
   return (
     <form
-      className={cn("flex flex-col", stackGapVariants({ size: "xl" }))}
+      className={cn("flex w-full flex-col", stackGapVariants({ size: "lg" }))}
       onSubmit={handleSubmit(handleSave)}
     >
-      <div className={cn("flex items-center", inlineGapVariants({ size: "lg" }))}>
-        <UserAvatar
-          className={avatarSizeVariants({ size: "md" })}
-          userMetadata={{ avatarUrl, displayName }}
-        />
-        {user.email && (
-          <div className={textRoleVariants({ role: "labelSmMuted" })}>
-            {user.email}
-          </div>
-        )}
-      </div>
-
       <FieldGroup>
         <Field>
-          <Label htmlFor="displayName">{t("yourName")}</Label>
-          <FieldContent>
-            <Input
-              id="displayName"
-              {...register("displayName", { required: true })}
-            />
-          </FieldContent>
+          <Label
+            htmlFor="displayName"
+            className={cn("mb-1 block", fieldLabelVariants())}
+          >
+            {t("yourName")}
+          </Label>
+          <Input
+            id="displayName"
+            {...register("displayName", { required: true })}
+            className={inputStateVariants({ state: "default" })}
+          />
         </Field>
 
         <Field>
-          <Label>{t("avatarImage")}</Label>
-          <FieldContent>
-            <Controller
-              control={control}
-              name="avatarFile"
-              render={({ field: { onChange, value } }) => (
-                <div className={cn("flex flex-col", stackGapVariants({ size: "md" }))}>
+          <Label className={cn("mb-1 block", fieldLabelVariants())}>
+            {t("avatarImage")}
+          </Label>
+          <Controller
+            control={control}
+            name="avatarFile"
+            render={({ field: { onChange, value } }) => (
+              <div
+                className={cn(
+                  "flex flex-col",
+                  stackGapVariants({ size: "md" }),
+                )}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="user"
+                  className="hidden"
+                  onChange={(e) =>
+                    handleAvatarFileChange(
+                      e.target.files?.item(0) || null,
+                      onChange,
+                    )
+                  }
+                />
+                {captureSupported && (
                   <input
-                    ref={fileInputRef}
+                    ref={cameraInputRef}
                     type="file"
                     accept="image/*"
                     className="hidden"
@@ -242,119 +256,116 @@ export const SettingsForm = ({
                       )
                     }
                   />
-                  {captureSupported && (
-                    <input
-                      ref={cameraInputRef}
-                      type="file"
-                      accept="image/*"
-                      capture="user"
-                      className="hidden"
-                      onChange={(e) =>
-                        handleAvatarFileChange(
-                          e.target.files?.item(0) || null,
-                          onChange,
-                        )
-                      }
-                    />
+                )}
+                <div
+                  onClick={triggerFileInput}
+                  className={cn(
+                    "flex items-center cursor-pointer",
+                    inlineGapVariants({ size: "lg" }),
+                    settingsUploadCardVariants(),
+                    settingsUploadCardPaddingVariants(),
                   )}
+                >
+                  <UserAvatar
+                    className={avatarSizeVariants({ size: "lg" })}
+                    userMetadata={{ avatarUrl, displayName }}
+                  />
+                  <div
+                    className={cn(
+                      "flex flex-col",
+                      stackGapVariants({ size: "xs" }),
+                    )}
+                  >
+                    <div className={textRoleVariants({ role: "labelSm" })}>
+                      {value ? t("changeAvatar") : t("uploadAvatar")}
+                    </div>
                     <div
-                      onClick={triggerFileInput}
-                      className={cn(
-                        "flex items-center cursor-pointer",
-                        inlineGapVariants({ size: "lg" }),
-                        settingsUploadCardVariants(),
-                        settingsUploadCardPaddingVariants(),
-                      )}
+                      className={textRoleVariants({ role: "captionXsMuted" })}
                     >
-                    <UserAvatar
-                      className={avatarSizeVariants({ size: "lg" })}
-                      userMetadata={{ avatarUrl, displayName }}
-                    />
-                    <div className={cn("flex flex-col", stackGapVariants({ size: "xs" }))}>
-                      <div
-                        className={textRoleVariants({ role: "labelSm" })}
-                      >
-                        {value ? t("changeAvatar") : t("uploadAvatar")}
-                      </div>
-                      <div className={textRoleVariants({ role: "captionXsMuted" })}>
-                        {t("avatarUploadHint")}
-                      </div>
+                      {t("avatarUploadHint")}
                     </div>
                   </div>
-                  <div className={cn("flex", inlineGapVariants({ size: "sm" }))}>
+                </div>
+                <div className={cn("flex", inlineGapVariants({ size: "sm" }))}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={triggerFileInput}
+                  >
+                    {t("uploadAvatar")}
+                  </Button>
+                  {captureSupported && (
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={triggerFileInput}
+                      onClick={triggerCameraInput}
                     >
-                      {t("uploadAvatar")}
+                      {t("takeAvatarPhoto")}
                     </Button>
-                    {captureSupported && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={triggerCameraInput}
-                      >
-                        {t("takeAvatarPhoto")}
-                      </Button>
-                    )}
-                  </div>
-
-                  <AlertDialog open={cropOpen} onOpenChange={setCropOpen}>
-                    <AlertDialogContent className={dialogContentWideVariants()}>
-                      <AlertDialogHeader className={dialogHeaderVariants()}>
-                        <AlertDialogTitle className={dialogHeaderTitleVariants()}>
-                          {t("cropAvatar")}
-                        </AlertDialogTitle>
-                      </AlertDialogHeader>
-                      <div
-                        className={cn(
-                          "relative w-full h-72",
-                          settingsCropFrameVariants(),
-                        )}
-                      >
-                        {cropImage && (
-                          <Cropper
-                            image={cropImage}
-                            crop={crop}
-                            zoom={zoom}
-                            aspect={1}
-                            onCropChange={setCrop}
-                            onZoomChange={setZoom}
-                            onCropComplete={onCropComplete}
-                          />
-                        )}
-                      </div>
-                      <div className={cn("flex items-center", inlineGapVariants({ size: "md" }))}>
-                        <span className={textRoleVariants({ role: "labelSmMuted" })}>
-                          {t("zoom")}
-                        </span>
-                        <input
-                          type="range"
-                          min={1}
-                          max={3}
-                          step={0.05}
-                          value={zoom}
-                          onChange={(e) => setZoom(Number(e.target.value))}
-                          className="w-full"
-                        />
-                      </div>
-                      <AlertDialogFooter className={dialogFooterVariants()}>
-                        <AlertDialogCancel onClick={() => setCropOpen(false)}>
-                          {t("cancel")}
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleApplyCrop(onChange)}
-                        >
-                          {t("save")}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  )}
                 </div>
-              )}
-            />
-          </FieldContent>
+
+                <AlertDialog open={cropOpen} onOpenChange={setCropOpen}>
+                  <AlertDialogContent className={dialogContentWideVariants()}>
+                    <AlertDialogHeader className={dialogHeaderVariants()}>
+                      <AlertDialogTitle className={dialogHeaderTitleVariants()}>
+                        {t("cropAvatar")}
+                      </AlertDialogTitle>
+                    </AlertDialogHeader>
+                    <div
+                      className={cn(
+                        "relative w-full h-72",
+                        settingsCropFrameVariants(),
+                      )}
+                    >
+                      {cropImage && (
+                        <Cropper
+                          image={cropImage}
+                          crop={crop}
+                          zoom={zoom}
+                          aspect={1}
+                          onCropChange={setCrop}
+                          onZoomChange={setZoom}
+                          onCropComplete={onCropComplete}
+                        />
+                      )}
+                    </div>
+                    <div
+                      className={cn(
+                        "flex items-center",
+                        inlineGapVariants({ size: "md" }),
+                      )}
+                    >
+                      <span
+                        className={textRoleVariants({ role: "labelSmMuted" })}
+                      >
+                        {t("zoom")}
+                      </span>
+                      <input
+                        type="range"
+                        min={1}
+                        max={3}
+                        step={0.05}
+                        value={zoom}
+                        onChange={(e) => setZoom(Number(e.target.value))}
+                        className="w-full"
+                      />
+                    </div>
+                    <AlertDialogFooter className={dialogFooterVariants()}>
+                      <AlertDialogCancel onClick={() => setCropOpen(false)}>
+                        {t("cancel")}
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleApplyCrop(onChange)}
+                      >
+                        {t("save")}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            )}
+          />
         </Field>
       </FieldGroup>
 
