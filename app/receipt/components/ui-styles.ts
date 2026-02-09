@@ -212,6 +212,11 @@ export const centeredTitleVariants = cva("text-center");
 export const sheetHeaderTitleVariants = cva("text-center px-4 pt-4");
 export const dialogHeaderTitleVariants = cva("text-center");
 
+export const dialogHeaderVariants = cva("space-y-1");
+export const dialogFooterVariants = cva("sm:flex-row sm:items-stretch");
+export const dialogContentVariants = cva("max-w-md");
+export const dialogContentWideVariants = cva("max-w-lg");
+
 export const textVariants = cva("", {
   variants: {
     size: {

@@ -26,6 +26,10 @@ import {
   shareReceiptTriggerLabelVariants,
   stackGapVariants,
   inlineGapVariants,
+  dialogHeaderVariants,
+  dialogFooterVariants,
+  dialogHeaderTitleVariants,
+  dialogContentVariants,
 } from "@/app/receipt/components/ui-styles";
 
 type ShareReceiptDialogProps = {
@@ -92,9 +96,11 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
           )}
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="max-w-md">
-        <AlertDialogHeader>
-          <AlertDialogTitle>{t("shareReceiptTitle")}</AlertDialogTitle>
+      <AlertDialogContent className={dialogContentVariants()}>
+        <AlertDialogHeader className={dialogHeaderVariants()}>
+          <AlertDialogTitle className={dialogHeaderTitleVariants()}>
+            {t("shareReceiptTitle")}
+          </AlertDialogTitle>
           <AlertDialogDescription>{t("shareReceiptHint")}</AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -129,10 +135,7 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
         </div>
 
         <AlertDialogFooter
-          className={cn(
-            "sm:flex-row sm:items-stretch",
-            inlineGapVariants({ size: "sm" }),
-          )}
+          className={cn(dialogFooterVariants(), inlineGapVariants({ size: "sm" }))}
         >
           <AlertDialogCancel className="sm:flex-1">
             {t("close")}

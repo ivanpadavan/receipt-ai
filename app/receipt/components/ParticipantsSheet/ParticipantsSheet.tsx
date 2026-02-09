@@ -56,6 +56,9 @@ import {
   iconButtonCompactVariants,
   inlineGapVariants,
   rowVariants,
+  dialogHeaderVariants,
+  dialogFooterVariants,
+  dialogHeaderTitleVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -339,8 +342,10 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
         onOpenChange={(open) => !open && setDeleteConfirm(null)}
       >
         <AlertDialogContent className={participantsDialogContentVariants()}>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("deleteParticipant")}</AlertDialogTitle>
+          <AlertDialogHeader className={dialogHeaderVariants()}>
+            <AlertDialogTitle className={dialogHeaderTitleVariants()}>
+              {t("deleteParticipant")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {t("deleteParticipantConfirm")}
               {deleteConfirm && (
@@ -355,7 +360,9 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter
+            className={cn(dialogFooterVariants(), inlineGapVariants({ size: "sm" }))}
+          >
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}

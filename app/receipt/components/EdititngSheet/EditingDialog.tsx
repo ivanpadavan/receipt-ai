@@ -29,6 +29,7 @@ import {
   fieldLabelVariants,
   inputStateVariants,
   dialogHeaderTitleVariants,
+  dialogHeaderVariants,
   errorListVariants,
   stackGapVariants,
   inlineGapVariants,
@@ -152,7 +153,7 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
         }
       }}
     >
-      <DialogHeader>
+      <DialogHeader className={dialogHeaderVariants()}>
         <DialogTitle className={dialogHeaderTitleVariants()}>
           {t(header)}
         </DialogTitle>
@@ -163,7 +164,7 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
           <div className={noticeVariants({ tone: "warning" })}>
             <p>{conflict.message}</p>
             {conflict.type === "modified" && (
-              <div className="mt-2 flex space-x-2">
+              <div className={cn("mt-2 flex", inlineGapVariants({ size: "sm" }))}>
                 <Button
                   type="button"
                   variant="secondary"
