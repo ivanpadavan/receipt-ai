@@ -7,12 +7,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { t } from "@/app/i18n/translations";
 import { cn } from "@/utils/cn";
 import {
+  cardPaddingVariants,
   historyCtaButtonVariants,
-  historyEmptyCardContentVariants,
   historyEmptyCardTextVariants,
-  historyReceiptCardPaddingVariants,
   historyReceiptCardVariants,
-  historyShellVariants,
+  screenShellVariants,
   textVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -36,7 +35,7 @@ export default async function HistoryPage() {
     <div
       className={cn(
         "flex flex-col items-center justify-center gap-4",
-        historyShellVariants(),
+        screenShellVariants(),
       )}
     >
       <div className="w-full max-w-md mx-auto">
@@ -58,7 +57,7 @@ export default async function HistoryPage() {
             shadow="md"
             className={cn("w-full", historyEmptyCardTextVariants())}
           >
-            <CardContent className={historyEmptyCardContentVariants()}>
+            <CardContent className={cardPaddingVariants({ size: "lg" })}>
               <p className="mb-4">
                 {t("noReceiptsYet")}
               </p>
@@ -90,7 +89,7 @@ export default async function HistoryPage() {
                     className={cn(
                       "w-full",
                       historyReceiptCardVariants(),
-                      historyReceiptCardPaddingVariants(),
+                      cardPaddingVariants({ size: "md" }),
                     )}
                   >
                     <div className="mb-2 flex items-center justify-between">

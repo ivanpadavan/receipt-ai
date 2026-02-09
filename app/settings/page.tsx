@@ -11,9 +11,9 @@ import { UserMetadata } from "@supabase/supabase-js";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/utils/cn";
 import {
+  cardPaddingVariants,
   settingsCardContentVariants,
-  settingsCardPaddingVariants,
-  settingsShellVariants,
+  screenShellVariants,
   textVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -59,13 +59,13 @@ export default function SettingsPage() {
     <div
       className={cn(
         "flex flex-col items-center justify-center gap-4",
-        settingsShellVariants(),
+        screenShellVariants(),
       )}
     >
       <Card
         variant="default"
         shadow="md"
-        className={cn("mx-auto w-full max-w-md", settingsCardPaddingVariants())}
+        className={cn("mx-auto w-full max-w-md", cardPaddingVariants({ size: "lg" }))}
       >
         <h1
           className={cn(

@@ -10,15 +10,12 @@ import { t } from "@/app/i18n/translations";
 import { cn } from "@/utils/cn";
 import {
   actionButtonVariants,
+  cardPaddingVariants,
   captureButtonVariants,
-  dropzonePaddingVariants,
   dropzoneVariants,
   errorBoxVariants,
-  loadingContainerVariants,
   loadingSpinnerVariants,
-  pageCardPaddingVariants,
-  pageShellVariants,
-  previewCardPaddingVariants,
+  screenShellVariants,
   previewImageVariants,
   textVariants,
 } from "@/app/receipt/components/ui-styles";
@@ -108,7 +105,7 @@ export default function ImagePastePage() {
       <div
         className={cn(
           "flex flex-col items-center justify-center flex-1 gap-4",
-          pageShellVariants(),
+          screenShellVariants(),
         )}
       >
         <div className="w-full max-w-md mx-auto">
@@ -141,7 +138,7 @@ export default function ImagePastePage() {
               shadow="md"
               className={cn(
                 "flex w-full flex-col items-center gap-4",
-                previewCardPaddingVariants(),
+                cardPaddingVariants({ size: "md" }),
               )}
             >
               <img
@@ -175,13 +172,13 @@ export default function ImagePastePage() {
             <Card
               variant="default"
               shadow="md"
-              className={pageCardPaddingVariants()}
+              className={cardPaddingVariants({ size: "lg" })}
             >
               <div
                 className={cn(
                   "w-full min-h-[200px] flex flex-col items-center justify-center",
                   dropzoneVariants(),
-                  dropzonePaddingVariants(),
+                  cardPaddingVariants({ size: "lg" }),
                 )}
                 onClick={triggerFileInput}
               >
@@ -274,7 +271,7 @@ export default function ImagePastePage() {
             <div
               className={cn(
                 "w-full flex flex-col items-center justify-center",
-                loadingContainerVariants(),
+                cardPaddingVariants({ size: "lg" }),
               )}
             >
               <div className={cn("h-12 w-12 mb-4", loadingSpinnerVariants())} />

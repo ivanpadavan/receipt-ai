@@ -10,17 +10,15 @@ import { DistributionStatus } from "@/app/receipt/components/ui/DistributionStat
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 import { cn } from "@/utils/cn";
 import {
+  cardPaddingVariants,
   summaryAmountVariants,
   summaryBalanceAmountWrapperVariants,
-  summaryCardPaddingVariants,
   summaryEmptyStateVariants,
-  summaryHeaderPaddingVariants,
   summaryHeaderVariants,
   summaryItemContainerPaddingVariants,
   summaryItemIndentVariants,
   summaryItemListVariants,
   summaryItemRowPaddingVariants,
-  summaryListPaddingVariants,
   textVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -62,7 +60,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
         className={cn(
           "relative",
           summaryHeaderVariants(),
-          summaryHeaderPaddingVariants(),
+          cardPaddingVariants({ size: "lg" }),
         )}
       >
         <h2
@@ -100,7 +98,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
       <div
         className={cn(
           "flex-1 overflow-y-auto space-y-3",
-          summaryListPaddingVariants(),
+          cardPaddingVariants({ size: "md" }),
         )}
       >
         {balances.map((balance) => {
@@ -114,7 +112,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
               key={balance.participantId}
               shadow="sm"
               radius="xl"
-              className={summaryCardPaddingVariants()}
+              className={cardPaddingVariants({ size: "sm" })}
             >
               <div className="flex items-center gap-3 w-full mb-2">
                 <ParticipantAvatar participant={participant} />

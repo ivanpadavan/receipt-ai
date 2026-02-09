@@ -258,11 +258,48 @@ export const textVariants = cva("", {
   },
 });
 
-export const pageShellVariants = cva("bg-amber-50 p-4");
-export const pageCardPaddingVariants = cva("p-6");
-export const previewCardPaddingVariants = cva("p-4");
-export const dropzonePaddingVariants = cva("p-6");
-export const loadingContainerVariants = cva("p-6");
+export const screenShellVariants = cva("bg-amber-50 p-4");
+
+export const cardPaddingVariants = cva("", {
+  variants: {
+    size: {
+      sm: "p-3",
+      md: "p-4",
+      lg: "p-6",
+      xl: "p-8",
+    },
+  },
+  defaultVariants: {
+    size: "md",
+  },
+});
+
+export const rowContentPaddingVariants = cva("", {
+  variants: {
+    density: {
+      tight: "px-4 py-1.5",
+      regular: "px-4 py-3",
+    },
+  },
+  defaultVariants: {
+    density: "regular",
+  },
+});
+
+export const sectionPaddingVariants = cva("", {
+  variants: {
+    size: {
+      sm: "px-4 py-2",
+      md: "px-4 py-3",
+      lg: "px-5 py-4",
+    },
+  },
+  defaultVariants: {
+    size: "md",
+  },
+});
+
+export const sheetTitlePaddingVariants = cva("px-4 pt-4");
 
 export const previewImageVariants = cva(`object-contain ${radiusTokens.sm}`);
 export const actionButtonVariants = cva(shadowTokens.md);
@@ -323,7 +360,6 @@ export const participantsEmptyStateContainerVariants = cva(
   "text-center py-12",
 );
 export const participantsRowMenuButtonVariants = cva("text-gray-500");
-export const participantsRowContentPaddingVariants = cva("px-4 py-3");
 export const participantsDangerMenuItemVariants = cva(
   "text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50",
 );
@@ -449,7 +485,6 @@ export const splittingParticipantButtonVariants = cva(
 export const splittingAccordionContentVariants = cva(
   "border-t bg-background px-3 py-2",
 );
-export const splittingSheetTitleVariants = cva("px-4 pt-4");
 export const splittingSheetSubtitleVariants = cva("px-4 py-2");
 export const splittingFooterVariants = cva("border-t bg-background pt-2");
 export const splittingAccordionTriggerPaddingVariants = cva("px-3 py-3");
@@ -461,7 +496,6 @@ export const splittingAccordionContentPaddingVariants = cva("p-0");
 
 export const appShellVariants = cva("bg-amber-50");
 
-export const historyShellVariants = cva("bg-amber-50 p-4");
 export const historyEmptyCardTextVariants = cva("text-center");
 export const historyCtaButtonVariants = cva(
   `${radiusTokens.full} bg-amber-500 px-4 py-2 font-bold text-white shadow-md hover:bg-amber-600`,
@@ -469,11 +503,6 @@ export const historyCtaButtonVariants = cva(
 export const historyReceiptCardVariants = cva(
   "border-amber-200 hover:border-amber-400",
 );
-export const historyEmptyCardContentVariants = cva("p-6");
-export const historyReceiptCardPaddingVariants = cva("p-4");
-
-export const settingsShellVariants = cva("bg-amber-50 p-4");
-export const settingsCardPaddingVariants = cva("p-6");
 export const settingsCardContentVariants = cva("p-0");
 
 export const notFoundShellVariants = cva("p-4");
@@ -571,16 +600,11 @@ export const positionRowButtonVariants = cva("", {
 });
 
 export const receiptCardPaddingVariants = cva("p-4 md:p-5");
-export const positionCardContentPaddingVariants = cva("py-1.5 px-4");
-export const summaryCardContentPaddingVariants = cva("py-1.5 px-4");
 export const stickyBarPaddingVariants = cva("px-2");
 
 export const summaryHeaderVariants = cva("border-b bg-card text-center");
 export const summaryItemListVariants = cva("border-t pt-2 border-border/40");
 export const summaryBalanceAmountWrapperVariants = cva("text-right");
-export const summaryHeaderPaddingVariants = cva("p-6");
-export const summaryListPaddingVariants = cva("p-4");
-export const summaryCardPaddingVariants = cva("p-3");
 export const summaryItemIndentVariants = cva("pl-12");
 export const summaryItemContainerPaddingVariants = cva("pr-2");
 export const summaryItemRowPaddingVariants = cva("py-1");
@@ -612,7 +636,6 @@ export const modifierValueVariants = cva("font-medium", {
   },
 });
 
-export const drawerTitlePaddingVariants = cva("px-4 pt-4");
 export const sheetBodyPaddingVariants = cva("p-4");
 export const errorListVariants = cva("list-disc pl-5");
 

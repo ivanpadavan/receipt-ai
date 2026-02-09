@@ -68,10 +68,10 @@ import {
   splittingMenuDangerItemVariants,
   splittingParticipantButtonVariants,
   splittingSheetSubtitleVariants,
-  splittingSheetTitleVariants,
   splittingTypeSwitchButtonVariants,
   splittingTypeSwitchWrapperVariants,
   splittingClaimsListPaddingVariants,
+  sheetTitlePaddingVariants,
   textVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -426,7 +426,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
     <DrawerContent className="h-[85vh] flex flex-col">
       <DrawerTitle
         className={cn(
-          splittingSheetTitleVariants(),
+          sheetTitlePaddingVariants(),
           textVariants({ align: "center" }),
         )}
       >

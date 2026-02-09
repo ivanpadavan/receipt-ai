@@ -22,11 +22,11 @@ import { useReceiptState } from "../ReceiptForm";
 import { useRowConflict } from "./useRowConflict";
 import { cn } from "@/utils/cn";
 import {
-  drawerTitlePaddingVariants,
   fieldLabelVariants,
   inputStateVariants,
   noticeVariants,
   centeredTitleVariants,
+  sheetTitlePaddingVariants,
   sheetBodyPaddingVariants,
   errorListVariants,
 } from "@/app/receipt/components/ui-styles";
@@ -154,8 +154,8 @@ export const EditingSheet: React.FC<EditModalProps> = ({
 
   return (
     <DrawerContent>
-      <DrawerTitle
-        className={cn(drawerTitlePaddingVariants(), centeredTitleVariants())}
+    <DrawerTitle
+        className={cn(sheetTitlePaddingVariants(), centeredTitleVariants())}
       >
         {t(header)}
       </DrawerTitle>

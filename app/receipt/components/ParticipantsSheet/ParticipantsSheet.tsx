@@ -35,6 +35,7 @@ import { UserPlus, X, Trash2, MoreVertical } from "lucide-react";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { cn } from "@/utils/cn";
 import {
+  rowContentPaddingVariants,
   participantsAddButtonContainerVariants,
   participantsAddInputVariants,
   participantsAvatarPlaceholderVariants,
@@ -45,7 +46,6 @@ import {
   participantsEmptyStateIconVariants,
   participantsFooterVariants,
   participantsListPaddingVariants,
-  participantsRowContentPaddingVariants,
   participantsRowMenuButtonVariants,
   participantsSheetBackgroundVariants,
   participantsSheetHeaderVariants,
@@ -206,7 +206,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                 <CardContent
                   className={cn(
                     "flex items-center gap-3",
-                    participantsRowContentPaddingVariants(),
+                    rowContentPaddingVariants({ density: "regular" }),
                   )}
                 >
                   <ParticipantAvatar
@@ -259,7 +259,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
               <CardContent
                 className={cn(
                   "flex items-center gap-3",
-                  participantsRowContentPaddingVariants(),
+                  rowContentPaddingVariants({ density: "regular" }),
                 )}
               >
                 <div

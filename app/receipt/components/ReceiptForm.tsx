@@ -57,14 +57,13 @@ import {
   grandTotalValueVariants,
   overallValueVariants,
   pillVariants,
-  positionCardContentPaddingVariants,
   positionHeaderVariants,
   positionMetaValueVariants,
   positionRowButtonVariants,
   receiptCardPaddingVariants,
   receiptRowVariants,
+  rowContentPaddingVariants,
   stickyBarPaddingVariants,
-  summaryCardContentPaddingVariants,
   totalValueVariants,
   textVariants,
 } from "@/app/receipt/components/ui-styles";
@@ -389,7 +388,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                           }),
                         )}
                         >
-                          <CardContent className={positionCardContentPaddingVariants()}>
+          <CardContent className={rowContentPaddingVariants({ density: "tight" })}>
                             <div
                               className={cn(
                                 "flex items-center gap-3",
@@ -475,7 +474,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                   radius="2xl"
                   className="mt-4"
                 >
-                  <CardContent className={summaryCardContentPaddingVariants()}>
+                  <CardContent className={rowContentPaddingVariants({ density: "tight" })}>
                     <div>
                       {(currentReceipt.discounts.length > 0 ||
                         currentReceipt.fees.length > 0) && (
