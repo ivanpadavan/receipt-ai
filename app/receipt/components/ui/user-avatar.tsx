@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/utils/cn";
 import { UserMetadata } from "@supabase/supabase-js";
+import { avatarSizeVariants } from "@/app/receipt/components/ui-styles";
 
 interface UserAvatarProps {
   userMetadata: UserMetadata;
@@ -21,7 +22,7 @@ export const UserAvatar = ({
 
   return (
     <Avatar
-      className={cn("h-8 w-8", showRing && "ring-2", className)}
+      className={cn(avatarSizeVariants(), showRing && "ring-2", className)}
       style={
         showRing && ringColor
           ? ({ "--tw-ring-color": ringColor } as React.CSSProperties)

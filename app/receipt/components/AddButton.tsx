@@ -1,6 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils/cn";
-import { addButtonVariants } from "@/app/receipt/components/ui-styles";
+import {
+  addButtonVariants,
+  iconSizeVariants,
+} from "@/app/receipt/components/ui-styles";
 
 interface AddButtonProps {
   onClick?: () => void;
@@ -20,7 +23,7 @@ export const AddButton: React.FC<AddButtonProps> = ({
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        className="h-4 w-4"
+        className={iconSizeVariants({ size: "sm" })}
         viewBox="0 0 20 20"
         fill="currentColor"
       >

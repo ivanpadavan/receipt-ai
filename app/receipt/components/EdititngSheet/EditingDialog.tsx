@@ -22,6 +22,7 @@ import { Field, FieldGroup } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { Trash2 } from "lucide-react";
 import {
+  iconSizeVariants,
   iconButtonVariants,
   iconSoloVariants,
   noticeVariants,
@@ -238,7 +239,7 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
               aria-label={t("remove")}
               title={t("remove")}
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className={iconSizeVariants({ size: "sm" })} />
             </Button>
           )}
           <Button type="submit" disabled={isSaveDisabled} className="grow">

@@ -19,6 +19,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 import { cn } from "@/utils/cn";
 import {
+  iconSizeVariants,
   shareReceiptContentPaddingVariants,
   shareReceiptQrContainerVariants,
   shareReceiptTriggerLabelVariants,
@@ -75,14 +76,14 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
         <Button {...buttonProps}>
           {stacked ? (
             <span className="flex flex-col items-center gap-1 leading-none">
-              <Share2 className="h-4 w-4" />
+              <Share2 className={iconSizeVariants({ size: "sm" })} />
               <span className={shareReceiptTriggerLabelVariants()}>
                 {triggerLabel}
               </span>
             </span>
           ) : (
             <>
-              <Share2 className="h-4 w-4" />
+              <Share2 className={iconSizeVariants({ size: "sm" })} />
               {!iconOnly && triggerLabel}
             </>
           )}
@@ -113,7 +114,7 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
           </div>
 
           <Button type="button" variant="outline" className="gap-2" onClick={handleCopy}>
-            <Copy className="h-4 w-4" />
+            <Copy className={iconSizeVariants({ size: "sm" })} />
             {t("copyLink")}
           </Button>
         </div>
@@ -127,7 +128,7 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
               onClick={handleShare}
               className="gap-2 sm:flex-1"
             >
-              <QrCode className="h-4 w-4" />
+              <QrCode className={iconSizeVariants({ size: "sm" })} />
               {t("shareViaSystem")}
             </AlertDialogAction>
           )}

@@ -4,7 +4,7 @@ import React from "react";
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { t } from "@/app/i18n/translations";
 import { cn } from "@/utils/cn";
-import { pillVariants } from "@/app/receipt/components/ui-styles";
+import { iconSizeVariants, pillVariants } from "@/app/receipt/components/ui-styles";
 
 interface DistributionStatusProps {
   distributed: number;
@@ -29,7 +29,7 @@ export const DistributionStatus: React.FC<DistributionStatusProps> = ({
           className,
         )}
       >
-        <CheckCircle2 className="h-3.5 w-3.5" />
+        <CheckCircle2 className={iconSizeVariants({ size: "xs" })} />
         {t("distributed")}
       </div>
     );
@@ -43,7 +43,7 @@ export const DistributionStatus: React.FC<DistributionStatusProps> = ({
           className,
         )}
       >
-        <XCircle className="h-3.5 w-3.5" />
+        <XCircle className={iconSizeVariants({ size: "xs" })} />
         {t("overpaid")}: {Math.abs(remaining).toFixed(precision)} ₽
       </div>
     );
@@ -56,7 +56,7 @@ export const DistributionStatus: React.FC<DistributionStatusProps> = ({
         className,
       )}
     >
-      <AlertTriangle className="h-3.5 w-3.5" />
+      <AlertTriangle className={iconSizeVariants({ size: "xs" })} />
       {t("remaining")}: {remaining.toFixed(precision)} ₽
     </div>
   );

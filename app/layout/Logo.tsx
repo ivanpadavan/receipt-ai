@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/utils/cn";
-import { textRoleVariants } from "@/app/receipt/components/ui-styles";
+import { iconSizeVariants, textRoleVariants } from "@/app/receipt/components/ui-styles";
 
 
 const Logo = () => (
@@ -15,7 +15,7 @@ const Logo = () => (
       strokeLinecap="round"
       strokeLinejoin="round"
       className={cn(
-        "h-8 w-8",
+        iconSizeVariants({ size: "lgPlus" }),
         textRoleVariants({ role: "logoMark" }),
       )}
     >

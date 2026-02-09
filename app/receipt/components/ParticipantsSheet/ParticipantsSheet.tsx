@@ -50,6 +50,9 @@ import {
   participantsSheetBackgroundVariants,
   participantsSheetHeaderVariants,
   participantsDeleteActionVariants,
+  avatarSizeVariants,
+  iconSizeVariants,
+  iconButtonCompactVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -154,7 +157,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
               size="icon"
               className="absolute right-3 top-3"
             >
-              <X className="h-5 w-5" />
+              <X className={iconSizeVariants({ size: "md" })} />
             </Button>
           </DrawerClose>
         </DrawerHeader>
@@ -174,7 +177,8 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
             >
               <UserPlus
                 className={cn(
-                  "h-12 w-12 mb-3",
+                  "mb-3",
+                  iconSizeVariants({ size: "xl" }),
                   participantsEmptyStateIconVariants(),
                 )}
               />
@@ -219,23 +223,28 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                         variant="ghost"
                         size="icon"
                         className={cn(
-                          "h-8 w-8",
+                          iconButtonCompactVariants(),
                           participantsRowMenuButtonVariants(),
                         )}
                       >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => handleDeleteClick(participant)}
-                        className={participantsDangerMenuItemVariants()}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        {t("delete")}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                      <MoreVertical className={iconSizeVariants({ size: "sm" })} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => handleDeleteClick(participant)}
+                      className={participantsDangerMenuItemVariants()}
+                    >
+                      <Trash2
+                        className={cn(
+                          "mr-2",
+                          iconSizeVariants({ size: "sm" }),
+                        )}
+                      />
+                      {t("delete")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 </CardContent>
               </ReceiptCard>
             );
@@ -256,7 +265,8 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
               >
                 <div
                   className={cn(
-                    "w-8 h-8 shrink-0",
+                    "shrink-0",
+                    avatarSizeVariants({ size: "sm" }),
                     participantsAvatarPlaceholderVariants(),
                   )}
                 >
@@ -297,7 +307,9 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
               onClick={() => setIsAdding(true)}
               className="w-full"
             >
-              <UserPlus className="h-4 w-4 mr-2" />
+              <UserPlus
+                className={cn("mr-2", iconSizeVariants({ size: "sm" }))}
+              />
               {t("addParticipant")}
             </Button>
           </div>

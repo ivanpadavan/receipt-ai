@@ -16,6 +16,7 @@ import {
   errorBoxVariants,
   loadingSpinnerVariants,
   screenShellVariants,
+  iconSizeVariants,
   textRoleVariants,
   previewImageVariants,
 } from "@/app/receipt/components/ui-styles";
@@ -180,7 +181,8 @@ export default function ImagePastePage() {
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className={cn(
-                    "h-12 w-12 mb-4",
+                    "mb-4",
+                    iconSizeVariants({ size: "xl" }),
                     textRoleVariants({ role: "labelMuted" }),
                   )}
                   fill="none"
@@ -227,7 +229,7 @@ export default function ImagePastePage() {
                       />
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
+                        className={iconSizeVariants({ size: "md" })}
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -260,7 +262,13 @@ export default function ImagePastePage() {
                 cardPaddingVariants({ size: "lg" }),
               )}
             >
-              <div className={cn("h-12 w-12 mb-4", loadingSpinnerVariants())} />
+              <div
+                className={cn(
+                  "mb-4",
+                  iconSizeVariants({ size: "xl" }),
+                  loadingSpinnerVariants(),
+                )}
+              />
               <span
                 className={textRoleVariants({ role: "statusBrandSm" })}
               >

@@ -12,6 +12,7 @@ import {
   actionBarVariants,
   iconButtonVariants,
   iconGroupVariants,
+  iconSizeVariants,
   primaryActionVariants,
   receiptActionBarContainerPaddingVariants,
   receiptActionBarMenuIconVariants,
@@ -86,7 +87,7 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
               <span className={receiptActionBarParticipantBadgeVariants()}>
                 {participantsCount}
               </span>
-              <Users className="h-4 w-4" />
+              <Users className={iconSizeVariants({ size: "sm" })} />
             </Button>
             <ButtonGroupSeparator className="mx-1 h-5 opacity-30" />
             <ShareReceiptDialog
@@ -115,7 +116,7 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
                       title={t("edit")}
                       aria-label={t("edit")}
                     >
-                      <Pencil className="h-4 w-4" />
+                      <Pencil className={iconSizeVariants({ size: "sm" })} />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" side="top" sideOffset={10}>
@@ -123,7 +124,8 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
                       <DropdownMenuItem onClick={onAddPosition}>
                         <CirclePlus
                           className={cn(
-                            "mr-2 h-4 w-4",
+                            "mr-2",
+                            iconSizeVariants({ size: "sm" }),
                             receiptActionBarMenuIconVariants({ tone: "position" }),
                           )}
                         />
@@ -134,7 +136,8 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
                       <DropdownMenuItem onClick={onAddDiscount}>
                         <BadgePercent
                           className={cn(
-                            "mr-2 h-4 w-4",
+                            "mr-2",
+                            iconSizeVariants({ size: "sm" }),
                             receiptActionBarMenuIconVariants({ tone: "discount" }),
                           )}
                         />
@@ -145,7 +148,8 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
                       <DropdownMenuItem onClick={onAddFee}>
                         <HandCoins
                           className={cn(
-                            "mr-2 h-4 w-4",
+                            "mr-2",
+                            iconSizeVariants({ size: "sm" }),
                             receiptActionBarMenuIconVariants({ tone: "fee" }),
                           )}
                         />

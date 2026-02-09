@@ -72,6 +72,9 @@ import {
   splittingTypeSwitchWrapperVariants,
   splittingClaimsListPaddingVariants,
   sheetTitlePaddingVariants,
+  avatarSizeVariants,
+  iconButtonCompactVariants,
+  iconSizeVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -257,21 +260,24 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
             <Button
               variant="ghost"
               size="icon"
-              className={cn("h-8 w-8", splittingMenuButtonVariants())}
+              className={cn(
+                iconButtonCompactVariants(),
+                splittingMenuButtonVariants(),
+              )}
             >
-              <MoreVertical className="h-4 w-4" />
+              <MoreVertical className={iconSizeVariants({ size: "sm" })} />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={onEditStart}>
-              <Pencil className="h-4 w-4 mr-2" />
+              <Pencil className={cn("mr-2", iconSizeVariants({ size: "sm" }))} />
               {t("edit")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={onRemove}
               className={splittingMenuDangerItemVariants()}
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className={cn("mr-2", iconSizeVariants({ size: "sm" }))} />
               {t("delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -314,7 +320,7 @@ const ParticipantsSelector: React.FC<ParticipantsSelectorProps> = ({
           >
             <ParticipantAvatar
               participant={p}
-              className="h-8 w-8"
+              className={avatarSizeVariants({ size: "sm" })}
               showRing={isSelected}
             />
           </button>
@@ -596,7 +602,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
             aria-label={t("edit")}
             title={t("edit")}
           >
-            <Pencil className="h-4 w-4" />
+            <Pencil className={iconSizeVariants({ size: "sm" })} />
           </Button>
           <DrawerClose asChild>
             <Button

@@ -21,6 +21,7 @@ import { User, UserMetadata } from "@supabase/supabase-js";
 import { UserAvatar } from "@/app/receipt/components/ui/user-avatar";
 import { cn } from "@/utils/cn";
 import {
+  avatarSizeVariants,
   settingsCropFrameVariants,
   settingsUploadCardPaddingVariants,
   settingsUploadCardVariants,
@@ -191,7 +192,7 @@ export const SettingsForm = ({
     <form className="flex flex-col gap-6" onSubmit={handleSubmit(handleSave)}>
       <div className="flex items-center gap-4">
         <UserAvatar
-          className="h-12 w-12"
+          className={avatarSizeVariants({ size: "md" })}
           userMetadata={{ avatarUrl, displayName }}
         />
         {user.email && (
@@ -256,7 +257,7 @@ export const SettingsForm = ({
                       )}
                     >
                     <UserAvatar
-                      className="h-16 w-16"
+                      className={avatarSizeVariants({ size: "lg" })}
                       userMetadata={{ avatarUrl, displayName }}
                     />
                     <div className="flex flex-col gap-1">

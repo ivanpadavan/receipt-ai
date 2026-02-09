@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { handleSignIn, handleSignOut } from "@/app/receipt/utils/auth";
 import { t } from "@/app/i18n/translations";
 import {
+  iconSizeVariants,
   menuItemPaddingVariants,
   menuListPaddingVariants,
   menuPanelFrameVariants,
@@ -91,9 +92,9 @@ export const AppNavbar = () => {
               onClick={toggleMenu}
             >
               {isMenuOpen ? (
-                <X className="h-6 w-6" />
+                <X className={iconSizeVariants({ size: "lg" })} />
               ) : (
-                <Menu className="h-6 w-6" />
+                <Menu className={iconSizeVariants({ size: "lg" })} />
               )}
             </Button>
           </div>
@@ -174,7 +175,7 @@ export const AppNavbar = () => {
                       className="w-full flex items-center justify-center gap-2"
                       variant={isAuthenticated ? "outline" : "default"}
                     >
-                      <LogOut className="h-4 w-4" />
+                      <LogOut className={iconSizeVariants({ size: "sm" })} />
                       {t("signOut")}
                     </Button>
                   </div>
@@ -193,7 +194,7 @@ export const AppNavbar = () => {
                   variant="ghost"
                   className="flex items-center gap-2"
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className={iconSizeVariants({ size: "sm" })} />
                   {t("signOut")}
                 </Button>
               </div>

@@ -300,6 +300,38 @@ export const textRoleVariants = cva("", {
   },
 });
 
+export const iconSizeVariants = cva("", {
+  variants: {
+    size: {
+      xs: "h-3.5 w-3.5",
+      sm: "h-4 w-4",
+      lgPlus: "h-8 w-8",
+      mdTight: "h-[1.125rem] w-[1.125rem]",
+      md: "h-5 w-5",
+      lg: "h-6 w-6",
+      xl: "h-12 w-12",
+    },
+  },
+  defaultVariants: {
+    size: "sm",
+  },
+});
+
+export const avatarSizeVariants = cva("", {
+  variants: {
+    size: {
+      sm: "h-8 w-8",
+      md: "h-12 w-12",
+      lg: "h-16 w-16",
+    },
+  },
+  defaultVariants: {
+    size: "sm",
+  },
+});
+
+export const iconButtonCompactVariants = cva("h-8 w-8");
+
 export const screenShellVariants = cva("bg-amber-50 p-4");
 
 export const cardPaddingVariants = cva("", {

@@ -8,6 +8,7 @@ import {
   confirmCancelButtonVariants,
   confirmCancelDividerVariants,
   confirmCancelGroupVariants,
+  iconSizeVariants,
 } from "@/app/receipt/components/ui-styles";
 
 interface ConfirmCancelGroupProps {
@@ -33,7 +34,7 @@ export const ConfirmCancelGroup: React.FC<ConfirmCancelGroupProps> = ({
         className={cn(confirmCancelButtonVariants({ size, tone: "cancel" }))}
         onClick={onCancel}
       >
-        <X className="h-4 w-4" />
+        <X className={iconSizeVariants({ size: "sm" })} />
       </Button>
       <div className={cn("h-6 w-px", confirmCancelDividerVariants())} />
       <Button
@@ -43,7 +44,7 @@ export const ConfirmCancelGroup: React.FC<ConfirmCancelGroupProps> = ({
         onClick={onConfirm}
         disabled={confirmDisabled}
       >
-        <Check className="h-4 w-4" />
+        <Check className={iconSizeVariants({ size: "sm" })} />
       </Button>
     </div>
   );

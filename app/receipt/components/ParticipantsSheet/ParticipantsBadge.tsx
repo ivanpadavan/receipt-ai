@@ -8,6 +8,7 @@ import { cn } from "@/utils/cn";
 import {
   participantsBadgeButtonVariants,
   pillVariants,
+  iconSizeVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -42,7 +43,7 @@ export const ParticipantsBadge: React.FC<ParticipantsBadgeProps> = ({
           participantsBadgeButtonVariants({ size: "compact" }),
         )}
       >
-        <Users className="mr-1 h-4 w-4" />
+        <Users className={cn("mr-1", iconSizeVariants({ size: "sm" }))} />
         <span
           className={cn(
             "min-w-[1rem]",
@@ -72,7 +73,7 @@ export const ParticipantsBadge: React.FC<ParticipantsBadgeProps> = ({
         participantsBadgeButtonVariants({ size: "full" }),
       )}
     >
-      <Users className="w-[1.125rem] h-[1.125rem]" />
+      <Users className={iconSizeVariants({ size: "mdTight" })} />
       <span
         className={cn(
           "min-w-[1.25rem]",
