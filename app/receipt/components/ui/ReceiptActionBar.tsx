@@ -28,6 +28,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/utils/cn";
+import { cva } from "class-variance-authority";
+
+const participantBadgeVariants = cva(
+  "pointer-events-none absolute right-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-semibold leading-none opacity-80 text-background",
+);
+
+const menuIconVariants = cva("mr-2 h-4 w-4", {
+  variants: {
+    tone: {
+      position: "text-sky-600",
+      discount: "text-emerald-600",
+      fee: "text-amber-600",
+    },
+  },
+});
 
 interface ReceiptActionBarProps {
   receiptId: string;
@@ -77,7 +92,7 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
               title={t("participants")}
               aria-label={t("participants")}
             >
-              <span className="pointer-events-none absolute right-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-semibold leading-none opacity-80 text-background">
+              <span className={participantBadgeVariants()}>
                 {participantsCount}
               </span>
               <Users className="h-4 w-4" />
@@ -115,19 +130,19 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
                   <DropdownMenuContent align="start" side="top" sideOffset={10}>
                     {onAddPosition && (
                       <DropdownMenuItem onClick={onAddPosition}>
-                        <CirclePlus className="mr-2 h-4 w-4 text-sky-600" />
+                        <CirclePlus className={menuIconVariants({ tone: "position" })} />
                         {t("addPosition")}
                       </DropdownMenuItem>
                     )}
                     {onAddDiscount && (
                       <DropdownMenuItem onClick={onAddDiscount}>
-                        <BadgePercent className="mr-2 h-4 w-4 text-emerald-600" />
+                        <BadgePercent className={menuIconVariants({ tone: "discount" })} />
                         {t("addDiscount")}
                       </DropdownMenuItem>
                     )}
                     {onAddFee && (
                       <DropdownMenuItem onClick={onAddFee}>
-                        <HandCoins className="mr-2 h-4 w-4 text-amber-600" />
+                        <HandCoins className={menuIconVariants({ tone: "fee" })} />
                         {t("addFee")}
                       </DropdownMenuItem>
                     )}
