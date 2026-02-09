@@ -7,6 +7,33 @@ import { useReceiptState } from "@/app/receipt/components/ReceiptForm";
 import { useWatch } from "react-hook-form";
 import { formatMoney } from "@/app/receipt/utils/formatMoney";
 import { hasFormPathError } from "@/app/receipt/utils/hasFormPathError";
+import { cva } from "class-variance-authority";
+import { cn } from "@/utils/cn";
+
+const modifierRowVariants = cva("rounded-md px-1 py-1", {
+  variants: {
+    interactive: {
+      true: "cursor-pointer hover:bg-muted/45",
+      false: "cursor-default",
+    },
+  },
+  defaultVariants: {
+    interactive: false,
+  },
+});
+
+const modifierValueVariants = cva("font-medium", {
+  variants: {
+    tone: {
+      danger: "text-destructive",
+      success: "text-emerald-600",
+      default: "",
+    },
+  },
+  defaultVariants: {
+    tone: "default",
+  },
+});
 
 interface ModifiersProps {
   type: "discounts" | "fees";
@@ -36,9 +63,10 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
             <button
               key={item.id}
               type="button"
-              className={`flex w-full items-center justify-between rounded-md px-1 py-1 text-sm ${
-                canEdit ? "cursor-pointer hover:bg-muted/45" : "cursor-default"
-              }`}
+              className={cn(
+                "flex w-full items-center justify-between text-sm",
+                modifierRowVariants({ interactive: canEdit }),
+              )}
               onClick={() =>
                 canEdit &&
                 openEditModal({
@@ -52,13 +80,13 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
                 {item.name || t("modifierName")}
               </span>
               <span
-                className={
-                  hasValueError
-                    ? "font-medium text-destructive"
+                className={modifierValueVariants({
+                  tone: hasValueError
+                    ? "danger"
                     : type === "discounts"
-                      ? "font-medium text-emerald-600"
-                      : "font-medium"
-                }
+                      ? "success"
+                      : "default",
+                })}
               >
                 {sign} {formatMoney(item.value)}
               </span>
