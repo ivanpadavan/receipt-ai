@@ -30,7 +30,7 @@ import {
   inputStateVariants,
   settingsCropFrameVariants,
   settingsUploadCardPaddingVariants,
-  settingsUploadCardVariants,
+  uploadPanelVariants,
   inlineGapVariants,
   stackGapVariants,
   textRoleVariants,
@@ -262,7 +262,7 @@ export const SettingsForm = ({
                   className={cn(
                     "flex items-center cursor-pointer",
                     inlineGapVariants({ size: "lg" }),
-                    settingsUploadCardVariants(),
+                    uploadPanelVariants(),
                     settingsUploadCardPaddingVariants(),
                   )}
                 >

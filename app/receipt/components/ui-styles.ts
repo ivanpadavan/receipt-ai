@@ -536,8 +536,8 @@ export const sheetTitlePaddingVariants = cva("px-4 pt-4");
 export const previewImageVariants = cva(`object-contain ${radiusTokens.sm}`);
 export const actionButtonVariants = cva(shadowTokens.md);
 export const captureButtonVariants = cva(shadowTokens.md);
-export const dropzoneVariants = cva(
-  `border-2 border-dashed border-input ${radiusTokens.lg} cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors`,
+export const uploadPanelVariants = cva(
+  `${radiusTokens.xl} border-2 border-dashed border-amber-200 bg-amber-50/40 hover:bg-amber-50 transition-colors`,
 );
 export const loadingSpinnerVariants = cva(
   `animate-spin ${radiusTokens.full} border-b-2 border-amber-500`,
@@ -654,9 +654,6 @@ export const confirmCancelButtonVariants = cva(
 );
 export const confirmCancelDividerVariants = cva("bg-border/60");
 
-export const settingsUploadCardVariants = cva(
-  `${radiusTokens.xl} border-2 border-dashed border-amber-200 bg-amber-50/40 hover:bg-amber-50 transition-colors`,
-);
 export const settingsUploadCardPaddingVariants = cva("p-4");
 export const settingsCropFrameVariants = cva(
   `bg-black/80 ${radiusTokens.lg} overflow-hidden`,

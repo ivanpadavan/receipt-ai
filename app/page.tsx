@@ -12,7 +12,6 @@ import {
   actionButtonVariants,
   cardPaddingVariants,
   captureButtonVariants,
-  dropzoneVariants,
   errorBoxVariants,
   loadingSpinnerVariants,
   screenShellVariants,
@@ -20,6 +19,7 @@ import {
   inlineGapVariants,
   textRoleVariants,
   previewImageVariants,
+  uploadPanelVariants,
 } from "@/app/receipt/components/ui-styles";
 
 const captureSupported =
@@ -179,8 +179,9 @@ export default function ImagePastePage() {
               <div
                 className={cn(
                   "w-full min-h-[200px] flex flex-col items-center justify-center",
-                  dropzoneVariants(),
+                  uploadPanelVariants(),
                   cardPaddingVariants({ size: "lg" }),
+                  "cursor-pointer",
                 )}
                 onClick={triggerFileInput}
               >
