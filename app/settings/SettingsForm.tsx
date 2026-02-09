@@ -24,7 +24,7 @@ import {
   settingsCropFrameVariants,
   settingsUploadCardPaddingVariants,
   settingsUploadCardVariants,
-  textVariants,
+  textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
 const captureSupported =
@@ -195,7 +195,7 @@ export const SettingsForm = ({
           userMetadata={{ avatarUrl, displayName }}
         />
         {user.email && (
-          <div className={textVariants({ size: "sm", tone: "muted" })}>
+          <div className={textRoleVariants({ role: "labelSmMuted" })}>
             {user.email}
           </div>
         )}
@@ -261,11 +261,11 @@ export const SettingsForm = ({
                     />
                     <div className="flex flex-col gap-1">
                       <div
-                        className={textVariants({ size: "sm", weight: "medium" })}
+                        className={textRoleVariants({ role: "labelSm" })}
                       >
                         {value ? t("changeAvatar") : t("uploadAvatar")}
                       </div>
-                      <div className={textVariants({ size: "xs", tone: "muted" })}>
+                      <div className={textRoleVariants({ role: "captionXsMuted" })}>
                         {t("avatarUploadHint")}
                       </div>
                     </div>
@@ -313,7 +313,7 @@ export const SettingsForm = ({
                         )}
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className={textVariants({ size: "sm", tone: "muted" })}>
+                        <span className={textRoleVariants({ role: "labelSmMuted" })}>
                           {t("zoom")}
                         </span>
                         <input

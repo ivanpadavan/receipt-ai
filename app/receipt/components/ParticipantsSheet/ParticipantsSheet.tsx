@@ -50,7 +50,7 @@ import {
   participantsSheetBackgroundVariants,
   participantsSheetHeaderVariants,
   participantsDeleteActionVariants,
-  textVariants,
+  textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
 interface ParticipantsSheetProps {
@@ -144,11 +144,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
           )}
         >
           <DrawerTitle
-            className={textVariants({
-              size: "xl",
-              weight: "semibold",
-              tone: "default",
-            })}
+            className={textRoleVariants({ role: "sheetTitle" })}
           >
             {t("participants")}
           </DrawerTitle>
@@ -183,11 +179,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                 )}
               />
               <p
-                className={textVariants({
-                  size: "sm",
-                  tone: "muted",
-                  align: "center",
-                })}
+                className={textRoleVariants({ role: "labelSmMutedCenter" })}
               >
                 {t("participantsEmpty")}
               </p>
@@ -216,7 +208,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                   <span
                     className={cn(
                       "flex-1",
-                      textVariants({ weight: "medium", tone: "default" }),
+                      textRoleVariants({ role: "labelSm" }),
                     )}
                   >
                     {participant.displayName}
@@ -280,7 +272,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                 />
                 {hasNameConflict && (
                   <span
-                    className={textVariants({ size: "xs", tone: "warning" })}
+                    className={textRoleVariants({ role: "captionXsWarning" })}
                   >
                     {t("nameConflict")}
                   </span>
@@ -335,7 +327,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                 <span
                   className={cn(
                     "block mt-2",
-                    textVariants({ weight: "semibold", tone: "default" }),
+                    textRoleVariants({ role: "amountSemibold" }),
                   )}
                 >
                   {deleteConfirm.displayName}

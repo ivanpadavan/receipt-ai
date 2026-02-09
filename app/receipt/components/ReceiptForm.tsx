@@ -65,6 +65,7 @@ import {
   rowContentPaddingVariants,
   stickyBarPaddingVariants,
   totalValueVariants,
+  textRoleVariants,
   textVariants,
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
@@ -329,12 +330,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
               <>
                 <div className="mb-3 flex items-center justify-between">
                   <h2
-                    className={textVariants({
-                        size: "sm",
-                        weight: "semibold",
-                        tone: "muted",
-                        style: "caps",
-                      })}
+                    className={textRoleVariants({ role: "overlineMuted" })}
                   >
                     {t("receipt")}
                   </h2>
@@ -401,20 +397,13 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                                 <p
                                   className={cn(
                                     "truncate",
-                                    textVariants({
-                                      size: "base",
-                                      weight: "bold",
-                                      tone: "default",
-                                    }),
+                                    textRoleVariants({ role: "itemTitle" }),
                                   )}
                                 >
                                   {field.name}
                                 </p>
                                 <p
-                                  className={textVariants({
-                                    size: "xs",
-                                    tone: "muted",
-                                  })}
+                                  className={textRoleVariants({ role: "captionXsMuted" })}
                                 >
                                   <span
                                     className={positionMetaValueVariants({
@@ -504,7 +493,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                           openEditModal({ type: "totals" })
                         }
                       >
-                        <span className={textVariants({ tone: "muted" })}>
+                        <span className={textRoleVariants({ role: "labelSmMuted" })}>
                           {t("total")}
                         </span>
                         <span
@@ -531,11 +520,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                         }
                       >
                         <span
-                          className={textVariants({
-                            size: "base",
-                            weight: "semibold",
-                            tone: "default",
-                          })}
+                          className={textRoleVariants({ role: "labelBaseStrong" })}
                         >
                           {t("grandTotal")}
                         </span>

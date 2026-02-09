@@ -258,6 +258,45 @@ export const textVariants = cva("", {
   },
 });
 
+export const textRoleVariants = cva("", {
+  variants: {
+    role: {
+      pageTitle: "text-3xl font-bold text-amber-800",
+      pageTitleCenter: "text-3xl font-bold text-amber-800 text-center",
+      sectionTitle: "text-2xl font-bold text-foreground",
+      sectionTitleCenter: "text-2xl font-bold text-foreground text-center",
+      sheetTitle: "text-xl font-semibold text-foreground",
+      sectionSubtitle: "text-lg font-medium text-muted-foreground",
+      headingLg: "text-lg font-medium text-foreground",
+      headingLgCenter: "text-lg font-medium text-foreground text-center",
+      labelSm: "text-sm font-medium text-foreground",
+      labelSmMuted: "text-sm text-muted-foreground",
+      labelSmMutedCenter: "text-sm text-muted-foreground text-center",
+      labelMuted: "text-muted-foreground",
+      captionXsMuted: "text-xs text-muted-foreground",
+      captionXsWarning: "text-xs text-amber-600",
+      overlineMuted: "text-sm font-semibold uppercase tracking-wide text-muted-foreground",
+      statusBrandSm: "text-sm font-medium text-amber-800",
+      labelBaseStrong: "text-base font-semibold text-foreground",
+      itemTitle: "text-base font-bold text-foreground",
+      amountHero: "text-4xl font-bold text-foreground",
+      amountCurrencyMuted: "text-2xl text-muted-foreground",
+      amountXl: "text-xl font-bold text-foreground",
+      amountBase: "text-base font-semibold text-foreground",
+      amountSemibold: "font-semibold text-foreground",
+      badgeCount: "text-sm font-semibold text-center",
+      metaSmBrand: "text-sm text-amber-600",
+      metaSmBrandStrong: "text-sm text-amber-800",
+      metaSmBrandStrongEm: "text-sm font-medium text-amber-800",
+      titleLgBrandStrong: "text-lg font-semibold text-amber-800",
+      bodyMutedCenter: "text-muted-foreground text-center",
+    },
+  },
+  defaultVariants: {
+    role: "labelMuted",
+  },
+});
+
 export const screenShellVariants = cva("bg-amber-50 p-4");
 
 export const cardPaddingVariants = cva("", {

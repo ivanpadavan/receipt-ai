@@ -14,6 +14,7 @@ import {
   notFoundButtonVariants,
   notFoundCardPaddingVariants,
   notFoundShellVariants,
+  textRoleVariants,
   textVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -49,11 +50,7 @@ export default async function ReceiptPage({
           <h1
             className={cn(
               "mb-6",
-              textVariants({
-                size: "2xl",
-                weight: "bold",
-                align: "center",
-              }),
+              textRoleVariants({ role: "sectionTitleCenter" }),
             )}
           >
             {t("receiptNotFound")}
@@ -61,7 +58,7 @@ export default async function ReceiptPage({
           <p
             className={cn(
               "mb-6",
-              textVariants({ tone: "muted", align: "center" }),
+              textRoleVariants({ role: "bodyMutedCenter" }),
             )}
           >
             {t("receiptNotFoundBody")}

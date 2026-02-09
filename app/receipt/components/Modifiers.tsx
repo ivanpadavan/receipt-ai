@@ -11,7 +11,7 @@ import { cn } from "@/utils/cn";
 import {
   modifierRowVariants,
   modifierValueVariants,
-  textVariants,
+  textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
 interface ModifiersProps {
@@ -36,7 +36,7 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
       <div
         className={cn(
           "mb-1",
-          textVariants({ size: "sm", tone: "muted" }),
+          textRoleVariants({ role: "labelSmMuted" }),
         )}
       >
         {t(type)}:
@@ -62,7 +62,7 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
                 })
               }
             >
-              <span className={textVariants({ tone: "muted" })}>
+              <span className={textRoleVariants({ role: "labelMuted" })}>
                 {item.name || t("modifierName")}
               </span>
               <span

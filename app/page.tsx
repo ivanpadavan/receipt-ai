@@ -16,8 +16,8 @@ import {
   errorBoxVariants,
   loadingSpinnerVariants,
   screenShellVariants,
+  textRoleVariants,
   previewImageVariants,
-  textVariants,
 } from "@/app/receipt/components/ui-styles";
 
 const captureSupported =
@@ -112,12 +112,7 @@ export default function ImagePastePage() {
           <h1
             className={cn(
               "mb-6",
-              textVariants({
-                size: "3xl",
-                weight: "bold",
-                tone: "brandStrong",
-                align: "center",
-              }),
+              textRoleVariants({ role: "pageTitleCenter" }),
             )}
           >
             {t("receiptScannerTitle")}
@@ -186,7 +181,7 @@ export default function ImagePastePage() {
                   xmlns="http://www.w3.org/2000/svg"
                   className={cn(
                     "h-12 w-12 mb-4",
-                    textVariants({ tone: "muted" }),
+                    textRoleVariants({ role: "labelMuted" }),
                   )}
                   fill="none"
                   viewBox="0 0 24 24"
@@ -202,22 +197,13 @@ export default function ImagePastePage() {
                 <p
                   className={cn(
                     "mb-2",
-                    textVariants({
-                      size: "lg",
-                      weight: "medium",
-                      tone: "default",
-                      align: "center",
-                    }),
+                    textRoleVariants({ role: "headingLgCenter" }),
                   )}
                 >
                   {t("uploadReceiptImage")}
                 </p>
                 <p
-                  className={textVariants({
-                    size: "sm",
-                    tone: "muted",
-                    align: "center",
-                  })}
+                  className={textRoleVariants({ role: "labelSmMutedCenter" })}
                 >
                   {t("tapToSelectOrPaste")}
                 </p>
@@ -276,11 +262,7 @@ export default function ImagePastePage() {
             >
               <div className={cn("h-12 w-12 mb-4", loadingSpinnerVariants())} />
               <span
-                className={textVariants({
-                  size: "sm",
-                  weight: "medium",
-                  tone: "brandStrong",
-                })}
+                className={textRoleVariants({ role: "statusBrandSm" })}
               >
                 {t("processingReceipt")}
               </span>

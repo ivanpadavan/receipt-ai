@@ -20,6 +20,7 @@ import {
   summaryItemListVariants,
   summaryItemRowPaddingVariants,
   textVariants,
+  textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
 interface SummaryScreenProps {
@@ -66,20 +67,18 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
         <h2
           className={cn(
             "mb-1",
-            textVariants({ size: "lg", weight: "medium", tone: "muted" }),
+            textRoleVariants({ role: "sectionSubtitle" }),
           )}
         >
           {t("total")}
         </h2>
         <div
-          className={textVariants({
-            size: "4xl",
-            weight: "bold",
-            tone: "default",
-          })}
+          className={textRoleVariants({ role: "amountHero" })}
         >
           {realGrandTotal.toFixed(0)}{" "}
-          <span className={textVariants({ size: "2xl", tone: "muted" })}>₽</span>
+          <span className={textRoleVariants({ role: "amountCurrencyMuted" })}>
+            ₽
+          </span>
         </div>
 
         {/* Remaining Indicator */}
@@ -117,30 +116,21 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
               <div className="flex items-center gap-3 w-full mb-2">
                 <ParticipantAvatar participant={participant} />
                 <span
-                  className={cn(
-                    "flex-1 truncate",
-                    textVariants({
-                      size: "lg",
-                      weight: "medium",
-                      tone: "default",
-                      align: "left",
-                    }),
-                  )}
-                >
-                  {participant.displayName}
-                </span>
+                    className={cn(
+                      "flex-1 truncate",
+                      textRoleVariants({ role: "headingLg" }),
+                    )}
+                  >
+                    {participant.displayName}
+                  </span>
                 <div className={summaryBalanceAmountWrapperVariants()}>
                   <span
-                    className={textVariants({
-                      size: "xl",
-                      weight: "bold",
-                      tone: "default",
-                    })}
+                    className={textRoleVariants({ role: "amountXl" })}
                   >
                     {balance.finalAmount.toFixed(0)} ₽
                   </span>
                   {Math.abs(balance.finalAmount - balance.baseAmount) > 0.1 && (
-                    <span className={textVariants({ size: "xs", tone: "muted" })}>
+                    <span className={textRoleVariants({ role: "captionXsMuted" })}>
                       {balance.baseAmount.toFixed(0)}{" "}
                       {balance.finalAmount - balance.baseAmount > 0 ? "+" : "−"}{" "}
                       {Math.abs(
@@ -157,7 +147,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
                     className={cn(
                       "space-y-1",
                       summaryItemListVariants(),
-                      textVariants({ size: "sm", tone: "muted" }),
+                      textRoleVariants({ role: "labelSmMuted" }),
                     )}
                   >
                     {balance.items.map((item, idx) => (
@@ -175,15 +165,13 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
                           )}
                         >
                           <div
-                            className={textVariants({
-                              tone: "default",
-                            })}
+                            className={textVariants({ tone: "default" })}
                           >
                             {item.positionName}
                           </div>
                           {item.description && (
                             <div
-                              className={textVariants({ size: "xs", tone: "muted" })}
+                              className={textRoleVariants({ role: "captionXsMuted" })}
                             >
                               {item.description}
                             </div>
@@ -192,7 +180,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
                         <span
                           className={cn(
                             summaryAmountVariants(),
-                            textVariants({ weight: "medium", tone: "default" }),
+                            textRoleVariants({ role: "labelSm" }),
                           )}
                         >
                           {item.rawAmount.toFixed(0)} ₽
@@ -210,7 +198,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
           <div
             className={cn(
               summaryEmptyStateVariants(),
-              textVariants({ tone: "muted", align: "center" }),
+              textRoleVariants({ role: "bodyMutedCenter" }),
             )}
           >
             {t("noClaims")}

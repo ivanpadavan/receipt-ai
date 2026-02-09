@@ -72,7 +72,7 @@ import {
   splittingTypeSwitchWrapperVariants,
   splittingClaimsListPaddingVariants,
   sheetTitlePaddingVariants,
-  textVariants,
+  textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
 // --- Components ---
@@ -195,14 +195,14 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
           <div
             className={cn("flex items-baseline gap-2", splittingClaimInfoVariants())}
           >
-            <span className={textVariants({ weight: "semibold" })}>
+            <span className={textRoleVariants({ role: "amountSemibold" })}>
               {claim.value}
             </span>
-            <span className={textVariants({ size: "sm", tone: "muted" })}>
+            <span className={textRoleVariants({ role: "labelSmMuted" })}>
               {claim.type === "amount" ? "₽" : t("pcs")}
             </span>
             {claim.type !== "amount" && (
-              <span className={textVariants({ size: "sm", tone: "muted" })}>
+              <span className={textRoleVariants({ role: "labelSmMuted" })}>
                 = {amount.toFixed(0)} ₽
               </span>
             )}
@@ -427,7 +427,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       <DrawerTitle
         className={cn(
           sheetTitlePaddingVariants(),
-          textVariants({ align: "center" }),
+          textRoleVariants({ role: "sectionTitleCenter" }),
         )}
       >
         {localPosition.name}
@@ -437,12 +437,12 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         className={cn(
           "flex flex-col items-center gap-1",
           splittingSheetSubtitleVariants(),
-          textVariants({ size: "sm", tone: "muted", align: "center" }),
+          textRoleVariants({ role: "labelSmMutedCenter" }),
         )}
       >
         <div>
           {localPosition.quantity} {t("pcs")} × {localPosition.price} ₽ ={" "}
-          <span className={textVariants({ weight: "semibold", tone: "default" })}>
+          <span className={textRoleVariants({ role: "amountSemibold" })}>
             {localPosition.overall} ₽
           </span>
         </div>
@@ -562,10 +562,10 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
           <div
             className={cn(
               "flex justify-between mb-2",
-              textVariants({ size: "sm" }),
+              textRoleVariants({ role: "labelSm" }),
             )}
           >
-            <span className={textVariants({ tone: "muted" })}>
+            <span className={textRoleVariants({ role: "labelSmMuted" })}>
               {t("distributed")}
             </span>
             <span className="font-medium">

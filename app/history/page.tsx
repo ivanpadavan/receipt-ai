@@ -12,7 +12,7 @@ import {
   historyEmptyCardTextVariants,
   historyReceiptCardVariants,
   screenShellVariants,
-  textVariants,
+  textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
 // export const runtime = 'edge';
@@ -41,11 +41,7 @@ export default async function HistoryPage() {
       <div className="w-full max-w-md mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1
-            className={textVariants({
-              size: "3xl",
-              weight: "bold",
-              tone: "brandStrong",
-            })}
+            className={textRoleVariants({ role: "pageTitle" })}
           >
             {t("receiptHistory")}
           </h1>
@@ -94,19 +90,12 @@ export default async function HistoryPage() {
                   >
                     <div className="mb-2 flex items-center justify-between">
                       <h2
-                        className={textVariants({
-                          size: "lg",
-                          weight: "semibold",
-                          tone: "brandStrong",
-                        })}
+                        className={textRoleVariants({ role: "titleLgBrandStrong" })}
                       >
                         {t("receipt")} #{receipt.id.slice(-6)}
                       </h2>
                       <span
-                        className={textVariants({
-                          size: "sm",
-                          tone: "brand",
-                        })}
+                        className={textRoleVariants({ role: "metaSmBrand" })}
                       >
                         {new Date(receipt.createdAt).toLocaleDateString()}
                       </span>
@@ -114,17 +103,14 @@ export default async function HistoryPage() {
                     <div
                       className={cn(
                         "flex justify-between",
-                        textVariants({ size: "sm", tone: "brandStrong" }),
+                        textRoleVariants({ role: "metaSmBrandStrong" }),
                       )}
                     >
                       <span>
                         {itemCount} {itemCount === 1 ? t("itemSingle") : t("itemPlural")}
                       </span>
                       <span
-                        className={textVariants({
-                          weight: "medium",
-                          tone: "brandStrong",
-                        })}
+                        className={textRoleVariants({ role: "metaSmBrandStrongEm" })}
                       >
                         ${totalAmount.toFixed(2)}
                       </span>

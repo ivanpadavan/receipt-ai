@@ -14,7 +14,7 @@ import {
   cardPaddingVariants,
   settingsCardContentVariants,
   screenShellVariants,
-  textVariants,
+  textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
 
 export default function SettingsPage() {
@@ -70,11 +70,7 @@ export default function SettingsPage() {
         <h1
           className={cn(
             "mb-6",
-            textVariants({
-              size: "2xl",
-              weight: "bold",
-              align: "center",
-            }),
+            textRoleVariants({ role: "sectionTitleCenter" }),
           )}
         >
           {t("settings")}
