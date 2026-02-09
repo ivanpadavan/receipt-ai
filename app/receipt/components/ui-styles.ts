@@ -207,8 +207,6 @@ export const inputStateVariants = cva("", {
   },
 });
 
-export const centeredTitleVariants = cva("text-center");
-
 export const sheetHeaderTitleVariants = cva("text-center px-4 pt-4");
 export const dialogHeaderTitleVariants = cva("text-center");
 
@@ -466,30 +464,6 @@ export const rowVariants = cva("flex", {
   },
 });
 
-export const columnVariants = cva("flex flex-col", {
-  variants: {
-    align: {
-      start: "items-start",
-      center: "items-center",
-      stretch: "items-stretch",
-    },
-    justify: {
-      start: "justify-start",
-      center: "justify-center",
-      between: "justify-between",
-    },
-    width: {
-      full: "w-full",
-      auto: "",
-    },
-  },
-  defaultVariants: {
-    align: "start",
-    justify: "start",
-    width: "auto",
-  },
-});
-
 export const screenShellVariants = cva("bg-amber-50 p-4");
 
 export const cardPaddingVariants = cva("", {
@@ -517,21 +491,6 @@ export const rowContentPaddingVariants = cva("", {
     density: "regular",
   },
 });
-
-export const sectionPaddingVariants = cva("", {
-  variants: {
-    size: {
-      sm: "px-4 py-2",
-      md: "px-4 py-3",
-      lg: "px-5 py-4",
-    },
-  },
-  defaultVariants: {
-    size: "md",
-  },
-});
-
-export const sheetTitlePaddingVariants = cva("px-4 pt-4");
 
 export const previewImageVariants = cva(`object-contain ${radiusTokens.sm}`);
 export const actionButtonVariants = cva(shadowTokens.md);
@@ -864,7 +823,6 @@ export const modifierValueVariants = cva("font-medium", {
   },
 });
 
-export const sheetBodyPaddingVariants = cva("p-4");
 export const errorListVariants = cva("list-disc pl-5");
 
 export const receiptActionBarParticipantBadgeVariants = cva(
@@ -893,34 +851,5 @@ export const participantsBadgeButtonVariants = cva("", {
   },
   defaultVariants: {
     size: "full",
-  },
-});
-
-export const cellVariants = cva("", {
-  variants: {
-    tone: {
-      default: "",
-      danger: "text-red-500",
-    },
-  },
-  defaultVariants: {
-    tone: "default",
-  },
-});
-
-export const cellGroupVariants = cva("", {
-  variants: {
-    tone: {
-      default: "",
-      danger: "bg-red-50",
-    },
-    interactive: {
-      true: "cursor-pointer bg-gray-100",
-      false: "",
-    },
-  },
-  defaultVariants: {
-    tone: "default",
-    interactive: false,
   },
 });

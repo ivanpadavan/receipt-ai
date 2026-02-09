@@ -67,7 +67,7 @@ export default async function HistoryPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className={stackGapVariants({ size: "lg" })}>
+          <div className={stackGapVariants({ size: "sm" })}>
             {receipts.map((receipt) => {
               // Parse the receipt data from JSON
               const receiptData = receipt.data as unknown as Receipt;
@@ -79,7 +79,7 @@ export default async function HistoryPage() {
               const totalAmount = receiptData.totals.total;
 
               return (
-                <Link href={`/receipt/${receipt.id}`} key={receipt.id}>
+                <Link className="block" href={`/receipt/${receipt.id}`} key={receipt.id}>
                   <Card
                     variant="interactive"
                     shadow="md"
