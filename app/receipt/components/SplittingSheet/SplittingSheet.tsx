@@ -10,9 +10,8 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { ButtonGroup, ButtonGroupSeparator } from "@/components/ui/button-group";
 import { useReceiptState } from "../ReceiptForm";
-import { Check, Pencil, Trash2, MoreVertical, X } from "lucide-react";
+import { Check, Pencil, Trash2, MoreVertical } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -31,6 +30,7 @@ import { cn } from "@/utils/cn";
 import { ParticipantAvatar } from "@/components/ui/participant-avatar";
 import { DistributionBar } from "./DistributionBar";
 import { DistributionStatus } from "@/app/receipt/components/DistributionStatus";
+import { ConfirmCancelGroup } from "@/app/receipt/components/ui/ConfirmCancelGroup";
 import {
   ParticipantDTO,
   ReceiptPosition,
@@ -43,11 +43,7 @@ import { useSplittingLogic } from "./useSplittingLogic";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { Card } from "@/components/ui/card";
 import { getFormPathErrorMessage, hasFormPathError } from "@/app/receipt/utils/hasFormPathError";
-import {
-  iconButtonVariants,
-  iconGroupVariants,
-  iconSoloVariants,
-} from "@/app/receipt/components/ui-styles";
+import { iconButtonVariants, iconSoloVariants } from "@/app/receipt/components/ui-styles";
 
 // --- Components ---
 
@@ -117,27 +113,11 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
           ₽
         </button>
       </div>
-      {/* Actions */}
-      <ButtonGroup className={iconGroupVariants({ density: "compact" })}>
-        <Button
-          variant="ghost"
-          size="icon"
-          className={iconButtonVariants({ size: "compact", tone: "muted" })}
-          onClick={onCancel}
-        >
-          <X className="h-4 w-4" />
-        </Button>
-        <ButtonGroupSeparator className="mx-0 h-5 opacity-30" />
-        <Button
-          variant="ghost"
-          size="icon"
-          className={iconButtonVariants({ size: "compact", tone: "success" })}
-          onClick={onSave}
-          disabled={claim.value <= 0 || isInvalid}
-        >
-          <Check className="h-5 w-5" />
-        </Button>
-      </ButtonGroup>
+      <ConfirmCancelGroup
+        onCancel={onCancel}
+        onConfirm={onSave}
+        confirmDisabled={claim.value <= 0 || isInvalid}
+      />
     </div>
   );
 };

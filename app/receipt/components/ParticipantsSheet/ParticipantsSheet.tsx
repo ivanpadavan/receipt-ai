@@ -6,7 +6,7 @@ import { ParticipantAvatar } from "@/components/ui/participant-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { ButtonGroup, ButtonGroupSeparator } from "@/components/ui/button-group";
+import { ConfirmCancelGroup } from "@/app/receipt/components/ui/ConfirmCancelGroup";
 import {
   DrawerContent,
   DrawerHeader,
@@ -30,12 +30,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { t } from "@/app/i18n/translations";
-import { UserPlus, X, Check, Trash2, MoreVertical } from "lucide-react";
+import { UserPlus, X, Trash2, MoreVertical } from "lucide-react";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
-import {
-  iconButtonVariants,
-  iconGroupVariants,
-} from "@/app/receipt/components/ui-styles";
 
 interface ParticipantsSheetProps {
   onClose?: () => void;
@@ -203,37 +199,14 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                     {t("nameConflict")}
                   </span>
                 )}
-                <ButtonGroup
-                  className={iconGroupVariants({ density: "roomy" })}
-                >
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      setNewParticipantName("");
-                      setIsAdding(false);
-                    }}
-                    className={iconButtonVariants({
-                      size: "liquid",
-                      tone: "neutral",
-                    })}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                  <ButtonGroupSeparator className="mx-0 h-5 opacity-30" />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleAddParticipant}
-                    disabled={!newParticipantName.trim()}
-                    className={iconButtonVariants({
-                      size: "liquid",
-                      tone: "successSoft",
-                    })}
-                  >
-                    <Check className="h-5 w-5" />
-                  </Button>
-                </ButtonGroup>
+                <ConfirmCancelGroup
+                  onCancel={() => {
+                    setNewParticipantName("");
+                    setIsAdding(false);
+                  }}
+                  onConfirm={handleAddParticipant}
+                  confirmDisabled={!newParticipantName.trim()}
+                />
               </CardContent>
             </Card>
           )}
