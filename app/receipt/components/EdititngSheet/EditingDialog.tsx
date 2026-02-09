@@ -27,6 +27,7 @@ import {
   noticeVariants,
   fieldLabelVariants,
   inputStateVariants,
+  centeredTitleVariants,
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
 
@@ -148,7 +149,9 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
       }}
     >
       <DialogHeader>
-        <DialogTitle className="text-center sm:text-center">{t(header)}</DialogTitle>
+        <DialogTitle className={centeredTitleVariants()}>
+          {t(header)}
+        </DialogTitle>
         <DialogDescription className="sr-only">{t(header)}</DialogDescription>
       </DialogHeader>
       <div className="mt-4 space-y-4">

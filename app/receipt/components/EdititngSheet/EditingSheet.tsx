@@ -25,6 +25,7 @@ import {
   fieldLabelVariants,
   inputStateVariants,
   noticeVariants,
+  centeredTitleVariants,
 } from "@/app/receipt/components/ui-styles";
 
 type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
@@ -150,7 +151,9 @@ export const EditingSheet: React.FC<EditModalProps> = ({
 
   return (
     <DrawerContent>
-      <DrawerTitle className={"px-4 pt-4 text-center"}>{t(header)}</DrawerTitle>
+      <DrawerTitle className={cn("px-4 pt-4", centeredTitleVariants())}>
+        {t(header)}
+      </DrawerTitle>
       <div className={"p-4"}>
         {conflict && (
           <div className={cn("mb-4", noticeVariants({ tone: "warning" }))}>

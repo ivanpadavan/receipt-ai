@@ -180,3 +180,5 @@ export const inputStateVariants = cva("", {
     state: "default",
   },
 });
+
+export const centeredTitleVariants = cva("text-center");
