@@ -17,6 +17,9 @@ import { t } from "@/app/i18n/translations";
 import { Copy, Share2, QrCode } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
+import { cva } from "class-variance-authority";
+
+const qrContainerVariants = cva("rounded-xl border bg-white p-3");
 
 type ShareReceiptDialogProps = {
   receiptId: string;
@@ -87,7 +90,7 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
         </AlertDialogHeader>
 
         <div className="flex flex-col items-center gap-4 py-2">
-          <div className="rounded-xl border bg-white p-3">
+          <div className={qrContainerVariants()}>
             <QRCodeSVG
               value={receiptUrl}
               size={220}

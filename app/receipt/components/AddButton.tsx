@@ -1,4 +1,10 @@
 import { Button } from "@/components/ui/button";
+import { cva } from "class-variance-authority";
+import { cn } from "@/utils/cn";
+
+const addButtonVariants = cva(
+  "h-6 w-6 p-0 rounded-sm bg-accent text-foreground hover:bg-accent/80",
+);
 
 interface AddButtonProps {
   onClick?: () => void;
@@ -14,7 +20,7 @@ export const AddButton: React.FC<AddButtonProps> = ({
       type="button"
       variant="secondary"
       onClick={onClick}
-      className={`h-6 w-6 p-0 rounded-sm bg-accent hover:bg-accent/80 text-foreground ${className}`}
+      className={cn(addButtonVariants(), className)}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
