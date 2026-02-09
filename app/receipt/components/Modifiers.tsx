@@ -22,6 +22,8 @@ const modifierRowVariants = cva("rounded-md px-1 py-1", {
   },
 });
 
+const modifierLabelVariants = cva("text-muted-foreground");
+
 const modifierValueVariants = cva("font-medium", {
   variants: {
     tone: {
@@ -54,7 +56,9 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
 
   return (
     <div className="mt-2">
-      <div className="mb-1 text-sm text-muted-foreground">{t(type)}:</div>
+      <div className={cn("mb-1 text-sm", modifierLabelVariants())}>
+        {t(type)}:
+      </div>
       <div className="space-y-1">
         {items.map((item, index) => {
           const hasValueError = hasFormPathError(errors, `${type}.${index}.value`);
@@ -76,7 +80,7 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
                 })
               }
             >
-              <span className="text-muted-foreground">
+              <span className={modifierLabelVariants()}>
                 {item.name || t("modifierName")}
               </span>
               <span
