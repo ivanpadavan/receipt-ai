@@ -76,6 +76,30 @@ const typeSwitchButtonVariants = cva(
   },
 );
 
+const menuButtonVariants = cva("h-8 w-8 text-gray-500");
+
+const menuDangerItemVariants = cva(
+  "text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50",
+);
+
+const avatarRingVariants = cva("ring-2 ring-background rounded-full");
+
+const avatarFallbackVariants = cva(
+  "rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground",
+);
+
+const avatarOverflowVariants = cva(
+  "rounded-full bg-muted flex items-center justify-center text-xs font-medium ring-2 ring-muted-foreground/30",
+);
+
+const claimHeaderVariants = cva(
+  "hover:bg-muted/30 transition-colors bg-background",
+);
+
+const addShareButtonVariants = cva("rounded-full border");
+
+const claimsErrorRingVariants = cva("ring-1 ring-destructive/40 rounded-xl");
+
 const EditingHeader: React.FC<EditingHeaderProps> = ({
   claim,
   isInvalid,
@@ -183,19 +207,19 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
               selectedParticipants.slice(0, 4).map((p, idx) => (
                 <div
                   key={p.id}
-                  className="relative ring-2 ring-background rounded-full"
+                  className={cn("relative", avatarRingVariants())}
                   style={{ zIndex: selectedParticipants.length - idx }}
                 >
                   <ParticipantAvatar participant={p} className="h-7 w-7" />
                 </div>
               ))
             ) : (
-              <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
+              <div className={cn("w-7 h-7", avatarFallbackVariants())}>
                 ?
               </div>
             )}
             {selectedParticipants.length > 4 && (
-              <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs font-medium ring-2 ring-muted-foreground/30">
+              <div className={cn("w-7 h-7", avatarOverflowVariants())}>
                 +{selectedParticipants.length - 4}
               </div>
             )}
@@ -210,7 +234,7 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-gray-500"
+              className={menuButtonVariants()}
             >
               <MoreVertical className="h-4 w-4" />
             </Button>
@@ -222,7 +246,7 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={onRemove}
-              className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50"
+              className={menuDangerItemVariants()}
             >
               <Trash2 className="h-4 w-4 mr-2" />
               {t("delete")}
@@ -308,7 +332,9 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
         defaultValue={defaultOpen ? "1" : undefined}
       >
         <AccordionItem value="1">
-          <AccordionHeader className="flex items-stretch hover:bg-muted/30 transition-colors bg-background h-[4rem]">
+          <AccordionHeader
+            className={cn("flex items-stretch h-[4rem]", claimHeaderVariants())}
+          >
             {header}
           </AccordionHeader>
 
@@ -405,7 +431,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         <div className="px-4 pb-3">
           <Button
             variant="ghost"
-            className="w-full rounded-full border "
+            className={cn("w-full", addShareButtonVariants())}
             onClick={startAdding}
           >
             + {t("addShare")}
@@ -417,7 +443,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       <div
         className={cn(
           "flex-1 overflow-y-auto px-4 space-y-3",
-          hasClaimsError && "ring-1 ring-destructive/40 rounded-xl",
+          hasClaimsError && claimsErrorRingVariants(),
         )}
       >
         {/* Add View (only if adding new) */}
