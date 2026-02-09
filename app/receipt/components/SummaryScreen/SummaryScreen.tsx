@@ -22,6 +22,7 @@ const itemListVariants = cva("text-sm space-y-1 text-muted-foreground border-t p
 const itemNameVariants = cva("truncate text-foreground");
 const itemDescVariants = cva("text-xs text-muted-foreground truncate");
 const emptyStateVariants = cva("text-center text-muted-foreground");
+const balanceAmountWrapperVariants = cva("text-right");
 
 interface SummaryScreenProps {
   receipt: Receipt;
@@ -98,7 +99,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
                 <span className={cn("flex-1", balanceNameVariants())}>
                   {participant.displayName}
                 </span>
-                <div className="text-right">
+                <div className={balanceAmountWrapperVariants()}>
                   <span className={balanceAmountVariants()}>
                     {balance.finalAmount.toFixed(0)} ₽
                   </span>
