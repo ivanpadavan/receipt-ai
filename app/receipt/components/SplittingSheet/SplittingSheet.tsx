@@ -100,6 +100,28 @@ const addShareButtonVariants = cva("rounded-full border");
 
 const claimsErrorRingVariants = cva("ring-1 ring-destructive/40 rounded-xl");
 
+const claimInfoVariants = cva("text-foreground");
+const claimMetaVariants = cva("text-sm text-muted-foreground");
+const participantButtonVariants = cva("relative rounded-full transition-all", {
+  variants: {
+    selected: {
+      true: "",
+      false: "opacity-50 hover:opacity-80",
+    },
+  },
+  defaultVariants: {
+    selected: true,
+  },
+});
+
+const accordionContentVariants = cva("border-t bg-background");
+
+const sheetTitleVariants = cva("text-center");
+const sheetSubtitleVariants = cva("text-sm text-muted-foreground");
+const footerVariants = cva("border-t bg-background");
+const footerLabelVariants = cva("text-muted-foreground");
+const sheetOverallValueVariants = cva("font-semibold text-foreground");
+
 const EditingHeader: React.FC<EditingHeaderProps> = ({
   claim,
   isInvalid,
@@ -189,13 +211,13 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
       <AccordionTrigger className="flex-1 px-3 py-3 hover:no-underline">
         <div className="flex justify-between items-center w-full">
           {/* Claim info - left side */}
-          <div className="flex items-baseline gap-2 text-foreground">
+          <div className={cn("flex items-baseline gap-2", claimInfoVariants())}>
             <span className="font-semibold">{claim.value}</span>
-            <span className="text-sm text-muted-foreground">
+            <span className={claimMetaVariants()}>
               {claim.type === "amount" ? "₽" : t("pcs")}
             </span>
             {claim.type !== "amount" && (
-              <span className="text-sm text-muted-foreground">
+              <span className={claimMetaVariants()}>
                 = {amount.toFixed(0)} ₽
               </span>
             )}
@@ -286,8 +308,7 @@ const ParticipantsSelector: React.FC<ParticipantsSelectorProps> = ({
             key={p.id}
             onClick={() => handleToggle(p.id)}
             className={cn(
-              "relative rounded-full transition-all",
-              !isSelected && "opacity-50 hover:opacity-80",
+              participantButtonVariants({ selected: isSelected }),
             )}
           >
             <ParticipantAvatar
@@ -339,7 +360,7 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
           </AccordionHeader>
 
           <AccordionContent className="p-0">
-            <div className="px-3 py-2 border-t bg-background">
+            <div className={cn("px-3 py-2", accordionContentVariants())}>
               <ParticipantsSelector
                 selectedIds={claim.participantIds}
                 participants={participants}
@@ -399,14 +420,19 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
   return (
     <DrawerContent className="h-[85vh] flex flex-col">
-      <DrawerTitle className="px-4 pt-4 text-center">
+      <DrawerTitle className={cn("px-4 pt-4", sheetTitleVariants())}>
         {localPosition.name}
       </DrawerTitle>
 
-      <div className="px-4 py-2 text-center text-sm text-muted-foreground flex flex-col items-center gap-1">
+      <div
+        className={cn(
+          "px-4 py-2 text-center flex flex-col items-center gap-1",
+          sheetSubtitleVariants(),
+        )}
+      >
         <div>
           {localPosition.quantity} {t("pcs")} × {localPosition.price} ₽ ={" "}
-          <span className="font-semibold text-foreground">
+          <span className={sheetOverallValueVariants()}>
             {localPosition.overall} ₽
           </span>
         </div>
@@ -521,17 +547,17 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
       {/* Footer - Distribution + Done button */}
 
-      <DrawerFooter className="pt-2 border-t bg-background">
+      <DrawerFooter className={cn("pt-2", footerVariants())}>
         <div className="px-4 py-3">
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-muted-foreground">{t("distributed")}</span>
+            <span className={footerLabelVariants()}>{t("distributed")}</span>
             <span className="font-medium">
               {totalClaimed.toFixed(0)} / {localPosition.overall} ₽
             </span>
           </div>
           <DistributionBar
             data={effectivePosition}
-            className="h-3 rounded-full"
+            className="h-3"
           />
         </div>
         <div className="flex gap-2">
