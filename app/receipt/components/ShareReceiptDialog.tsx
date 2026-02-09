@@ -17,15 +17,12 @@ import { t } from "@/app/i18n/translations";
 import { Copy, Share2, QrCode } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
-import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
-import { radiusTokens } from "@/app/receipt/components/ui-styles";
-
-const qrContainerVariants = cva(
-  `${radiusTokens.xl} border bg-white p-3`,
-);
-const triggerLabelVariants = cva("text-[11px] font-medium");
-const shareContentPaddingVariants = cva("py-2");
+import {
+  shareReceiptContentPaddingVariants,
+  shareReceiptQrContainerVariants,
+  shareReceiptTriggerLabelVariants,
+} from "@/app/receipt/components/ui-styles";
 
 type ShareReceiptDialogProps = {
   receiptId: string;
@@ -79,7 +76,9 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
           {stacked ? (
             <span className="flex flex-col items-center gap-1 leading-none">
               <Share2 className="h-4 w-4" />
-              <span className={triggerLabelVariants()}>{triggerLabel}</span>
+              <span className={shareReceiptTriggerLabelVariants()}>
+                {triggerLabel}
+              </span>
             </span>
           ) : (
             <>
@@ -98,10 +97,10 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
         <div
           className={cn(
             "flex flex-col items-center gap-4",
-            shareContentPaddingVariants(),
+            shareReceiptContentPaddingVariants(),
           )}
         >
-          <div className={qrContainerVariants()}>
+          <div className={shareReceiptQrContainerVariants()}>
             <QRCodeSVG
               value={receiptUrl}
               size={220}

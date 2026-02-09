@@ -1,11 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
-import { radiusTokens } from "@/app/receipt/components/ui-styles";
-
-const addButtonVariants = cva(
-  `h-6 w-6 p-0 ${radiusTokens.xs} bg-accent text-foreground hover:bg-accent/80`,
-);
+import { addButtonVariants } from "@/app/receipt/components/ui-styles";
 
 interface AddButtonProps {
   onClick?: () => void;

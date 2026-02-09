@@ -19,9 +19,13 @@ import {
 import { t } from "@/app/i18n/translations";
 import { User, UserMetadata } from "@supabase/supabase-js";
 import { UserAvatar } from "@/app/receipt/components/ui/user-avatar";
-import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
-import { radiusTokens, textVariants } from "@/app/receipt/components/ui-styles";
+import {
+  settingsCropFrameVariants,
+  settingsUploadCardPaddingVariants,
+  settingsUploadCardVariants,
+  textVariants,
+} from "@/app/receipt/components/ui-styles";
 
 const captureSupported =
   typeof document === "object" &&
@@ -72,15 +76,7 @@ const getCroppedBlob = async (imageSrc: string, pixelCrop: Area) => {
   });
 };
 
-export type SettingsFormValues = UserMetadata & { avatarFile?: File } ;
-
-const uploadCardVariants = cva(
-  `${radiusTokens.xl} border-2 border-dashed border-amber-200 bg-amber-50/40 hover:bg-amber-50 transition-colors`,
-);
-const uploadCardPaddingVariants = cva("p-4");
-const cropFrameVariants = cva(
-  `bg-black/80 ${radiusTokens.lg} overflow-hidden`,
-);
+export type SettingsFormValues = UserMetadata & { avatarFile?: File };
 
 interface SettingsFormProps {
   user: User;
@@ -255,8 +251,8 @@ export const SettingsForm = ({
                       onClick={triggerFileInput}
                       className={cn(
                         "flex items-center gap-4 cursor-pointer",
-                        uploadCardVariants(),
-                        uploadCardPaddingVariants(),
+                        settingsUploadCardVariants(),
+                        settingsUploadCardPaddingVariants(),
                       )}
                     >
                     <UserAvatar
@@ -301,7 +297,7 @@ export const SettingsForm = ({
                       <div
                         className={cn(
                           "relative w-full h-72",
-                          cropFrameVariants(),
+                          settingsCropFrameVariants(),
                         )}
                       >
                         {cropImage && (

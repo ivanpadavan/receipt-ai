@@ -48,9 +48,32 @@ import {
   iconSoloVariants,
   pillVariants,
   radiusTokens,
+  splittingAccordionContentPaddingVariants,
+  splittingAccordionContentVariants,
+  splittingAccordionTriggerPaddingVariants,
+  splittingAddShareButtonVariants,
+  splittingAddSharePaddingVariants,
+  splittingAvatarFallbackVariants,
+  splittingAvatarOverflowVariants,
+  splittingAvatarRingVariants,
+  splittingClaimHeaderVariants,
+  splittingClaimInfoVariants,
+  splittingClaimsErrorRingVariants,
+  splittingEditingHeaderVariants,
+  splittingEditingInputVariants,
+  splittingFooterContentPaddingVariants,
+  splittingFooterVariants,
+  splittingHeaderActionPaddingVariants,
+  splittingMenuButtonVariants,
+  splittingMenuDangerItemVariants,
+  splittingParticipantButtonVariants,
+  splittingSheetSubtitleVariants,
+  splittingSheetTitleVariants,
+  splittingTypeSwitchButtonVariants,
+  splittingTypeSwitchWrapperVariants,
+  splittingClaimsListPaddingVariants,
   textVariants,
 } from "@/app/receipt/components/ui-styles";
-import { cva } from "class-variance-authority";
 
 // --- Components ---
 
@@ -62,80 +85,6 @@ interface EditingHeaderProps {
   onCancel: () => void;
 }
 
-const editingHeaderVariants = cva("border-b bg-muted/20 p-3");
-
-const editingInputVariants = cva("bg-background");
-
-const typeSwitchWrapperVariants = cva(
-  "border border-border/60 bg-muted/30 p-1 shadow-sm",
-);
-
-const typeSwitchButtonVariants = cva(
-  "h-8 w-16 text-xs font-semibold transition",
-  {
-    variants: {
-      active: {
-        true: "bg-white text-foreground shadow",
-        false: "text-muted-foreground",
-      },
-    },
-  },
-);
-
-const menuButtonVariants = cva("text-gray-500");
-
-const menuDangerItemVariants = cva(
-  "text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50",
-);
-
-const avatarRingVariants = cva("ring-2 ring-background");
-
-const avatarFallbackVariants = cva(
-  "bg-muted flex items-center justify-center text-xs text-muted-foreground",
-);
-
-const avatarOverflowVariants = cva(
-  "bg-muted flex items-center justify-center text-xs font-medium ring-2 ring-muted-foreground/30",
-);
-
-const claimHeaderVariants = cva(
-  "hover:bg-muted/30 transition-colors bg-background",
-);
-
-const addShareButtonVariants = cva(`${radiusTokens.full} border`);
-
-const claimsErrorRingVariants = cva(
-  `ring-1 ring-destructive/40 ${radiusTokens.xl}`,
-);
-
-const claimInfoVariants = cva("text-foreground");
-const participantButtonVariants = cva(
-  `relative ${radiusTokens.full} transition-all`,
-  {
-    variants: {
-      selected: {
-        true: "",
-        false: "opacity-50 hover:opacity-80",
-      },
-    },
-    defaultVariants: {
-      selected: true,
-    },
-  },
-);
-
-const accordionContentVariants = cva("border-t bg-background px-3 py-2");
-
-const sheetTitleVariants = cva("px-4 pt-4");
-const sheetSubtitleVariants = cva("px-4 py-2");
-const footerVariants = cva("border-t bg-background pt-2");
-const accordionTriggerPaddingVariants = cva("px-3 py-3");
-const headerActionPaddingVariants = cva("px-1");
-const addSharePaddingVariants = cva("px-4 pb-3");
-const claimsListPaddingVariants = cva("px-4");
-const footerContentPaddingVariants = cva("px-4 py-3");
-const accordionContentPaddingVariants = cva("p-0");
-
 const EditingHeader: React.FC<EditingHeaderProps> = ({
   claim,
   isInvalid,
@@ -144,13 +93,18 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
   onCancel,
 }) => {
   return (
-    <div className={cn("flex items-center gap-2 w-full", editingHeaderVariants())}>
+    <div
+      className={cn(
+        "flex items-center gap-2 w-full",
+        splittingEditingHeaderVariants(),
+      )}
+    >
       {/* Input Value */}
       <Input
         type="number"
         className={cn(
           "flex-1 h-9",
-          editingInputVariants(),
+          splittingEditingInputVariants(),
           isInvalid && "border-destructive focus-visible:ring-destructive",
         )}
         value={claim.value || ""}
@@ -170,14 +124,14 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
       <div
         className={cn(
           "flex items-center",
-          typeSwitchWrapperVariants(),
+          splittingTypeSwitchWrapperVariants(),
           radiusTokens.full,
         )}
       >
         <button
           type="button"
           className={cn(
-            typeSwitchButtonVariants({
+            splittingTypeSwitchButtonVariants({
               active: claim.type === "quantity",
             }),
             radiusTokens.full,
@@ -190,7 +144,7 @@ const EditingHeader: React.FC<EditingHeaderProps> = ({
         <button
           type="button"
           className={cn(
-            typeSwitchButtonVariants({ active: claim.type === "amount" }),
+            splittingTypeSwitchButtonVariants({ active: claim.type === "amount" }),
             radiusTokens.full,
           )}
           aria-pressed={claim.type === "amount"}
@@ -231,11 +185,16 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
   return (
     <>
       <AccordionTrigger
-        className={cn("flex-1 hover:no-underline", accordionTriggerPaddingVariants())}
+        className={cn(
+          "flex-1 hover:no-underline",
+          splittingAccordionTriggerPaddingVariants(),
+        )}
       >
         <div className="flex justify-between items-center w-full">
           {/* Claim info - left side */}
-          <div className={cn("flex items-baseline gap-2", claimInfoVariants())}>
+          <div
+            className={cn("flex items-baseline gap-2", splittingClaimInfoVariants())}
+          >
             <span className={textVariants({ weight: "semibold" })}>
               {claim.value}
             </span>
@@ -255,7 +214,11 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
               selectedParticipants.slice(0, 4).map((p, idx) => (
                 <div
                   key={p.id}
-                  className={cn("relative", avatarRingVariants(), radiusTokens.full)}
+                  className={cn(
+                    "relative",
+                    splittingAvatarRingVariants(),
+                    radiusTokens.full,
+                  )}
                   style={{ zIndex: selectedParticipants.length - idx }}
                 >
                   <ParticipantAvatar participant={p} className="h-7 w-7" />
@@ -263,7 +226,11 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
               ))
             ) : (
               <div
-                className={cn("w-7 h-7", avatarFallbackVariants(), radiusTokens.full)}
+                className={cn(
+                  "w-7 h-7",
+                  splittingAvatarFallbackVariants(),
+                  radiusTokens.full,
+                )}
               >
                 ?
               </div>
@@ -272,7 +239,7 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
               <div
                 className={cn(
                   "w-7 h-7",
-                  avatarOverflowVariants(),
+                  splittingAvatarOverflowVariants(),
                   radiusTokens.full,
                 )}
               >
@@ -284,13 +251,13 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
       </AccordionTrigger>
 
       {/* Actions - outside trigger */}
-      <div className={cn("flex items-center", headerActionPaddingVariants())}>
+      <div className={cn("flex items-center", splittingHeaderActionPaddingVariants())}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
-              className={cn("h-8 w-8", menuButtonVariants())}
+              className={cn("h-8 w-8", splittingMenuButtonVariants())}
             >
               <MoreVertical className="h-4 w-4" />
             </Button>
@@ -302,7 +269,7 @@ const ViewingHeader: React.FC<ViewingHeaderProps> = ({
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={onRemove}
-              className={menuDangerItemVariants()}
+              className={splittingMenuDangerItemVariants()}
             >
               <Trash2 className="h-4 w-4 mr-2" />
               {t("delete")}
@@ -342,7 +309,7 @@ const ParticipantsSelector: React.FC<ParticipantsSelectorProps> = ({
             key={p.id}
             onClick={() => handleToggle(p.id)}
             className={cn(
-              participantButtonVariants({ selected: isSelected }),
+              splittingParticipantButtonVariants({ selected: isSelected }),
             )}
           >
             <ParticipantAvatar
@@ -388,13 +355,16 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
       >
         <AccordionItem value="1">
           <AccordionHeader
-            className={cn("flex items-stretch h-[4rem]", claimHeaderVariants())}
+            className={cn(
+              "flex items-stretch h-[4rem]",
+              splittingClaimHeaderVariants(),
+            )}
           >
             {header}
           </AccordionHeader>
 
-          <AccordionContent className={accordionContentPaddingVariants()}>
-            <div className={accordionContentVariants()}>
+          <AccordionContent className={splittingAccordionContentPaddingVariants()}>
+            <div className={splittingAccordionContentVariants()}>
               <ParticipantsSelector
                 selectedIds={claim.participantIds}
                 participants={participants}
@@ -455,7 +425,10 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
   return (
     <DrawerContent className="h-[85vh] flex flex-col">
       <DrawerTitle
-        className={cn(sheetTitleVariants(), textVariants({ align: "center" }))}
+        className={cn(
+          splittingSheetTitleVariants(),
+          textVariants({ align: "center" }),
+        )}
       >
         {localPosition.name}
       </DrawerTitle>
@@ -463,7 +436,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       <div
         className={cn(
           "flex flex-col items-center gap-1",
-          sheetSubtitleVariants(),
+          splittingSheetSubtitleVariants(),
           textVariants({ size: "sm", tone: "muted", align: "center" }),
         )}
       >
@@ -490,10 +463,10 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       </div>
 
       {!newDraftClaim && (
-        <div className={addSharePaddingVariants()}>
+        <div className={splittingAddSharePaddingVariants()}>
           <Button
             variant="ghost"
-            className={cn("w-full", addShareButtonVariants())}
+            className={cn("w-full", splittingAddShareButtonVariants())}
             onClick={startAdding}
           >
             + {t("addShare")}
@@ -505,8 +478,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       <div
         className={cn(
           "flex-1 overflow-y-auto space-y-3",
-          claimsListPaddingVariants(),
-          hasClaimsError && claimsErrorRingVariants(),
+          splittingClaimsListPaddingVariants(),
+          hasClaimsError && splittingClaimsErrorRingVariants(),
         )}
       >
         {/* Add View (only if adding new) */}
@@ -584,8 +557,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
       {/* Footer - Distribution + Done button */}
 
-      <DrawerFooter className={footerVariants()}>
-        <div className={footerContentPaddingVariants()}>
+      <DrawerFooter className={splittingFooterVariants()}>
+        <div className={splittingFooterContentPaddingVariants()}>
           <div
             className={cn(
               "flex justify-between mb-2",

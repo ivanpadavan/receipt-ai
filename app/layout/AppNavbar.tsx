@@ -11,44 +11,19 @@ import Logo from "@/app/layout/Logo";
 import { Button } from "@/components/ui/button";
 import { handleSignIn, handleSignOut } from "@/app/receipt/utils/auth";
 import { t } from "@/app/i18n/translations";
-import { radiusTokens } from "@/app/receipt/components/ui-styles";
-import { cva } from "class-variance-authority";
-
-const navLinkVariants = cva(
-  `px-4 py-2 ${radiusTokens.nav} whitespace-nowrap flex items-center gap-2 text-sm transition-all`,
-  {
-    variants: {
-      active: {
-        true: "bg-primary text-primary-foreground",
-        false: "text-foreground hover:bg-accent hover:text-accent-foreground",
-      },
-    },
-    defaultVariants: {
-      active: false,
-    },
-  },
-);
-
-const navContainerVariants = cva("bg-background border-b shadow-sm");
-
-const mobileMenuButtonVariants = cva(
-  "text-foreground hover:bg-accent hover:text-accent-foreground",
-);
-
-const menuPanelVariants = cva(
-  "flex flex-col md:flex-row items-start md:items-center md:space-x-4 bg-background",
-);
-
-const menuPanelFrameVariants = cva(
-  "absolute md:static left-0 right-0 top-16 md:top-auto border-t md:border-t-0",
-);
-
-const userNameVariants = cva("text-foreground font-medium");
-const mobileUserContainerVariants = cva("text-center");
-const navOuterPaddingVariants = cva("px-4 sm:px-6 lg:px-8");
-const menuListPaddingVariants = cva("px-2 pt-2 pb-3 sm:px-3 md:p-0");
-const menuItemPaddingVariants = cva("py-2 px-3 md:p-0");
-const mobileActionPaddingVariants = cva("py-2 px-3");
+import {
+  menuItemPaddingVariants,
+  menuListPaddingVariants,
+  menuPanelFrameVariants,
+  menuPanelVariants,
+  mobileActionPaddingVariants,
+  mobileMenuButtonVariants,
+  mobileUserContainerVariants,
+  navContainerVariants,
+  navLinkVariants,
+  navOuterPaddingVariants,
+  userNameVariants,
+} from "@/app/receipt/components/ui-styles";
 
 // Custom NavLink component with amber color scheme
 const NavLink = ({

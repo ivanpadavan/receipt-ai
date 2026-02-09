@@ -33,47 +33,25 @@ import {
 import { t } from "@/app/i18n/translations";
 import { UserPlus, X, Trash2, MoreVertical } from "lucide-react";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
-import { cva } from "class-variance-authority";
 import { cn } from "@/utils/cn";
 import {
-  radiusTokens,
+  participantsAddButtonContainerVariants,
+  participantsAddInputVariants,
+  participantsAvatarPlaceholderVariants,
+  participantsDangerMenuItemVariants,
+  participantsDialogContentVariants,
+  participantsDoneButtonVariants,
+  participantsEmptyStateContainerVariants,
+  participantsEmptyStateIconVariants,
+  participantsFooterVariants,
+  participantsListPaddingVariants,
+  participantsRowContentPaddingVariants,
+  participantsRowMenuButtonVariants,
+  participantsSheetBackgroundVariants,
+  participantsSheetHeaderVariants,
+  participantsDeleteActionVariants,
   textVariants,
 } from "@/app/receipt/components/ui-styles";
-
-const sheetBackgroundVariants = cva("bg-gradient-to-b from-white to-gray-50");
-
-const headerVariants = cva("border-b border-gray-100 px-5 py-4");
-
-const emptyStateIconVariants = cva("text-gray-300");
-
-const emptyStateContainerVariants = cva("text-center py-12");
-
-
-const rowMenuButtonVariants = cva("text-gray-500");
-const rowContentPaddingVariants = cva("px-4 py-3");
-
-const dangerMenuItemVariants = cva(
-  "text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50",
-);
-
-const avatarPlaceholderVariants = cva(
-  `${radiusTokens.full} flex items-center justify-center font-semibold text-lg`,
-);
-
-const addInputVariants = cva(
-  "border-none bg-transparent p-0 text-base focus:ring-0 focus-visible:ring-0",
-);
-
-const doneButtonVariants = cva(
-  `bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold ${radiusTokens.xl} active:scale-[0.98] transition-transform py-3`,
-);
-
-const footerVariants = cva("border-t border-gray-100 bg-white p-4");
-
-const dialogContentVariants = cva(radiusTokens.xl);
-const deleteActionVariants = cva("bg-red-500 hover:bg-red-600 text-white");
-const listPaddingVariants = cva("px-4 py-3");
-const addButtonContainerVariants = cva("px-4 pb-4 pt-2");
 
 interface ParticipantsSheetProps {
   onClose?: () => void;
@@ -154,10 +132,16 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
   return (
     <>
       <DrawerContent
-        className={cn("h-[85vh] flex flex-col", sheetBackgroundVariants())}
+        className={cn(
+          "h-[85vh] flex flex-col",
+          participantsSheetBackgroundVariants(),
+        )}
       >
         <DrawerHeader
-          className={cn("flex items-center justify-between", headerVariants())}
+          className={cn(
+            "flex items-center justify-between",
+            participantsSheetHeaderVariants(),
+          )}
         >
           <DrawerTitle
             className={textVariants({
@@ -182,17 +166,22 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
         <div
           className={cn(
             "flex-1 overflow-y-auto min-h-[200px]",
-            listPaddingVariants(),
+            participantsListPaddingVariants(),
           )}
         >
           {participants.length === 0 && !isAdding && (
             <div
               className={cn(
                 "flex flex-col items-center justify-center",
-                emptyStateContainerVariants(),
+                participantsEmptyStateContainerVariants(),
               )}
             >
-              <UserPlus className={cn("h-12 w-12 mb-3", emptyStateIconVariants())} />
+              <UserPlus
+                className={cn(
+                  "h-12 w-12 mb-3",
+                  participantsEmptyStateIconVariants(),
+                )}
+              />
               <p
                 className={textVariants({
                   size: "sm",
@@ -214,7 +203,12 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                 radius="xl"
                 className="mb-2"
               >
-                <CardContent className={cn("flex items-center gap-3", rowContentPaddingVariants())}>
+                <CardContent
+                  className={cn(
+                    "flex items-center gap-3",
+                    participantsRowContentPaddingVariants(),
+                  )}
+                >
                   <ParticipantAvatar
                     participant={participant}
                     className="shrink-0"
@@ -232,7 +226,10 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className={cn("h-8 w-8", rowMenuButtonVariants())}
+                        className={cn(
+                          "h-8 w-8",
+                          participantsRowMenuButtonVariants(),
+                        )}
                       >
                         <MoreVertical className="h-4 w-4" />
                       </Button>
@@ -240,7 +237,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
                         onClick={() => handleDeleteClick(participant)}
-                        className={dangerMenuItemVariants()}
+                        className={participantsDangerMenuItemVariants()}
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
                         {t("delete")}
@@ -259,11 +256,16 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
               radius="xl"
               className="mb-2"
             >
-              <CardContent className={cn("flex items-center gap-3", rowContentPaddingVariants())}>
+              <CardContent
+                className={cn(
+                  "flex items-center gap-3",
+                  participantsRowContentPaddingVariants(),
+                )}
+              >
                 <div
                   className={cn(
                     "w-8 h-8 shrink-0",
-                    avatarPlaceholderVariants(),
+                    participantsAvatarPlaceholderVariants(),
                   )}
                 >
                   ?
@@ -274,7 +276,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                   onChange={(e) => setNewParticipantName(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder={t("newParticipantNamePlaceholder")}
-                  className={cn("flex-1", addInputVariants())}
+                  className={cn("flex-1", participantsAddInputVariants())}
                 />
                 {hasNameConflict && (
                   <span
@@ -297,7 +299,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
         </div>
 
         {!isAdding && (
-          <div className={addButtonContainerVariants()}>
+          <div className={participantsAddButtonContainerVariants()}>
             <Button
               variant="outline"
               onClick={() => setIsAdding(true)}
@@ -309,10 +311,10 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
           </div>
         )}
 
-        <div className={footerVariants()}>
+        <div className={participantsFooterVariants()}>
           <Button
             onClick={onClose}
-            className={cn("w-full", doneButtonVariants())}
+            className={cn("w-full", participantsDoneButtonVariants())}
           >
             {t("done")}
           </Button>
@@ -324,7 +326,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
         open={deleteConfirm !== null}
         onOpenChange={(open) => !open && setDeleteConfirm(null)}
       >
-        <AlertDialogContent className={dialogContentVariants()}>
+        <AlertDialogContent className={participantsDialogContentVariants()}>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("deleteParticipant")}</AlertDialogTitle>
             <AlertDialogDescription>
@@ -345,7 +347,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className={deleteActionVariants()}
+              className={participantsDeleteActionVariants()}
             >
               {t("delete")}
             </AlertDialogAction>

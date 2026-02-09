@@ -257,3 +257,204 @@ export const textVariants = cva("", {
     style: "default",
   },
 });
+
+export const pageShellVariants = cva("bg-amber-50 p-4");
+export const pageCardPaddingVariants = cva("p-6");
+export const previewCardPaddingVariants = cva("p-4");
+export const dropzonePaddingVariants = cva("p-6");
+export const loadingContainerVariants = cva("p-6");
+
+export const previewImageVariants = cva(`object-contain ${radiusTokens.sm}`);
+export const actionButtonVariants = cva(shadowTokens.md);
+export const captureButtonVariants = cva(shadowTokens.md);
+export const dropzoneVariants = cva(
+  `border-2 border-dashed border-input ${radiusTokens.lg} cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors`,
+);
+export const loadingSpinnerVariants = cva(
+  `animate-spin ${radiusTokens.full} border-b-2 border-amber-500`,
+);
+export const errorBoxVariants = cva(
+  `bg-red-50 border border-red-300 text-red-700 ${radiusTokens.lg} ${shadowTokens.sm} p-4`,
+);
+
+export const navLinkVariants = cva(
+  `px-4 py-2 ${radiusTokens.nav} whitespace-nowrap flex items-center gap-2 text-sm transition-all`,
+  {
+    variants: {
+      active: {
+        true: "bg-primary text-primary-foreground",
+        false: "text-foreground hover:bg-accent hover:text-accent-foreground",
+      },
+    },
+    defaultVariants: {
+      active: false,
+    },
+  },
+);
+export const navContainerVariants = cva("bg-background border-b shadow-sm");
+export const mobileMenuButtonVariants = cva(
+  "text-foreground hover:bg-accent hover:text-accent-foreground",
+);
+export const menuPanelVariants = cva(
+  "flex flex-col md:flex-row items-start md:items-center md:space-x-4 bg-background",
+);
+export const menuPanelFrameVariants = cva(
+  "absolute md:static left-0 right-0 top-16 md:top-auto border-t md:border-t-0",
+);
+export const userNameVariants = cva("text-foreground font-medium");
+export const mobileUserContainerVariants = cva("text-center");
+export const navOuterPaddingVariants = cva("px-4 sm:px-6 lg:px-8");
+export const menuListPaddingVariants = cva("px-2 pt-2 pb-3 sm:px-3 md:p-0");
+export const menuItemPaddingVariants = cva("py-2 px-3 md:p-0");
+export const mobileActionPaddingVariants = cva("py-2 px-3");
+
+export const addButtonVariants = cva(
+  `h-6 w-6 p-0 ${radiusTokens.xs} bg-accent text-foreground hover:bg-accent/80`,
+);
+
+export const participantsSheetBackgroundVariants = cva(
+  "bg-gradient-to-b from-white to-gray-50",
+);
+export const participantsSheetHeaderVariants = cva(
+  "border-b border-gray-100 px-5 py-4",
+);
+export const participantsEmptyStateIconVariants = cva("text-gray-300");
+export const participantsEmptyStateContainerVariants = cva(
+  "text-center py-12",
+);
+export const participantsRowMenuButtonVariants = cva("text-gray-500");
+export const participantsRowContentPaddingVariants = cva("px-4 py-3");
+export const participantsDangerMenuItemVariants = cva(
+  "text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50",
+);
+export const participantsAvatarPlaceholderVariants = cva(
+  `${radiusTokens.full} flex items-center justify-center font-semibold text-lg`,
+);
+export const participantsAddInputVariants = cva(
+  "border-none bg-transparent p-0 text-base focus:ring-0 focus-visible:ring-0",
+);
+export const participantsDoneButtonVariants = cva(
+  `bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold ${radiusTokens.xl} active:scale-[0.98] transition-transform py-3`,
+);
+export const participantsFooterVariants = cva(
+  "border-t border-gray-100 bg-white p-4",
+);
+export const participantsDialogContentVariants = cva(radiusTokens.xl);
+export const participantsDeleteActionVariants = cva(
+  "bg-red-500 hover:bg-red-600 text-white",
+);
+export const participantsListPaddingVariants = cva("px-4 py-3");
+export const participantsAddButtonContainerVariants = cva("px-4 pb-4 pt-2");
+
+export const shareReceiptQrContainerVariants = cva(
+  `${radiusTokens.xl} border bg-white p-3`,
+);
+export const shareReceiptTriggerLabelVariants = cva("text-[11px] font-medium");
+export const shareReceiptContentPaddingVariants = cva("py-2");
+
+export const confirmCancelGroupVariants = cva(
+  `inline-flex items-center ${radiusTokens.full} border border-border/60 bg-white/70 ${shadowTokens.sm}`,
+  {
+    variants: {
+      size: {
+        sm: "h-10 px-1",
+        md: "h-12 px-1.5",
+      },
+    },
+    defaultVariants: {
+      size: "sm",
+    },
+  },
+);
+export const confirmCancelButtonVariants = cva(
+  `${radiusTokens.full} transition`,
+  {
+    variants: {
+      size: {
+        sm: "h-8 w-10",
+        md: "h-9 w-12",
+      },
+      tone: {
+        cancel: "text-muted-foreground hover:text-foreground",
+        confirm: "text-emerald-600 hover:text-emerald-700",
+      },
+    },
+    defaultVariants: {
+      size: "sm",
+      tone: "cancel",
+    },
+  },
+);
+export const confirmCancelDividerVariants = cva("bg-border/60");
+
+export const settingsUploadCardVariants = cva(
+  `${radiusTokens.xl} border-2 border-dashed border-amber-200 bg-amber-50/40 hover:bg-amber-50 transition-colors`,
+);
+export const settingsUploadCardPaddingVariants = cva("p-4");
+export const settingsCropFrameVariants = cva(
+  `bg-black/80 ${radiusTokens.lg} overflow-hidden`,
+);
+
+export const splittingEditingHeaderVariants = cva("border-b bg-muted/20 p-3");
+export const splittingEditingInputVariants = cva("bg-background");
+export const splittingTypeSwitchWrapperVariants = cva(
+  "border border-border/60 bg-muted/30 p-1 shadow-sm",
+);
+export const splittingTypeSwitchButtonVariants = cva(
+  "h-8 w-16 text-xs font-semibold transition",
+  {
+    variants: {
+      active: {
+        true: "bg-white text-foreground shadow",
+        false: "text-muted-foreground",
+      },
+    },
+  },
+);
+export const splittingMenuButtonVariants = cva("text-gray-500");
+export const splittingMenuDangerItemVariants = cva(
+  "text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50",
+);
+export const splittingAvatarRingVariants = cva("ring-2 ring-background");
+export const splittingAvatarFallbackVariants = cva(
+  "bg-muted flex items-center justify-center text-xs text-muted-foreground",
+);
+export const splittingAvatarOverflowVariants = cva(
+  "bg-muted flex items-center justify-center text-xs font-medium ring-2 ring-muted-foreground/30",
+);
+export const splittingClaimHeaderVariants = cva(
+  "hover:bg-muted/30 transition-colors bg-background",
+);
+export const splittingAddShareButtonVariants = cva(
+  `${radiusTokens.full} border`,
+);
+export const splittingClaimsErrorRingVariants = cva(
+  `ring-1 ring-destructive/40 ${radiusTokens.xl}`,
+);
+export const splittingClaimInfoVariants = cva("text-foreground");
+export const splittingParticipantButtonVariants = cva(
+  `relative ${radiusTokens.full} transition-all`,
+  {
+    variants: {
+      selected: {
+        true: "",
+        false: "opacity-50 hover:opacity-80",
+      },
+    },
+    defaultVariants: {
+      selected: true,
+    },
+  },
+);
+export const splittingAccordionContentVariants = cva(
+  "border-t bg-background px-3 py-2",
+);
+export const splittingSheetTitleVariants = cva("px-4 pt-4");
+export const splittingSheetSubtitleVariants = cva("px-4 py-2");
+export const splittingFooterVariants = cva("border-t bg-background pt-2");
+export const splittingAccordionTriggerPaddingVariants = cva("px-3 py-3");
+export const splittingHeaderActionPaddingVariants = cva("px-1");
+export const splittingAddSharePaddingVariants = cva("px-4 pb-3");
+export const splittingClaimsListPaddingVariants = cva("px-4");
+export const splittingFooterContentPaddingVariants = cva("px-4 py-3");
+export const splittingAccordionContentPaddingVariants = cva("p-0");
