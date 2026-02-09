@@ -30,6 +30,7 @@ import {
   inputStateVariants,
   dialogHeaderTitleVariants,
   dialogHeaderVariants,
+  dialogBodySpacingVariants,
   errorListVariants,
   stackGapVariants,
   inlineGapVariants,
@@ -159,7 +160,7 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
         </DialogTitle>
         <DialogDescription className="sr-only">{t(header)}</DialogDescription>
       </DialogHeader>
-      <div className={cn("mt-4", stackGapVariants({ size: "lg" }))}>
+      <div className={cn(dialogBodySpacingVariants(), stackGapVariants({ size: "lg" }))}>
         {conflict && (
           <div className={noticeVariants({ tone: "warning" })}>
             <p>{conflict.message}</p>

@@ -15,6 +15,7 @@ import {
   dialogContentWideVariants,
   dialogHeaderTitleVariants,
   dialogHeaderVariants,
+  dialogBodySpacingVariants,
 } from "@/app/receipt/components/ui-styles";
 
 export function JoinFlowSettingsDialog() {
@@ -70,11 +71,13 @@ export function JoinFlowSettingsDialog() {
             {t("settings")}
           </AlertDialogTitle>
         </AlertDialogHeader>
-        <SettingsForm
-          user={user}
-          onSubmit={handleSettingsSubmit}
-          submitLabel={t("save")}
-        />
+        <div className={dialogBodySpacingVariants()}>
+          <SettingsForm
+            user={user}
+            onSubmit={handleSettingsSubmit}
+            submitLabel={t("save")}
+          />
+        </div>
       </AlertDialogContent>
     </AlertDialog>
   );

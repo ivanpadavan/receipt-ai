@@ -216,6 +216,7 @@ export const dialogHeaderVariants = cva("space-y-1");
 export const dialogFooterVariants = cva("sm:flex-row sm:items-stretch");
 export const dialogContentVariants = cva("max-w-md");
 export const dialogContentWideVariants = cva("max-w-lg");
+export const dialogBodySpacingVariants = cva("mt-4");
 
 export const textVariants = cva("", {
   variants: {
