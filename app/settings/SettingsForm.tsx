@@ -19,6 +19,8 @@ import {
 import { t } from "@/app/i18n/translations";
 import { User, UserMetadata } from "@supabase/supabase-js";
 import { UserAvatar } from "@/app/receipt/components/ui/user-avatar";
+import { cva } from "class-variance-authority";
+import { cn } from "@/utils/cn";
 
 const captureSupported =
   typeof document === "object" &&
@@ -70,6 +72,16 @@ const getCroppedBlob = async (imageSrc: string, pixelCrop: Area) => {
 };
 
 export type SettingsFormValues = UserMetadata & { avatarFile?: File } ;
+
+const formShellVariants = cva("flex flex-col");
+const emailTextVariants = cva("text-sm text-muted-foreground");
+const uploadCardVariants = cva(
+  "rounded-xl border-2 border-dashed border-amber-200 bg-amber-50/40 hover:bg-amber-50 transition-colors",
+);
+const uploadTitleVariants = cva("text-sm font-medium");
+const uploadHintVariants = cva("text-xs text-muted-foreground");
+const cropFrameVariants = cva("bg-black/80 rounded-lg overflow-hidden");
+const zoomLabelVariants = cva("text-sm text-muted-foreground");
 
 interface SettingsFormProps {
   user: User;
@@ -181,14 +193,17 @@ export const SettingsForm = ({
   };
 
   return (
-    <form className="flex flex-col gap-6" onSubmit={handleSubmit(handleSave)}>
+    <form
+      className={cn("gap-6", formShellVariants())}
+      onSubmit={handleSubmit(handleSave)}
+    >
       <div className="flex items-center gap-4">
         <UserAvatar
           className="h-12 w-12"
           userMetadata={{ avatarUrl, displayName }}
         />
         {user.email && (
-          <div className="text-sm text-muted-foreground">{user.email}</div>
+          <div className={emailTextVariants()}>{user.email}</div>
         )}
       </div>
 
@@ -240,17 +255,20 @@ export const SettingsForm = ({
                   )}
                   <div
                     onClick={triggerFileInput}
-                    className="flex items-center gap-4 rounded-xl border-2 border-dashed border-amber-200 bg-amber-50/40 p-4 cursor-pointer hover:bg-amber-50 transition-colors"
+                    className={cn(
+                      "flex items-center gap-4 p-4 cursor-pointer",
+                      uploadCardVariants(),
+                    )}
                   >
                     <UserAvatar
                       className="h-16 w-16"
                       userMetadata={{ avatarUrl, displayName }}
                     />
                     <div className="flex flex-col gap-1">
-                      <div className="text-sm font-medium">
+                      <div className={uploadTitleVariants()}>
                         {value ? t("changeAvatar") : t("uploadAvatar")}
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className={uploadHintVariants()}>
                         {t("avatarUploadHint")}
                       </div>
                     </div>
@@ -279,7 +297,12 @@ export const SettingsForm = ({
                       <AlertDialogHeader>
                         <AlertDialogTitle>{t("cropAvatar")}</AlertDialogTitle>
                       </AlertDialogHeader>
-                      <div className="relative w-full h-72 bg-black/80 rounded-lg overflow-hidden">
+                      <div
+                        className={cn(
+                          "relative w-full h-72",
+                          cropFrameVariants(),
+                        )}
+                      >
                         {cropImage && (
                           <Cropper
                             image={cropImage}
@@ -293,7 +316,7 @@ export const SettingsForm = ({
                         )}
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-sm text-muted-foreground">
+                        <span className={zoomLabelVariants()}>
                           {t("zoom")}
                         </span>
                         <input
