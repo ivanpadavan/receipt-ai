@@ -27,7 +27,6 @@ import {
   dialogHeaderTitle,
   dialogHeader,
   btnShadow,
-  fieldLabel,
   inputStateVariants,
   uploadPanel,
   inlineGapVariants,
@@ -207,10 +206,7 @@ export const SettingsForm = ({
     >
       <FieldGroup>
         <Field>
-          <Label
-            htmlFor="displayName"
-            className={cn("mb-1 block", fieldLabel)}
-          >
+          <Label htmlFor="displayName">
             {t("yourName")}
           </Label>
           <Input
@@ -221,9 +217,7 @@ export const SettingsForm = ({
         </Field>
 
         <Field>
-          <Label className={cn("mb-1 block", fieldLabel)}>
-            {t("avatarImage")}
-          </Label>
+          <Label>{t("avatarImage")}</Label>
           <Controller
             control={control}
             name="avatarFile"

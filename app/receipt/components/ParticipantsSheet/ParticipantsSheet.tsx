@@ -45,7 +45,6 @@ import {
 } from "@/app/receipt/components/ui-styles";
 
 // ── Participants-scoped styles ──────────────────
-const sheetBackground = "bg-amber-50/30";
 const sheetHeader = "px-4 pt-4 pb-2";
 const listPadding = "px-4 py-2";
 const emptyStateContainer = "h-40 gap-1";
@@ -134,12 +133,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
 
   return (
     <>
-      <DrawerContent
-        className={cn(
-          "h-[85vh] flex flex-col",
-          sheetBackground,
-        )}
-      >
+      <DrawerContent className="h-[85vh] flex flex-col">
         <DrawerHeader
           className={cn(
             rowVariants({ align: "center", justify: "between", width: "full" }),
@@ -151,15 +145,6 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
           >
             {t("participants")}
           </DrawerTitle>
-          <DrawerClose asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-3 top-3"
-            >
-              <X className={iconSizeVariants({ size: "md" })} />
-            </Button>
-          </DrawerClose>
         </DrawerHeader>
 
         <div

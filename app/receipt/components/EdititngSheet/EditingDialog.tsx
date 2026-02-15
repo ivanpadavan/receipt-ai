@@ -14,7 +14,6 @@ import { useReceiptState } from "../ReceiptForm";
 import { useRowConflict } from "./useRowConflict";
 import {
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -26,7 +25,6 @@ import {
   iconButtonVariants,
   iconSoloVariants,
   noticeVariants,
-  fieldLabel,
   inputStateVariants,
   dialogHeaderTitle,
   dialogHeader,
@@ -34,6 +32,7 @@ import {
   errorList,
   stackGapVariants,
   inlineGapVariants,
+  fieldLabel,
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
 
@@ -283,9 +282,7 @@ const FormField: React.FC<FormFieldProps> = ({
 
   return (
     <Field>
-      <Label className={cn("mb-1 block", fieldLabel)}>
-        {t(label)}
-      </Label>
+      <Label>{t(label)}</Label>
       <Input
         type={type === "number" ? "number" : "text"}
         inputMode={type === "number" ? "decimal" : "text"}
