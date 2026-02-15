@@ -98,8 +98,8 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
     <ReceiptCard
       interactive
       state={active ? "active" : "default"}
-      shadow="sm"
-      radius="2xl"
+      shadow="md"
+      radius="xl"
       className="overflow-hidden"
     >
       <div
