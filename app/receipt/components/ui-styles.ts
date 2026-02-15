@@ -458,11 +458,9 @@ export const actionBar =
   `${radiusTokens.action} border border-white/70 bg-white/35 ${shadowTokens.glass} backdrop-blur-2xl`;
 export const primaryAction =
   `${radiusTokens.full} text-base font-semibold ${shadowTokens.orange}`;
-export const fieldLabel = "text-sm font-medium text-foreground";
 export const sheetShell = "h-[85vh] flex flex-col";
 export const sheetHeaderPadding = "px-4 pt-4 pb-2";
 export const sheetBodyPadding = "px-4 py-2";
-export const sheetHeaderTitle = "text-center px-4 pt-4";
 export const dialogHeaderTitle = "text-center";
 export const dialogHeader = "space-y-1";
 export const dialogFooter = "sm:flex-row sm:items-stretch";

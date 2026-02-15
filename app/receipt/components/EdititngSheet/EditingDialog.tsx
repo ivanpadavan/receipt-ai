@@ -32,7 +32,6 @@ import {
   errorList,
   stackGapVariants,
   inlineGapVariants,
-  fieldLabel,
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
 
