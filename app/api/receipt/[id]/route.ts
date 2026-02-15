@@ -3,8 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { isEqual } from "lodash-es";
 import putValidator from "@/app/api-client/receipt/put";
 import { errorWrap } from "@/app/api/receipt/error-wrap";
-import { serverSupabase } from "@/utils/supabase/server";
+import { getUser, serverSupabase } from "@/utils/supabase/server";
 import { buildParticipants } from "@/app/db-utils/build-participants";
+import type { ParticipantDTO } from "@/model/receipt/model";
 import type {
   Receipt,
   ReceiptMockParticipant,
@@ -12,11 +13,32 @@ import type {
 } from "@/prisma/generated/prisma/client";
 import type {
   RealtimePostgresChangesPayload,
+  RealtimePresenceState,
   RealtimePostgresUpdatePayload,
+  REALTIME_SUBSCRIBE_STATES,
 } from "@supabase/supabase-js";
-import { BehaviorSubject, distinctUntilChanged, fromEvent, takeUntil } from "rxjs";
+import {
+  BehaviorSubject,
+  combineLatest,
+  distinctUntilChanged,
+  fromEvent,
+  map,
+  takeUntil,
+} from "rxjs";
 
 export const runtime = "nodejs";
+
+const withPresence = (
+  payload: { receipt: unknown; participants: ParticipantDTO[] },
+  onlineUserIds: Set<string>,
+) => ({
+  receipt: payload.receipt,
+  participants: payload.participants.map((participant) =>
+    participant.kind === "REAL"
+      ? { ...participant, isOnline: onlineUserIds.has(participant.id) }
+      : participant,
+  ),
+});
 
 export async function GET(
   req: NextRequest,
@@ -52,11 +74,33 @@ export async function GET(
       }, 20000);
 
       // Add this connection to the receipt's connection set
-      const channelName = `topic:${receiptId}`;
+      const channel = supabase.channel(`topic:${receiptId}`);
+      const currentUserId = (await getUser(supabase)).id;
+      const onlineUserIds$ = new BehaviorSubject<Set<string>>(new Set());
 
-      const channel = supabase.channel(channelName);
+      const syncPresenceState = () => {
+        const state = channel.presenceState() as RealtimePresenceState<{
+          userId?: string;
+        }>;
+        const nextOnlineUserIds = new Set<string>();
+
+        for (const presences of Object.values(state)) {
+          for (const presence of presences) {
+            if (presence.userId) {
+              nextOnlineUserIds.add(presence.userId);
+            }
+          }
+        }
+
+        onlineUserIds$.next(nextOnlineUserIds);
+      };
 
       channel
+        .on(
+          "presence",
+          { event: "sync" },
+          syncPresenceState,
+        )
         .on(
           "postgres_changes",
           {
@@ -104,24 +148,32 @@ export async function GET(
             });
           },
         )
-        .subscribe();
+        .subscribe((status: REALTIME_SUBSCRIBE_STATES) => {
+          if (status !== "SUBSCRIBED") return;
+          void channel.track({ userId: currentUserId });
+        });
 
-      payload$.pipe(distinctUntilChanged(isEqual), takeUntil(fromEvent(req.signal, 'abort'))).subscribe({
-        next: (payload) => {
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify(payload)}\n\n`)
-          );
-        },
-        complete: () => {
-          try {
-            clearInterval(heartbeat);
-            controller.close();
-            channel.unsubscribe();
-          } catch {
-            // Already closed
-          }
-        }
-      });
+      combineLatest([payload$, onlineUserIds$])
+        .pipe(
+          map(([payload, onlineUserIds]) => withPresence(payload, onlineUserIds)),
+          distinctUntilChanged(isEqual),
+          takeUntil(fromEvent(req.signal, "abort")),
+        )
+        .subscribe({
+          next: (payload) => {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
+          },
+          complete: () => {
+            try {
+              void channel.untrack();
+              clearInterval(heartbeat);
+              controller.close();
+              void channel.unsubscribe();
+            } catch {
+              // Already closed
+            }
+          },
+        });
     },
   });
 
