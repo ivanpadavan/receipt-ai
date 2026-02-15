@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { t } from "@/app/i18n/translations";
 import { Button } from "@/components/ui/button";
@@ -62,157 +62,257 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
   onCancel,
   onSave,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const anchorRef = useRef<HTMLDivElement | null>(null);
+  const drawerContentRef = useRef<HTMLElement | null>(null);
+  const drawerStyleSnapshotRef = useRef<{
+    maxHeight: string;
+    height: string;
+    marginTop: string;
+    inset: string;
+    borderTopLeftRadius: string;
+    borderTopRightRadius: string;
+    borderBottomLeftRadius: string;
+    borderBottomRightRadius: string;
+    transform: string;
+  } | null>(null);
+
   const allParticipantIds = useMemo(
     () => participants.map((participant) => participant.id),
     [participants],
   );
 
+  useEffect(() => {
+    const drawerContent = anchorRef.current?.closest(
+      '[data-slot="drawer-content"]',
+    ) as HTMLElement | null;
+    drawerContentRef.current = drawerContent;
+  }, []);
+
+  useEffect(() => {
+    const drawerContent = drawerContentRef.current;
+    if (!drawerContent) return;
+
+    const style = drawerContent.style;
+
+    if (isExpanded) {
+      drawerStyleSnapshotRef.current = {
+        maxHeight: style.maxHeight,
+        height: style.height,
+        marginTop: style.marginTop,
+        inset: style.inset,
+        borderTopLeftRadius: style.borderTopLeftRadius,
+        borderTopRightRadius: style.borderTopRightRadius,
+        borderBottomLeftRadius: style.borderBottomLeftRadius,
+        borderBottomRightRadius: style.borderBottomRightRadius,
+        transform: style.transform,
+      };
+
+      style.maxHeight = "100dvh";
+      style.height = "100dvh";
+      style.marginTop = "0";
+      style.inset = "0";
+      style.borderTopLeftRadius = "0";
+      style.borderTopRightRadius = "0";
+      style.borderBottomLeftRadius = "0";
+      style.borderBottomRightRadius = "0";
+      style.transform = "none";
+      return;
+    }
+
+    const snapshot = drawerStyleSnapshotRef.current;
+    if (!snapshot) return;
+
+    style.maxHeight = snapshot.maxHeight;
+    style.height = snapshot.height;
+    style.marginTop = snapshot.marginTop;
+    style.inset = snapshot.inset;
+    style.borderTopLeftRadius = snapshot.borderTopLeftRadius;
+    style.borderTopRightRadius = snapshot.borderTopRightRadius;
+    style.borderBottomLeftRadius = snapshot.borderBottomLeftRadius;
+    style.borderBottomRightRadius = snapshot.borderBottomRightRadius;
+    style.transform = snapshot.transform;
+    drawerStyleSnapshotRef.current = null;
+  }, [isExpanded]);
+
+  useEffect(() => {
+    return () => {
+      const drawerContent = drawerContentRef.current;
+      if (!drawerContent) return;
+      const snapshot = drawerStyleSnapshotRef.current;
+      if (!snapshot) return;
+
+      const style = drawerContent.style;
+      style.maxHeight = snapshot.maxHeight;
+      style.height = snapshot.height;
+      style.marginTop = snapshot.marginTop;
+      style.inset = snapshot.inset;
+      style.borderTopLeftRadius = snapshot.borderTopLeftRadius;
+      style.borderTopRightRadius = snapshot.borderTopRightRadius;
+      style.borderBottomLeftRadius = snapshot.borderBottomLeftRadius;
+      style.borderBottomRightRadius = snapshot.borderBottomRightRadius;
+      style.transform = snapshot.transform;
+      drawerStyleSnapshotRef.current = null;
+    };
+  }, []);
+
+  const handleCancel = () => {
+    setIsExpanded(false);
+    onCancel();
+  };
+
+  const handleSave = () => {
+    setIsExpanded(false);
+    onSave();
+  };
+
+  const editorCard = (
+    <ReceiptCard
+      tone="warm"
+      shadow="sm"
+      radius="2xl"
+      className="overflow-hidden border-amber-200/70"
+    >
+      <div className="px-3 pt-3 pb-2">
+        <div className={rowVariants({ justify: "between", align: "start", width: "full" })}>
+          <Input
+            type="text"
+            inputMode="decimal"
+            className="h-16 min-w-0 flex-1 border-0 bg-transparent px-0 text-center text-5xl font-semibold tabular-nums shadow-none focus-visible:ring-0"
+            value={claim.value > 0 ? formatClaimValue(claim.value) : ""}
+            onChange={(event) =>
+              onUpdate({
+                ...claim,
+                value: parseInputValue(event.target.value),
+              })
+            }
+            onFocus={() => setIsExpanded(true)}
+            autoFocus
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !saveDisabled) {
+                handleSave();
+              }
+              if (event.key === "Escape") {
+                handleCancel();
+              }
+            }}
+          />
+
+          <div
+            className={cn(
+              "flex items-center",
+              splittingTypeSwitchWrapperVariants(),
+              radiusTokens.full,
+            )}
+          >
+            <button
+              type="button"
+              className={cn(
+                splittingTypeSwitchButtonVariants({
+                  active: claim.type === "quantity",
+                }),
+                radiusTokens.full,
+              )}
+              aria-pressed={claim.type === "quantity"}
+              onClick={() => onUpdate({ ...claim, type: "quantity" })}
+            >
+              ШТ
+            </button>
+            <button
+              type="button"
+              className={cn(
+                splittingTypeSwitchButtonVariants({
+                  active: claim.type === "amount",
+                }),
+                radiusTokens.full,
+              )}
+              aria-pressed={claim.type === "amount"}
+              onClick={() => onUpdate({ ...claim, type: "amount" })}
+            >
+              ₽
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-border/40 px-3 py-3">
+        <div className="mb-2 flex w-full items-center justify-between">
+          <span className={textRoleVariants({ role: "overlineMuted" })}>
+            {t("splitBetween")}
+          </span>
+          <button
+            type="button"
+            className={textRoleVariants({ role: "metaSmBrandStrong" })}
+            disabled={participants.length === 0}
+            onClick={() =>
+              onUpdate({
+                ...claim,
+                participantIds: allParticipantsSelected ? [] : allParticipantIds,
+              })
+            }
+          >
+            {allParticipantsSelected ? t("clearAll") : t("selectAll")}
+          </button>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {participants.map((participant) => {
+            const selected = claim.participantIds.includes(participant.id);
+
+            return (
+              <button
+                key={participant.id}
+                type="button"
+                className={splittingParticipantButtonVariants({ selected })}
+                onClick={() => {
+                  if (selected) {
+                    onUpdate({
+                      ...claim,
+                      participantIds: claim.participantIds.filter(
+                        (participantId) => participantId !== participant.id,
+                      ),
+                    });
+                    return;
+                  }
+
+                  onUpdate({
+                    ...claim,
+                    participantIds: [...claim.participantIds, participant.id],
+                  });
+                }}
+              >
+                <ParticipantAvatar
+                  participant={participant}
+                  className={avatarSizeVariants({ size: "sm" })}
+                  showRing={selected}
+                />
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-3 flex w-full items-center gap-2">
+          <Button type="button" variant="outline" className="flex-1" onClick={handleCancel}>
+            {t("cancel")}
+          </Button>
+          <Button type="button" className="flex-1" onClick={handleSave} disabled={saveDisabled}>
+            {t("save")}
+          </Button>
+        </div>
+      </div>
+    </ReceiptCard>
+  );
+
   return (
     <div
+      ref={anchorRef}
       className={cn(
-        "relative",
-        "focus-within:fixed focus-within:inset-0 focus-within:z-50 focus-within:overflow-y-auto",
-        "focus-within:bg-background/95 focus-within:px-3 focus-within:pt-[calc(env(safe-area-inset-top)+0.75rem)] focus-within:pb-[calc(env(safe-area-inset-bottom)+0.75rem)]",
-        "md:focus-within:static md:focus-within:inset-auto md:focus-within:z-auto md:focus-within:overflow-visible",
-        "md:focus-within:bg-transparent md:focus-within:px-0 md:focus-within:pt-0 md:focus-within:pb-0",
+        "relative w-full",
+        isExpanded &&
+          "z-10 bg-background px-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-[calc(env(safe-area-inset-bottom)+0.75rem)]",
       )}
     >
-      <div className="w-full focus-within:mx-auto focus-within:max-w-3xl">
-        <ReceiptCard
-          tone="warm"
-          shadow="sm"
-          radius="2xl"
-          className="overflow-hidden border-amber-200/70"
-        >
-          <div className="px-3 pt-3 pb-2">
-            <div className={rowVariants({ justify: "between", align: "start", width: "full" })}>
-              <Input
-                type="text"
-                inputMode="decimal"
-                className="h-16 min-w-0 flex-1 border-0 bg-transparent px-0 text-center text-5xl font-semibold tabular-nums shadow-none focus-visible:ring-0"
-                value={claim.value > 0 ? formatClaimValue(claim.value) : ""}
-                onChange={(event) =>
-                  onUpdate({
-                    ...claim,
-                    value: parseInputValue(event.target.value),
-                  })
-                }
-                autoFocus
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" && !saveDisabled) {
-                    onSave();
-                  }
-                  if (event.key === "Escape") {
-                    onCancel();
-                  }
-                }}
-              />
-
-              <div
-                className={cn(
-                  "flex items-center",
-                  splittingTypeSwitchWrapperVariants(),
-                  radiusTokens.full,
-                )}
-              >
-                <button
-                  type="button"
-                  className={cn(
-                    splittingTypeSwitchButtonVariants({
-                      active: claim.type === "quantity",
-                    }),
-                    radiusTokens.full,
-                  )}
-                  aria-pressed={claim.type === "quantity"}
-                  onClick={() => onUpdate({ ...claim, type: "quantity" })}
-                >
-                  ШТ
-                </button>
-                <button
-                  type="button"
-                  className={cn(
-                    splittingTypeSwitchButtonVariants({
-                      active: claim.type === "amount",
-                    }),
-                    radiusTokens.full,
-                  )}
-                  aria-pressed={claim.type === "amount"}
-                  onClick={() => onUpdate({ ...claim, type: "amount" })}
-                >
-                  ₽
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-border/40 px-3 py-3">
-            <div className="mb-2 flex w-full items-center justify-between">
-              <span className={textRoleVariants({ role: "overlineMuted" })}>
-                {t("splitBetween")}
-              </span>
-              <button
-                type="button"
-                className={textRoleVariants({ role: "metaSmBrandStrong" })}
-                disabled={participants.length === 0}
-                onClick={() =>
-                  onUpdate({
-                    ...claim,
-                    participantIds: allParticipantsSelected ? [] : allParticipantIds,
-                  })
-                }
-              >
-                {allParticipantsSelected ? t("clearAll") : t("selectAll")}
-              </button>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {participants.map((participant) => {
-                const selected = claim.participantIds.includes(participant.id);
-
-                return (
-                  <button
-                    key={participant.id}
-                    type="button"
-                    className={splittingParticipantButtonVariants({ selected })}
-                    onClick={() => {
-                      if (selected) {
-                        onUpdate({
-                          ...claim,
-                          participantIds: claim.participantIds.filter(
-                            (participantId) => participantId !== participant.id,
-                          ),
-                        });
-                        return;
-                      }
-
-                      onUpdate({
-                        ...claim,
-                        participantIds: [...claim.participantIds, participant.id],
-                      });
-                    }}
-                  >
-                    <ParticipantAvatar
-                      participant={participant}
-                      className={avatarSizeVariants({ size: "sm" })}
-                      showRing={selected}
-                    />
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="mt-3 flex w-full items-center gap-2">
-              <Button type="button" variant="outline" className="flex-1" onClick={onCancel}>
-                {t("cancel")}
-              </Button>
-              <Button type="button" className="flex-1" onClick={onSave} disabled={saveDisabled}>
-                {t("save")}
-              </Button>
-            </div>
-          </div>
-        </ReceiptCard>
-      </div>
+      <div className={cn("w-full", isExpanded && "mx-auto max-w-3xl")}>{editorCard}</div>
     </div>
   );
 };
-

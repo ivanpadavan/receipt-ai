@@ -259,6 +259,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
       <FormProvider {...form}>
         {JoinFlow}
         <Drawer
+          repositionInputs={false}
           onCloseAnimationEnd={() => {
             setSplittingSheetOpen(false);
             setSplittingModalProps(null);
@@ -330,10 +331,17 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
               />
             ) : (
               <>
-                <div className={cn(rowVariants({ align: "center", justify: "between", width: "full" }), "mb-3")}>
-                  <h2
-                    className={textRoleVariants({ role: "overlineMuted" })}
-                  >
+                <div
+                  className={cn(
+                    rowVariants({
+                      align: "center",
+                      justify: "between",
+                      width: "full",
+                    }),
+                    "mb-3",
+                  )}
+                >
+                  <h2 className={textRoleVariants({ role: "overlineMuted" })}>
                     {t("receipt")}
                   </h2>
                 </div>
@@ -379,20 +387,26 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                             canEdit.positionForm &&
                             openEditModal({ type: "position", index })
                           }
-                        className={cn(
-                          "w-full text-left",
-                          positionRowButtonVariants({
-                            interactive: canEdit.positionForm,
-                          }),
-                        )}
+                          className={cn(
+                            "w-full text-left",
+                            positionRowButtonVariants({
+                              interactive: canEdit.positionForm,
+                            }),
+                          )}
                         >
-          <CardContent className={rowContentPaddingVariants({ density: "tight" })}>
+                          <CardContent
+                            className={rowContentPaddingVariants({
+                              density: "tight",
+                            })}
+                          >
                             <div
                               className={cn(
                                 rowVariants({ align: "center", width: "full" }),
                                 inlineGapVariants({ size: "md" }),
                                 positionHeaderVariants({
-                                  tone: hasRowNumberError ? "danger" : "default",
+                                  tone: hasRowNumberError
+                                    ? "danger"
+                                    : "default",
                                 }),
                               )}
                             >
@@ -406,11 +420,15 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                                   {field.name}
                                 </p>
                                 <p
-                                  className={textRoleVariants({ role: "captionXsMuted" })}
+                                  className={textRoleVariants({
+                                    role: "captionXsMuted",
+                                  })}
                                 >
                                   <span
                                     className={positionMetaValueVariants({
-                                      tone: hasPriceError ? "danger" : "default",
+                                      tone: hasPriceError
+                                        ? "danger"
+                                        : "default",
                                     })}
                                   >
                                     {formatMoney(field.price)}
@@ -418,7 +436,9 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                                   x{" "}
                                   <span
                                     className={positionMetaValueVariants({
-                                      tone: hasQuantityError ? "danger" : "default",
+                                      tone: hasQuantityError
+                                        ? "danger"
+                                        : "default",
                                     })}
                                   >
                                     {field.quantity}
@@ -428,7 +448,9 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                               <span
                                 className={cn(
                                   quantityPillVariants({
-                                    tone: hasQuantityError ? "danger" : "neutral",
+                                    tone: hasQuantityError
+                                      ? "danger"
+                                      : "neutral",
                                     radius: "lg",
                                   }),
                                 )}
@@ -465,7 +487,9 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                   radius="2xl"
                   className="mt-4"
                 >
-                  <CardContent className={rowContentPaddingVariants({ density: "tight" })}>
+                  <CardContent
+                    className={rowContentPaddingVariants({ density: "tight" })}
+                  >
                     <div>
                       {(currentReceipt.discounts.length > 0 ||
                         currentReceipt.fees.length > 0) && (
@@ -500,7 +524,9 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                           openEditModal({ type: "totals" })
                         }
                       >
-                        <span className={textRoleVariants({ role: "labelSmMuted" })}>
+                        <span
+                          className={textRoleVariants({ role: "labelSmMuted" })}
+                        >
                           {t("total")}
                         </span>
                         <span
@@ -531,7 +557,9 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                         }
                       >
                         <span
-                          className={textRoleVariants({ role: "labelBaseStrong" })}
+                          className={textRoleVariants({
+                            role: "labelBaseStrong",
+                          })}
                         >
                           {t("grandTotal")}
                         </span>
@@ -573,12 +601,18 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
             onOpenParticipants={() => setParticipantsModalOpen(true)}
             onPrimaryAction={scenarioType === "summary" ? goBack : proceed}
             onAddPosition={
-              canEdit.positionForm ? () => openEditModal("addPosition") : undefined
+              canEdit.positionForm
+                ? () => openEditModal("addPosition")
+                : undefined
             }
             onAddDiscount={
-              canEdit.modifierForm ? () => openEditModal("addDiscount") : undefined
+              canEdit.modifierForm
+                ? () => openEditModal("addDiscount")
+                : undefined
             }
-            onAddFee={canEdit.modifierForm ? () => openEditModal("addFee") : undefined}
+            onAddFee={
+              canEdit.modifierForm ? () => openEditModal("addFee") : undefined
+            }
           />
         </div>
       </FormProvider>
