@@ -176,11 +176,25 @@ export function useReceiptFormState(
   // -------------------------------------------------------------------------
   const { summaryInUrl, setSummaryInUrl } = useSummaryQuery();
   const getType = useCallback(() => {
-    const isValid = receiptValidationSchema.safeParse(initialData).success;
+    const parsed = receiptValidationSchema.safeParse(initialData);
+    const isValid = parsed.success;
+    const hasOnlyClaimIssues =
+      !isValid &&
+      parsed.error.issues.length > 0 &&
+      parsed.error.issues.every((issue) => {
+        if (issue.path.length < 3) {
+          return false;
+        }
+
+        return issue.path[0] === "positions" && issue.path[2] === "claims";
+      });
+
+    const canSplit = isValid || hasOnlyClaimIssues;
+
     if (summaryInUrl && isValid) {
       return "summary";
     } else {
-      return isValid ? "splitting" : "validation";
+      return canSplit ? "splitting" : "validation";
     }
   }, [summaryInUrl, initialData]);
   const [type, setType] = useState<FormType>(getType);
