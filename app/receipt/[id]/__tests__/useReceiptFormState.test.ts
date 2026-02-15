@@ -3,6 +3,10 @@ import { useReceiptFormState } from "../useReceiptFormState";
 import { Receipt } from "@/model/receipt/model";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("nuqs", () => ({
+  useQueryState: vi.fn(() => [null, vi.fn()]),
+}));
+
 vi.mock("@/app/api-client", () => ({
   apiClient: {
     createReceipt: vi.fn(),
@@ -181,6 +185,55 @@ describe("useReceiptFormState", () => {
       overall: 0,
       claims: [],
     });
+  });
+
+  it("recalculates totals when editing a position via modal save", () => {
+    const { result } = renderHook(() => useReceiptFormState(validReceipt));
+
+    act(() => {
+      result.current.openEditModal({ type: "position", index: 0 });
+    });
+
+    const props = result.current.editModalProps as {
+      onSave: (data: Receipt["positions"][number]) => void;
+    };
+
+    act(() => {
+      props.onSave({
+        ...validReceipt.positions[0],
+        quantity: 3,
+        overall: 30,
+      });
+    });
+
+    const values = result.current.scenario.form.getValues();
+    expect(values.totals.total).toBe(30);
+    expect(values.totals.grandTotal).toBe(33);
+  });
+
+  it("does not recalculate totals in validation mode when editing a position", () => {
+    const { result } = renderHook(() => useReceiptFormState(invalidReceipt));
+
+    act(() => {
+      result.current.openEditModal({ type: "position", index: 0 });
+    });
+
+    const props = result.current.editModalProps as {
+      onSave: (data: Receipt["positions"][number]) => void;
+    };
+
+    act(() => {
+      props.onSave({
+        ...invalidReceipt.positions[0],
+        quantity: 3,
+        overall: 30,
+      });
+    });
+
+    const values = result.current.scenario.form.getValues();
+    expect(values.positions[0].overall).toBe(30);
+    expect(values.totals.total).toBe(25);
+    expect(values.totals.grandTotal).toBe(30);
   });
 
   it("should emit modal props for addFee", () => {
