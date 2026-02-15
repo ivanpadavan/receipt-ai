@@ -514,8 +514,8 @@ export const participantsEmptyStateIconVariants = cva("text-gray-300");
 export const participantsEmptyStateContainerVariants = cva(
   "text-center py-12",
 );
-export const participantsRowMenuButtonVariants = cva("text-gray-500");
-export const participantsDangerMenuItemVariants = cva(
+export const rowActionsMenuTriggerVariants = cva("text-gray-500");
+export const rowActionsMenuDangerItemVariants = cva(
   "text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50",
 );
 export const participantsAvatarPlaceholderVariants = cva(
@@ -562,10 +562,6 @@ export const splittingTypeSwitchButtonVariants = cva(
       },
     },
   },
-);
-export const splittingMenuButtonVariants = cva("text-gray-500");
-export const splittingMenuDangerItemVariants = cva(
-  "text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50",
 );
 export const splittingAvatarRingVariants = cva("ring-2 ring-background");
 export const splittingAvatarFallbackVariants = cva(

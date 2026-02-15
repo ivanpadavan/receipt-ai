@@ -39,14 +39,14 @@ import {
   participantsAddButtonContainerVariants,
   participantsAddInputVariants,
   participantsAvatarPlaceholderVariants,
-  participantsDangerMenuItemVariants,
+  rowActionsMenuDangerItemVariants,
   dialogContentVariants,
   participantsDoneButtonVariants,
   participantsEmptyStateContainerVariants,
   participantsEmptyStateIconVariants,
   participantsFooterVariants,
   participantsListPaddingVariants,
-  participantsRowMenuButtonVariants,
+  rowActionsMenuTriggerVariants,
   participantsSheetBackgroundVariants,
   participantsSheetHeaderVariants,
   participantsDeleteActionVariants,
@@ -231,7 +231,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                         size="icon"
                         className={cn(
                           iconButtonCompactVariants(),
-                          participantsRowMenuButtonVariants(),
+                          rowActionsMenuTriggerVariants(),
                         )}
                       >
                       <MoreVertical className={iconSizeVariants({ size: "sm" })} />
@@ -240,7 +240,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
                       onClick={() => handleDeleteClick(participant)}
-                      className={participantsDangerMenuItemVariants()}
+                      className={rowActionsMenuDangerItemVariants()}
                     >
                       <Trash2
                         className={cn(
