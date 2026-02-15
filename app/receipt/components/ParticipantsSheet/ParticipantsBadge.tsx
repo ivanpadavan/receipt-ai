@@ -6,12 +6,25 @@ import { Button } from "@/components/ui/button";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { cn } from "@/utils/cn";
 import {
-  participantsBadgeButtonVariants,
   pillVariants,
   iconSizeVariants,
   buttonContentVariants,
-  textRoleVariants,
+  textVariants,
 } from "@/app/receipt/components/ui-styles";
+import { cva } from "class-variance-authority";
+
+// ── Badge-scoped styles ──────────────────────────
+const badgeButtonVariants = cva("", {
+  variants: {
+    size: {
+      compact: "h-10",
+      full: "",
+    },
+  },
+  defaultVariants: {
+    size: "full",
+  },
+});
 
 interface ParticipantsBadgeProps {
   onClick: () => void;
@@ -34,22 +47,22 @@ export const ParticipantsBadge: React.FC<ParticipantsBadgeProps> = ({
         onClick={onClick}
         disabled={disabled}
         title="Участники"
-      className={cn(
-        pillVariants({
-          tone: "ghost",
-          radius: "xl",
-          interaction: "subtle",
-          size: "md",
-        }),
-        buttonContentVariants({ layout: "inlineTight" }),
-        participantsBadgeButtonVariants({ size: "compact" }),
-      )}
-    >
+        className={cn(
+          pillVariants({
+            tone: "ghost",
+            radius: "xl",
+            interaction: "subtle",
+            size: "md",
+          }),
+          buttonContentVariants({ layout: "inlineTight" }),
+          badgeButtonVariants({ size: "compact" }),
+        )}
+      >
         <Users className={iconSizeVariants({ size: "sm" })} />
         <span
           className={cn(
             "min-w-[1rem]",
-            textRoleVariants({ role: "badgeCount" }),
+            textVariants({ size: "sm", weight: "semibold", align: "center" }),
           )}
         >
           {count}
@@ -64,7 +77,7 @@ export const ParticipantsBadge: React.FC<ParticipantsBadgeProps> = ({
       onClick={onClick}
       disabled={disabled}
       title="Участники"
-        className={cn(
+      className={cn(
         pillVariants({
           tone: "neutral",
           radius: "xl",
@@ -72,14 +85,14 @@ export const ParticipantsBadge: React.FC<ParticipantsBadgeProps> = ({
           size: "md",
         }),
         buttonContentVariants({ layout: "inline" }),
-        participantsBadgeButtonVariants({ size: "full" }),
+        badgeButtonVariants({ size: "full" }),
       )}
     >
       <Users className={iconSizeVariants({ size: "mdTight" })} />
       <span
         className={cn(
           "min-w-[1.25rem]",
-          textRoleVariants({ role: "badgeCount" }),
+          textVariants({ size: "sm", weight: "semibold", align: "center" }),
         )}
       >
         {count}

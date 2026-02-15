@@ -21,16 +21,19 @@ import { cn } from "@/utils/cn";
 import {
   iconSizeVariants,
   buttonContentVariants,
-  shareReceiptContentPaddingVariants,
-  shareReceiptQrContainerVariants,
-  shareReceiptTriggerLabelVariants,
   stackGapVariants,
   inlineGapVariants,
-  dialogHeaderVariants,
-  dialogFooterVariants,
-  dialogHeaderTitleVariants,
-  dialogContentVariants,
+  dialogHeader,
+  dialogFooter,
+  dialogHeaderTitle,
+  dialogContent,
+  radiusTokens,
 } from "@/app/receipt/components/ui-styles";
+
+// ── ShareReceipt-scoped styles ──────────────────────
+const qrContainer = `${radiusTokens.xl} border bg-white p-3`;
+const triggerLabel = "text-[11px] font-medium";
+const contentPadding = "py-2";
 
 type ShareReceiptDialogProps = {
   receiptId: string;
@@ -75,7 +78,7 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
     }
   };
 
-  const triggerLabel = label ?? t("share");
+  const displayLabel = label ?? t("share");
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
@@ -84,21 +87,20 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
           {stacked ? (
             <span className={buttonContentVariants({ layout: "stacked" })}>
               <Share2 className={iconSizeVariants({ size: "sm" })} />
-              <span className={shareReceiptTriggerLabelVariants()}>
-                {triggerLabel}
-              </span>
+              <span className={triggerLabel}>
+              {displayLabel}</span>
             </span>
           ) : (
             <>
               <Share2 className={iconSizeVariants({ size: "sm" })} />
-              {!iconOnly && triggerLabel}
+              {!iconOnly && displayLabel}
             </>
           )}
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className={dialogContentVariants()}>
-        <AlertDialogHeader className={dialogHeaderVariants()}>
-          <AlertDialogTitle className={dialogHeaderTitleVariants()}>
+      <AlertDialogContent className={dialogContent}>
+        <AlertDialogHeader className={dialogHeader}>
+          <AlertDialogTitle className={dialogHeaderTitle}>
             {t("shareReceiptTitle")}
           </AlertDialogTitle>
           <AlertDialogDescription>{t("shareReceiptHint")}</AlertDialogDescription>
@@ -108,10 +110,10 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
           className={cn(
             "flex flex-col items-center",
             stackGapVariants({ size: "lg" }),
-            shareReceiptContentPaddingVariants(),
+            contentPadding,
           )}
         >
-          <div className={shareReceiptQrContainerVariants()}>
+          <div className={qrContainer}>
             <QRCodeSVG
               value={receiptUrl}
               size={220}
@@ -135,7 +137,7 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
         </div>
 
         <AlertDialogFooter
-          className={cn(dialogFooterVariants(), inlineGapVariants({ size: "sm" }))}
+          className={cn(dialogFooter, inlineGapVariants({ size: "sm" }))}
         >
           <AlertDialogCancel className="sm:flex-1">
             {t("close")}

@@ -9,10 +9,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { t } from "@/app/i18n/translations";
 import {
-  dialogContentVariants,
-  dialogFooterVariants,
-  dialogHeaderTitleVariants,
-  dialogHeaderVariants,
+  dialogContent,
+  dialogFooter,
+  dialogHeaderTitle,
+  dialogHeader,
   inlineGapVariants,
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
@@ -26,15 +26,15 @@ export function RemovedFromReceiptDialog({
 }: RemovedFromReceiptDialogProps) {
   return (
     <AlertDialog open>
-      <AlertDialogContent className={dialogContentVariants()}>
-        <AlertDialogHeader className={dialogHeaderVariants()}>
-          <AlertDialogTitle className={dialogHeaderTitleVariants()}>
+      <AlertDialogContent className={dialogContent}>
+        <AlertDialogHeader className={dialogHeader}>
+          <AlertDialogTitle className={dialogHeaderTitle}>
             {t("removedTitle")}
           </AlertDialogTitle>
           <AlertDialogDescription>{t("removedBody")}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter
-          className={cn(dialogFooterVariants(), inlineGapVariants({ size: "sm" }))}
+          className={cn(dialogFooter, inlineGapVariants({ size: "sm" }))}
         >
           <AlertDialogAction onClick={onGoHome}>{t("goHome")}</AlertDialogAction>
         </AlertDialogFooter>

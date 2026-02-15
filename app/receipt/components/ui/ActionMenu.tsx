@@ -11,9 +11,34 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/utils/cn";
 import {
-  actionMenuItemVariants,
-  actionMenuTriggerVariants,
+  iconButtonVariants,
+  iconButtonCompact,
 } from "@/app/receipt/components/ui-styles";
+import { cva } from "class-variance-authority";
+
+// ── ActionMenu-scoped styles ──────────────────────
+const menuTriggerVariants = cva("", {
+  variants: {
+    kind: {
+      row: `${iconButtonCompact} text-gray-500`,
+      actionBar: iconButtonVariants({ size: "liquid", tone: "muted" }),
+    },
+  },
+  defaultVariants: {
+    kind: "row",
+  },
+});
+const menuItemVariants = cva("", {
+  variants: {
+    tone: {
+      default: "",
+      danger: "text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50",
+    },
+  },
+  defaultVariants: {
+    tone: "default",
+  },
+});
 
 export interface ActionMenuItem {
   id: string;
@@ -50,7 +75,7 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
             variant: "ghost",
             size: triggerKind === "row" ? "icon" : "sm",
           }),
-          actionMenuTriggerVariants({ kind: triggerKind }),
+          menuTriggerVariants({ kind: triggerKind }),
         )}
         aria-label={triggerLabel}
         title={triggerLabel}
@@ -66,7 +91,7 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
           <DropdownMenuItem
             key={item.id}
             onClick={item.onSelect}
-            className={actionMenuItemVariants({ tone: item.tone ?? "default" })}
+            className={menuItemVariants({ tone: item.tone ?? "default" })}
           >
             {item.icon}
             {item.label}

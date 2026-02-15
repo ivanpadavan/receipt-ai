@@ -1,5 +1,6 @@
 import { cva } from "class-variance-authority";
 
+// ── Tokens ──────────────────────────────────────────────
 export const radiusTokens = {
   xs: "rounded-sm",
   sm: "rounded-md",
@@ -20,9 +21,53 @@ export const shadowTokens = {
   orange: "shadow-[0_14px_30px_rgba(249,115,22,0.36)]",
 };
 
+// ── Surface ─────────────────────────────────────────────
 const iconCapsuleSurface =
   "border border-foreground/15 bg-white/48 shadow-[inset_0_1px_0_rgba(255,255,255,0.32)] backdrop-blur-md";
 
+export const surfaceVariants = cva(
+  "border border-border/70 bg-card text-foreground",
+  {
+    variants: {
+      tone: {
+        default: "",
+        soft: "bg-muted/30",
+        warm: "bg-amber-50/60 border-amber-200/70",
+        warmStrong: "bg-amber-50/60 border-amber-500 border-2",
+        danger: "bg-red-50 border-red-200 text-red-950",
+      },
+      shadow: {
+        none: "shadow-none",
+        sm: shadowTokens.sm,
+        md: shadowTokens.md,
+        lg: shadowTokens.lg,
+      },
+      interactive: {
+        true: "cursor-pointer transition hover:shadow-[0_16px_34px_rgba(15,23,42,0.12),0_4px_10px_rgba(15,23,42,0.08)]",
+        false: "",
+      },
+      state: {
+        default: "",
+        active:
+          "bg-amber-50/70 border-amber-300 shadow-[inset_0_0_0_2px_rgba(251,146,60,0.55)] hover:shadow-[inset_0_0_0_2px_rgba(251,146,60,0.55)]",
+      },
+      radius: {
+        xl: radiusTokens.xl,
+        "2xl": radiusTokens["2xl"],
+        "3xl": radiusTokens["3xl"],
+      },
+    },
+    defaultVariants: {
+      tone: "default",
+      shadow: "sm",
+      interactive: false,
+      state: "default",
+      radius: "2xl",
+    },
+  },
+);
+
+// ── Icon ────────────────────────────────────────────────
 export const iconGroupVariants = cva(
   `${radiusTokens.full} ${iconCapsuleSurface} [&>*]:border-0`,
   {
@@ -74,48 +119,176 @@ export const iconButtonVariants = cva("px-0", {
   },
 });
 
-export const surfaceVariants = cva(
-  "border border-border/70 bg-card text-foreground",
-  {
-    variants: {
-      tone: {
-        default: "",
-        soft: "bg-muted/30",
-        warm: "bg-amber-50/60 border-amber-200/70",
-        warmStrong: "bg-amber-50/60 border-amber-500 border-2",
-        danger: "bg-red-50 border-red-200 text-red-950",
-      },
-      shadow: {
-        none: "shadow-none",
-        sm: shadowTokens.sm,
-        md: shadowTokens.md,
-        lg: shadowTokens.lg,
-      },
-      interactive: {
-        true: "cursor-pointer transition hover:shadow-[0_16px_34px_rgba(15,23,42,0.12),0_4px_10px_rgba(15,23,42,0.08)]",
-        false: "",
-      },
-      state: {
-        default: "",
-        active:
-          "bg-amber-50/70 border-amber-300 shadow-[inset_0_0_0_2px_rgba(251,146,60,0.55)] hover:shadow-[inset_0_0_0_2px_rgba(251,146,60,0.55)]",
-      },
-      radius: {
-        xl: radiusTokens.xl,
-        "2xl": radiusTokens["2xl"],
-        "3xl": radiusTokens["3xl"],
-      },
-    },
-    defaultVariants: {
-      tone: "default",
-      shadow: "sm",
-      interactive: false,
-      state: "default",
-      radius: "2xl",
+export const iconSizeVariants = cva("", {
+  variants: {
+    size: {
+      xs: "h-3.5 w-3.5",
+      sm: "h-4 w-4",
+      lgPlus: "h-8 w-8",
+      mdTight: "h-[1.125rem] w-[1.125rem]",
+      md: "h-5 w-5",
+      lg: "h-6 w-6",
+      xl: "h-12 w-12",
     },
   },
-);
+  defaultVariants: {
+    size: "sm",
+  },
+});
 
+export const iconLeadSpacingVariants = cva("", {
+  variants: {
+    size: {
+      sm: "mr-1",
+      md: "mr-2",
+    },
+  },
+  defaultVariants: {
+    size: "md",
+  },
+});
+
+// ── Text ────────────────────────────────────────────────
+export const textVariants = cva("", {
+  variants: {
+    size: {
+      none: "",
+      xs: "text-xs",
+      sm: "text-sm",
+      base: "text-base",
+      lg: "text-lg",
+      xl: "text-xl",
+      "2xl": "text-2xl",
+      "3xl": "text-3xl",
+      "4xl": "text-4xl",
+    },
+    weight: {
+      none: "",
+      normal: "font-normal",
+      medium: "font-medium",
+      semibold: "font-semibold",
+      bold: "font-bold",
+    },
+    tone: {
+      none: "",
+      default: "text-foreground",
+      muted: "text-muted-foreground",
+      subtle: "text-foreground/80",
+      brandStrong: "text-amber-800",
+      brand: "text-amber-600",
+      danger: "text-destructive",
+      warning: "text-amber-600",
+      success: "text-emerald-600",
+      inverse: "text-background",
+    },
+    align: {
+      none: "",
+      left: "text-left",
+      center: "text-center",
+      right: "text-right",
+    },
+    style: {
+      default: "",
+      caps: "uppercase tracking-wide",
+    },
+  },
+  defaultVariants: {
+    size: "none",
+    weight: "none",
+    tone: "none",
+    align: "none",
+    style: "default",
+  },
+});
+
+// ── Layout ──────────────────────────────────────────────
+export const rowVariants = cva("flex", {
+  variants: {
+    align: {
+      center: "items-center",
+      start: "items-start",
+      baseline: "items-baseline",
+      stretch: "items-stretch",
+    },
+    justify: {
+      start: "justify-start",
+      between: "justify-between",
+      center: "justify-center",
+    },
+    wrap: {
+      true: "flex-wrap",
+      false: "",
+    },
+    width: {
+      full: "w-full",
+      auto: "",
+    },
+  },
+  defaultVariants: {
+    align: "center",
+    justify: "start",
+    wrap: false,
+    width: "auto",
+  },
+});
+
+export const inlineGapVariants = cva("", {
+  variants: {
+    size: {
+      xs: "gap-1",
+      sm: "gap-2",
+      md: "gap-3",
+      lg: "gap-4",
+      xl: "gap-6",
+    },
+  },
+  defaultVariants: {
+    size: "sm",
+  },
+});
+
+export const stackGapVariants = cva("", {
+  variants: {
+    size: {
+      xs: "space-y-1",
+      sm: "space-y-1.5",
+      md: "space-y-3",
+      lg: "space-y-4",
+      xl: "space-y-6",
+    },
+  },
+  defaultVariants: {
+    size: "md",
+  },
+});
+
+export const cardPaddingVariants = cva("", {
+  variants: {
+    size: {
+      sm: "p-3",
+      md: "p-4",
+      lg: "p-6",
+      xl: "p-8",
+    },
+  },
+  defaultVariants: {
+    size: "md",
+  },
+});
+
+export const rowContentPaddingVariants = cva("", {
+  variants: {
+    density: {
+      tight: "px-4 py-1.5",
+      regular: "px-4 py-3",
+    },
+  },
+  defaultVariants: {
+    density: "regular",
+  },
+});
+
+// ── Component Variants (multi-consumer) ─────────────────
 export const pillVariants = cva("inline-flex items-center gap-1.5 border", {
   variants: {
     tone: {
@@ -151,14 +324,6 @@ export const pillVariants = cva("inline-flex items-center gap-1.5 border", {
   },
 });
 
-export const actionBarVariants = cva(
-  `${radiusTokens.action} border border-white/70 bg-white/35 ${shadowTokens.glass} backdrop-blur-2xl`,
-);
-
-export const primaryActionVariants = cva(
-  `${radiusTokens.full} text-base font-semibold ${shadowTokens.orange}`,
-);
-
 export const noticeVariants = cva(
   `${radiusTokens.sm} border px-3 py-3 text-sm`,
   {
@@ -192,131 +357,16 @@ export const barVariants = cva("w-full overflow-hidden flex relative", {
   },
 });
 
-export const fieldLabelVariants = cva("text-sm font-medium text-foreground");
-
-export const inputStateVariants = cva("", {
+export const buttonContentVariants = cva("", {
   variants: {
-    state: {
-      default: "",
-      error: "border-destructive focus-visible:ring-destructive",
-      disabled: "bg-muted text-muted-foreground",
+    layout: {
+      inline: "inline-flex items-center gap-2",
+      inlineTight: "inline-flex items-center gap-1.5",
+      stacked: "flex flex-col items-center gap-1 leading-none",
     },
   },
   defaultVariants: {
-    state: "default",
-  },
-});
-
-export const sheetHeaderTitleVariants = cva("text-center px-4 pt-4");
-export const dialogHeaderTitleVariants = cva("text-center");
-
-export const dialogHeaderVariants = cva("space-y-1");
-export const dialogFooterVariants = cva("sm:flex-row sm:items-stretch");
-export const dialogContentVariants = cva("max-w-md");
-export const dialogContentWideVariants = cva("max-w-lg");
-export const dialogBodySpacingVariants = cva("mt-4");
-
-export const textVariants = cva("", {
-  variants: {
-    size: {
-      none: "",
-      xs: "text-xs",
-      sm: "text-sm",
-      base: "text-base",
-      lg: "text-lg",
-      xl: "text-xl",
-      "2xl": "text-2xl",
-      "3xl": "text-3xl",
-      "4xl": "text-4xl",
-    },
-    weight: {
-      normal: "font-normal",
-      medium: "font-medium",
-      semibold: "font-semibold",
-      bold: "font-bold",
-    },
-    tone: {
-      default: "text-foreground",
-      muted: "text-muted-foreground",
-      subtle: "text-foreground/80",
-      brandStrong: "text-amber-800",
-      brand: "text-amber-600",
-      danger: "text-destructive",
-      warning: "text-amber-600",
-      success: "text-emerald-600",
-      inverse: "text-background",
-    },
-    align: {
-      left: "text-left",
-      center: "text-center",
-      right: "text-right",
-    },
-    style: {
-      default: "",
-      caps: "uppercase tracking-wide",
-    },
-  },
-  defaultVariants: {
-    size: "none",
-    weight: "normal",
-    tone: "default",
-    align: "left",
-    style: "default",
-  },
-});
-
-export const textRoleVariants = cva("", {
-  variants: {
-    role: {
-      pageTitle: "text-3xl font-bold text-amber-800",
-      sectionTitle: "text-2xl font-bold text-foreground",
-      sheetTitle: "text-xl font-semibold text-foreground",
-      sectionSubtitle: "text-lg font-medium text-muted-foreground",
-      headingLg: "text-lg font-medium text-foreground",
-      labelSm: "text-sm font-medium text-foreground",
-      labelSmMuted: "text-sm text-muted-foreground",
-      labelMuted: "text-muted-foreground",
-      bodyDefault: "text-foreground",
-      bodyMuted: "text-muted-foreground",
-      captionXsMuted: "text-xs text-muted-foreground",
-      captionXsWarning: "text-xs text-amber-600",
-      overlineMuted: "text-sm font-semibold uppercase tracking-wide text-muted-foreground",
-      statusBrandSm: "text-sm font-medium text-amber-800",
-      logoMark: "text-amber-600",
-      logoType: "text-xl font-bold text-amber-800",
-      labelBaseStrong: "text-base font-semibold text-foreground",
-      itemTitle: "text-base font-bold text-foreground",
-      amountHero: "text-4xl font-bold text-foreground",
-      amountCurrencyMuted: "text-2xl text-muted-foreground",
-      amountXl: "text-xl font-bold text-foreground",
-      amountBase: "text-base font-semibold text-foreground",
-      amountSemibold: "font-semibold text-foreground",
-      badgeCount: "text-sm font-semibold text-center",
-      metaSmBrand: "text-sm text-amber-600",
-      metaSmBrandStrong: "text-sm text-amber-800",
-      metaSmBrandStrongEm: "text-sm font-medium text-amber-800",
-      titleLgBrandStrong: "text-lg font-semibold text-amber-800",
-    },
-  },
-  defaultVariants: {
-    role: "labelMuted",
-  },
-});
-
-export const iconSizeVariants = cva("", {
-  variants: {
-    size: {
-      xs: "h-3.5 w-3.5",
-      sm: "h-4 w-4",
-      lgPlus: "h-8 w-8",
-      mdTight: "h-[1.125rem] w-[1.125rem]",
-      md: "h-5 w-5",
-      lg: "h-6 w-6",
-      xl: "h-12 w-12",
-    },
-  },
-  defaultVariants: {
-    size: "sm",
+    layout: "inline",
   },
 });
 
@@ -333,308 +383,18 @@ export const avatarSizeVariants = cva("", {
   },
 });
 
-export const iconButtonCompactVariants = cva("h-8 w-8");
-
-export const iconLeadSpacingVariants = cva("", {
+export const inputStateVariants = cva("", {
   variants: {
-    size: {
-      sm: "mr-1",
-      md: "mr-2",
-    },
-  },
-  defaultVariants: {
-    size: "md",
-  },
-});
-
-export const buttonContentVariants = cva("", {
-  variants: {
-    layout: {
-      inline: "inline-flex items-center gap-2",
-      inlineTight: "inline-flex items-center gap-1.5",
-      stacked: "flex flex-col items-center gap-1 leading-none",
-    },
-  },
-  defaultVariants: {
-    layout: "inline",
-  },
-});
-
-/** @deprecated Use pillVariants({ size: "sm", tone, radius }) */
-export const statusPillVariants = pillVariants;
-/** @deprecated Use pillVariants({ size: "xs", tone, radius: "lg" }) */
-export const quantityPillVariants = pillVariants;
-
-export const inlineGapVariants = cva("", {
-  variants: {
-    size: {
-      xs: "gap-1",
-      sm: "gap-2",
-      md: "gap-3",
-      lg: "gap-4",
-      xl: "gap-6",
-    },
-  },
-  defaultVariants: {
-    size: "sm",
-  },
-});
-
-export const stackGapVariants = cva("", {
-  variants: {
-    size: {
-      xs: "space-y-1",
-      sm: "space-y-1.5",
-      md: "space-y-3",
-      lg: "space-y-4",
-      xl: "space-y-6",
-    },
-  },
-  defaultVariants: {
-    size: "md",
-  },
-});
-
-export const rowVariants = cva("flex", {
-  variants: {
-    align: {
-      center: "items-center",
-      start: "items-start",
-      baseline: "items-baseline",
-      stretch: "items-stretch",
-    },
-    justify: {
-      start: "justify-start",
-      between: "justify-between",
-      center: "justify-center",
-    },
-    wrap: {
-      true: "flex-wrap",
-      false: "",
-    },
-    width: {
-      full: "w-full",
-      auto: "",
-    },
-  },
-  defaultVariants: {
-    align: "center",
-    justify: "start",
-    wrap: false,
-    width: "auto",
-  },
-});
-
-export const screenShellVariants = cva("bg-amber-50 p-4");
-
-export const cardPaddingVariants = cva("", {
-  variants: {
-    size: {
-      sm: "p-3",
-      md: "p-4",
-      lg: "p-6",
-      xl: "p-8",
-    },
-  },
-  defaultVariants: {
-    size: "md",
-  },
-});
-
-export const rowContentPaddingVariants = cva("", {
-  variants: {
-    density: {
-      tight: "px-4 py-1.5",
-      regular: "px-4 py-3",
-    },
-  },
-  defaultVariants: {
-    density: "regular",
-  },
-});
-
-export const previewImageVariants = cva(`object-contain ${radiusTokens.sm}`);
-export const btnShadowVariants = cva(shadowTokens.md);
-/** @deprecated Use btnShadowVariants */
-export const actionButtonVariants = btnShadowVariants;
-/** @deprecated Use btnShadowVariants */
-export const captureButtonVariants = btnShadowVariants;
-export const uploadPanelVariants = cva(
-  `${radiusTokens.xl} border-2 border-dashed border-amber-200 bg-amber-50/40 hover:bg-amber-50 transition-colors`,
-);
-export const loadingSpinnerVariants = cva(
-  `animate-spin ${radiusTokens.full} border-b-2 border-amber-500`,
-);
-export const errorBoxVariants = cva(
-  `bg-red-50 border border-red-300 text-red-700 ${radiusTokens.lg} ${shadowTokens.sm} p-4`,
-);
-
-export const navLinkVariants = cva(
-  `px-4 py-2 ${radiusTokens.nav} whitespace-nowrap flex items-center gap-2 text-sm transition-all`,
-  {
-    variants: {
-      active: {
-        true: "bg-primary text-primary-foreground",
-        false: "text-foreground hover:bg-accent hover:text-accent-foreground",
-      },
-    },
-    defaultVariants: {
-      active: false,
-    },
-  },
-);
-export const navContainerVariants = cva("bg-background border-b shadow-sm");
-export const mobileMenuButtonVariants = cva(
-  "text-foreground hover:bg-accent hover:text-accent-foreground",
-);
-export const menuPanelVariants = cva(
-  "flex flex-col md:flex-row items-start md:items-center md:space-x-4 bg-background",
-);
-export const menuPanelFrameVariants = cva(
-  "absolute md:static left-0 right-0 top-16 md:top-auto border-t md:border-t-0",
-);
-export const userNameVariants = cva("text-foreground font-medium");
-export const mobileUserContainerVariants = cva("text-center");
-export const navOuterPaddingVariants = cva("px-4 sm:px-6 lg:px-8");
-export const menuListPaddingVariants = cva("px-2 pt-2 pb-3 sm:px-3 md:p-0");
-export const menuItemPaddingVariants = cva("py-2 px-3 md:p-0");
-export const mobileActionPaddingVariants = cva("py-2 px-3");
-
-export const addButtonVariants = cva(
-  `h-6 w-6 p-0 ${radiusTokens.xs} bg-accent text-foreground hover:bg-accent/80`,
-);
-
-export const participantsSheetBackgroundVariants = cva(
-  "bg-gradient-to-b from-white to-gray-50",
-);
-export const participantsSheetHeaderVariants = cva(
-  "border-b border-gray-100 px-5 py-4",
-);
-export const participantsEmptyStateIconVariants = cva("text-gray-300");
-export const participantsEmptyStateContainerVariants = cva(
-  "text-center py-12",
-);
-export const rowActionsMenuTriggerVariants = cva("text-gray-500");
-export const rowActionsMenuDangerItemVariants = cva(
-  "text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50",
-);
-export const actionMenuTriggerVariants = cva("", {
-  variants: {
-    kind: {
-      row: `${iconButtonCompactVariants()} ${rowActionsMenuTriggerVariants()}`,
-      actionBar: iconButtonVariants({ size: "liquid", tone: "muted" }),
-    },
-  },
-  defaultVariants: {
-    kind: "row",
-  },
-});
-export const actionMenuItemVariants = cva("", {
-  variants: {
-    tone: {
+    state: {
       default: "",
-      danger: rowActionsMenuDangerItemVariants(),
+      error: "border-destructive focus-visible:ring-destructive",
+      disabled: "bg-muted text-muted-foreground",
     },
   },
   defaultVariants: {
-    tone: "default",
+    state: "default",
   },
 });
-export const participantsAvatarPlaceholderVariants = cva(
-  `${radiusTokens.full} flex items-center justify-center font-semibold text-lg`,
-);
-export const participantsAddInputVariants = cva(
-  "border-none bg-transparent p-0 text-base focus:ring-0 focus-visible:ring-0",
-);
-export const participantsDoneButtonVariants = cva(
-  `bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold ${radiusTokens.xl} active:scale-[0.98] transition-transform py-3`,
-);
-export const participantsFooterVariants = cva(
-  "border-t border-gray-100 bg-white p-4",
-);
-export const participantsDeleteActionVariants = cva(
-  "bg-red-500 hover:bg-red-600 text-white",
-);
-export const participantsListPaddingVariants = cva("px-4 py-3");
-export const participantsAddButtonContainerVariants = cva("px-4 pb-4 pt-2");
-
-export const shareReceiptQrContainerVariants = cva(
-  `${radiusTokens.xl} border bg-white p-3`,
-);
-export const shareReceiptTriggerLabelVariants = cva("text-[11px] font-medium");
-export const shareReceiptContentPaddingVariants = cva("py-2");
-
-export const settingsUploadCardPaddingVariants = cva("p-4");
-export const settingsCropFrameVariants = cva(
-  `bg-black/80 ${radiusTokens.lg} overflow-hidden`,
-);
-
-export const splittingTypeSwitchWrapperVariants = cva(
-  "border border-border/60 bg-muted/30 p-1 shadow-sm",
-);
-export const splittingTypeSwitchButtonVariants = cva(
-  "h-8 w-16 text-xs font-semibold transition",
-  {
-    variants: {
-      active: {
-        true: "bg-white text-foreground shadow",
-        false: "text-muted-foreground",
-      },
-    },
-  },
-);
-export const splittingAvatarRingVariants = cva("ring-2 ring-background");
-export const splittingAvatarFallbackVariants = cva(
-  "bg-muted flex items-center justify-center text-xs text-muted-foreground",
-);
-export const splittingAvatarOverflowVariants = cva(
-  "bg-muted flex items-center justify-center text-xs font-medium ring-2 ring-muted-foreground/30",
-);
-
-export const splittingAddShareButtonVariants = cva(
-  `${radiusTokens.full} border`,
-);
-export const splittingClaimsErrorRingVariants = cva(
-  `ring-1 ring-destructive/40 ${radiusTokens.xl}`,
-);
-
-export const splittingParticipantButtonVariants = cva(
-  `relative ${radiusTokens.full} transition-all`,
-  {
-    variants: {
-      selected: {
-        true: "",
-        false: "opacity-50 hover:opacity-80",
-      },
-    },
-    defaultVariants: {
-      selected: true,
-    },
-  },
-);
-
-export const splittingSheetSubtitleVariants = cva("px-4 py-2");
-export const splittingFooterVariants = cva("border-t bg-background pt-2");
-export const splittingAddSharePaddingVariants = cva("px-4 pb-3");
-export const splittingClaimsListPaddingVariants = cva("px-4");
-export const splittingFooterContentPaddingVariants = cva("px-4 py-3");
-
-export const appShellVariants = cva("bg-amber-50");
-
-export const historyEmptyCardTextVariants = cva("text-center");
-export const historyCtaButtonVariants = cva(
-  `${radiusTokens.full} bg-amber-500 px-4 py-2 font-bold text-white shadow-md hover:bg-amber-600`,
-);
-export const historyReceiptCardVariants = cva(
-  "border-amber-200 hover:border-amber-400",
-);
-export const settingsCardContentVariants = cva("p-0");
-
-export const notFoundShellVariants = cva("p-4");
-export const notFoundCardPaddingVariants = cva("p-6");
-export const notFoundButtonVariants = cva(
-  `font-bold py-2 px-4 ${radiusTokens.full} shadow-md`,
-);
 
 export const interactiveRowVariants = cva(`${radiusTokens.sm} px-1 py-1 text-sm`, {
   variants: {
@@ -647,10 +407,6 @@ export const interactiveRowVariants = cva(`${radiusTokens.sm} px-1 py-1 text-sm`
     interactive: false,
   },
 });
-/** @deprecated Use interactiveRowVariants */
-export const receiptRowVariants = interactiveRowVariants;
-/** @deprecated Use interactiveRowVariants */
-export const modifierRowVariants = interactiveRowVariants;
 
 export const dangerToneVariants = cva("", {
   variants: {
@@ -671,16 +427,6 @@ export const dangerToneVariants = cva("", {
     tone: "default",
   },
 });
-/** @deprecated Use dangerToneVariants({ base: "semibold" }) */
-export const totalValueVariants = dangerToneVariants;
-/** @deprecated Use dangerToneVariants({ base: "2xlBold" }) */
-export const grandTotalValueVariants = dangerToneVariants;
-/** @deprecated Use dangerToneVariants({ base: "baseSemibold" }) */
-export const overallValueVariants = dangerToneVariants;
-/** @deprecated Use dangerToneVariants({ base: "none" }) */
-export const positionHeaderVariants = dangerToneVariants;
-/** @deprecated Use dangerToneVariants({ base: "none" }) */
-export const positionMetaValueVariants = dangerToneVariants;
 
 export const modifierValueVariants = cva("font-medium", {
   variants: {
@@ -695,10 +441,6 @@ export const modifierValueVariants = cva("font-medium", {
   },
 });
 
-export const claimsErrorVariants = cva("text-xs text-destructive");
-
-export const dividerVariants = cva("border-t border-border/70");
-
 export const positionRowButtonVariants = cva("", {
   variants: {
     interactive: {
@@ -711,45 +453,34 @@ export const positionRowButtonVariants = cva("", {
   },
 });
 
-export const receiptCardPaddingVariants = cva("p-4 md:p-5");
-export const stickyBarPaddingVariants = cva("px-2");
-
-export const summaryHeaderVariants = cva("border-b bg-card text-center");
-export const summaryItemListVariants = cva("border-t pt-2 border-border/40");
-export const summaryBalanceAmountWrapperVariants = cva("text-right");
-export const summaryItemIndentVariants = cva("pl-12");
-export const summaryItemContainerPaddingVariants = cva("pr-2");
-export const summaryItemRowPaddingVariants = cva("py-1");
-export const summaryAmountVariants = cva("whitespace-nowrap font-medium");
-export const summaryEmptyStateVariants = cva("py-8");
-
-export const errorListVariants = cva("list-disc pl-5");
-
-export const receiptActionBarParticipantBadgeVariants = cva(
-  `${radiusTokens.full} pointer-events-none absolute right-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center bg-foreground px-1 text-[10px] font-semibold leading-none opacity-80 text-background`,
-);
-
-export const receiptActionBarMenuIconVariants = cva("", {
-  variants: {
-    tone: {
-      position: "text-sky-600",
-      discount: "text-emerald-600",
-      fee: "text-amber-600",
-    },
-  },
-});
-export const receiptActionBarContainerPaddingVariants = cva("px-5");
-export const receiptActionBarPaddingVariants = cva("p-2");
-export const receiptActionPrimaryPaddingVariants = cva("px-7");
-
-export const participantsBadgeButtonVariants = cva("", {
-  variants: {
-    size: {
-      compact: "h-10",
-      full: "",
-    },
-  },
-  defaultVariants: {
-    size: "full",
-  },
-});
+// ── Const Styles (shared, multi-consumer) ───────────────
+export const actionBar =
+  `${radiusTokens.action} border border-white/70 bg-white/35 ${shadowTokens.glass} backdrop-blur-2xl`;
+export const primaryAction =
+  `${radiusTokens.full} text-base font-semibold ${shadowTokens.orange}`;
+export const fieldLabel = "text-sm font-medium text-foreground";
+export const sheetHeaderTitle = "text-center px-4 pt-4";
+export const dialogHeaderTitle = "text-center";
+export const dialogHeader = "space-y-1";
+export const dialogFooter = "sm:flex-row sm:items-stretch";
+export const dialogContent = "max-w-md";
+export const dialogContentWide = "max-w-lg";
+export const dialogBodySpacing = "mt-4";
+export const previewImage = `object-contain ${radiusTokens.sm}`;
+export const btnShadow = shadowTokens.md;
+export const uploadPanel =
+  `${radiusTokens.xl} border-2 border-dashed border-amber-200 bg-amber-50/40 hover:bg-amber-50 transition-colors`;
+export const loadingSpinner =
+  `animate-spin ${radiusTokens.full} border-b-2 border-amber-500`;
+export const errorBox =
+  `bg-red-50 border border-red-300 text-red-700 ${radiusTokens.lg} ${shadowTokens.sm} p-4`;
+export const addButton =
+  `h-6 w-6 p-0 ${radiusTokens.xs} bg-accent text-foreground hover:bg-accent/80`;
+export const appShell = "bg-amber-50";
+export const screenShell = "bg-amber-50 p-4";
+export const claimsError = "text-xs text-destructive";
+export const divider = "border-t border-border/70";
+export const iconButtonCompact = "h-8 w-8";
+export const receiptCardPadding = "p-4 md:p-5";
+export const stickyBarPadding = "px-2";
+export const errorList = "list-disc pl-5";

@@ -12,10 +12,10 @@ import { supabase } from "@/utils/supabase/client";
 import { useGoogleOneTapLogin } from "@react-oauth/google";
 import { handleSignIn } from "@/app/receipt/utils/auth";
 import {
-  dialogContentWideVariants,
-  dialogHeaderTitleVariants,
-  dialogHeaderVariants,
-  dialogBodySpacingVariants,
+  dialogContentWide,
+  dialogHeaderTitle,
+  dialogHeader,
+  dialogBodySpacing,
 } from "@/app/receipt/components/ui-styles";
 
 export function JoinFlowSettingsDialog() {
@@ -65,13 +65,13 @@ export function JoinFlowSettingsDialog() {
 
   return (
     <AlertDialog open={open}>
-      <AlertDialogContent className={dialogContentWideVariants()}>
-        <AlertDialogHeader className={dialogHeaderVariants()}>
-          <AlertDialogTitle className={dialogHeaderTitleVariants()}>
+      <AlertDialogContent className={dialogContentWide}>
+        <AlertDialogHeader className={dialogHeader}>
+          <AlertDialogTitle className={dialogHeaderTitle}>
             {t("settings")}
           </AlertDialogTitle>
         </AlertDialogHeader>
-        <div className={dialogBodySpacingVariants()}>
+        <div className={dialogBodySpacing}>
           <SettingsForm
             user={user}
             onSubmit={handleSettingsSubmit}

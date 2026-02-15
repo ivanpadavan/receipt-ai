@@ -6,7 +6,7 @@ import { t } from "@/app/i18n/translations";
 import { cn } from "@/utils/cn";
 import {
   iconSizeVariants,
-  statusPillVariants,
+  pillVariants,
 } from "@/app/receipt/components/ui-styles";
 
 interface DistributionStatusProps {
@@ -28,7 +28,7 @@ export const DistributionStatus: React.FC<DistributionStatusProps> = ({
     return (
       <div
         className={cn(
-          statusPillVariants({ tone: "success", radius: "full" }),
+          pillVariants({ tone: "success", radius: "full" }),
           className,
         )}
       >
@@ -42,7 +42,7 @@ export const DistributionStatus: React.FC<DistributionStatusProps> = ({
     return (
       <div
         className={cn(
-          statusPillVariants({ tone: "danger", radius: "full" }),
+          pillVariants({ tone: "danger", radius: "full" }),
           className,
         )}
       >
@@ -55,7 +55,7 @@ export const DistributionStatus: React.FC<DistributionStatusProps> = ({
   return (
     <div
       className={cn(
-        statusPillVariants({ tone: "warning", radius: "full" }),
+        pillVariants({ tone: "warning", radius: "full" }),
         className,
       )}
     >

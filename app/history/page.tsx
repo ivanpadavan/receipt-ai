@@ -8,14 +8,19 @@ import { t } from "@/app/i18n/translations";
 import { cn } from "@/utils/cn";
 import {
   cardPaddingVariants,
-  historyCtaButtonVariants,
-  historyEmptyCardTextVariants,
-  historyReceiptCardVariants,
-  screenShellVariants,
+  screenShell,
   rowVariants,
   stackGapVariants,
-  textRoleVariants,
+  textVariants,
+  radiusTokens,
+  shadowTokens,
 } from "@/app/receipt/components/ui-styles";
+
+// ── History-scoped styles ──────────────────────────
+const historyEmptyCardText = "text-center";
+const historyCta =
+  `${radiusTokens.full} bg-amber-500 px-4 py-2 font-bold text-white shadow-md hover:bg-amber-600`;
+const historyReceiptCard = "border-amber-200 hover:border-amber-400";
 
 // export const runtime = 'edge';
 
@@ -37,13 +42,13 @@ export default async function HistoryPage() {
     <div
       className={cn(
         "flex flex-col items-center justify-center gap-4",
-        screenShellVariants(),
+        screenShell,
       )}
     >
       <div className="w-full max-w-md mx-auto">
         <div className={cn(rowVariants({ align: "center", justify: "between", width: "full" }), "mb-6")}>
           <h1
-            className={textRoleVariants({ role: "pageTitle" })}
+            className={textVariants({ size: "3xl", weight: "bold", tone: "brandStrong" })}
           >
             {t("receiptHistory")}
           </h1>
@@ -53,14 +58,14 @@ export default async function HistoryPage() {
           <Card
             variant="warning"
             shadow="md"
-            className={cn("w-full", historyEmptyCardTextVariants())}
+            className={cn("w-full", historyEmptyCardText)}
           >
             <CardContent className={cardPaddingVariants({ size: "lg" })}>
               <p className="mb-4">
                 {t("noReceiptsYet")}
               </p>
               <Link href="/">
-                <Button className={historyCtaButtonVariants()}>
+                <Button className={historyCta}>
                   {t("scanFirstReceipt")}
                 </Button>
               </Link>
@@ -86,18 +91,18 @@ export default async function HistoryPage() {
                     interactive
                     className={cn(
                       "w-full",
-                      historyReceiptCardVariants(),
+                      historyReceiptCard,
                       cardPaddingVariants({ size: "md" }),
                     )}
                   >
                     <div className={cn(rowVariants({ align: "center", justify: "between", width: "full" }), "mb-2")}>
                       <h2
-                        className={textRoleVariants({ role: "titleLgBrandStrong" })}
+                        className={textVariants({ size: "lg", weight: "semibold", tone: "brandStrong" })}
                       >
                         {t("receipt")} #{receipt.id.slice(-6)}
                       </h2>
                       <span
-                        className={textRoleVariants({ role: "metaSmBrand" })}
+                        className={textVariants({ size: "sm", tone: "brand" })}
                       >
                         {new Date(receipt.createdAt).toLocaleDateString()}
                       </span>
@@ -105,14 +110,14 @@ export default async function HistoryPage() {
                     <div
                       className={cn(
                         "flex justify-between",
-                        textRoleVariants({ role: "metaSmBrandStrong" }),
+                        textVariants({ size: "sm", tone: "brandStrong" }),
                       )}
                     >
                       <span>
                         {itemCount} {itemCount === 1 ? t("itemSingle") : t("itemPlural")}
                       </span>
                       <span
-                        className={textRoleVariants({ role: "metaSmBrandStrongEm" })}
+                        className={textVariants({ size: "sm", weight: "medium", tone: "brandStrong" })}
                       >
                         ${totalAmount.toFixed(2)}
                       </span>

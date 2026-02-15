@@ -12,9 +12,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/utils/cn";
 import {
   cardPaddingVariants,
-  settingsCardContentVariants,
-  screenShellVariants,
-  textRoleVariants,
+  screenShell,
+  textVariants,
 } from "@/app/receipt/components/ui-styles";
 
 export default function SettingsPage() {
@@ -59,7 +58,7 @@ export default function SettingsPage() {
     <div
       className={cn(
         "flex flex-col items-center justify-center gap-4",
-        screenShellVariants(),
+        screenShell,
       )}
     >
       <Card
@@ -69,14 +68,13 @@ export default function SettingsPage() {
       >
         <h1
           className={cn(
-            "mb-6",
-            textRoleVariants({ role: "sectionTitle" }),
-            "text-center",
+            "mb-6 text-center",
+            textVariants({ size: "lg", weight: "semibold" }),
           )}
         >
           {t("settings")}
         </h1>
-        <CardContent className={settingsCardContentVariants()}>
+        <CardContent className="p-0">
           <SettingsForm user={user} onSubmit={handleSave} />
         </CardContent>
       </Card>

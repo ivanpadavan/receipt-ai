@@ -26,12 +26,12 @@ import {
   iconButtonVariants,
   iconSoloVariants,
   noticeVariants,
-  fieldLabelVariants,
+  fieldLabel,
   inputStateVariants,
-  dialogHeaderTitleVariants,
-  dialogHeaderVariants,
-  dialogBodySpacingVariants,
-  errorListVariants,
+  dialogHeaderTitle,
+  dialogHeader,
+  dialogBodySpacing,
+  errorList,
   stackGapVariants,
   inlineGapVariants,
 } from "@/app/receipt/components/ui-styles";
@@ -154,13 +154,13 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
         }
       }}
     >
-      <DialogHeader className={dialogHeaderVariants()}>
-        <DialogTitle className={dialogHeaderTitleVariants()}>
+      <DialogHeader className={dialogHeader}>
+        <DialogTitle className={dialogHeaderTitle}>
           {t(header)}
         </DialogTitle>
         <DialogDescription className="sr-only">{t(header)}</DialogDescription>
       </DialogHeader>
-      <div className={cn(dialogBodySpacingVariants(), stackGapVariants({ size: "lg" }))}>
+      <div className={cn(dialogBodySpacing, stackGapVariants({ size: "lg" }))}>
         {conflict && (
           <div className={noticeVariants({ tone: "warning" })}>
             <p>{conflict.message}</p>
@@ -201,7 +201,7 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
         )}
         {visibleErrors.length > 0 && (
           <div className={noticeVariants({ tone: "danger" })}>
-            <ul className={cn(stackGapVariants({ size: "xs" }), errorListVariants())}>
+            <ul className={cn(stackGapVariants({ size: "xs" }), errorList)}>
               {visibleErrors.map(([key, error], index) => (
                 <li key={index}>
                   <strong>{t(key as TranslationKey)}:</strong> {error}
@@ -235,25 +235,25 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
           inlineGapVariants({ size: "sm" }),
         )}
       >
-          {onRemove && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className={cn(
-                iconSoloVariants({ size: "compact" }),
-                iconButtonVariants({ size: "compact", tone: "danger" }),
-              )}
-              onClick={handleRemove}
-              aria-label={t("remove")}
-              title={t("remove")}
-            >
-              <Trash2 className={iconSizeVariants({ size: "sm" })} />
-            </Button>
-          )}
-          <Button type="submit" disabled={isSaveDisabled} className="grow">
-            {t("save")}
+        {onRemove && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className={cn(
+              iconSoloVariants({ size: "compact" }),
+              iconButtonVariants({ size: "compact", tone: "danger" }),
+            )}
+            onClick={handleRemove}
+            aria-label={t("remove")}
+            title={t("remove")}
+          >
+            <Trash2 className={iconSizeVariants({ size: "sm" })} />
           </Button>
+        )}
+        <Button type="submit" disabled={isSaveDisabled} className="grow">
+          {t("save")}
+        </Button>
       </div>
     </form>
   );
@@ -283,7 +283,7 @@ const FormField: React.FC<FormFieldProps> = ({
 
   return (
     <Field>
-      <Label className={cn("mb-1 block", fieldLabelVariants())}>
+      <Label className={cn("mb-1 block", fieldLabel)}>
         {t(label)}
       </Label>
       <Input

@@ -52,23 +52,19 @@ import { useJoinFlowOverlay } from "@/app/receipt/[id]/join-flow/use-join-flow-o
 import { DistributionBar } from "@/app/receipt/components/ui/DistributionBar";
 import { ReceiptActionBar } from "@/app/receipt/components/ui/ReceiptActionBar";
 import {
-  claimsErrorVariants,
-  dividerVariants,
-  grandTotalValueVariants,
-  overallValueVariants,
-  quantityPillVariants,
-  positionHeaderVariants,
-  positionMetaValueVariants,
+  claimsError,
+  divider,
+  interactiveRowVariants,
+  pillVariants,
   positionRowButtonVariants,
-  receiptCardPaddingVariants,
-  receiptRowVariants,
+  receiptCardPadding,
   rowContentPaddingVariants,
   stackGapVariants,
+  stickyBarPadding,
   inlineGapVariants,
   rowVariants,
-  stickyBarPaddingVariants,
-  totalValueVariants,
-  textRoleVariants,
+  textVariants,
+  dangerToneVariants,
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
 
@@ -237,8 +233,8 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   const reviewToastId = `receipt-review-${receiptId}`;
   const primaryLabel: TranslationKey =
     scenarioType === "splitting"
-        ? "done"
-        : "toSplitting";
+      ? "done"
+      : "toSplitting";
   const canPrimaryAction = scenarioType === "summary" ? true : canProceed;
 
   useEffect(() => {
@@ -320,7 +316,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
             radius="3xl"
             className={cn(
               "mx-auto my-3 w-full max-w-3xl",
-              receiptCardPaddingVariants(),
+              receiptCardPadding,
             )}
           >
             {scenarioType === "summary" ? (
@@ -341,7 +337,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                     "mb-3",
                   )}
                 >
-                  <h2 className={textRoleVariants({ role: "overlineMuted" })}>
+                  <h2 className={textVariants({ size: "sm", weight: "medium", tone: "muted", style: "caps" })}>
                     {t("receipt")}
                   </h2>
                 </div>
@@ -403,29 +399,25 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                               className={cn(
                                 rowVariants({ align: "center", width: "full" }),
                                 inlineGapVariants({ size: "md" }),
-                                positionHeaderVariants({
-                                  tone: hasRowNumberError
-                                    ? "danger"
-                                    : "default",
-                                }),
+                                 hasRowNumberError
+                                    ? "text-destructive" : "",
                               )}
                             >
                               <div className="min-w-0 flex-1">
                                 <p
                                   className={cn(
                                     "truncate",
-                                    textRoleVariants({ role: "itemTitle" }),
+                                    textVariants({ weight: "semibold" }),
                                   )}
                                 >
                                   {field.name}
                                 </p>
                                 <p
-                                  className={textRoleVariants({
-                                    role: "captionXsMuted",
+                                  className={textVariants({ size: "xs", tone: "muted",
                                   })}
                                 >
                                   <span
-                                    className={positionMetaValueVariants({
+                                    className={dangerToneVariants({
                                       tone: hasPriceError
                                         ? "danger"
                                         : "default",
@@ -435,7 +427,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                                   </span>{" "}
                                   x{" "}
                                   <span
-                                    className={positionMetaValueVariants({
+                                    className={dangerToneVariants({
                                       tone: hasQuantityError
                                         ? "danger"
                                         : "default",
@@ -447,7 +439,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                               </div>
                               <span
                                 className={cn(
-                                  quantityPillVariants({
+                                  pillVariants({
                                     tone: hasQuantityError
                                       ? "danger"
                                       : "neutral",
@@ -458,7 +450,8 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                                 {field.quantity}x
                               </span>
                               <span
-                                className={overallValueVariants({
+                                className={dangerToneVariants({
+                                  base: "baseSemibold",
                                   tone: hasOverallError ? "danger" : "default",
                                 })}
                               >
@@ -470,7 +463,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                               className="mt-2 h-1"
                             />
                             {hasClaimsError && claimsErrorMessage && (
-                              <p className={cn("mt-1", claimsErrorVariants())}>
+                              <p className={cn("mt-1", claimsError)}>
                                 {claimsErrorMessage}
                               </p>
                             )}
@@ -493,18 +486,18 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                     <div>
                       {(currentReceipt.discounts.length > 0 ||
                         currentReceipt.fees.length > 0) && (
-                        <>
-                          <div className={inlineGapVariants({ size: "xs" })}>
-                            {currentReceipt.discounts.length > 0 && (
-                              <Modifiers type="discounts" />
-                            )}
-                            {currentReceipt.fees.length > 0 && (
-                              <Modifiers type="fees" />
-                            )}
-                          </div>
-                          <div className={cn("my-3", dividerVariants())} />
-                        </>
-                      )}
+                          <>
+                            <div className={inlineGapVariants({ size: "xs" })}>
+                              {currentReceipt.discounts.length > 0 && (
+                                <Modifiers type="discounts" />
+                              )}
+                              {currentReceipt.fees.length > 0 && (
+                                <Modifiers type="fees" />
+                              )}
+                            </div>
+                            <div className={cn("my-3", divider)} />
+                          </>
+                        )}
 
                       <button
                         type="button"
@@ -515,7 +508,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                             justify: "between",
                             width: "full",
                           }),
-                          receiptRowVariants({
+                          interactiveRowVariants({
                             interactive: canEdit.totalsForm,
                           }),
                         )}
@@ -525,12 +518,13 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                         }
                       >
                         <span
-                          className={textRoleVariants({ role: "labelSmMuted" })}
+                          className={textVariants({ size: "sm", tone: "muted" })}
                         >
                           {t("total")}
                         </span>
                         <span
-                          className={totalValueVariants({
+                          className={dangerToneVariants({
+                            base: "semibold",
                             tone: hasFormPathError(errors, "totals.total")
                               ? "danger"
                               : "default",
@@ -547,7 +541,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                             justify: "between",
                             width: "full",
                           }),
-                          receiptRowVariants({
+                          interactiveRowVariants({
                             interactive: canEdit.totalsForm,
                           }),
                         )}
@@ -557,14 +551,14 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                         }
                       >
                         <span
-                          className={textRoleVariants({
-                            role: "labelBaseStrong",
+                          className={textVariants({ weight: "semibold",
                           })}
                         >
                           {t("grandTotal")}
                         </span>
                         <span
-                          className={grandTotalValueVariants({
+                          className={dangerToneVariants({
+                            base: "2xlBold",
                             tone: hasFormPathError(errors, "totals.grandTotal")
                               ? "danger"
                               : "default",
@@ -583,7 +577,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
             <div
               className={cn(
                 "sticky bottom-[5.50rem] z-10 mx-auto mb-1 w-full max-w-3xl",
-                stickyBarPaddingVariants(),
+                stickyBarPadding,
               )}
             >
               <DistributionBar

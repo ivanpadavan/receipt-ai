@@ -12,12 +12,39 @@ import {
   avatarSizeVariants,
   radiusTokens,
   rowVariants,
-  splittingParticipantButtonVariants,
-  splittingTypeSwitchButtonVariants,
-  splittingTypeSwitchWrapperVariants,
-  textRoleVariants,
+  textVariants,
 } from "@/app/receipt/components/ui-styles";
 import { ParticipantDTO, ReceiptPositionClaim } from "@/model/receipt/model";
+import { cva } from "class-variance-authority";
+
+// ── SplittingHeroEditor-scoped styles ──────────────
+const typeSwitchWrapper =
+  "border border-border/60 bg-muted/30 p-1 shadow-sm";
+const typeSwitchButtonVariants = cva(
+  "h-8 w-16 text-xs font-semibold transition",
+  {
+    variants: {
+      active: {
+        true: "bg-white text-foreground shadow",
+        false: "text-muted-foreground",
+      },
+    },
+  },
+);
+const participantButtonVariants = cva(
+  `relative ${radiusTokens.full} transition-all`,
+  {
+    variants: {
+      selected: {
+        true: "",
+        false: "opacity-50 hover:opacity-80",
+      },
+    },
+    defaultVariants: {
+      selected: true,
+    },
+  },
+);
 
 interface SplittingHeroEditorProps {
   claim: ReceiptPositionClaim;
@@ -201,14 +228,14 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
           <div
             className={cn(
               "flex items-center",
-              splittingTypeSwitchWrapperVariants(),
+              typeSwitchWrapper,
               radiusTokens.full,
             )}
           >
             <button
               type="button"
               className={cn(
-                splittingTypeSwitchButtonVariants({
+                typeSwitchButtonVariants({
                   active: claim.type === "quantity",
                 }),
                 radiusTokens.full,
@@ -221,7 +248,7 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
             <button
               type="button"
               className={cn(
-                splittingTypeSwitchButtonVariants({
+                typeSwitchButtonVariants({
                   active: claim.type === "amount",
                 }),
                 radiusTokens.full,
@@ -237,12 +264,12 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
 
       <div className="border-t border-border/40 px-3 py-3">
         <div className="mb-2 flex w-full items-center justify-between">
-          <span className={textRoleVariants({ role: "overlineMuted" })}>
+          <span className={textVariants({ size: "sm", weight: "semibold", tone: "muted", style: "caps" })}>
             {t("splitBetween")}
           </span>
           <button
             type="button"
-            className={textRoleVariants({ role: "metaSmBrandStrong" })}
+            className={textVariants({ size: "sm", tone: "brandStrong" })}
             disabled={participants.length === 0}
             onClick={() =>
               onUpdate({
@@ -263,7 +290,7 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
               <button
                 key={participant.id}
                 type="button"
-                className={splittingParticipantButtonVariants({ selected })}
+                className={participantButtonVariants({ selected })}
                 onClick={() => {
                   if (selected) {
                     onUpdate({
@@ -309,7 +336,7 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
       className={cn(
         "relative w-full",
         isExpanded &&
-          "z-10 bg-background px-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-[calc(env(safe-area-inset-bottom)+0.75rem)]",
+        "z-10 bg-background px-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-[calc(env(safe-area-inset-bottom)+0.75rem)]",
       )}
     >
       <div className={cn("w-full", isExpanded && "mx-auto max-w-3xl")}>{editorCard}</div>

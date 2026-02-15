@@ -22,20 +22,23 @@ import { UserAvatar } from "@/app/receipt/components/ui/user-avatar";
 import { cn } from "@/utils/cn";
 import {
   avatarSizeVariants,
-  dialogContentWideVariants,
-  dialogFooterVariants,
-  dialogHeaderTitleVariants,
-  dialogHeaderVariants,
-  captureButtonVariants,
-  fieldLabelVariants,
+  dialogContentWide,
+  dialogFooter,
+  dialogHeaderTitle,
+  dialogHeader,
+  btnShadow,
+  fieldLabel,
   inputStateVariants,
-  settingsCropFrameVariants,
-  settingsUploadCardPaddingVariants,
-  uploadPanelVariants,
+  uploadPanel,
   inlineGapVariants,
   stackGapVariants,
-  textRoleVariants,
+  textVariants,
+  radiusTokens,
 } from "@/app/receipt/components/ui-styles";
+
+// ── Settings-scoped styles ──────────────────────
+const settingsUploadCardPadding = "p-4";
+const settingsCropFrame = `bg-black/80 ${radiusTokens.lg} overflow-hidden`;
 
 const captureSupported =
   typeof document === "object" &&
@@ -206,7 +209,7 @@ export const SettingsForm = ({
         <Field>
           <Label
             htmlFor="displayName"
-            className={cn("mb-1 block", fieldLabelVariants())}
+            className={cn("mb-1 block", fieldLabel)}
           >
             {t("yourName")}
           </Label>
@@ -218,7 +221,7 @@ export const SettingsForm = ({
         </Field>
 
         <Field>
-          <Label className={cn("mb-1 block", fieldLabelVariants())}>
+          <Label className={cn("mb-1 block", fieldLabel)}>
             {t("avatarImage")}
           </Label>
           <Controller
@@ -264,8 +267,8 @@ export const SettingsForm = ({
                     className={cn(
                       "flex items-center cursor-pointer",
                       inlineGapVariants({ size: "lg" }),
-                      uploadPanelVariants(),
-                      settingsUploadCardPaddingVariants(),
+                      uploadPanel,
+                      settingsUploadCardPadding,
                     )}
                   >
                     <UserAvatar
@@ -278,37 +281,37 @@ export const SettingsForm = ({
                         stackGapVariants({ size: "xs" }),
                       )}
                     >
-                      <div className={textRoleVariants({ role: "labelSm" })}>
+                      <div className={textVariants({ size: "sm", weight: "medium" })}>
                         {value ? t("changeAvatar") : t("uploadAvatar")}
                       </div>
                       <div
-                        className={textRoleVariants({ role: "captionXsMuted" })}
+                        className={textVariants({ size: "xs", tone: "muted" })}
                       >
                         {t("avatarUploadHint")}
                       </div>
                     </div>
                   </div>
                   {captureSupported && (
-                      <Button
-                        type="button"
-                        onClick={triggerCameraInput}
-                        className={captureButtonVariants()}
-                      >
-                        {t("takeAvatarPhoto")}
-                      </Button>
+                    <Button
+                      type="button"
+                      onClick={triggerCameraInput}
+                      className={btnShadow}
+                    >
+                      {t("takeAvatarPhoto")}
+                    </Button>
                   )}
 
                   <AlertDialog open={cropOpen} onOpenChange={setCropOpen}>
-                    <AlertDialogContent className={dialogContentWideVariants()}>
-                      <AlertDialogHeader className={dialogHeaderVariants()}>
-                        <AlertDialogTitle className={dialogHeaderTitleVariants()}>
+                    <AlertDialogContent className={dialogContentWide}>
+                      <AlertDialogHeader className={dialogHeader}>
+                        <AlertDialogTitle className={dialogHeaderTitle}>
                           {t("cropAvatar")}
                         </AlertDialogTitle>
                       </AlertDialogHeader>
                       <div
                         className={cn(
                           "relative w-full h-72",
-                          settingsCropFrameVariants(),
+                          settingsCropFrame,
                         )}
                       >
                         {cropImage && (
@@ -330,7 +333,7 @@ export const SettingsForm = ({
                         )}
                       >
                         <span
-                          className={textRoleVariants({ role: "labelSmMuted" })}
+                          className={textVariants({ size: "sm", tone: "muted" })}
                         >
                           {t("zoom")}
                         </span>
@@ -344,7 +347,7 @@ export const SettingsForm = ({
                           className="w-full"
                         />
                       </div>
-                      <AlertDialogFooter className={dialogFooterVariants()}>
+                      <AlertDialogFooter className={dialogFooter}>
                         <AlertDialogCancel onClick={() => setCropOpen(false)}>
                           {t("cancel")}
                         </AlertDialogCancel>

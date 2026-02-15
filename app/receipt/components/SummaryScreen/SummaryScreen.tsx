@@ -11,19 +11,21 @@ import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 import { cn } from "@/utils/cn";
 import {
   cardPaddingVariants,
-  summaryAmountVariants,
-  summaryBalanceAmountWrapperVariants,
-  summaryEmptyStateVariants,
-  summaryHeaderVariants,
-  summaryItemContainerPaddingVariants,
-  summaryItemIndentVariants,
-  summaryItemListVariants,
-  summaryItemRowPaddingVariants,
   stackGapVariants,
   inlineGapVariants,
   rowVariants,
-  textRoleVariants,
+  textVariants,
 } from "@/app/receipt/components/ui-styles";
+
+// ── Summary-scoped styles ──────────────────────
+const summaryHeader = "border-b border-border/30 bg-muted/20 text-center";
+const summaryEmptyState = "py-10";
+const summaryBalanceAmountWrapper = "text-right shrink-0";
+const summaryItemList = "border-l-2 border-border/50";
+const summaryItemIndent = "ml-5";
+const summaryItemRowPadding = "py-0.5";
+const summaryItemContainerPadding = "mr-2";
+const summaryAmount = "whitespace-nowrap";
 
 interface SummaryScreenProps {
   receipt: Receipt;
@@ -44,11 +46,6 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
     [balances],
   );
 
-  // Real receipt grand total (from API/model)
-  // We need to trust receipt.totals.grandTotal
-  // Note: calculateBalances applies a ratio based on receipt.totals.grandTotal / sum(positions).
-  // So if all positions are claimed, distributedTotal ~= receipt.totals.grandTotal.
-  // If not, there is a diff.
   const realGrandTotal = receipt.totals.grandTotal;
   const remaining = realGrandTotal - distributedTotal;
 
@@ -58,23 +55,23 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
       <div
         className={cn(
           "relative",
-          summaryHeaderVariants(),
+          summaryHeader,
           cardPaddingVariants({ size: "lg" }),
         )}
       >
         <h2
           className={cn(
             "mb-1",
-            textRoleVariants({ role: "sectionSubtitle" }),
+            textVariants({ size: "sm", weight: "medium", tone: "muted", style: "caps" }),
           )}
         >
           {t("total")}
         </h2>
         <div
-          className={textRoleVariants({ role: "amountHero" })}
+          className={textVariants({ size: "4xl", weight: "bold" })}
         >
           {realGrandTotal.toFixed(0)}{" "}
-          <span className={textRoleVariants({ role: "amountCurrencyMuted" })}>
+          <span className={textVariants({ size: "2xl", weight: "normal", tone: "muted" })}>
             ₽
           </span>
         </div>
@@ -123,19 +120,19 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
                 <span
                   className={cn(
                     "flex-1 truncate",
-                    textRoleVariants({ role: "headingLg" }),
+                    textVariants({ size: "lg", weight: "semibold" }),
                   )}
                 >
                   {participant.displayName}
                 </span>
-                <div className={summaryBalanceAmountWrapperVariants()}>
+                <div className={summaryBalanceAmountWrapper}>
                   <span
-                    className={textRoleVariants({ role: "amountXl" })}
+                    className={textVariants({ size: "xl", weight: "semibold" })}
                   >
                     {balance.finalAmount.toFixed(0)} ₽
                   </span>
                   {Math.abs(balance.finalAmount - balance.baseAmount) > 0.1 && (
-                    <span className={textRoleVariants({ role: "captionXsMuted" })}>
+                    <span className={textVariants({ size: "xs", tone: "muted" })}>
                       {balance.baseAmount.toFixed(0)}{" "}
                       {balance.finalAmount - balance.baseAmount > 0 ? "+" : "−"}{" "}
                       {Math.abs(
@@ -147,12 +144,12 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
               </div>
 
               {balance.items.length > 0 && (
-                <div className={cn("w-full", summaryItemIndentVariants())}>
+                <div className={cn("w-full", summaryItemIndent)}>
                   <ul
                     className={cn(
                       stackGapVariants({ size: "xs" }),
-                      summaryItemListVariants(),
-                      textRoleVariants({ role: "labelSmMuted" }),
+                      summaryItemList,
+                      textVariants({ size: "sm", tone: "muted" }),
                     )}
                   >
                     {balance.items.map((item, idx) => (
@@ -164,21 +161,21 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
                             justify: "between",
                             width: "full",
                           }),
-                          summaryItemRowPaddingVariants(),
+                          summaryItemRowPadding,
                         )}
                       >
                         <div
                           className={cn(
                             "overflow-hidden flex-1",
-                            summaryItemContainerPaddingVariants(),
+                            summaryItemContainerPadding,
                           )}
                         >
-                          <div className={textRoleVariants({ role: "bodyDefault" })}>
+                          <div className={textVariants({ size: "base" })}>
                             {item.positionName}
                           </div>
                           {item.description && (
                             <div
-                              className={textRoleVariants({ role: "captionXsMuted" })}
+                              className={textVariants({ size: "xs", tone: "muted" })}
                             >
                               {item.description}
                             </div>
@@ -186,8 +183,8 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
                         </div>
                         <span
                           className={cn(
-                            summaryAmountVariants(),
-                            textRoleVariants({ role: "labelSm" }),
+                            summaryAmount,
+                            textVariants({ size: "sm", weight: "medium" }),
                           )}
                         >
                           {item.rawAmount.toFixed(0)} ₽
@@ -204,8 +201,8 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
         {balances.length === 0 && (
           <div
             className={cn(
-              summaryEmptyStateVariants(),
-              textRoleVariants({ role: "bodyMuted" }),
+              summaryEmptyState,
+              textVariants({ tone: "muted" }),
               "text-center",
             )}
           >

@@ -9,11 +9,11 @@ import { formatMoney } from "@/app/receipt/utils/formatMoney";
 import { hasFormPathError } from "@/app/receipt/utils/hasFormPathError";
 import { cn } from "@/utils/cn";
 import {
-  modifierRowVariants,
+  interactiveRowVariants,
   modifierValueVariants,
   rowVariants,
   stackGapVariants,
-  textRoleVariants,
+  textVariants,
 } from "@/app/receipt/components/ui-styles";
 
 interface ModifiersProps {
@@ -38,7 +38,7 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
       <div
         className={cn(
           "mb-1",
-          textRoleVariants({ role: "labelSmMuted" }),
+          textVariants({ size: "sm", tone: "muted" }),
         )}
       >
         {t(type)}:
@@ -57,7 +57,7 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
                   justify: "between",
                   width: "full",
                 }),
-                modifierRowVariants({ interactive: canEdit }),
+                interactiveRowVariants({ interactive: canEdit }),
               )}
               onClick={() =>
                 canEdit &&
@@ -68,7 +68,7 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
                 })
               }
             >
-              <span className={textRoleVariants({ role: "labelMuted" })}>
+              <span className={textVariants({ tone: "muted" })}>
                 {item.name || t("modifierName")}
               </span>
               <span

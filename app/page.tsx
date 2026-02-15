@@ -3,23 +3,22 @@
 import { pageState$ } from "@/app/state";
 import { forceSync, useObservable } from "@/hooks/rx/useObservable";
 import { useEffect, useMemo, useRef } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { t } from "@/app/i18n/translations";
 import { cn } from "@/utils/cn";
 import {
-  actionButtonVariants,
   cardPaddingVariants,
-  captureButtonVariants,
-  errorBoxVariants,
-  loadingSpinnerVariants,
-  screenShellVariants,
+  errorBox,
+  loadingSpinner,
+  screenShell,
   iconSizeVariants,
   inlineGapVariants,
-  textRoleVariants,
-  previewImageVariants,
-  uploadPanelVariants,
+  textVariants,
+  previewImage,
+  uploadPanel,
+  btnShadow,
 } from "@/app/receipt/components/ui-styles";
 
 const captureSupported =
@@ -107,15 +106,14 @@ export default function ImagePastePage() {
       <div
         className={cn(
           "flex flex-col items-center justify-center flex-1 gap-4",
-          screenShellVariants(),
+          screenShell,
         )}
       >
         <div className="w-full max-w-md mx-auto">
           <h1
             className={cn(
-              "mb-6",
-              textRoleVariants({ role: "pageTitle" }),
-              "text-center",
+              "mb-6 text-center",
+              textVariants({ size: "3xl", weight: "bold", tone: "brandStrong" }),
             )}
           >
             {t("receiptScannerTitle")}
@@ -144,7 +142,7 @@ export default function ImagePastePage() {
                 alt={t("receiptImageAlt")}
                 className={cn(
                   "max-w-full max-h-[400px]",
-                  previewImageVariants(),
+                  previewImage,
                 )}
               />
               <div
@@ -156,7 +154,6 @@ export default function ImagePastePage() {
                 <Button
                   onClick={picture.clear}
                   variant="destructive"
-                  className={actionButtonVariants()}
                 >
                   {t("clearImage")}
                 </Button>
@@ -164,7 +161,6 @@ export default function ImagePastePage() {
                   onClick={() => {
                     picture.proceed();
                   }}
-                  className={actionButtonVariants()}
                 >
                   {t("extractReceiptData")}
                 </Button>
@@ -180,7 +176,7 @@ export default function ImagePastePage() {
               <div
                 className={cn(
                   "w-full min-h-[200px] flex flex-col items-center justify-center",
-                  uploadPanelVariants(),
+                  uploadPanel,
                   cardPaddingVariants({ size: "lg" }),
                   "cursor-pointer",
                 )}
@@ -191,7 +187,7 @@ export default function ImagePastePage() {
                   className={cn(
                     "mb-4",
                     iconSizeVariants({ size: "xl" }),
-                    textRoleVariants({ role: "labelMuted" }),
+                    textVariants({ tone: "muted" }),
                   )}
                   fill="none"
                   viewBox="0 0 24 24"
@@ -206,15 +202,17 @@ export default function ImagePastePage() {
                 </svg>
                 <p
                   className={cn(
-                    "mb-2",
-                    textRoleVariants({ role: "headingLg" }),
-                    "text-center",
+                    "mb-2 text-center",
+                    textVariants({ size: "lg", weight: "semibold" }),
                   )}
                 >
                   {t("uploadReceiptImage")}
                 </p>
                 <p
-                  className={cn(textRoleVariants({ role: "labelSmMuted" }), "text-center")}
+                  className={cn(
+                    "text-center",
+                    textVariants({ size: "sm", tone: "muted" }),
+                  )}
                 >
                   {t("tapToSelectOrPaste")}
                 </p>
@@ -226,7 +224,8 @@ export default function ImagePastePage() {
                     className={cn(
                       "flex items-center cursor-pointer",
                       inlineGapVariants({ size: "sm" }),
-                      captureButtonVariants(),
+                      buttonVariants(),
+                      btnShadow,
                     )}
                   >
                     <label>
@@ -276,11 +275,11 @@ export default function ImagePastePage() {
                 className={cn(
                   "mb-4",
                   iconSizeVariants({ size: "xl" }),
-                  loadingSpinnerVariants(),
+                  loadingSpinner,
                 )}
               />
               <span
-                className={textRoleVariants({ role: "statusBrandSm" })}
+                className={textVariants({ size: "sm", tone: "brand" })}
               >
                 {t("processingReceipt")}
               </span>
@@ -288,7 +287,7 @@ export default function ImagePastePage() {
           )}
 
           {error.errorMessage && (
-            <div className={cn("w-full mt-4", errorBoxVariants())}>
+            <div className={cn("w-full mt-4", errorBox)}>
               <p className="font-bold">{t("errorLabel")}</p>
               <p>{error.errorMessage}</p>
             </div>

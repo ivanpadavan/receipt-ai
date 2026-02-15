@@ -40,23 +40,25 @@ import {
   iconSizeVariants,
   iconSoloVariants,
   inlineGapVariants,
+  pillVariants,
   radiusTokens,
   rowVariants,
-  sheetHeaderTitleVariants,
-  splittingAddShareButtonVariants,
-  splittingAddSharePaddingVariants,
-  splittingAvatarFallbackVariants,
-  splittingAvatarOverflowVariants,
-  splittingAvatarRingVariants,
-  splittingClaimsErrorRingVariants,
-  splittingClaimsListPaddingVariants,
-  splittingFooterContentPaddingVariants,
-  splittingFooterVariants,
-  splittingSheetSubtitleVariants,
+  sheetHeaderTitle,
   stackGapVariants,
-  statusPillVariants,
-  textRoleVariants,
+  textVariants,
 } from "@/app/receipt/components/ui-styles";
+
+// ── Splitting-scoped styles ──────────────────────
+const sheetSubtitle = "px-4 pb-2";
+const addShareButton = "border border-dashed border-border/70 text-muted-foreground";
+const addSharePadding = "px-3 pt-2";
+const claimsListPadding = "px-3 pt-2 pb-3";
+const claimsErrorRing = "ring-2 ring-destructive/30 rounded-xl";
+const splittingFooter = "border-t border-border/40 bg-background/80 backdrop-blur-sm";
+const footerContentPadding = "px-4 pt-3 pb-1";
+const avatarRing = "ring-2 ring-background";
+const avatarFallback = "bg-muted/50 border-2 border-dashed border-border flex items-center justify-center text-xs text-muted-foreground";
+const avatarOverflow = "bg-muted/70 border border-border flex items-center justify-center text-[10px] font-medium text-muted-foreground";
 
 interface ClaimRowProps {
   claim: ReceiptPositionClaim;
@@ -121,14 +123,14 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
                 inlineGapVariants({ size: "sm" }),
               )}
             >
-              <span className={textRoleVariants({ role: "amountSemibold" })}>
+              <span className={textVariants({ weight: "semibold" })}>
                 {formatClaimValue(claim.value)}
               </span>
-              <span className={textRoleVariants({ role: "labelSmMuted" })}>
+              <span className={textVariants({ size: "sm", tone: "muted" })}>
                 {claim.type === "amount" ? "₽" : t("pcs")}
               </span>
               {claim.type === "quantity" && (
-                <span className={textRoleVariants({ role: "labelSmMuted" })}>
+                <span className={textVariants({ size: "sm", tone: "muted" })}>
                   = {formatClaimValue(amount)} ₽
                 </span>
               )}
@@ -142,7 +144,7 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
                   key={participant.id}
                   className={cn(
                     "relative",
-                    splittingAvatarRingVariants(),
+                    avatarRing,
                     radiusTokens.full,
                   )}
                   style={{ zIndex: selectedParticipants.length - index }}
@@ -154,7 +156,7 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
               <div
                 className={cn(
                   "h-7 w-7",
-                  splittingAvatarFallbackVariants(),
+                  avatarFallback,
                   radiusTokens.full,
                 )}
               >
@@ -165,7 +167,7 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
               <div
                 className={cn(
                   "h-7 w-7",
-                  splittingAvatarOverflowVariants(),
+                  avatarOverflow,
                   radiusTokens.full,
                 )}
               >
@@ -199,7 +201,7 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
             {
               id: "delete",
               label: t("delete"),
-              tone: "danger",
+              tone: "danger" as const,
               onSelect: onDelete,
               icon: (
                 <Trash2
@@ -291,8 +293,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
     <DrawerContent className="h-[85vh] flex flex-col">
       <DrawerTitle
         className={cn(
-          sheetHeaderTitleVariants(),
-          textRoleVariants({ role: "sectionTitle" }),
+          sheetHeaderTitle,
+          textVariants({ size: "lg", weight: "semibold" }),
           "text-center",
         )}
       >
@@ -303,32 +305,32 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         className={cn(
           "flex flex-col items-center",
           inlineGapVariants({ size: "xs" }),
-          splittingSheetSubtitleVariants(),
-          textRoleVariants({ role: "labelSmMuted" }),
+          sheetSubtitle,
+          textVariants({ size: "sm", tone: "muted" }),
           "text-center",
         )}
       >
         <div>
           {localPosition.quantity} {t("pcs")} × {localPosition.price} ₽ ={" "}
-          <span className={textRoleVariants({ role: "amountSemibold" })}>
+          <span className={textVariants({ weight: "semibold" })}>
             {localPosition.overall} ₽
           </span>
         </div>
 
         <DistributionStatus distributed={totalClaimed} total={localPosition.overall} />
         {hasClaimsError && claimsErrorMessage && (
-          <div className={statusPillVariants({ tone: "danger", radius: "full" })}>
+          <div className={pillVariants({ tone: "danger", radius: "full" })}>
             {claimsErrorMessage}
           </div>
         )}
       </div>
 
-      <div className={splittingAddSharePaddingVariants()}>
+      <div className={addSharePadding}>
         <div className={cn(rowVariants({ align: "center", width: "full" }), inlineGapVariants({ size: "sm" }))}>
           <Button
             type="button"
             variant="ghost"
-            className={cn("flex-1", splittingAddShareButtonVariants())}
+            className={cn("flex-1", addShareButton)}
             onClick={startAdding}
           >
             + {t("addShare")}
@@ -360,8 +362,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         className={cn(
           "flex-1 overflow-y-auto",
           stackGapVariants({ size: "sm" }),
-          splittingClaimsListPaddingVariants(),
-          hasClaimsError && splittingClaimsErrorRingVariants(),
+          claimsListPadding,
+          hasClaimsError && claimsErrorRing,
         )}
       >
         {activeDraftId && draftClaim && (
@@ -400,10 +402,10 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         ))}
       </div>
 
-      <DrawerFooter className={splittingFooterVariants()}>
-        <div className={splittingFooterContentPaddingVariants()}>
-          <div className={cn("mb-2", rowVariants({ justify: "between", width: "full" }), textRoleVariants({ role: "labelSm" }))}>
-            <span className={textRoleVariants({ role: "labelSmMuted" })}>{t("distributed")}</span>
+      <DrawerFooter className={splittingFooter}>
+        <div className={footerContentPadding}>
+          <div className={cn("mb-2", rowVariants({ justify: "between", width: "full" }), textVariants({ size: "sm", weight: "medium" }))}>
+            <span className={textVariants({ size: "sm", tone: "muted" })}>{t("distributed")}</span>
             <span className="font-medium">
               {totalClaimed.toFixed(0)} / {localPosition.overall} ₽
             </span>

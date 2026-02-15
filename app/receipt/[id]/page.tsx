@@ -11,11 +11,10 @@ import { joinReceiptServer } from "@/app/receipt/[id]/join-flow/join-receipt-ser
 import { t } from "@/app/i18n/translations";
 import { cn } from "@/utils/cn";
 import {
-  notFoundButtonVariants,
-  notFoundCardPaddingVariants,
-  notFoundShellVariants,
-  textRoleVariants,
+  screenShell,
   textVariants,
+  cardPaddingVariants,
+  primaryAction,
 } from "@/app/receipt/components/ui-styles";
 
 // This is a server component that fetches the receipt data from the database
@@ -39,35 +38,33 @@ export default async function ReceiptPage({
       <div
         className={cn(
           "flex flex-col items-center justify-center min-h-screen gap-4",
-          notFoundShellVariants(),
+          screenShell,
         )}
       >
         <Card
           variant="warning"
           shadow="md"
-          className={cn("w-full max-w-md", notFoundCardPaddingVariants())}
+          className={cn("w-full max-w-md", cardPaddingVariants({ size: "lg" }))}
         >
           <h1
             className={cn(
-              "mb-6",
-              textRoleVariants({ role: "sectionTitle" }),
-              "text-center",
+              "mb-6 text-center",
+              textVariants({ size: "lg", weight: "semibold" }),
             )}
           >
             {t("receiptNotFound")}
           </h1>
           <p
             className={cn(
-              "mb-6",
-              textRoleVariants({ role: "bodyMuted" }),
-              "text-center",
+              "mb-6 text-center",
+              textVariants({ tone: "muted" }),
             )}
           >
             {t("receiptNotFoundBody")}
           </p>
           <div className="flex justify-center">
             <Link href="/">
-              <Button className={notFoundButtonVariants()}>
+              <Button className={primaryAction}>
                 {t("returnHome")}
               </Button>
             </Link>

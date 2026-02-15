@@ -15,18 +15,38 @@ import {
   iconSizeVariants,
   buttonContentVariants,
   inlineGapVariants,
-  menuItemPaddingVariants,
-  menuListPaddingVariants,
-  menuPanelFrameVariants,
-  menuPanelVariants,
-  mobileActionPaddingVariants,
-  mobileMenuButtonVariants,
-  mobileUserContainerVariants,
-  navContainerVariants,
-  navLinkVariants,
-  navOuterPaddingVariants,
-  userNameVariants,
+  radiusTokens,
 } from "@/app/receipt/components/ui-styles";
+import { cva } from "class-variance-authority";
+
+// ── Navbar-scoped styles ──────────────────────────
+const navLinkVariants = cva(
+  `px-4 py-2 ${radiusTokens.nav} whitespace-nowrap flex items-center gap-2 text-sm transition-all`,
+  {
+    variants: {
+      active: {
+        true: "bg-primary text-primary-foreground",
+        false: "text-foreground hover:bg-accent hover:text-accent-foreground",
+      },
+    },
+    defaultVariants: {
+      active: false,
+    },
+  },
+);
+const navContainer = "bg-background border-b shadow-sm";
+const mobileMenuButton =
+  "text-foreground hover:bg-accent hover:text-accent-foreground";
+const menuPanel =
+  "flex flex-col md:flex-row items-start md:items-center md:space-x-4 bg-background";
+const menuPanelFrame =
+  "absolute md:static left-0 right-0 top-16 md:top-auto border-t md:border-t-0";
+const userName = "text-foreground font-medium";
+const mobileUserContainer = "text-center";
+const navOuterPadding = "px-4 sm:px-6 lg:px-8";
+const menuListPadding = "px-2 pt-2 pb-3 sm:px-3 md:p-0";
+const menuItemPadding = "py-2 px-3 md:p-0";
+const mobileActionPadding = "py-2 px-3";
 
 // Custom NavLink component with amber color scheme
 const NavLink = ({
@@ -69,8 +89,8 @@ export const AppNavbar = () => {
   };
 
   return (
-    <nav className={navContainerVariants()}>
-      <div className={cn("max-w-7xl mx-auto", navOuterPaddingVariants())}>
+    <nav className={navContainer}>
+      <div className={cn("max-w-7xl mx-auto", navOuterPadding)}>
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0 flex items-center">
@@ -90,7 +110,7 @@ export const AppNavbar = () => {
             )}
             <Button
               variant="ghost"
-              className={mobileMenuButtonVariants()}
+              className={mobileMenuButton}
               onClick={toggleMenu}
             >
               {isMenuOpen ? (
@@ -104,8 +124,8 @@ export const AppNavbar = () => {
           {/* Unified navigation menu - styled differently for mobile/desktop */}
           <div
             className={cn(
-              menuPanelVariants(),
-              menuPanelFrameVariants(),
+              menuPanel,
+              menuPanelFrame,
               "md:flex",
               isMenuOpen ? "flex" : "hidden",
             )}
@@ -113,13 +133,13 @@ export const AppNavbar = () => {
             <div
               className={cn(
                 "w-full md:w-auto space-y-1 md:space-y-0",
-                menuListPaddingVariants(),
+                menuListPadding,
               )}
             >
               <div
                 className={cn(
                   "block md:inline-block md:mr-4",
-                  menuItemPaddingVariants(),
+                  menuItemPadding,
                 )}
               >
                 <NavLink href="/" onClick={closeMenu}>
@@ -129,7 +149,7 @@ export const AppNavbar = () => {
               <div
                 className={cn(
                   "block md:inline-block md:mr-4",
-                  menuItemPaddingVariants(),
+                  menuItemPadding,
                 )}
               >
                 <NavLink href="/history" onClick={closeMenu}>
@@ -140,7 +160,7 @@ export const AppNavbar = () => {
                 <div
                   className={cn(
                     "block md:inline-block md:mr-4",
-                    menuItemPaddingVariants(),
+                    menuItemPadding,
                   )}
                 >
                   <NavLink href="/settings" onClick={closeMenu}>
@@ -153,18 +173,18 @@ export const AppNavbar = () => {
                   <div
                     className={cn(
                       "block md:hidden",
-                      mobileUserContainerVariants(),
-                      mobileActionPaddingVariants(),
+                      mobileUserContainer,
+                      mobileActionPadding,
                     )}
                   >
-                    <span className={userNameVariants()}>
+                    <span className={userName}>
                       {user.user_metadata.displayName}
                     </span>
                   </div>
                   <div
                     className={cn(
                       "block md:hidden",
-                      mobileActionPaddingVariants(),
+                      mobileActionPadding,
                     )}
                   >
                     <Button
@@ -196,7 +216,7 @@ export const AppNavbar = () => {
                   inlineGapVariants({ size: "sm" }),
                 )}
               >
-                <span className={userNameVariants()}>
+                <span className={userName}>
                   {user.user_metadata.displayName}
                 </span>
                 <Button

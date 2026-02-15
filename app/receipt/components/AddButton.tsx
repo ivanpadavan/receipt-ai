@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils/cn";
 import {
-  addButtonVariants,
+  addButton,
   iconSizeVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -19,7 +19,7 @@ export const AddButton: React.FC<AddButtonProps> = ({
       type="button"
       variant="secondary"
       onClick={onClick}
-      className={cn(addButtonVariants(), className)}
+      className={cn(addButton, className)}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

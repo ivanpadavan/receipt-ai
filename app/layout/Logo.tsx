@@ -4,7 +4,7 @@ import { cn } from "@/utils/cn";
 import {
   iconSizeVariants,
   inlineGapVariants,
-  textRoleVariants,
+  textVariants,
 } from "@/app/receipt/components/ui-styles";
 
 
@@ -20,7 +20,7 @@ const Logo = () => (
       strokeLinejoin="round"
       className={cn(
         iconSizeVariants({ size: "lgPlus" }),
-        textRoleVariants({ role: "logoMark" }),
+        textVariants({ tone: "brand" }),
       )}
     >
       <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z" />
@@ -29,7 +29,7 @@ const Logo = () => (
       <path d="M12 6.5v.5" />
     </svg>
     <span
-      className={textRoleVariants({ role: "logoType" })}
+      className={textVariants({ size: "xl", weight: "bold", tone: "brandStrong" })}
     >
       ReceiptScan
     </span>

@@ -31,28 +31,30 @@ import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { cn } from "@/utils/cn";
 import {
   rowContentPaddingVariants,
-  participantsAddButtonContainerVariants,
-  participantsAddInputVariants,
-  participantsAvatarPlaceholderVariants,
-  dialogContentVariants,
-  participantsDoneButtonVariants,
-  participantsEmptyStateContainerVariants,
-  participantsEmptyStateIconVariants,
-  participantsFooterVariants,
-  participantsListPaddingVariants,
-  participantsSheetBackgroundVariants,
-  participantsSheetHeaderVariants,
-  participantsDeleteActionVariants,
   avatarSizeVariants,
   iconLeadSpacingVariants,
   iconSizeVariants,
   inlineGapVariants,
   rowVariants,
-  dialogHeaderVariants,
-  dialogFooterVariants,
-  dialogHeaderTitleVariants,
-  textRoleVariants,
+  dialogContent,
+  dialogHeader,
+  dialogFooter,
+  dialogHeaderTitle,
+  textVariants,
+  radiusTokens,
 } from "@/app/receipt/components/ui-styles";
+
+// ── Participants-scoped styles ──────────────────
+const sheetBackground = "bg-amber-50/30";
+const sheetHeader = "px-4 pt-4 pb-2";
+const listPadding = "px-4 py-2";
+const emptyStateContainer = "h-40 gap-1";
+const emptyStateIcon = "text-muted-foreground/40";
+const avatarPlaceholder = `${radiusTokens.full} bg-muted/50 border-2 border-dashed border-border flex items-center justify-center text-muted-foreground font-semibold`;
+const addInput = "border-amber-400 focus-visible:ring-amber-400 h-8";
+const addButtonContainer = "px-4 py-3";
+const footer = "px-4 pb-4";
+const deleteAction = "bg-destructive text-destructive-foreground hover:bg-destructive/90";
 
 interface ParticipantsSheetProps {
   onClose?: () => void;
@@ -135,17 +137,17 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
       <DrawerContent
         className={cn(
           "h-[85vh] flex flex-col",
-          participantsSheetBackgroundVariants(),
+          sheetBackground,
         )}
       >
         <DrawerHeader
           className={cn(
             rowVariants({ align: "center", justify: "between", width: "full" }),
-            participantsSheetHeaderVariants(),
+            sheetHeader,
           )}
         >
           <DrawerTitle
-            className={textRoleVariants({ role: "sheetTitle" })}
+            className={textVariants({ size: "lg", weight: "semibold" })}
           >
             {t("participants")}
           </DrawerTitle>
@@ -163,25 +165,25 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
         <div
           className={cn(
             "flex-1 overflow-y-auto min-h-[200px]",
-            participantsListPaddingVariants(),
+            listPadding,
           )}
         >
           {participants.length === 0 && !isAdding && (
             <div
               className={cn(
                 "flex flex-col items-center justify-center",
-                participantsEmptyStateContainerVariants(),
+                emptyStateContainer,
               )}
             >
               <UserPlus
                 className={cn(
                   "mb-3",
                   iconSizeVariants({ size: "xl" }),
-                  participantsEmptyStateIconVariants(),
+                  emptyStateIcon,
                 )}
               />
               <p
-                className={cn(textRoleVariants({ role: "labelSmMuted" }), "text-center")}
+                className={cn(textVariants({ size: "sm", tone: "muted" }), "text-center")}
               >
                 {t("participantsEmpty")}
               </p>
@@ -211,7 +213,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                   <span
                     className={cn(
                       "flex-1",
-                      textRoleVariants({ role: "labelSm" }),
+                      textVariants({ size: "sm", weight: "medium" }),
                     )}
                   >
                     {participant.displayName}
@@ -259,7 +261,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                   className={cn(
                     "shrink-0",
                     avatarSizeVariants({ size: "sm" }),
-                    participantsAvatarPlaceholderVariants(),
+                    avatarPlaceholder,
                   )}
                 >
                   ?
@@ -270,11 +272,11 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                   onChange={(e) => setNewParticipantName(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder={t("newParticipantNamePlaceholder")}
-                  className={cn("flex-1", participantsAddInputVariants())}
+                  className={cn("flex-1", addInput)}
                 />
                 {hasNameConflict && (
                   <span
-                    className={textRoleVariants({ role: "captionXsWarning" })}
+                    className={textVariants({ size: "xs", tone: "warning" })}
                   >
                     {t("nameConflict")}
                   </span>
@@ -293,7 +295,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
         </div>
 
         {!isAdding && (
-          <div className={participantsAddButtonContainerVariants()}>
+          <div className={addButtonContainer}>
             <Button
               variant="outline"
               onClick={() => setIsAdding(true)}
@@ -310,7 +312,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
           </div>
         )}
 
-        <div className={participantsFooterVariants()}>
+        <div className={footer}>
           <Button
             onClick={onClose}
             className={cn("w-full", participantsDoneButtonVariants())}
@@ -325,9 +327,9 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
         open={deleteConfirm !== null}
         onOpenChange={(open) => !open && setDeleteConfirm(null)}
       >
-        <AlertDialogContent className={dialogContentVariants()}>
-          <AlertDialogHeader className={dialogHeaderVariants()}>
-            <AlertDialogTitle className={dialogHeaderTitleVariants()}>
+        <AlertDialogContent className={dialogContent}>
+          <AlertDialogHeader className={dialogHeader}>
+            <AlertDialogTitle className={dialogHeaderTitle}>
               {t("deleteParticipant")}
             </AlertDialogTitle>
             <AlertDialogDescription>
@@ -336,7 +338,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                 <span
                   className={cn(
                     "block mt-2",
-                    textRoleVariants({ role: "amountSemibold" }),
+                    textVariants({ weight: "semibold" }),
                   )}
                 >
                   {deleteConfirm.displayName}
@@ -345,12 +347,12 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter
-            className={cn(dialogFooterVariants(), inlineGapVariants({ size: "sm" }))}
+            className={cn(dialogFooter, inlineGapVariants({ size: "sm" }))}
           >
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className={participantsDeleteActionVariants()}
+              className={deleteAction}
             >
               {t("delete")}
             </AlertDialogAction>

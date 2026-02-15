@@ -8,7 +8,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { getUser } from "@/utils/supabase/server";
 import { AppNavbar } from "@/app/layout/AppNavbar";
 import { cn } from "@/utils/cn";
-import { appShellVariants } from "@/app/receipt/components/ui-styles";
+import { appShell } from "@/app/receipt/components/ui-styles";
 
 const publicSans = Public_Sans({ subsets: ["latin"] });
 export default async function RootLayout({
@@ -56,7 +56,7 @@ export default async function RootLayout({
               <div
                 className={cn(
                   "min-h-[100dvh] flex flex-col",
-                  appShellVariants(),
+                  appShell,
                 )}
               >
                 <AppNavbar />

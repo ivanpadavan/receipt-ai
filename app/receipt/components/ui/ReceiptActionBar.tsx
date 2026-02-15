@@ -10,19 +10,15 @@ import {
   ButtonGroupSeparator,
 } from "@/components/ui/button-group";
 import {
-  actionBarVariants,
+  actionBar,
   iconButtonVariants,
   iconGroupVariants,
   iconSizeVariants,
-  primaryActionVariants,
+  primaryAction,
   iconLeadSpacingVariants,
-  receiptActionBarContainerPaddingVariants,
-  receiptActionBarMenuIconVariants,
-  receiptActionBarPaddingVariants,
-  receiptActionBarParticipantBadgeVariants,
-  receiptActionPrimaryPaddingVariants,
   inlineGapVariants,
   rowVariants,
+  radiusTokens,
 } from "@/app/receipt/components/ui-styles";
 import {
   BadgePercent,
@@ -32,6 +28,23 @@ import {
   Users,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { cva } from "class-variance-authority";
+
+// ── ActionBar-scoped styles ──────────────────────
+const participantBadge =
+  `${radiusTokens.full} pointer-events-none absolute right-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center bg-foreground px-1 text-[10px] font-semibold leading-none opacity-80 text-background`;
+const menuIconVariants = cva("", {
+  variants: {
+    tone: {
+      position: "text-sky-600",
+      discount: "text-emerald-600",
+      fee: "text-amber-600",
+    },
+  },
+});
+const containerPadding = "px-5";
+const barPadding = "p-2";
+const primaryPadding = "px-7";
 
 interface ReceiptActionBarProps {
   receiptId: string;
@@ -60,13 +73,13 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
 
   return (
     <div className="sticky mb-3 bottom-3 z-10 mx-auto w-full max-w-3xl">
-      <div className={cn("w-full", receiptActionBarContainerPaddingVariants())}>
+      <div className={cn("w-full", containerPadding)}>
         <div
           className={cn(
             rowVariants({ align: "center", justify: "between", width: "full" }),
             inlineGapVariants({ size: "md" }),
-            actionBarVariants(),
-            receiptActionBarPaddingVariants(),
+            actionBar,
+            barPadding,
           )}
         >
           <ButtonGroup
@@ -83,7 +96,7 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
               title={t("participants")}
               aria-label={t("participants")}
             >
-              <span className={receiptActionBarParticipantBadgeVariants()}>
+              <span className={participantBadge}>
                 {participantsCount}
               </span>
               <Users className={iconSizeVariants({ size: "sm" })} />
@@ -112,63 +125,63 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
                   items={[
                     ...(onAddPosition
                       ? [
-                          {
-                            id: "add-position",
-                            label: t("addPosition"),
-                            onSelect: onAddPosition,
-                            icon: (
-                              <CirclePlus
-                                className={cn(
-                                  iconLeadSpacingVariants(),
-                                  iconSizeVariants({ size: "sm" }),
-                                  receiptActionBarMenuIconVariants({
-                                    tone: "position",
-                                  }),
-                                )}
-                              />
-                            ),
-                          },
-                        ]
+                        {
+                          id: "add-position",
+                          label: t("addPosition"),
+                          onSelect: onAddPosition,
+                          icon: (
+                            <CirclePlus
+                              className={cn(
+                                iconLeadSpacingVariants(),
+                                iconSizeVariants({ size: "sm" }),
+                                menuIconVariants({
+                                  tone: "position",
+                                }),
+                              )}
+                            />
+                          ),
+                        },
+                      ]
                       : []),
                     ...(onAddDiscount
                       ? [
-                          {
-                            id: "add-discount",
-                            label: t("addDiscount"),
-                            onSelect: onAddDiscount,
-                            icon: (
-                              <BadgePercent
-                                className={cn(
-                                  iconLeadSpacingVariants(),
-                                  iconSizeVariants({ size: "sm" }),
-                                  receiptActionBarMenuIconVariants({
-                                    tone: "discount",
-                                  }),
-                                )}
-                              />
-                            ),
-                          },
-                        ]
+                        {
+                          id: "add-discount",
+                          label: t("addDiscount"),
+                          onSelect: onAddDiscount,
+                          icon: (
+                            <BadgePercent
+                              className={cn(
+                                iconLeadSpacingVariants(),
+                                iconSizeVariants({ size: "sm" }),
+                                menuIconVariants({
+                                  tone: "discount",
+                                }),
+                              )}
+                            />
+                          ),
+                        },
+                      ]
                       : []),
                     ...(onAddFee
                       ? [
-                          {
-                            id: "add-fee",
-                            label: t("addFee"),
-                            onSelect: onAddFee,
-                            icon: (
-                              <HandCoins
-                                className={cn(
-                                  iconLeadSpacingVariants(),
-                                  iconSizeVariants({ size: "sm" }),
-                                  receiptActionBarMenuIconVariants({
-                                    tone: "fee",
-                                  }),
-                                )}
-                              />
-                            ),
-                          },
-                        ]
+                        {
+                          id: "add-fee",
+                          label: t("addFee"),
+                          onSelect: onAddFee,
+                          icon: (
+                            <HandCoins
+                              className={cn(
+                                iconLeadSpacingVariants(),
+                                iconSizeVariants({ size: "sm" }),
+                                menuIconVariants({
+                                  tone: "fee",
+                                }),
+                              )}
+                            />
+                          ),
+                        },
+                      ]
                       : []),
                   ]}
                 />
@@ -235,8 +248,8 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
             disabled={!canProceed}
             className={cn(
               "h-12",
-              primaryActionVariants(),
-              receiptActionPrimaryPaddingVariants(),
+              primaryAction,
+              primaryPadding,
             )}
           >
             {t(primaryLabel)}
