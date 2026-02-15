@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ParticipantDTO,
   ReceiptPosition,
@@ -14,6 +14,8 @@ export interface UseSplittingLogicProps {
   participants: ParticipantDTO[];
 }
 
+export type ActiveDraftId = string | "new" | null;
+
 export const useSplittingLogic = ({
   initialValue,
   onSave,
@@ -23,193 +25,144 @@ export const useSplittingLogic = ({
   const [localPosition, setLocalPosition] = useState<ReceiptPosition>(() =>
     structuredClone(initialValue),
   );
+  const [activeDraftId, setActiveDraftId] = useState<ActiveDraftId>(null);
+  const [draftClaim, setDraftClaim] = useState<ReceiptPositionClaim | null>(null);
 
-  const currentUserParticipantId = participants?.find((p) => p.id === currentUser?.id)?.id;
+  const currentUserParticipantId = participants.find(
+    (participant) => participant.id === currentUser?.id,
+  )?.id;
 
-  // --- Draft Claims State (Map) ---
-  const [draftClaims, setDraftClaims] = useState<
-    Map<string | "new", ReceiptPositionClaim>
-  >(
-    new Map([
-      [
-        "new",
-        {
-          ...createDefaultClaim(),
-          participantIds: currentUserParticipantId
-            ? [currentUserParticipantId]
-            : [],
-        },
-      ],
-    ]),
+  const createDraft = useCallback(
+    () => ({
+      ...createDefaultClaim(),
+      participantIds: currentUserParticipantId ? [currentUserParticipantId] : [],
+    }),
+    [currentUserParticipantId],
   );
 
-  // Helper to update draft state safely
-  const updateDraft = (id: string | "new", claim: ReceiptPositionClaim) => {
-    setDraftClaims((prev) => {
-      const next = new Map(prev);
-      next.set(id, claim);
-      return next;
-    });
-  };
+  const cancelDraft = useCallback(() => {
+    setActiveDraftId(null);
+    setDraftClaim(null);
+  }, []);
 
-  const removeDraft = (...ids: (string | "new")[]) => {
-    setDraftClaims((prev) => {
-      const next = new Map(prev);
-      ids.forEach((id) => next.delete(id));
-      return next;
-    });
-  };
+  const startAdding = useCallback(() => {
+    setActiveDraftId("new");
+    setDraftClaim(createDraft());
+  }, [createDraft]);
 
-  const canApplyClaimLocal = (
-    claim: ReceiptPositionClaim,
-    excludeId?: string,
-  ) =>
-    canApplyClaim(
-      claim,
+  const startEditing = useCallback((claim: ReceiptPositionClaim) => {
+    setActiveDraftId(claim.id);
+    setDraftClaim(structuredClone(claim));
+  }, []);
+
+  const updateDraft = useCallback((claim: ReceiptPositionClaim) => {
+    setDraftClaim(claim);
+  }, []);
+
+  const saveDraft = useCallback(() => {
+    if (!activeDraftId || !draftClaim || draftClaim.value <= 0) {
+      return false;
+    }
+
+    const excludeId = activeDraftId === "new" ? undefined : activeDraftId;
+    const canSave = canApplyClaim(
+      draftClaim,
       localPosition.claims,
       localPosition.price,
       localPosition.overall,
       excludeId,
     );
 
-  // Create an effective position that includes ALL draft changes for live preview
-  const effectivePosition = useMemo(() => {
-    const pos = structuredClone(localPosition);
-
-    draftClaims.forEach((claim, id) => {
-      if (id === "new") {
-        pos.claims.push(claim);
-      } else {
-        const existingIndex = pos.claims.findIndex((c) => c.id === id);
-        if (existingIndex >= 0) {
-          pos.claims[existingIndex] = claim;
-        } else {
-          pos.claims.push(claim);
-        }
-      }
-    });
-    return pos;
-  }, [localPosition, draftClaims]);
-
-  const totalClaimed = effectivePosition.claims.reduce((acc, claim) => {
-    if (!claim.participantIds || claim.participantIds.length === 0) return acc;
-    return acc + getClaimAmount(claim, effectivePosition.price);
-  }, 0);
-
-  const startAdding = () => {
-    updateDraft("new", {
-      ...createDefaultClaim(),
-      participantIds: currentUserParticipantId
-        ? [currentUserParticipantId]
-        : [],
-    });
-  };
-
-  const handleSaveDraft = (id: string | "new") => {
-    const claim = draftClaims.get(id);
-    if (!claim) return;
-
-    const excludeId = id === "new" ? undefined : id;
-    if (!canApplyClaimLocal(claim, excludeId)) {
-      return;
+    if (!canSave) {
+      return false;
     }
 
     const nextPosition = structuredClone(localPosition);
 
-    if (id === "new") {
-      if (claim.value <= 0) {
-        return;
-      }
-      nextPosition.claims.push(claim);
+    if (activeDraftId === "new") {
+      nextPosition.claims.push(draftClaim);
     } else {
-      // Update existing
-      nextPosition.claims = nextPosition.claims.map((c) =>
-        c.id === id ? claim : c,
+      nextPosition.claims = nextPosition.claims.map((claim) =>
+        claim.id === activeDraftId ? draftClaim : claim,
       );
     }
 
     setLocalPosition(nextPosition);
     onSave(nextPosition);
-    removeDraft(id);
-  };
+    cancelDraft();
 
-  const handleDeleteClaim = (claim: ReceiptPositionClaim) => {
-    const id = claim.id;
-    const nextPosition = {
-      ...localPosition,
-      claims: localPosition.claims.filter((c) => c.id !== id),
-    };
+    return true;
+  }, [activeDraftId, cancelDraft, draftClaim, localPosition, onSave]);
 
-    setLocalPosition(nextPosition);
-    onSave(nextPosition);
+  const deleteClaim = useCallback(
+    (claim: ReceiptPositionClaim) => {
+      const nextPosition = {
+        ...localPosition,
+        claims: localPosition.claims.filter((currentClaim) => currentClaim.id !== claim.id),
+      };
 
-    // Also remove from drafts if being edited
-    if (draftClaims.has(id)) {
-      removeDraft(id);
-    }
-  };
+      setLocalPosition(nextPosition);
+      onSave(nextPosition);
 
-  const handleEditClick = (claim: ReceiptPositionClaim) => {
-    updateDraft(claim.id, claim);
-  };
+      if (activeDraftId === claim.id) {
+        cancelDraft();
+      }
+    },
+    [activeDraftId, cancelDraft, localPosition, onSave],
+  );
 
-  const handleUpdateClaim = (updatedClaim: ReceiptPositionClaim) => {
-    const id = updatedClaim.id;
-    if (!canApplyClaimLocal(updatedClaim, id)) {
-      return;
-    }
-    // Only used for update from view mode if allowed
-    const nextPosition = {
-      ...localPosition,
-      claims: localPosition.claims.map((c) => (c.id === id ? updatedClaim : c)),
-    };
-    setLocalPosition(nextPosition);
-    onSave(nextPosition);
-  };
-
-  const handleDone = () => {
-    const finalPosition = structuredClone(localPosition);
-
-    // Auto-save NEW draft only if valid
-    const newClaim = draftClaims.get("new");
-    if (newClaim && newClaim.value > 0 && canApplyClaimLocal(newClaim)) {
-      finalPosition.claims.push(newClaim);
+  const effectivePosition = useMemo(() => {
+    if (!activeDraftId || !draftClaim) {
+      return localPosition;
     }
 
-    onSave(finalPosition);
-  };
+    const nextPosition = structuredClone(localPosition);
 
-  const newDraftClaim = draftClaims.get("new");
+    if (activeDraftId === "new") {
+      nextPosition.claims.push(draftClaim);
+      return nextPosition;
+    }
+
+    nextPosition.claims = nextPosition.claims.map((claim) =>
+      claim.id === activeDraftId ? draftClaim : claim,
+    );
+
+    return nextPosition;
+  }, [activeDraftId, draftClaim, localPosition]);
+
+  const totalClaimed = useMemo(
+    () =>
+      effectivePosition.claims.reduce((acc, claim) => {
+        if (!claim.participantIds.length) {
+          return acc;
+        }
+
+        return acc + getClaimAmount(claim, effectivePosition.price);
+      }, 0),
+    [effectivePosition],
+  );
+
+  const handleDone = useCallback(() => {
+    onSave(localPosition);
+  }, [localPosition, onSave]);
 
   useEffect(() => {
-    if (localPosition === initialValue) {
-      return;
-    }
-    const deleteDrafts = new Set<string>();
-    for (const newClaim of initialValue.claims) {
-      if (draftClaims.has(newClaim.id)) deleteDrafts.add(newClaim.id);
-    }
-    if (deleteDrafts.size) {
-      removeDraft(...deleteDrafts);
-    }
-    setLocalPosition(initialValue);
-  }, [localPosition, initialValue, removeDraft, draftClaims]);
+    setLocalPosition(structuredClone(initialValue));
+    cancelDraft();
+  }, [cancelDraft, initialValue]);
 
   return {
     localPosition,
-    draftClaims,
     effectivePosition,
     totalClaimed,
-    newDraftClaim,
-
-    // Actions
-    updateDraft,
-    removeDraft,
+    activeDraftId,
+    draftClaim,
     startAdding,
-    handleSaveDraft,
-    handleDeleteClaim,
-    handleEditClick,
-    handleUpdateClaim,
+    startEditing,
+    updateDraft,
+    cancelDraft,
+    saveDraft,
+    deleteClaim,
     handleDone,
   };
 };
