@@ -4,6 +4,7 @@ import React from "react";
 import { t, TranslationKey } from "@/app/i18n/translations";
 import { Button } from "@/components/ui/button";
 import { ShareReceiptDialog } from "@/app/receipt/components/ShareReceiptDialog";
+import { ActionMenu } from "@/app/receipt/components/ui/ActionMenu";
 import {
   ButtonGroup,
   ButtonGroupSeparator,
@@ -30,12 +31,6 @@ import {
   Pencil,
   Users,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/utils/cn";
 
 interface ReceiptActionBarProps {
@@ -108,6 +103,75 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
             {canEditActions && (
               <>
                 <ButtonGroupSeparator className="mx-1 h-5 opacity-30" />
+                <ActionMenu
+                  triggerLabel={t("edit")}
+                  triggerKind="actionBar"
+                  triggerIcon={<Pencil className={iconSizeVariants({ size: "sm" })} />}
+                  contentAlign="start"
+                  contentSide="top"
+                  items={[
+                    ...(onAddPosition
+                      ? [
+                          {
+                            id: "add-position",
+                            label: t("addPosition"),
+                            onSelect: onAddPosition,
+                            icon: (
+                              <CirclePlus
+                                className={cn(
+                                  iconLeadSpacingVariants(),
+                                  iconSizeVariants({ size: "sm" }),
+                                  receiptActionBarMenuIconVariants({
+                                    tone: "position",
+                                  }),
+                                )}
+                              />
+                            ),
+                          },
+                        ]
+                      : []),
+                    ...(onAddDiscount
+                      ? [
+                          {
+                            id: "add-discount",
+                            label: t("addDiscount"),
+                            onSelect: onAddDiscount,
+                            icon: (
+                              <BadgePercent
+                                className={cn(
+                                  iconLeadSpacingVariants(),
+                                  iconSizeVariants({ size: "sm" }),
+                                  receiptActionBarMenuIconVariants({
+                                    tone: "discount",
+                                  }),
+                                )}
+                              />
+                            ),
+                          },
+                        ]
+                      : []),
+                    ...(onAddFee
+                      ? [
+                          {
+                            id: "add-fee",
+                            label: t("addFee"),
+                            onSelect: onAddFee,
+                            icon: (
+                              <HandCoins
+                                className={cn(
+                                  iconLeadSpacingVariants(),
+                                  iconSizeVariants({ size: "sm" }),
+                                  receiptActionBarMenuIconVariants({
+                                    tone: "fee",
+                                  }),
+                                )}
+                              />
+                            ),
+                          },
+                        ]
+                      : []),
+                  ]}
+                />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button

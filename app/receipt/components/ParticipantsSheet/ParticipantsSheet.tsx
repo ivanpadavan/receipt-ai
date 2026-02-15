@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { CardContent } from "@/components/ui/card";
 import { ConfirmCancelGroup } from "@/app/receipt/components/ui/ConfirmCancelGroup";
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
+import { ActionMenu } from "@/app/receipt/components/ui/ActionMenu";
 import {
   DrawerContent,
   DrawerHeader,
@@ -24,12 +25,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { t } from "@/app/i18n/translations";
 import { UserPlus, X, Trash2, MoreVertical } from "lucide-react";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
@@ -39,21 +34,18 @@ import {
   participantsAddButtonContainerVariants,
   participantsAddInputVariants,
   participantsAvatarPlaceholderVariants,
-  rowActionsMenuDangerItemVariants,
   dialogContentVariants,
   participantsDoneButtonVariants,
   participantsEmptyStateContainerVariants,
   participantsEmptyStateIconVariants,
   participantsFooterVariants,
   participantsListPaddingVariants,
-  rowActionsMenuTriggerVariants,
   participantsSheetBackgroundVariants,
   participantsSheetHeaderVariants,
   participantsDeleteActionVariants,
   avatarSizeVariants,
   iconLeadSpacingVariants,
   iconSizeVariants,
-  iconButtonCompactVariants,
   inlineGapVariants,
   rowVariants,
   dialogHeaderVariants,
@@ -224,34 +216,26 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                   >
                     {participant.displayName}
                   </span>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={cn(
-                          iconButtonCompactVariants(),
-                          rowActionsMenuTriggerVariants(),
-                        )}
-                      >
-                      <MoreVertical className={iconSizeVariants({ size: "sm" })} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => handleDeleteClick(participant)}
-                      className={rowActionsMenuDangerItemVariants()}
-                    >
-                      <Trash2
-                        className={cn(
-                          iconLeadSpacingVariants(),
-                          iconSizeVariants({ size: "sm" }),
-                        )}
-                      />
-                      {t("delete")}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  <ActionMenu
+                    triggerLabel={t("edit")}
+                    triggerIcon={<MoreVertical className={iconSizeVariants({ size: "sm" })} />}
+                    items={[
+                      {
+                        id: "delete",
+                        label: t("delete"),
+                        tone: "danger",
+                        onSelect: () => handleDeleteClick(participant),
+                        icon: (
+                          <Trash2
+                            className={cn(
+                              iconLeadSpacingVariants(),
+                              iconSizeVariants({ size: "sm" }),
+                            )}
+                          />
+                        ),
+                      },
+                    ]}
+                  />
                 </CardContent>
               </ReceiptCard>
             );

@@ -12,13 +12,7 @@ import {
   DrawerFooter,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/utils/cn";
 import { useReceiptState } from "../ReceiptForm";
 import {
@@ -33,6 +27,7 @@ import { ParticipantAvatar } from "@/app/receipt/components/ui/participant-avata
 import { DistributionBar } from "@/app/receipt/components/ui/DistributionBar";
 import { DistributionStatus } from "@/app/receipt/components/ui/DistributionStatus";
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
+import { ActionMenu } from "@/app/receipt/components/ui/ActionMenu";
 import { SplittingHeroEditor } from "./SplittingHeroEditor";
 import {
   getFormPathErrorMessage,
@@ -41,13 +36,10 @@ import {
 import { getClaimAmount, getClaimOverage } from "@/app/receipt/utils/claims";
 import {
   iconButtonVariants,
-  iconButtonCompactVariants,
   iconLeadSpacingVariants,
   iconSizeVariants,
   iconSoloVariants,
   inlineGapVariants,
-  rowActionsMenuDangerItemVariants,
-  rowActionsMenuTriggerVariants,
   radiusTokens,
   rowVariants,
   sheetHeaderTitleVariants,
@@ -161,58 +153,44 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
           )}
         </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            className={cn(
-              buttonVariants({ variant: "ghost", size: "icon" }),
-              iconButtonCompactVariants(),
-              rowActionsMenuTriggerVariants(),
-            )}
-            onClick={(event) => {
-              event.stopPropagation();
-            }}
-            onPointerDown={(event) => {
-              event.stopPropagation();
-            }}
-            aria-label={t("edit")}
-            title={t("edit")}
-          >
-            <MoreVertical className={iconSizeVariants({ size: "sm" })} />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {!active && (
-              <DropdownMenuItem
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onEdit();
-                }}
-              >
-                <Pencil
+        <ActionMenu
+          triggerLabel={t("edit")}
+          triggerIcon={<MoreVertical className={iconSizeVariants({ size: "sm" })} />}
+          stopPropagation
+          items={[
+            ...(!active
+              ? [
+                  {
+                    id: "edit",
+                    label: t("edit"),
+                    onSelect: onEdit,
+                    icon: (
+                      <Pencil
+                        className={cn(
+                          iconLeadSpacingVariants(),
+                          iconSizeVariants({ size: "sm" }),
+                        )}
+                      />
+                    ),
+                  },
+                ]
+              : []),
+            {
+              id: "delete",
+              label: t("delete"),
+              tone: "danger",
+              onSelect: onDelete,
+              icon: (
+                <Trash2
                   className={cn(
                     iconLeadSpacingVariants(),
                     iconSizeVariants({ size: "sm" }),
                   )}
                 />
-                {t("edit")}
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem
-              onClick={(event) => {
-                event.stopPropagation();
-                onDelete();
-              }}
-              className={rowActionsMenuDangerItemVariants()}
-            >
-              <Trash2
-                className={cn(
-                  iconLeadSpacingVariants(),
-                  iconSizeVariants({ size: "sm" }),
-                )}
-              />
-              {t("delete")}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              ),
+            },
+          ]}
+        />
       </div>
       <DistributionBar data={claim} className="h-1" />
     </ReceiptCard>

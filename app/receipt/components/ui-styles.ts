@@ -518,6 +518,28 @@ export const rowActionsMenuTriggerVariants = cva("text-gray-500");
 export const rowActionsMenuDangerItemVariants = cva(
   "text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50",
 );
+export const actionMenuTriggerVariants = cva("", {
+  variants: {
+    kind: {
+      row: `${iconButtonCompactVariants()} ${rowActionsMenuTriggerVariants()}`,
+      actionBar: iconButtonVariants({ size: "liquid", tone: "muted" }),
+    },
+  },
+  defaultVariants: {
+    kind: "row",
+  },
+});
+export const actionMenuItemVariants = cva("", {
+  variants: {
+    tone: {
+      default: "",
+      danger: rowActionsMenuDangerItemVariants(),
+    },
+  },
+  defaultVariants: {
+    tone: "default",
+  },
+});
 export const participantsAvatarPlaceholderVariants = cva(
   `${radiusTokens.full} flex items-center justify-center font-semibold text-lg`,
 );
