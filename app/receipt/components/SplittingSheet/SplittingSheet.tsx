@@ -2,7 +2,7 @@
 
 import React, { useMemo } from "react";
 import { useWatch } from "react-hook-form";
-import { MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { CirclePlus, MoreVertical, Pencil, Trash2 } from "lucide-react";
 
 import { EditModalProps } from "@/app/receipt/[id]/useReceiptFormState";
 import { t } from "@/app/i18n/translations";
@@ -29,6 +29,7 @@ import { DistributionBar } from "@/app/receipt/components/ui/DistributionBar";
 import { DistributionStatus } from "@/app/receipt/components/ui/DistributionStatus";
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 import { ActionMenu } from "@/app/receipt/components/ui/ActionMenu";
+import { IconActionGroup } from "@/app/receipt/components/ui/IconActionGroup";
 import { SplittingHeroEditor } from "./SplittingHeroEditor";
 import {
   getFormPathErrorMessage,
@@ -36,10 +37,8 @@ import {
 } from "@/app/receipt/utils/hasFormPathError";
 import { getClaimAmount, getClaimOverage } from "@/app/receipt/utils/claims";
 import {
-  iconButtonVariants,
   iconLeadSpacingVariants,
   iconSizeVariants,
-  iconSoloVariants,
   inlineGapVariants,
   pillVariants,
   radiusTokens,
@@ -53,7 +52,6 @@ import {
 
 // ── Splitting-scoped styles ──────────────────────
 const sheetSubtitle = "px-4 pb-2";
-const addShareButton = "border border-dashed border-border/70 text-muted-foreground";
 const addSharePadding = "px-3 pt-2";
 const claimsListPadding = "px-3 pt-2 pb-3";
 const claimsErrorRing = "ring-2 ring-destructive/30 rounded-xl";
@@ -329,35 +327,29 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       </div>
 
       <div className={addSharePadding}>
-        <div className={cn(rowVariants({ align: "center", width: "full" }), inlineGapVariants({ size: "sm" }))}>
-          <Button
-            type="button"
-            variant="ghost"
-            className={cn("flex-1", addShareButton)}
-            onClick={startAdding}
-          >
-            + {t("addShare")}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className={cn(
-              iconSoloVariants({ size: "compact" }),
-              iconButtonVariants({ size: "compact", tone: "muted" }),
-            )}
-            onClick={() =>
-              openEditModal({
-                type: "position",
-                index: positionIndex,
-                view: "editing",
-              })
-            }
-            aria-label={t("edit")}
-            title={t("edit")}
-          >
-            <Pencil className={iconSizeVariants({ size: "sm" })} />
-          </Button>
+        <div className={rowVariants({ align: "center", width: "full" })}>
+          <IconActionGroup
+            size="liquid"
+            actions={[
+              {
+                id: "add-share",
+                label: t("addShare"),
+                onClick: () => startAdding(),
+                icon: <CirclePlus className={iconSizeVariants({ size: "sm" })} />,
+              },
+              {
+                id: "edit-position",
+                label: t("edit"),
+                onClick: () =>
+                  openEditModal({
+                    type: "position",
+                    index: positionIndex,
+                    view: "editing",
+                  }),
+                icon: <Pencil className={iconSizeVariants({ size: "sm" })} />,
+              },
+            ]}
+          />
         </div>
       </div>
 

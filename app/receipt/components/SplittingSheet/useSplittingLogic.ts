@@ -25,8 +25,6 @@ export const useSplittingLogic = ({
   const [localPosition, setLocalPosition] = useState<ReceiptPosition>(() =>
     structuredClone(initialValue),
   );
-  const [activeDraftId, setActiveDraftId] = useState<ActiveDraftId>(null);
-  const [draftClaim, setDraftClaim] = useState<ReceiptPositionClaim | null>(null);
 
   const currentUserParticipantId = participants.find(
     (participant) => participant.id === currentUser?.id,
@@ -35,9 +33,16 @@ export const useSplittingLogic = ({
   const createDraft = useCallback(
     () => ({
       ...createDefaultClaim(),
-      participantIds: currentUserParticipantId ? [currentUserParticipantId] : [],
+      participantIds: currentUserParticipantId
+        ? [currentUserParticipantId]
+        : [],
     }),
     [currentUserParticipantId],
+  );
+
+  const [activeDraftId, setActiveDraftId] = useState<ActiveDraftId>("new");
+  const [draftClaim, setDraftClaim] = useState<ReceiptPositionClaim | null>(
+    createDraft(),
   );
 
   const cancelDraft = useCallback(() => {
