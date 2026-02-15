@@ -5,6 +5,16 @@ import putValidator from "@/app/api-client/receipt/put";
 import { errorWrap } from "@/app/api/receipt/error-wrap";
 import { serverSupabase } from "@/utils/supabase/server";
 import { buildParticipants } from "@/app/db-utils/build-participants";
+import type {
+  Receipt,
+  ReceiptMockParticipant,
+  ReceiptUserParticipant,
+} from "@/prisma/generated/prisma/client";
+import type {
+  RealtimePostgresChangesPayload,
+  RealtimePostgresUpdatePayload,
+} from "@supabase/supabase-js";
+import { BehaviorSubject, distinctUntilChanged, fromEvent, takeUntil } from "rxjs";
 
 export const runtime = "nodejs";
 
@@ -22,10 +32,12 @@ export async function GET(
   if (!receipt) {
     return new Response("Receipt not found", { status: 404 });
   }
-  let lastPayload = {
+  const payload$ = new BehaviorSubject({
     receipt: receipt.data,
     participants: await buildParticipants(receiptId),
-  };
+  });
+
+  const supabase = await serverSupabase();
 
   // Create SSE stream
   const stream = new ReadableStream({
@@ -41,12 +53,8 @@ export async function GET(
 
       // Add this connection to the receipt's connection set
       const channelName = `topic:${receiptId}`;
-      const supabase = await serverSupabase();
-      const channel = supabase.channel(channelName);
 
-      controller.enqueue(
-        encoder.encode(`data: ${JSON.stringify(lastPayload)}\n\n`),
-      );
+      const channel = supabase.channel(channelName);
 
       channel
         .on(
@@ -57,18 +65,13 @@ export async function GET(
             table: "Receipt",
             filter: `id=eq.${receiptId}`,
           },
-          async (payload) => {
-            const data = payload?.new?.data;
+          async (payload: RealtimePostgresUpdatePayload<Receipt>) => {
+            const data = payload.new.data;
             if (!data) return;
-            const nextPayload = {
+            payload$.next({
               receipt: data,
-              participants: lastPayload.participants,
-            };
-            if (isEqual(nextPayload, lastPayload)) return;
-            lastPayload = nextPayload;
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify(nextPayload)}\n\n`),
-            );
+              participants: payload$.value.participants,
+            });
           },
         )
         .on(
@@ -79,16 +82,11 @@ export async function GET(
             table: "ReceiptUserParticipant",
             filter: `receiptId=eq.${receiptId}`,
           },
-          async (payload) => {
-            const nextPayload = {
-              receipt: lastPayload.receipt,
+          async (_payload: RealtimePostgresChangesPayload<ReceiptUserParticipant>) => {
+            payload$.next({
+              receipt: payload$.value.receipt,
               participants: await buildParticipants(receiptId),
-            };
-            if (isEqual(nextPayload, lastPayload)) return;
-            lastPayload = nextPayload;
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify(nextPayload)}\n\n`),
-            );
+            });
           },
         )
         .on(
@@ -99,32 +97,31 @@ export async function GET(
             table: "ReceiptMockParticipant",
             filter: `receiptId=eq.${receiptId}`,
           },
-          async (payload) => {
-            const nextPayload = {
-              receipt: lastPayload.receipt,
+          async (_payload: RealtimePostgresChangesPayload<ReceiptMockParticipant>) => {
+            payload$.next({
+              receipt: payload$.value.receipt,
               participants: await buildParticipants(receiptId),
-            };
-            if (isEqual(nextPayload, lastPayload)) return;
-            lastPayload = nextPayload;
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify(nextPayload)}\n\n`),
-            );
+            });
           },
         )
         .subscribe();
 
-      // Cleanup on close
-      req.signal.addEventListener("abort", () => {
-        try {
-          clearInterval(heartbeat);
-          controller.close();
-          channel.unsubscribe();
-        } catch {
-          // Already closed
+      payload$.pipe(distinctUntilChanged(isEqual), takeUntil(fromEvent(req.signal, 'abort'))).subscribe({
+        next: (payload) => {
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify(payload)}\n\n`)
+          );
+        },
+        complete: () => {
+          try {
+            clearInterval(heartbeat);
+            controller.close();
+            channel.unsubscribe();
+          } catch {
+            // Already closed
+          }
         }
       });
-
-      await Promise.resolve();
     },
   });
 

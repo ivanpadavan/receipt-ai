@@ -63,6 +63,7 @@ export const participantDtoSchema = z.object({
   color: z.string(),
   kind: z.enum(["REAL", "MOCK"]),
   avatarUrl: z.string().optional(),
+  isOnline: z.boolean().optional(),
 });
 
 export const receiptWithParticipantsSchema = z.object({

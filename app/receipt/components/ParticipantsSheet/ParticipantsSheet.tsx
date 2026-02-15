@@ -187,14 +187,31 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                     participant={participant}
                     className="shrink-0"
                   />
-                  <span
-                    className={cn(
-                      "flex-1",
-                      textVariants({ size: "sm", weight: "medium" }),
+                  <div className="flex-1">
+                    <span
+                      className={textVariants({ size: "sm", weight: "medium" })}
+                    >
+                      {participant.displayName}
+                    </span>
+                    {participant.kind === "REAL" && (
+                      <div
+                        className={cn(
+                          "mt-0.5 inline-flex items-center gap-1",
+                          textVariants({ size: "xs", tone: "muted" }),
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "h-1.5 w-1.5 rounded-full",
+                            participant.isOnline
+                              ? "bg-emerald-500"
+                              : "bg-muted-foreground/40",
+                          )}
+                        />
+                        {participant.isOnline ? t("online") : t("offline")}
+                      </div>
                     )}
-                  >
-                    {participant.displayName}
-                  </span>
+                  </div>
                   <ActionMenu
                     triggerLabel={t("edit")}
                     triggerIcon={<MoreVertical className={iconSizeVariants({ size: "sm" })} />}
