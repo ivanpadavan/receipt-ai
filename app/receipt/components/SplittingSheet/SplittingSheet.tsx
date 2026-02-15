@@ -43,6 +43,7 @@ import {
   inlineGapVariants,
   pillVariants,
   radiusTokens,
+  rowContentPaddingVariants,
   rowVariants,
   stackGapVariants,
   textVariants,
@@ -104,7 +105,7 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
         className={cn(
           rowVariants({ align: "center", width: "full" }),
           inlineGapVariants({ size: "sm" }),
-          "px-3 py-2",
+          rowContentPaddingVariants({ density: "regular" }),
         )}
       >
         <button
