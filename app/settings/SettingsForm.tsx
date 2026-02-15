@@ -26,6 +26,7 @@ import {
   dialogFooter,
   dialogHeaderTitle,
   dialogHeader,
+  dialogBodySpacing,
   btnShadow,
   inputStateVariants,
   uploadPanel,
@@ -304,6 +305,7 @@ export const SettingsForm = ({
                       </AlertDialogHeader>
                       <div
                         className={cn(
+                          dialogBodySpacing,
                           "relative w-full h-72",
                           settingsCropFrame,
                         )}
@@ -341,7 +343,9 @@ export const SettingsForm = ({
                           className="w-full"
                         />
                       </div>
-                      <AlertDialogFooter className={dialogFooter}>
+                      <AlertDialogFooter
+                        className={cn(dialogFooter, inlineGapVariants({ size: "sm" }))}
+                      >
                         <AlertDialogCancel onClick={() => setCropOpen(false)}>
                           {t("cancel")}
                         </AlertDialogCancel>

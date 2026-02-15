@@ -27,13 +27,13 @@ import {
   dialogFooter,
   dialogHeaderTitle,
   dialogContent,
+  dialogBodySpacing,
   radiusTokens,
 } from "@/app/receipt/components/ui-styles";
 
 // ── ShareReceipt-scoped styles ──────────────────────
 const qrContainer = `${radiusTokens.xl} border bg-white p-3`;
 const triggerLabel = "text-[11px] font-medium";
-const contentPadding = "py-2";
 
 type ShareReceiptDialogProps = {
   receiptId: string;
@@ -110,7 +110,7 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
           className={cn(
             "flex flex-col items-center",
             stackGapVariants({ size: "lg" }),
-            contentPadding,
+            dialogBodySpacing,
           )}
         >
           <div className={qrContainer}>

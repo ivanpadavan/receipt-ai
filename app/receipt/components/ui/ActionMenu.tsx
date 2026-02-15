@@ -20,7 +20,7 @@ import { cva } from "class-variance-authority";
 const menuTriggerVariants = cva("", {
   variants: {
     kind: {
-      row: `${iconButtonCompact} text-gray-500`,
+      row: cn(iconButtonVariants({ size: "compact", tone: "muted" }), iconButtonCompact),
       actionBar: iconButtonVariants({ size: "liquid", tone: "muted" }),
     },
   },
