@@ -226,10 +226,8 @@ export function useReceiptFormState(
     if (type === "validation") return;
 
     const subscription = watch((value, { name }) => {
-      if (!name) return;
-
       // Пересчёт overall позиции при изменении quantity/price
-      if (name.match(/^positions\.\d+\.(quantity|price)$/)) {
+      if (name?.match(/^positions\.\d+\.(quantity|price)$/)) {
         const match = name.match(/^positions\.(\d+)\./);
         if (match) {
           const idx = parseInt(match[1], 10);
@@ -246,13 +244,17 @@ export function useReceiptFormState(
 
       // Пересчёт total и grandTotal при любых изменениях позиций/модификаторов
       if (
+        !name ||
         name.startsWith("positions") ||
         name.startsWith("fees") ||
         name.startsWith("discounts")
       ) {
         const data = getValues();
         const total = calculateTotal(data.positions);
-        const grandTotal = calculateGrandTotal(data);
+        const grandTotal = calculateGrandTotal({
+          ...data,
+          totals: { ...data.totals, total },
+        });
 
         setValue("totals.total", total, { shouldValidate: true });
         setValue("totals.grandTotal", grandTotal, { shouldValidate: true });
