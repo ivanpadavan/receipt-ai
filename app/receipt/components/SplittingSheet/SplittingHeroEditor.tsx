@@ -112,6 +112,16 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
     [participants],
   );
 
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (saveDisabled) {
+      return;
+    }
+
+    onSave();
+  };
+
   const editorCard = (
     <ReceiptCard
       tone="warm"
@@ -130,6 +140,7 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
           <Input
             type="text"
             inputMode="decimal"
+            enterKeyHint="done"
             className={cn(
               "h-16 min-w-0 flex-1 border-0 bg-transparent px-0 text-center text-5xl font-semibold tabular-nums shadow-none focus-visible:ring-0",
               preventScrollHackClass,
@@ -256,9 +267,8 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
             {t("cancel")}
           </Button>
           <Button
-            type="button"
+            type="submit"
             className="flex-1"
-            onClick={onSave}
             disabled={saveDisabled}
           >
             {t("save")}
@@ -272,7 +282,9 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
     <div
       className={cn("relative w-full")}
     >
-      <div className={cn("w-full")}>{editorCard}</div>
+      <form className={cn("w-full")} onSubmit={handleSubmit}>
+        {editorCard}
+      </form>
     </div>
   );
 };
