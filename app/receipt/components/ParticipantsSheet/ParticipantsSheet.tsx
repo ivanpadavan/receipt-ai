@@ -34,6 +34,7 @@ import {
   iconLeadSpacingVariants,
   iconSizeVariants,
   inlineGapVariants,
+  pillVariants,
   rowVariants,
   dialogContent,
   dialogHeader,
@@ -187,31 +188,32 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                     participant={participant}
                     className="shrink-0"
                   />
-                  <div className="flex-1">
-                    <span
-                      className={textVariants({ size: "sm", weight: "medium" })}
-                    >
-                      {participant.displayName}
-                    </span>
-                    {participant.kind === "REAL" && (
-                      <div
-                        className={cn(
-                          "mt-0.5 inline-flex items-center gap-1",
-                          textVariants({ size: "xs", tone: "muted" }),
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            "h-1.5 w-1.5 rounded-full",
-                            participant.isOnline
-                              ? "bg-emerald-500"
-                              : "bg-muted-foreground/40",
-                          )}
-                        />
-                        {participant.isOnline ? t("online") : t("offline")}
-                      </div>
+                  <span
+                    className={cn(
+                      "flex-1 truncate",
+                      textVariants({ size: "sm", weight: "medium" }),
                     )}
-                  </div>
+                  >
+                    {participant.displayName}
+                  </span>
+                  {participant.kind === "REAL" && (
+                    <span
+                      className={pillVariants({
+                        tone: participant.isOnline ? "success" : "neutral",
+                        size: "sm",
+                      })}
+                    >
+                      <span
+                        className={cn(
+                          "h-1.5 w-1.5 rounded-full",
+                          participant.isOnline
+                            ? "bg-emerald-500"
+                            : "bg-muted-foreground/50",
+                        )}
+                      />
+                      {participant.isOnline ? t("online") : t("offline")}
+                    </span>
+                  )}
                   <ActionMenu
                     triggerLabel={t("edit")}
                     triggerIcon={<MoreVertical className={iconSizeVariants({ size: "sm" })} />}
