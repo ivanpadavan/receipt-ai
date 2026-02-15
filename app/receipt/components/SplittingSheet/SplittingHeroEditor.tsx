@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { t } from "@/app/i18n/translations";
 import { Button } from "@/components/ui/button";
@@ -80,6 +80,22 @@ const parseInputValue = (value: string) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const useTransientPreventScrollHack = (durationMs = 3000) => {
+  const [enabled, setEnabled] = useState(true);
+
+  useEffect(() => {
+    const timerId = window.setTimeout(() => {
+      setEnabled(false);
+    }, durationMs);
+
+    return () => {
+      window.clearTimeout(timerId);
+    };
+  }, [durationMs]);
+
+  return enabled ? "prevent_scrolling_when_focus" : "";
+};
+
 export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
   claim,
   participants,
@@ -89,110 +105,12 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
   onCancel,
   onSave,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const anchorRef = useRef<HTMLDivElement | null>(null);
-  const drawerContentRef = useRef<HTMLElement | null>(null);
-  const drawerStyleSnapshotRef = useRef<{
-    maxHeight: string;
-    height: string;
-    marginTop: string;
-    inset: string;
-    borderTopLeftRadius: string;
-    borderTopRightRadius: string;
-    borderBottomLeftRadius: string;
-    borderBottomRightRadius: string;
-    transform: string;
-  } | null>(null);
+  const preventScrollHackClass = useTransientPreventScrollHack();
 
   const allParticipantIds = useMemo(
     () => participants.map((participant) => participant.id),
     [participants],
   );
-
-  useEffect(() => {
-    const drawerContent = anchorRef.current?.closest(
-      '[data-slot="drawer-content"]',
-    ) as HTMLElement | null;
-    drawerContentRef.current = drawerContent;
-  }, []);
-
-  useEffect(() => {
-    const drawerContent = drawerContentRef.current;
-    if (!drawerContent) return;
-    drawerContentRef.current = drawerContent;
-
-    const style = drawerContent.style;
-
-    if (isExpanded) {
-      drawerStyleSnapshotRef.current = {
-        maxHeight: style.maxHeight,
-        height: style.height,
-        marginTop: style.marginTop,
-        inset: style.inset,
-        borderTopLeftRadius: style.borderTopLeftRadius,
-        borderTopRightRadius: style.borderTopRightRadius,
-        borderBottomLeftRadius: style.borderBottomLeftRadius,
-        borderBottomRightRadius: style.borderBottomRightRadius,
-        transform: style.transform,
-      };
-
-      style.maxHeight = "100dvh";
-      style.height = "100dvh";
-      style.marginTop = "0";
-      style.inset = "0";
-      style.borderTopLeftRadius = "0";
-      style.borderTopRightRadius = "0";
-      style.borderBottomLeftRadius = "0";
-      style.borderBottomRightRadius = "0";
-      style.transform = "none";
-      return;
-    }
-
-    const snapshot = drawerStyleSnapshotRef.current;
-    if (!snapshot) return;
-
-    style.maxHeight = snapshot.maxHeight;
-    style.height = snapshot.height;
-    style.marginTop = snapshot.marginTop;
-    style.inset = snapshot.inset;
-    style.borderTopLeftRadius = snapshot.borderTopLeftRadius;
-    style.borderTopRightRadius = snapshot.borderTopRightRadius;
-    style.borderBottomLeftRadius = snapshot.borderBottomLeftRadius;
-    style.borderBottomRightRadius = snapshot.borderBottomRightRadius;
-    style.transform = snapshot.transform;
-    drawerStyleSnapshotRef.current = null;
-  }, [isExpanded]);
-
-  useEffect(() => {
-    return () => {
-      const drawerContent = drawerContentRef.current;
-      if (!drawerContent) return;
-      const snapshot = drawerStyleSnapshotRef.current;
-      if (!snapshot) return;
-
-      const style = drawerContent.style;
-      style.maxHeight = snapshot.maxHeight;
-      style.height = snapshot.height;
-      style.marginTop = snapshot.marginTop;
-      style.inset = snapshot.inset;
-      style.borderTopLeftRadius = snapshot.borderTopLeftRadius;
-      style.borderTopRightRadius = snapshot.borderTopRightRadius;
-      style.borderBottomLeftRadius = snapshot.borderBottomLeftRadius;
-      style.borderBottomRightRadius = snapshot.borderBottomRightRadius;
-      style.transform = snapshot.transform;
-      drawerStyleSnapshotRef.current = null;
-    };
-  }, []);
-
-  const handleCancel = () => {
-    setIsExpanded(false);
-    onCancel();
-  };
-
-  const handleSave = () => {
-    setIsExpanded(false);
-    onSave();
-  };
 
   const editorCard = (
     <ReceiptCard
@@ -202,11 +120,20 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
       className="overflow-hidden border-amber-200/70"
     >
       <div className="px-3 pt-3 pb-2">
-        <div className={rowVariants({ justify: "between", align: "start", width: "full" })}>
+        <div
+          className={rowVariants({
+            justify: "between",
+            align: "start",
+            width: "full",
+          })}
+        >
           <Input
             type="text"
             inputMode="decimal"
-            className="h-16 min-w-0 flex-1 border-0 bg-transparent px-0 text-center text-5xl font-semibold tabular-nums shadow-none focus-visible:ring-0"
+            className={cn(
+              "h-16 min-w-0 flex-1 border-0 bg-transparent px-0 text-center text-5xl font-semibold tabular-nums shadow-none focus-visible:ring-0",
+              preventScrollHackClass,
+            )}
             value={claim.value > 0 ? formatClaimValue(claim.value) : ""}
             onChange={(event) =>
               onUpdate({
@@ -214,16 +141,7 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
                 value: parseInputValue(event.target.value),
               })
             }
-            onFocus={() => setIsExpanded(true)}
             autoFocus
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && !saveDisabled) {
-                handleSave();
-              }
-              if (event.key === "Escape") {
-                handleCancel();
-              }
-            }}
           />
 
           <div
@@ -265,7 +183,14 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
 
       <div className="border-t border-border/40 px-3 py-3">
         <div className="mb-2 flex w-full items-center justify-between">
-          <span className={textVariants({ size: "sm", weight: "semibold", tone: "muted", style: "caps" })}>
+          <span
+            className={textVariants({
+              size: "sm",
+              weight: "semibold",
+              tone: "muted",
+              style: "caps",
+            })}
+          >
             {t("splitBetween")}
           </span>
           <button
@@ -275,7 +200,9 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
             onClick={() =>
               onUpdate({
                 ...claim,
-                participantIds: allParticipantsSelected ? [] : allParticipantIds,
+                participantIds: allParticipantsSelected
+                  ? []
+                  : allParticipantIds,
               })
             }
           >
@@ -320,10 +247,20 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
         </div>
 
         <div className="mt-3 flex w-full items-center gap-2">
-          <Button type="button" variant="outline" className="flex-1" onClick={handleCancel}>
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1"
+            onClick={onCancel}
+          >
             {t("cancel")}
           </Button>
-          <Button type="button" className="flex-1" onClick={handleSave} disabled={saveDisabled}>
+          <Button
+            type="button"
+            className="flex-1"
+            onClick={onSave}
+            disabled={saveDisabled}
+          >
             {t("save")}
           </Button>
         </div>
@@ -333,14 +270,9 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
 
   return (
     <div
-      ref={anchorRef}
-      className={cn(
-        "relative w-full",
-        isExpanded &&
-        "z-10 bg-background px-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-[calc(env(safe-area-inset-bottom)+0.75rem)]",
-      )}
+      className={cn("relative w-full")}
     >
-      <div className={cn("w-full", isExpanded && "mx-auto max-w-3xl")}>{editorCard}</div>
+      <div className={cn("w-full")}>{editorCard}</div>
     </div>
   );
 };

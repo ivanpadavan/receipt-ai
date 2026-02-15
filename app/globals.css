@@ -55,4 +55,17 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  @keyframes blink_input_opacity_to_prevent_scrolling_when_focus {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  .prevent_scrolling_when_focus:focus {
+    animation: blink_input_opacity_to_prevent_scrolling_when_focus 0.01s;
+  }
 }

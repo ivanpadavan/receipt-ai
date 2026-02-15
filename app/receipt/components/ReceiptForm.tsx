@@ -182,9 +182,6 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   const formState = useReceiptFormState(receipt, receiptId);
 
   const [participantsModalOpen, setParticipantsModalOpen] = useState(false);
-  const [splittingModalProps, setSplittingModalProps] =
-    useState<EditModalProps | null>(null);
-  const [splittingSheetOpen, setSplittingSheetOpen] = useState(false);
   const [editingModalProps, setEditingModalProps] =
     useState<EditModalProps | null>(null);
   const [editingDialogOpen, setEditingDialogOpen] = useState(false);
@@ -198,15 +195,10 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
     canProceed,
     editModalProps,
   } = formState;
+  const splittingModalProps =
+    editModalProps?.view === "splitting" ? editModalProps : null;
 
   const JoinFlow = useJoinFlowOverlay(scenarioType, receiptId);
-
-  useEffect(() => {
-    if (editModalProps?.view === "splitting") {
-      setSplittingModalProps(editModalProps);
-      setSplittingSheetOpen(true);
-    }
-  }, [editModalProps]);
 
   useEffect(() => {
     if (editModalProps?.view === "editing") {
@@ -216,11 +208,10 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   }, [editModalProps]);
 
   useEffect(() => {
-    if (scenarioType !== "splitting") {
-      setSplittingSheetOpen(false);
-      setSplittingModalProps(null);
+    if (scenarioType !== "splitting" && editModalProps?.view === "splitting") {
+      closeModal();
     }
-  }, [scenarioType]);
+  }, [closeModal, editModalProps, scenarioType]);
 
   // Get field array for positions
   const positionFields = useWatch({
@@ -256,16 +247,19 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
         {JoinFlow}
         <Drawer
           repositionInputs={false}
-          onCloseAnimationEnd={() => {
-            setSplittingSheetOpen(false);
-            setSplittingModalProps(null);
-            if (editModalProps?.view === "splitting") {
+          onOpenChange={(open) => {
+            if (!open && splittingModalProps !== null) {
               closeModal();
             }
           }}
-          open={splittingSheetOpen}
+          onCloseAnimationEnd={() => {
+            if (splittingModalProps !== null) {
+              closeModal();
+            }
+          }}
+          open={splittingModalProps !== null}
         >
-          {splittingModalProps?.view === "splitting" && (
+          {splittingModalProps !== null && (
             <SplittingSheet {...splittingModalProps} />
           )}
         </Drawer>
@@ -605,7 +599,9 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                 : undefined
             }
             onAddFee={
-              canEdit.modifierForm ? () => openEditModal("addFee") : undefined
+              canEdit.modifierForm
+                ? () => openEditModal("addFee")
+                : undefined
             }
           />
         </div>
