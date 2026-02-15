@@ -211,6 +211,77 @@ describe("useReceiptFormState", () => {
     expect(values.totals.grandTotal).toBe(33);
   });
 
+  it("keeps splitting mode when position becomes over-claimed after edit", async () => {
+    const receiptWithFullClaims: Receipt = {
+      ...validReceipt,
+      positions: [
+        {
+          ...validReceipt.positions[0],
+          claims: [
+            {
+              id: "claim-1",
+              participantIds: ["p-1"],
+              type: "quantity",
+              value: 2,
+            },
+          ],
+        },
+      ],
+    };
+
+    const { result } = renderHook(() =>
+      useReceiptFormState(receiptWithFullClaims),
+    );
+
+    expect(result.current.scenario.type).toBe("splitting");
+
+    act(() => {
+      result.current.openEditModal({ type: "position", index: 0 });
+    });
+
+    const props = result.current.editModalProps as {
+      onSave: (data: Receipt["positions"][number]) => void;
+    };
+
+    await act(async () => {
+      props.onSave({
+        ...receiptWithFullClaims.positions[0],
+        quantity: 1,
+        overall: 10,
+      });
+    });
+
+    const values = result.current.scenario.form.getValues();
+    expect(values.positions[0].quantity).toBe(1);
+    expect(values.positions[0].claims[0].value).toBe(2);
+    expect(result.current.scenario.type).toBe("splitting");
+  });
+
+  it("keeps splitting mode when position is over-claimed after edit", async () => {
+    const receiptWithFullClaims: Receipt = {
+      ...validReceipt,
+      positions: [
+        {
+          ...validReceipt.positions[0],
+          claims: [
+            {
+              id: "claim-1",
+              participantIds: ["p-1"],
+              type: "quantity",
+              value: 4,
+            },
+          ],
+        },
+      ],
+    };
+
+    const { result } = renderHook(() =>
+      useReceiptFormState(receiptWithFullClaims),
+    );
+
+    expect(result.current.scenario.type).toBe("splitting");
+  });
+
   it("does not recalculate totals in validation mode when editing a position", () => {
     const { result } = renderHook(() => useReceiptFormState(invalidReceipt));
 
