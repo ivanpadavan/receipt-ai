@@ -39,6 +39,7 @@ import {
   iconLeadSpacingVariants,
   iconSizeVariants,
   inlineGapVariants,
+  pillVariants,
   radiusTokens,
   rowContentPaddingVariants,
   rowVariants,
@@ -337,6 +338,11 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
                 },
               ]}
             />
+          </div>
+        )}
+        {hasClaimsError && claimsErrorMessage && (
+          <div className={pillVariants({ tone: "danger", radius: "full" })}>
+            {claimsErrorMessage}
           </div>
         )}
       </div>
