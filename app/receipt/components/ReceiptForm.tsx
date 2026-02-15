@@ -241,11 +241,11 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
             }
           }}
           onCloseAnimationEnd={() => {
-            if (splittingModalProps !== null) {
-              splittingModalProps.close();
+            if (splittingModalProps && !splittingModalProps.open) {
+              splittingModalProps.onClosed();
             }
           }}
-          open={splittingModalProps !== null}
+          open={splittingModalProps?.open ?? false}
         >
           {splittingModalProps !== null && (
             <SplittingSheet {...splittingModalProps} />
@@ -253,7 +253,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
         </Drawer>
 
         <Dialog
-          open={editingModalProps !== null}
+          open={editingModalProps?.open ?? false}
           onOpenChange={(open) => {
             if (!open) {
               editingModalProps?.close();
@@ -261,7 +261,17 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
           }}
         >
           {editingModalProps?.view === "editing" && (
-            <DialogContent className="sm:max-w-xl">
+            <DialogContent
+              className="sm:max-w-xl"
+              onAnimationEnd={(e) => {
+                const state = (e.currentTarget as HTMLElement).getAttribute(
+                  "data-state",
+                );
+                if (state === "closed" && editingModalProps && !editingModalProps.open) {
+                  editingModalProps.onClosed();
+                }
+              }}
+            >
               <EditingDialog
                 {...editingModalProps}
                 onRequestClose={editingModalProps.close}
