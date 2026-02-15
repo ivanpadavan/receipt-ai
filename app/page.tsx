@@ -114,7 +114,8 @@ export default function ImagePastePage() {
           <h1
             className={cn(
               "mb-6",
-              textRoleVariants({ role: "pageTitleCenter" }),
+              textRoleVariants({ role: "pageTitle" }),
+              "text-center",
             )}
           >
             {t("receiptScannerTitle")}
@@ -206,13 +207,14 @@ export default function ImagePastePage() {
                 <p
                   className={cn(
                     "mb-2",
-                    textRoleVariants({ role: "headingLgCenter" }),
+                    textRoleVariants({ role: "headingLg" }),
+                    "text-center",
                   )}
                 >
                   {t("uploadReceiptImage")}
                 </p>
                 <p
-                  className={textRoleVariants({ role: "labelSmMutedCenter" })}
+                  className={cn(textRoleVariants({ role: "labelSmMuted" }), "text-center")}
                 >
                   {t("tapToSelectOrPaste")}
                 </p>

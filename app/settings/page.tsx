@@ -70,7 +70,8 @@ export default function SettingsPage() {
         <h1
           className={cn(
             "mb-6",
-            textRoleVariants({ role: "sectionTitleCenter" }),
+            textRoleVariants({ role: "sectionTitle" }),
+            "text-center",
           )}
         >
           {t("settings")}

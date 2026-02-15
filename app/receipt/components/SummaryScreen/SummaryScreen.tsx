@@ -121,13 +121,13 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
               >
                 <ParticipantAvatar participant={participant} />
                 <span
-                    className={cn(
-                      "flex-1 truncate",
-                      textRoleVariants({ role: "headingLg" }),
-                    )}
-                  >
-                    {participant.displayName}
-                  </span>
+                  className={cn(
+                    "flex-1 truncate",
+                    textRoleVariants({ role: "headingLg" }),
+                  )}
+                >
+                  {participant.displayName}
+                </span>
                 <div className={summaryBalanceAmountWrapperVariants()}>
                   <span
                     className={textRoleVariants({ role: "amountXl" })}
@@ -205,7 +205,8 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
           <div
             className={cn(
               summaryEmptyStateVariants(),
-              textRoleVariants({ role: "bodyMutedCenter" }),
+              textRoleVariants({ role: "bodyMuted" }),
+              "text-center",
             )}
           >
             {t("noClaims")}

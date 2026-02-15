@@ -269,18 +269,15 @@ export const textRoleVariants = cva("", {
   variants: {
     role: {
       pageTitle: "text-3xl font-bold text-amber-800",
-      pageTitleCenter: "text-3xl font-bold text-amber-800 text-center",
       sectionTitle: "text-2xl font-bold text-foreground",
-      sectionTitleCenter: "text-2xl font-bold text-foreground text-center",
       sheetTitle: "text-xl font-semibold text-foreground",
       sectionSubtitle: "text-lg font-medium text-muted-foreground",
       headingLg: "text-lg font-medium text-foreground",
-      headingLgCenter: "text-lg font-medium text-foreground text-center",
       labelSm: "text-sm font-medium text-foreground",
       labelSmMuted: "text-sm text-muted-foreground",
-      labelSmMutedCenter: "text-sm text-muted-foreground text-center",
       labelMuted: "text-muted-foreground",
       bodyDefault: "text-foreground",
+      bodyMuted: "text-muted-foreground",
       captionXsMuted: "text-xs text-muted-foreground",
       captionXsWarning: "text-xs text-amber-600",
       overlineMuted: "text-sm font-semibold uppercase tracking-wide text-muted-foreground",
@@ -299,7 +296,6 @@ export const textRoleVariants = cva("", {
       metaSmBrandStrong: "text-sm text-amber-800",
       metaSmBrandStrongEm: "text-sm font-medium text-amber-800",
       titleLgBrandStrong: "text-lg font-semibold text-amber-800",
-      bodyMutedCenter: "text-muted-foreground text-center",
     },
   },
   defaultVariants: {
@@ -364,45 +360,10 @@ export const buttonContentVariants = cva("", {
   },
 });
 
-export const statusPillVariants = cva(
-  "inline-flex items-center gap-1.5 border px-2 py-0.5 text-xs font-medium",
-  {
-    variants: {
-      tone: {
-        success: "border-emerald-200 bg-emerald-50 text-emerald-700",
-        danger: "border-red-200 bg-red-50 text-destructive",
-        warning: "border-amber-200 bg-amber-50 text-amber-600",
-      },
-      radius: {
-        full: radiusTokens.full,
-        lg: radiusTokens.lg,
-      },
-    },
-    defaultVariants: {
-      tone: "warning",
-      radius: "full",
-    },
-  },
-);
-
-export const quantityPillVariants = cva(
-  "inline-flex items-center gap-1.5 border px-2 py-1 text-xs font-medium",
-  {
-    variants: {
-      tone: {
-        neutral: "border-border/70 bg-card text-muted-foreground",
-        danger: "border-red-200 bg-red-50 text-destructive",
-      },
-      radius: {
-        lg: radiusTokens.lg,
-      },
-    },
-    defaultVariants: {
-      tone: "neutral",
-      radius: "lg",
-    },
-  },
-);
+/** @deprecated Use pillVariants({ size: "sm", tone, radius }) */
+export const statusPillVariants = pillVariants;
+/** @deprecated Use pillVariants({ size: "xs", tone, radius: "lg" }) */
+export const quantityPillVariants = pillVariants;
 
 export const inlineGapVariants = cva("", {
   variants: {
@@ -493,8 +454,11 @@ export const rowContentPaddingVariants = cva("", {
 });
 
 export const previewImageVariants = cva(`object-contain ${radiusTokens.sm}`);
-export const actionButtonVariants = cva(shadowTokens.md);
-export const captureButtonVariants = cva(shadowTokens.md);
+export const btnShadowVariants = cva(shadowTokens.md);
+/** @deprecated Use btnShadowVariants */
+export const actionButtonVariants = btnShadowVariants;
+/** @deprecated Use btnShadowVariants */
+export const captureButtonVariants = btnShadowVariants;
 export const uploadPanelVariants = cva(
   `${radiusTokens.xl} border-2 border-dashed border-amber-200 bg-amber-50/40 hover:bg-amber-50 transition-colors`,
 );
@@ -698,7 +662,7 @@ export const notFoundButtonVariants = cva(
   `font-bold py-2 px-4 ${radiusTokens.full} shadow-md`,
 );
 
-export const receiptRowVariants = cva(`${radiusTokens.sm} px-1 py-1 text-sm`, {
+export const interactiveRowVariants = cva(`${radiusTokens.sm} px-1 py-1 text-sm`, {
   variants: {
     interactive: {
       true: "cursor-pointer hover:bg-muted/45",
@@ -709,60 +673,47 @@ export const receiptRowVariants = cva(`${radiusTokens.sm} px-1 py-1 text-sm`, {
     interactive: false,
   },
 });
+/** @deprecated Use interactiveRowVariants */
+export const receiptRowVariants = interactiveRowVariants;
+/** @deprecated Use interactiveRowVariants */
+export const modifierRowVariants = interactiveRowVariants;
 
-export const totalValueVariants = cva("font-semibold", {
+export const dangerToneVariants = cva("", {
   variants: {
+    base: {
+      semibold: "font-semibold",
+      "2xlBold": "text-2xl font-bold",
+      baseSemibold: "text-base font-semibold text-foreground",
+      medium: "font-medium",
+      none: "",
+    },
     tone: {
       danger: "text-destructive",
       default: "",
     },
   },
   defaultVariants: {
+    base: "none",
     tone: "default",
   },
 });
+/** @deprecated Use dangerToneVariants({ base: "semibold" }) */
+export const totalValueVariants = dangerToneVariants;
+/** @deprecated Use dangerToneVariants({ base: "2xlBold" }) */
+export const grandTotalValueVariants = dangerToneVariants;
+/** @deprecated Use dangerToneVariants({ base: "baseSemibold" }) */
+export const overallValueVariants = dangerToneVariants;
+/** @deprecated Use dangerToneVariants({ base: "none" }) */
+export const positionHeaderVariants = dangerToneVariants;
+/** @deprecated Use dangerToneVariants({ base: "none" }) */
+export const positionMetaValueVariants = dangerToneVariants;
 
-export const grandTotalValueVariants = cva("text-2xl font-bold", {
+export const modifierValueVariants = cva("font-medium", {
   variants: {
     tone: {
       danger: "text-destructive",
+      success: "text-emerald-600",
       default: "",
-    },
-  },
-  defaultVariants: {
-    tone: "default",
-  },
-});
-
-export const overallValueVariants = cva("text-base font-semibold", {
-  variants: {
-    tone: {
-      danger: "text-destructive",
-      default: "text-foreground",
-    },
-  },
-  defaultVariants: {
-    tone: "default",
-  },
-});
-
-export const positionHeaderVariants = cva("", {
-  variants: {
-    tone: {
-      default: "",
-      danger: "text-destructive",
-    },
-  },
-  defaultVariants: {
-    tone: "default",
-  },
-});
-
-export const positionMetaValueVariants = cva("", {
-  variants: {
-    tone: {
-      default: "",
-      danger: "text-destructive",
     },
   },
   defaultVariants: {
@@ -797,31 +748,6 @@ export const summaryItemContainerPaddingVariants = cva("pr-2");
 export const summaryItemRowPaddingVariants = cva("py-1");
 export const summaryAmountVariants = cva("whitespace-nowrap font-medium");
 export const summaryEmptyStateVariants = cva("py-8");
-
-export const modifierRowVariants = cva(`${radiusTokens.sm} px-1 py-1 text-sm`, {
-  variants: {
-    interactive: {
-      true: "cursor-pointer hover:bg-muted/45",
-      false: "cursor-default",
-    },
-  },
-  defaultVariants: {
-    interactive: false,
-  },
-});
-
-export const modifierValueVariants = cva("font-medium", {
-  variants: {
-    tone: {
-      danger: "text-destructive",
-      success: "text-emerald-600",
-      default: "",
-    },
-  },
-  defaultVariants: {
-    tone: "default",
-  },
-});
 
 export const errorListVariants = cva("list-disc pl-5");
 

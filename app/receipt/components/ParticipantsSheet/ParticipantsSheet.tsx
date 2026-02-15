@@ -189,7 +189,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                 )}
               />
               <p
-                className={textRoleVariants({ role: "labelSmMutedCenter" })}
+                className={cn(textRoleVariants({ role: "labelSmMuted" }), "text-center")}
               >
                 {t("participantsEmpty")}
               </p>

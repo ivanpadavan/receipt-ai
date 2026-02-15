@@ -50,7 +50,8 @@ export default async function ReceiptPage({
           <h1
             className={cn(
               "mb-6",
-              textRoleVariants({ role: "sectionTitleCenter" }),
+              textRoleVariants({ role: "sectionTitle" }),
+              "text-center",
             )}
           >
             {t("receiptNotFound")}
@@ -58,7 +59,8 @@ export default async function ReceiptPage({
           <p
             className={cn(
               "mb-6",
-              textRoleVariants({ role: "bodyMutedCenter" }),
+              textRoleVariants({ role: "bodyMuted" }),
+              "text-center",
             )}
           >
             {t("receiptNotFoundBody")}
