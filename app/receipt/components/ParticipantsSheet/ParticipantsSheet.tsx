@@ -40,13 +40,14 @@ import {
   dialogHeader,
   dialogFooter,
   dialogHeaderTitle,
+  sheetBodyPadding,
+  sheetHeaderPadding,
+  sheetShell,
   textVariants,
   radiusTokens,
 } from "@/app/receipt/components/ui-styles";
 
 // ── Participants-scoped styles ──────────────────
-const sheetHeader = "px-4 pt-4 pb-2";
-const listPadding = "px-4 py-2";
 const emptyStateContainer = "h-40 gap-1";
 const emptyStateIcon = "text-muted-foreground/40";
 const avatarPlaceholder = `${radiusTokens.full} bg-muted/50 border-2 border-dashed border-border flex items-center justify-center text-muted-foreground font-semibold`;
@@ -133,11 +134,11 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
 
   return (
     <>
-      <DrawerContent className="h-[85vh] flex flex-col">
+      <DrawerContent className={sheetShell}>
         <DrawerHeader
           className={cn(
             rowVariants({ align: "center", justify: "between", width: "full" }),
-            sheetHeader,
+            sheetHeaderPadding,
           )}
         >
           <DrawerTitle
@@ -150,7 +151,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
         <div
           className={cn(
             "flex-1 overflow-y-auto min-h-[200px]",
-            listPadding,
+            sheetBodyPadding,
           )}
         >
           {participants.length === 0 && !isAdding && (

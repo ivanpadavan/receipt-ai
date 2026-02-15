@@ -45,12 +45,13 @@ import {
   radiusTokens,
   rowContentPaddingVariants,
   rowVariants,
+  sheetHeaderPadding,
+  sheetShell,
   stackGapVariants,
   textVariants,
 } from "@/app/receipt/components/ui-styles";
 
 // ── Splitting-scoped styles ──────────────────────
-const sheetHeader = "px-4 pt-4 pb-2";
 const sheetSubtitle = "px-4 pb-2";
 const addShareButton = "border border-dashed border-border/70 text-muted-foreground";
 const addSharePadding = "px-3 pt-2";
@@ -291,8 +292,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
   });
 
   return (
-    <DrawerContent className="h-[85vh] flex flex-col">
-      <DrawerHeader className={sheetHeader}>
+    <DrawerContent className={sheetShell}>
+      <DrawerHeader className={sheetHeaderPadding}>
         <DrawerTitle
           className={cn(
             textVariants({ size: "lg", weight: "semibold" }),
