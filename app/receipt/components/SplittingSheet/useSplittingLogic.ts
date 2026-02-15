@@ -151,11 +151,6 @@ export const useSplittingLogic = ({
     onSave(localPosition);
   }, [localPosition, onSave]);
 
-  useEffect(() => {
-    setLocalPosition(structuredClone(initialValue));
-    cancelDraft();
-  }, [cancelDraft, initialValue]);
-
   return {
     localPosition,
     effectivePosition,
