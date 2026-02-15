@@ -89,6 +89,7 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
         align={contentAlign}
         side={contentSide}
         sideOffset={contentSideOffset}
+        onCloseAutoFocus={(ev) => ev.preventDefault()}
       >
         {items.map((item) => (
           <DropdownMenuItem

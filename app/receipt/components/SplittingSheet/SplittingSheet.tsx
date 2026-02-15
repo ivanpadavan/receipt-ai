@@ -49,8 +49,9 @@ import {
 
 // ── Splitting-scoped styles ──────────────────────
 
-const claimsListPadding = "px-3 pt-2 pb-3";
+const claimsListPadding = "px-3 py-2";
 const claimsErrorRing = "ring-2 ring-destructive/30 rounded-xl";
+const splittingHeader = `border-b border-border/40 bg-background/80 backdrop-blur-sm ${claimsListPadding}`;
 const splittingFooter = "border-t border-border/40 bg-background/80 backdrop-blur-sm px-4 pt-3 pb-4";
 const avatarRing = "ring-2 ring-background";
 const avatarFallback = "bg-muted/50 border-2 border-dashed border-border flex items-center justify-center text-xs text-muted-foreground";
@@ -290,14 +291,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       <DrawerHeader>
         <DrawerTitle>{localPosition.name}</DrawerTitle>
       </DrawerHeader>
-      <div
-        className={cn(
-          "flex-1 overflow-y-auto",
-          stackGapVariants({ size: "sm" }),
-          claimsListPadding,
-          hasClaimsError && claimsErrorRing,
-        )}
-      >
+      <div className={cn(splittingHeader)}>
         {(draftClaim && (
           <SplittingHeroEditor
             claim={draftClaim}
@@ -345,7 +339,15 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
             />
           </div>
         )}
-
+      </div>
+      <div
+        className={cn(
+          "flex-1 overflow-y-auto",
+          stackGapVariants({ size: "sm" }),
+          claimsListPadding,
+          hasClaimsError && claimsErrorRing,
+        )}
+      >
         {displayedClaims.length === 0 && (
           <ReceiptCard tone="soft" shadow="none" radius="2xl">
             <div className="px-3 py-4 text-center text-sm text-muted-foreground">
@@ -367,7 +369,6 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
           />
         ))}
       </div>
-
       <DrawerFooter className={splittingFooter}>
         <div className="pb-1">
           <div

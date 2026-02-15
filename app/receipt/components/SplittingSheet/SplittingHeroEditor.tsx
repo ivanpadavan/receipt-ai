@@ -119,6 +119,7 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
   useEffect(() => {
     const drawerContent = drawerContentRef.current;
     if (!drawerContent) return;
+    drawerContentRef.current = drawerContent;
 
     const style = drawerContent.style;
 
