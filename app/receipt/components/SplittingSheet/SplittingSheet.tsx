@@ -181,20 +181,20 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
           items={[
             ...(!active
               ? [
-                  {
-                    id: "edit",
-                    label: t("edit"),
-                    onSelect: onEdit,
-                    icon: (
-                      <Pencil
-                        className={cn(
-                          iconLeadSpacingVariants(),
-                          iconSizeVariants({ size: "sm" }),
-                        )}
-                      />
-                    ),
-                  },
-                ]
+                {
+                  id: "edit",
+                  label: t("edit"),
+                  onSelect: onEdit,
+                  icon: (
+                    <Pencil
+                      className={cn(
+                        iconLeadSpacingVariants(),
+                        iconSizeVariants({ size: "sm" }),
+                      )}
+                    />
+                  ),
+                },
+              ]
               : []),
             {
               id: "delete",
@@ -292,7 +292,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       <DrawerTitle
         className={cn(
           sheetHeaderTitleVariants(),
-          textRoleVariants({ role: "sectionTitleCenter" }),
+          textRoleVariants({ role: "sectionTitle" }),
+          "text-center",
         )}
       >
         {localPosition.name}
@@ -303,7 +304,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
           "flex flex-col items-center",
           inlineGapVariants({ size: "xs" }),
           splittingSheetSubtitleVariants(),
-          textRoleVariants({ role: "labelSmMutedCenter" }),
+          textRoleVariants({ role: "labelSmMuted" }),
+          "text-center",
         )}
       >
         <div>
