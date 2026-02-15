@@ -38,6 +38,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQueryState } from "nuqs";
+import { createUuid } from "@/app/receipt/utils/uuid";
 
 // ============================================================================
 // Types
@@ -128,14 +129,14 @@ const permissions: Record<FormType, CanEdit> = {
 // ============================================================================
 
 export const createDefaultClaim = (): ReceiptPositionClaim => ({
-  id: crypto.randomUUID(),
+  id: createUuid(),
   value: 0,
   type: "quantity",
   participantIds: [],
 });
 
 export const createDefaultPosition = (numberOfClaims = 0): ReceiptPosition => ({
-  id: crypto.randomUUID(),
+  id: createUuid(),
   name: "",
   price: 0,
   quantity: 0,
@@ -144,7 +145,7 @@ export const createDefaultPosition = (numberOfClaims = 0): ReceiptPosition => ({
 });
 
 export const createDefaultModifier = (): ReceiptModifier => ({
-  id: crypto.randomUUID(),
+  id: createUuid(),
   name: "",
   value: 0,
 });
