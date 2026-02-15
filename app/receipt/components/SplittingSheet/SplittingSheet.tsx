@@ -354,14 +354,6 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
           hasClaimsError && claimsErrorRing,
         )}
       >
-        {displayedClaims.length === 0 && (
-          <ReceiptCard tone="soft" shadow="none" radius="2xl">
-            <div className="px-3 py-4 text-center text-sm text-muted-foreground">
-              {t("noClaims")}
-            </div>
-          </ReceiptCard>
-        )}
-
         {displayedClaims.map((claim) => (
           <ClaimRow
             key={claim.id}
