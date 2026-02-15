@@ -140,12 +140,13 @@ describe("useReceiptFormState", () => {
   it("should emit modal props when openEditModal is called for position", () => {
     const { result } = renderHook(() => useReceiptFormState(validReceipt));
 
-    expect(result.current.editModalProps).toBeNull();
+    expect(result.current.editModalProps.splitting).toBeNull();
+    expect(result.current.editModalProps.editing).toBeNull();
 
     act(() => {
       result.current.openEditModal({ type: "position", index: 0 });
     });
-    const emittedProps = result.current.editModalProps;
+    const emittedProps = result.current.editModalProps.splitting;
     expect(emittedProps).not.toBeNull();
     expect((emittedProps as { fieldType: string }).fieldType).toBe("position");
     expect(
@@ -157,16 +158,20 @@ describe("useReceiptFormState", () => {
     expect(typeof (emittedProps as { onRemove: () => void }).onRemove).toBe(
       "function",
     );
+    expect(typeof (emittedProps as { close: () => void }).close).toBe(
+      "function",
+    );
   });
 
   it("should emit modal props for addPosition", () => {
     const { result } = renderHook(() => useReceiptFormState(validReceipt));
-    expect(result.current.editModalProps).toBeNull();
+    expect(result.current.editModalProps.splitting).toBeNull();
+    expect(result.current.editModalProps.editing).toBeNull();
 
     act(() => {
       result.current.openEditModal("addPosition");
     });
-    const props = result.current.editModalProps as {
+    const props = result.current.editModalProps.editing as {
       initialValue: { id?: string; name: string };
       fieldType: string;
       header: string;
@@ -194,7 +199,7 @@ describe("useReceiptFormState", () => {
       result.current.openEditModal({ type: "position", index: 0 });
     });
 
-    const props = result.current.editModalProps as {
+    const props = result.current.editModalProps.splitting as {
       onSave: (data: Receipt["positions"][number]) => void;
     };
 
@@ -239,7 +244,7 @@ describe("useReceiptFormState", () => {
       result.current.openEditModal({ type: "position", index: 0 });
     });
 
-    const props = result.current.editModalProps as {
+    const props = result.current.editModalProps.splitting as {
       onSave: (data: Receipt["positions"][number]) => void;
     };
 
@@ -289,7 +294,7 @@ describe("useReceiptFormState", () => {
       result.current.openEditModal({ type: "position", index: 0 });
     });
 
-    const props = result.current.editModalProps as {
+    const props = result.current.editModalProps.editing as {
       onSave: (data: Receipt["positions"][number]) => void;
     };
 
@@ -313,7 +318,7 @@ describe("useReceiptFormState", () => {
     act(() => {
       result.current.openEditModal("addFee");
     });
-    const props = result.current.editModalProps;
+    const props = result.current.editModalProps.editing;
     expect(props).not.toBeNull();
     expect(props?.fieldType).toBe("modifier");
     expect(props?.modifierType).toBe("fees");
@@ -344,7 +349,7 @@ describe("useReceiptFormState", () => {
       result.current.openEditModal("addDiscount");
     });
 
-    const props = result.current.editModalProps;
+    const props = result.current.editModalProps.editing;
     expect(props).not.toBeNull();
     expect(props?.fieldType).toBe("modifier");
     expect(props?.modifierType).toBe("discounts");
@@ -365,7 +370,7 @@ describe("useReceiptFormState", () => {
       result.current.openEditModal("addDiscount");
     });
 
-    const props = result.current.editModalProps;
+    const props = result.current.editModalProps.editing;
     expect(props).not.toBeNull();
     expect(props?.fieldType).toBe("modifier");
     expect(props?.modifierType).toBe("discounts");

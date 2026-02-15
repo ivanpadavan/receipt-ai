@@ -2,7 +2,6 @@
 
 import { t, TranslationKey } from "@/app/i18n/translations";
 import {
-  EditModalProps,
   ReceiptState,
   useReceiptFormState,
 } from "@/app/receipt/[id]/useReceiptFormState";
@@ -182,36 +181,25 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   const formState = useReceiptFormState(receipt, receiptId);
 
   const [participantsModalOpen, setParticipantsModalOpen] = useState(false);
-  const [editingModalProps, setEditingModalProps] =
-    useState<EditModalProps | null>(null);
-  const [editingDialogOpen, setEditingDialogOpen] = useState(false);
 
   const {
     scenario: { form, canEdit, type: scenarioType },
     openEditModal,
-    closeModal,
     proceed,
     goBack,
     canProceed,
     editModalProps,
   } = formState;
-  const splittingModalProps =
-    editModalProps?.view === "splitting" ? editModalProps : null;
+  const splittingModalProps = editModalProps.splitting;
+  const editingModalProps = editModalProps.editing;
 
   const JoinFlow = useJoinFlowOverlay(scenarioType, receiptId);
 
   useEffect(() => {
-    if (editModalProps?.view === "editing") {
-      setEditingModalProps(editModalProps);
-      setEditingDialogOpen(true);
+    if (scenarioType !== "splitting" && splittingModalProps) {
+      splittingModalProps.close();
     }
-  }, [editModalProps]);
-
-  useEffect(() => {
-    if (scenarioType !== "splitting" && editModalProps?.view === "splitting") {
-      closeModal();
-    }
-  }, [closeModal, editModalProps, scenarioType]);
+  }, [scenarioType, splittingModalProps]);
 
   // Get field array for positions
   const positionFields = useWatch({
@@ -249,12 +237,12 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
           repositionInputs={false}
           onOpenChange={(open) => {
             if (!open && splittingModalProps !== null) {
-              closeModal();
+              splittingModalProps.close();
             }
           }}
           onCloseAnimationEnd={() => {
             if (splittingModalProps !== null) {
-              closeModal();
+              splittingModalProps.close();
             }
           }}
           open={splittingModalProps !== null}
@@ -265,29 +253,18 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
         </Drawer>
 
         <Dialog
-          open={editingDialogOpen}
+          open={editingModalProps !== null}
           onOpenChange={(open) => {
-            if (!open) setEditingDialogOpen(false);
+            if (!open) {
+              editingModalProps?.close();
+            }
           }}
         >
           {editingModalProps?.view === "editing" && (
-            <DialogContent
-              className="sm:max-w-xl"
-              onAnimationEnd={(e) => {
-                const state = (e.currentTarget as HTMLElement).getAttribute(
-                  "data-state",
-                );
-                if (state === "closed" && !editingDialogOpen) {
-                  setEditingModalProps(null);
-                  if (editModalProps?.view === "editing") {
-                    closeModal();
-                  }
-                }
-              }}
-            >
+            <DialogContent className="sm:max-w-xl">
               <EditingDialog
                 {...editingModalProps}
-                onRequestClose={() => setEditingDialogOpen(false)}
+                onRequestClose={editingModalProps.close}
               />
             </DialogContent>
           )}

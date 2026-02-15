@@ -84,22 +84,32 @@ export interface EditModalProps {
   onRemove?: () => void;
 }
 
+export type EditModalView = EditModalProps["view"];
+
+export interface EditModalPropsWithClose extends EditModalProps {
+  close: () => void;
+}
+
+export type EditModalPropsByView = Record<
+  EditModalView,
+  EditModalPropsWithClose | null
+>;
+
+type OpenEditModalArgs =
+  | { type: "position"; index: number; view?: "splitting" | "editing" }
+  | { type: "modifier"; modifierType: "fees" | "discounts"; index: number }
+  | { type: "totals" }
+  | "addPosition"
+  | "addDiscount"
+  | "addFee";
+
 export interface ReceiptState {
   scenario: FormScenario;
-  openEditModal: (
-    v:
-      | { type: "position"; index: number; view?: "splitting" | "editing" }
-      | { type: "modifier"; modifierType: "fees" | "discounts"; index: number }
-      | { type: "totals" }
-      | "addPosition"
-      | "addDiscount"
-      | "addFee",
-  ) => void;
-  closeModal: () => void;
+  openEditModal: (v: OpenEditModalArgs) => void;
   proceed: () => void;
   goBack: () => void;
   canProceed: boolean;
-  editModalProps: EditModalProps | null;
+  editModalProps: EditModalPropsByView;
 }
 
 // ============================================================================
@@ -334,30 +344,34 @@ export function useReceiptFormState(
   // -------------------------------------------------------------------------
   // 7. Modal state
   // -------------------------------------------------------------------------
-  const [editModalProps, setEditModalProps] = useState<EditModalProps | null>(
-    null,
+  const [editModalProps, setEditModalProps] = useState<EditModalPropsByView>({
+    splitting: null,
+    editing: null,
+  });
+  const closeModal = useCallback((view?: EditModalView) => {
+    if (!view) {
+      setEditModalProps({ splitting: null, editing: null });
+      return;
+    }
+
+    setEditModalProps((prev) => ({ ...prev, [view]: null }));
+  }, []);
+  const buildModalWithClose = useCallback(
+    (props: EditModalProps): EditModalPropsWithClose => ({
+      ...props,
+      close: () => closeModal(props.view),
+    }),
+    [closeModal],
   );
   const openEditModal = useCallback(
-    (
-      args:
-        | { type: "position"; index: number; view?: "splitting" | "editing" }
-        | {
-            type: "modifier";
-            modifierType: "fees" | "discounts";
-            index: number;
-          }
-        | { type: "totals" }
-        | "addPosition"
-        | "addDiscount"
-        | "addFee",
-    ) => {
+    (args: OpenEditModalArgs) => {
       if (typeof args === "object" && "type" in args) {
         if (args.type === "position") {
           const position = structuredClone(
             getValues(`positions.${args.index}`),
           );
           const idx = args.index;
-          setEditModalProps({
+          const nextModal = buildModalWithClose({
             view: args.view ?? (type === "splitting" ? "splitting" : "editing"),
             validator: editablePositionValidationSchema,
             fields:
@@ -387,13 +401,17 @@ export function useReceiptFormState(
               trigger();
             },
           });
+          setEditModalProps((prev) => ({
+            ...prev,
+            [nextModal.view]: nextModal,
+          }));
         } else if (args.type === "modifier") {
           const modifier = structuredClone(
             getValues(`${args.modifierType}.${args.index}`),
           );
           const idx = args.index;
           const modType = args.modifierType;
-          setEditModalProps({
+          const nextModal = buildModalWithClose({
             view: "editing",
             validator: editableModifierSchema,
             fields: [
@@ -422,10 +440,11 @@ export function useReceiptFormState(
               trigger();
             },
           });
+          setEditModalProps((prev) => ({ ...prev, editing: nextModal }));
         } else if (args.type === "totals") {
           const receiptSnapshot = getValues();
           const totals = structuredClone(getValues("totals"));
-          setEditModalProps({
+          const nextModal = buildModalWithClose({
             view: "editing",
             validator: createEditableTotalsSchema(receiptSnapshot),
             fields: [
@@ -442,10 +461,11 @@ export function useReceiptFormState(
               });
             },
           });
+          setEditModalProps((prev) => ({ ...prev, editing: nextModal }));
         }
       } else if (args === "addPosition") {
         const newPosition = createDefaultPosition(0);
-        setEditModalProps({
+        const nextModal = buildModalWithClose({
           view: "editing",
           validator: editablePositionValidationSchema,
           fields: [
@@ -467,9 +487,10 @@ export function useReceiptFormState(
             trigger();
           },
         });
+        setEditModalProps((prev) => ({ ...prev, editing: nextModal }));
       } else if (args === "addFee") {
         const newFee = createDefaultModifier();
-        setEditModalProps({
+        const nextModal = buildModalWithClose({
           view: "editing",
           validator: editableModifierSchema,
           fields: [
@@ -485,9 +506,10 @@ export function useReceiptFormState(
             trigger();
           },
         });
+        setEditModalProps((prev) => ({ ...prev, editing: nextModal }));
       } else if (args === "addDiscount") {
         const newDiscount = createDefaultModifier();
-        setEditModalProps({
+        const nextModal = buildModalWithClose({
           view: "editing",
           validator: editableModifierSchema,
           fields: [
@@ -503,9 +525,11 @@ export function useReceiptFormState(
             trigger();
           },
         });
+        setEditModalProps((prev) => ({ ...prev, editing: nextModal }));
       }
     },
     [
+      buildModalWithClose,
       getValues,
       setValue,
       setEditModalProps,
@@ -564,7 +588,7 @@ export function useReceiptFormState(
     proceed,
     goBack,
     openEditModal,
-    closeModal: () => setEditModalProps(null),
+    closeModal,
     editModalProps,
   };
 }
