@@ -13,7 +13,6 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/utils/cn";
 import { useReceiptState } from "../ReceiptForm";
 import {
@@ -29,13 +28,13 @@ import { DistributionBar } from "@/app/receipt/components/ui/DistributionBar";
 import { DistributionStatus } from "@/app/receipt/components/ui/DistributionStatus";
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 import { IconActionGroup } from "@/app/receipt/components/ui/IconActionGroup";
+import { SplittingHeroEditor } from "./SplittingHeroEditor";
 import {
   getFormPathErrorMessage,
   hasFormPathError,
 } from "@/app/receipt/utils/hasFormPathError";
 import { getClaimAmount, getClaimOverage } from "@/app/receipt/utils/claims";
 import {
-  avatarSizeVariants,
   iconButtonVariants,
   iconSizeVariants,
   iconSoloVariants,
@@ -52,58 +51,11 @@ import {
   splittingClaimsListPaddingVariants,
   splittingFooterContentPaddingVariants,
   splittingFooterVariants,
-  splittingParticipantButtonVariants,
   splittingSheetSubtitleVariants,
-  splittingTypeSwitchButtonVariants,
-  splittingTypeSwitchWrapperVariants,
   stackGapVariants,
   statusPillVariants,
   textRoleVariants,
 } from "@/app/receipt/components/ui-styles";
-
-interface ParticipantsSelectorProps {
-  selectedIds: string[];
-  participants: ParticipantDTO[];
-  onChange: (ids: string[]) => void;
-}
-
-const ParticipantsSelector: React.FC<ParticipantsSelectorProps> = ({
-  selectedIds,
-  participants,
-  onChange,
-}) => {
-  const handleToggle = (id: string) => {
-    if (selectedIds.includes(id)) {
-      onChange(selectedIds.filter((participantId) => participantId !== id));
-      return;
-    }
-
-    onChange([...selectedIds, id]);
-  };
-
-  return (
-    <div className={cn(rowVariants({ wrap: true }), inlineGapVariants({ size: "sm" }))}>
-      {participants.map((participant) => {
-        const selected = selectedIds.includes(participant.id);
-
-        return (
-          <button
-            key={participant.id}
-            type="button"
-            className={splittingParticipantButtonVariants({ selected })}
-            onClick={() => handleToggle(participant.id)}
-          >
-            <ParticipantAvatar
-              participant={participant}
-              className={avatarSizeVariants({ size: "sm" })}
-              showRing={selected}
-            />
-          </button>
-        );
-      })}
-    </div>
-  );
-};
 
 interface ClaimRowProps {
   claim: ReceiptPositionClaim;
@@ -249,22 +201,6 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
   );
 };
 
-const parseInputValue = (value: string) => {
-  const normalized = value.replace(/,/g, ".").replace(/[^0-9.]/g, "");
-
-  if (!normalized) {
-    return 0;
-  }
-
-  const [integerPart, ...decimalParts] = normalized.split(".");
-  const safeValue = decimalParts.length
-    ? `${integerPart}.${decimalParts.join("")}`
-    : integerPart;
-
-  const parsed = Number.parseFloat(safeValue);
-  return Number.isFinite(parsed) ? parsed : 0;
-};
-
 export const SplittingSheet: React.FC<EditModalProps> = ({
   onSave,
   fieldPath,
@@ -321,8 +257,6 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
   }, [activeDraftId, draftClaim, localPosition]);
 
   const saveDisabled = !draftClaim || draftClaim.value <= 0 || draftOverage > 0;
-
-  const allParticipantIds = participants.map((participant) => participant.id);
   const allParticipantsSelected =
     !!draftClaim &&
     participants.length > 0 &&
@@ -412,105 +346,17 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         )}
       >
         {activeDraftId && draftClaim && (
-          <ReceiptCard tone="warm" shadow="sm" radius="2xl" className="overflow-hidden border-amber-200/70">
-            <div className="px-3 pt-3 pb-2">
-              <div className={rowVariants({ justify: "between", align: "start", width: "full" })}>
-                <Input
-                  type="text"
-                  inputMode="decimal"
-                  className="h-16 min-w-0 flex-1 border-0 bg-transparent px-0 text-center text-5xl font-semibold tabular-nums shadow-none focus-visible:ring-0"
-                  value={draftClaim.value > 0 ? formatClaimValue(draftClaim.value) : ""}
-                  onChange={(event) =>
-                    updateDraft({
-                      ...draftClaim,
-                      value: parseInputValue(event.target.value),
-                    })
-                  }
-                  autoFocus
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" && !saveDisabled) {
-                      void saveDraft();
-                    }
-                    if (event.key === "Escape") {
-                      cancelDraft();
-                    }
-                  }}
-                />
-
-                <div className={cn("flex items-center", splittingTypeSwitchWrapperVariants(), radiusTokens.full)}>
-                  <button
-                    type="button"
-                    className={cn(
-                      splittingTypeSwitchButtonVariants({
-                        active: draftClaim.type === "quantity",
-                      }),
-                      radiusTokens.full,
-                    )}
-                    aria-pressed={draftClaim.type === "quantity"}
-                    onClick={() => updateDraft({ ...draftClaim, type: "quantity" })}
-                  >
-                    ШТ
-                  </button>
-                  <button
-                    type="button"
-                    className={cn(
-                      splittingTypeSwitchButtonVariants({
-                        active: draftClaim.type === "amount",
-                      }),
-                      radiusTokens.full,
-                    )}
-                    aria-pressed={draftClaim.type === "amount"}
-                    onClick={() => updateDraft({ ...draftClaim, type: "amount" })}
-                  >
-                    ₽
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-border/40 px-3 py-3">
-              <div className={cn(rowVariants({ justify: "between", width: "full" }), "mb-2")}>
-                <span className={textRoleVariants({ role: "overlineMuted" })}>
-                  {t("splitBetween")}
-                </span>
-                <button
-                  type="button"
-                  className={cn(textRoleVariants({ role: "metaSmBrandStrong" }))}
-                  disabled={participants.length === 0}
-                  onClick={() =>
-                    updateDraft({
-                      ...draftClaim,
-                      participantIds: allParticipantsSelected ? [] : allParticipantIds,
-                    })
-                  }
-                >
-                  {allParticipantsSelected ? t("clearAll") : t("selectAll")}
-                </button>
-              </div>
-
-              <ParticipantsSelector
-                selectedIds={draftClaim.participantIds}
-                participants={participants}
-                onChange={(participantIds) => updateDraft({ ...draftClaim, participantIds })}
-              />
-
-              <div className={cn(rowVariants({ width: "full" }), inlineGapVariants({ size: "sm" }), "mt-3")}>
-                <Button type="button" variant="outline" className="flex-1" onClick={cancelDraft}>
-                  {t("cancel")}
-                </Button>
-                <Button
-                  type="button"
-                  className="flex-1"
-                  onClick={() => {
-                    void saveDraft();
-                  }}
-                  disabled={saveDisabled}
-                >
-                  {t("save")}
-                </Button>
-              </div>
-            </div>
-          </ReceiptCard>
+          <SplittingHeroEditor
+            claim={draftClaim}
+            participants={participants}
+            saveDisabled={saveDisabled}
+            allParticipantsSelected={allParticipantsSelected}
+            onUpdate={updateDraft}
+            onCancel={cancelDraft}
+            onSave={() => {
+              void saveDraft();
+            }}
+          />
         )}
 
         {displayedClaims.length === 0 && (
