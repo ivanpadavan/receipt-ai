@@ -266,6 +266,49 @@ describe("useReceiptFormState", () => {
     expect(values.totals.grandTotal).toBe(33);
   });
 
+  it("recalculates grandTotal when adding discount in splitting mode", () => {
+    const { result } = renderHook(() => useReceiptFormState(validReceipt));
+
+    act(() => {
+      result.current.openEditModal("addDiscount");
+    });
+
+    const props = result.current.editModalProps;
+    expect(props).not.toBeNull();
+    expect(props?.fieldType).toBe("modifier");
+    expect(props?.modifierType).toBe("discounts");
+
+    act(() => {
+      props?.onSave({ id: "new-discount", name: "Promo", value: 4 });
+    });
+
+    const values = result.current.scenario.form.getValues();
+    expect(values.discounts[0].name).toBe("Promo");
+    expect(values.totals.grandTotal).toBe(19);
+  });
+
+  it("does not recalculate totals when adding discount in validation mode", () => {
+    const { result } = renderHook(() => useReceiptFormState(invalidReceipt));
+
+    act(() => {
+      result.current.openEditModal("addDiscount");
+    });
+
+    const props = result.current.editModalProps;
+    expect(props).not.toBeNull();
+    expect(props?.fieldType).toBe("modifier");
+    expect(props?.modifierType).toBe("discounts");
+
+    act(() => {
+      props?.onSave({ id: "new-discount", name: "Promo", value: 4 });
+    });
+
+    const values = result.current.scenario.form.getValues();
+    expect(values.discounts[0].name).toBe("Promo");
+    expect(values.totals.total).toBe(25);
+    expect(values.totals.grandTotal).toBe(30);
+  });
+
   it("should have correct permissions for different modes", () => {
     // Editing mode
     const { result: editResult } = renderHook(() =>
