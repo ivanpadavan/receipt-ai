@@ -13,7 +13,6 @@ import {
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
-  DrawerClose,
 } from "@/components/ui/drawer";
 import {
   AlertDialog,
@@ -26,7 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { t } from "@/app/i18n/translations";
-import { UserPlus, X, Trash2, MoreVertical } from "lucide-react";
+import { UserPlus, Trash2, MoreVertical } from "lucide-react";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { cn } from "@/utils/cn";
 import {
@@ -41,7 +40,6 @@ import {
   dialogFooter,
   dialogHeaderTitle,
   sheetBodyPadding,
-  sheetHeaderPadding,
   sheetShell,
   textVariants,
   radiusTokens,
@@ -135,15 +133,8 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
   return (
     <>
       <DrawerContent className={sheetShell}>
-        <DrawerHeader
-          className={cn(
-            rowVariants({ align: "center", justify: "between", width: "full" }),
-            sheetHeaderPadding,
-          )}
-        >
-          <DrawerTitle
-            className={textVariants({ size: "lg", weight: "semibold" })}
-          >
+        <DrawerHeader>
+          <DrawerTitle>
             {t("participants")}
           </DrawerTitle>
         </DrawerHeader>

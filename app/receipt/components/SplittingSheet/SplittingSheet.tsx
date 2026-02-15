@@ -26,7 +26,6 @@ import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { useSplittingLogic } from "./useSplittingLogic";
 import { ParticipantAvatar } from "@/app/receipt/components/ui/participant-avatar";
 import { DistributionBar } from "@/app/receipt/components/ui/DistributionBar";
-import { DistributionStatus } from "@/app/receipt/components/ui/DistributionStatus";
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 import { ActionMenu } from "@/app/receipt/components/ui/ActionMenu";
 import { IconActionGroup } from "@/app/receipt/components/ui/IconActionGroup";
@@ -40,19 +39,16 @@ import {
   iconLeadSpacingVariants,
   iconSizeVariants,
   inlineGapVariants,
-  pillVariants,
   radiusTokens,
   rowContentPaddingVariants,
   rowVariants,
-  sheetHeaderPadding,
   sheetShell,
   stackGapVariants,
   textVariants,
 } from "@/app/receipt/components/ui-styles";
 
 // ── Splitting-scoped styles ──────────────────────
-const sheetSubtitle = "px-4 pb-2";
-const addSharePadding = "px-3 pt-2";
+
 const claimsListPadding = "px-3 pt-2 pb-3";
 const claimsErrorRing = "ring-2 ring-destructive/30 rounded-xl";
 const splittingFooter = "border-t border-border/40 bg-background/80 backdrop-blur-sm px-4 pt-3 pb-4";
@@ -291,68 +287,9 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
   return (
     <DrawerContent className={sheetShell}>
-      <DrawerHeader className={sheetHeaderPadding}>
-        <DrawerTitle
-          className={cn(
-            textVariants({ size: "lg", weight: "semibold" }),
-            "text-center",
-          )}
-        >
-          {localPosition.name}
-        </DrawerTitle>
+      <DrawerHeader>
+        <DrawerTitle>{localPosition.name}</DrawerTitle>
       </DrawerHeader>
-
-      <div
-        className={cn(
-          "flex flex-col items-center",
-          inlineGapVariants({ size: "xs" }),
-          sheetSubtitle,
-          textVariants({ size: "sm", tone: "muted" }),
-          "text-center",
-        )}
-      >
-        <div>
-          {localPosition.quantity} {t("pcs")} × {localPosition.price} ₽ ={" "}
-          <span className={textVariants({ weight: "semibold" })}>
-            {localPosition.overall} ₽
-          </span>
-        </div>
-
-        <DistributionStatus distributed={totalClaimed} total={localPosition.overall} />
-        {hasClaimsError && claimsErrorMessage && (
-          <div className={pillVariants({ tone: "danger", radius: "full" })}>
-            {claimsErrorMessage}
-          </div>
-        )}
-      </div>
-
-      <div className={addSharePadding}>
-        <div className={rowVariants({ align: "center", width: "full" })}>
-          <IconActionGroup
-            size="liquid"
-            actions={[
-              {
-                id: "add-share",
-                label: t("addShare"),
-                onClick: () => startAdding(),
-                icon: <CirclePlus className={iconSizeVariants({ size: "sm" })} />,
-              },
-              {
-                id: "edit-position",
-                label: t("edit"),
-                onClick: () =>
-                  openEditModal({
-                    type: "position",
-                    index: positionIndex,
-                    view: "editing",
-                  }),
-                icon: <Pencil className={iconSizeVariants({ size: "sm" })} />,
-              },
-            ]}
-          />
-        </div>
-      </div>
-
       <div
         className={cn(
           "flex-1 overflow-y-auto",
@@ -361,7 +298,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
           hasClaimsError && claimsErrorRing,
         )}
       >
-        {activeDraftId && draftClaim && (
+        {(draftClaim && (
           <SplittingHeroEditor
             claim={draftClaim}
             participants={participants}
@@ -373,6 +310,40 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
               void saveDraft();
             }}
           />
+        )) || (
+          <div className="flex justify-between items-center">
+            <div>
+              {localPosition.quantity} {t("pcs")} × {localPosition.price} ₽ ={" "}
+              <span className={textVariants({ weight: "semibold" })}>
+                {localPosition.overall} ₽
+              </span>
+            </div>
+            <IconActionGroup
+              size="compact"
+              className="justify-self-end"
+              actions={[
+                {
+                  id: "add-share",
+                  label: t("addShare"),
+                  onClick: () => startAdding(),
+                  icon: (
+                    <CirclePlus className={iconSizeVariants({ size: "sm" })} />
+                  ),
+                },
+                {
+                  id: "edit-position",
+                  label: t("edit"),
+                  onClick: () =>
+                    openEditModal({
+                      type: "position",
+                      index: positionIndex,
+                      view: "editing",
+                    }),
+                  icon: <Pencil className={iconSizeVariants({ size: "sm" })} />,
+                },
+              ]}
+            />
+          </div>
         )}
 
         {displayedClaims.length === 0 && (
@@ -399,8 +370,16 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
       <DrawerFooter className={splittingFooter}>
         <div className="pb-1">
-          <div className={cn("mb-2", rowVariants({ justify: "between", width: "full" }), textVariants({ size: "sm", weight: "medium" }))}>
-            <span className={textVariants({ size: "sm", tone: "muted" })}>{t("distributed")}</span>
+          <div
+            className={cn(
+              "mb-2",
+              rowVariants({ justify: "between", width: "full" }),
+              textVariants({ size: "sm", weight: "medium" }),
+            )}
+          >
+            <span className={textVariants({ size: "sm", tone: "muted" })}>
+              {t("distributed")}
+            </span>
             <span className="font-medium">
               {totalClaimed.toFixed(0)} / {localPosition.overall} ₽
             </span>
@@ -413,7 +392,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
             className="w-full"
             onClick={handleDone}
             disabled={
-              totalClaimed > localPosition.overall + 0.01 || activeDraftId !== null
+              totalClaimed > localPosition.overall + 0.01 ||
+              activeDraftId !== null
             }
           >
             {t("done")}

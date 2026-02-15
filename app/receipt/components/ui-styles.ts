@@ -193,7 +193,7 @@ export const textVariants = cva("", {
     },
   },
   defaultVariants: {
-    size: "none",
+    size: "base",
     weight: "none",
     tone: "none",
     align: "none",
@@ -459,7 +459,6 @@ export const actionBar =
 export const primaryAction =
   `${radiusTokens.full} text-base font-semibold ${shadowTokens.orange}`;
 export const sheetShell = "h-[85vh] flex flex-col";
-export const sheetHeaderPadding = "px-4 pt-4 pb-2";
 export const sheetBodyPadding = "px-4 py-2";
 export const dialogHeaderTitle = "text-center";
 export const dialogHeader = "space-y-1";
