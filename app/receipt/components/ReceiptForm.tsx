@@ -236,19 +236,18 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
         <Drawer
           repositionInputs={false}
           onOpenChange={(open) => {
-            if (!open && splittingModalProps !== null) {
-              splittingModalProps.close();
-            }
+            !open && splittingModalProps?.close();
           }}
           onCloseAnimationEnd={() => {
-            if (splittingModalProps && !splittingModalProps.open) {
-              splittingModalProps.onClosed();
-            }
+            splittingModalProps?.onClosed();
           }}
           open={splittingModalProps?.open ?? false}
         >
           {splittingModalProps !== null && (
-            <SplittingSheet {...splittingModalProps} />
+            <SplittingSheet
+              key={splittingModalProps.fieldPath ?? "splitting-sheet"}
+              {...splittingModalProps}
+            />
           )}
         </Drawer>
 
@@ -267,7 +266,11 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                 const state = (e.currentTarget as HTMLElement).getAttribute(
                   "data-state",
                 );
-                if (state === "closed" && editingModalProps && !editingModalProps.open) {
+                if (
+                  state === "closed" &&
+                  editingModalProps &&
+                  !editingModalProps.open
+                ) {
                   editingModalProps.onClosed();
                 }
               }}
@@ -295,10 +298,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
           <ReceiptCard
             shadow="lg"
             radius="3xl"
-            className={cn(
-              "mx-auto my-3 w-full max-w-3xl",
-              receiptCardPadding,
-            )}
+            className={cn("mx-auto my-3 w-full max-w-3xl", receiptCardPadding)}
           >
             {scenarioType === "summary" ? (
               <SummaryScreen
@@ -318,7 +318,14 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                     "mb-3",
                   )}
                 >
-                  <h2 className={textVariants({ size: "sm", weight: "medium", tone: "muted", style: "caps" })}>
+                  <h2
+                    className={textVariants({
+                      size: "sm",
+                      weight: "medium",
+                      tone: "muted",
+                      style: "caps",
+                    })}
+                  >
                     {t("receipt")}
                   </h2>
                 </div>
@@ -380,8 +387,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                               className={cn(
                                 rowVariants({ align: "center", width: "full" }),
                                 inlineGapVariants({ size: "md" }),
-                                 hasRowNumberError
-                                    ? "text-destructive" : "",
+                                hasRowNumberError ? "text-destructive" : "",
                               )}
                             >
                               <div className="min-w-0 flex-1">
@@ -394,7 +400,9 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                                   {field.name}
                                 </p>
                                 <p
-                                  className={textVariants({ size: "xs", tone: "muted",
+                                  className={textVariants({
+                                    size: "xs",
+                                    tone: "muted",
                                   })}
                                 >
                                   <span
@@ -467,18 +475,18 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                     <div>
                       {(currentReceipt.discounts.length > 0 ||
                         currentReceipt.fees.length > 0) && (
-                          <>
-                            <div className={inlineGapVariants({ size: "xs" })}>
-                              {currentReceipt.discounts.length > 0 && (
-                                <Modifiers type="discounts" />
-                              )}
-                              {currentReceipt.fees.length > 0 && (
-                                <Modifiers type="fees" />
-                              )}
-                            </div>
-                            <div className={cn("my-3", divider)} />
-                          </>
-                        )}
+                        <>
+                          <div className={inlineGapVariants({ size: "xs" })}>
+                            {currentReceipt.discounts.length > 0 && (
+                              <Modifiers type="discounts" />
+                            )}
+                            {currentReceipt.fees.length > 0 && (
+                              <Modifiers type="fees" />
+                            )}
+                          </div>
+                          <div className={cn("my-3", divider)} />
+                        </>
+                      )}
 
                       <button
                         type="button"
@@ -499,7 +507,10 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                         }
                       >
                         <span
-                          className={textVariants({ size: "sm", tone: "muted" })}
+                          className={textVariants({
+                            size: "sm",
+                            tone: "muted",
+                          })}
                         >
                           {t("total")}
                         </span>
@@ -531,10 +542,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                           openEditModal({ type: "totals" })
                         }
                       >
-                        <span
-                          className={textVariants({ weight: "semibold",
-                          })}
-                        >
+                        <span className={textVariants({ weight: "semibold" })}>
                           {t("grandTotal")}
                         </span>
                         <span
@@ -586,9 +594,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                 : undefined
             }
             onAddFee={
-              canEdit.modifierForm
-                ? () => openEditModal("addFee")
-                : undefined
+              canEdit.modifierForm ? () => openEditModal("addFee") : undefined
             }
           />
         </div>

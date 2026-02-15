@@ -350,35 +350,24 @@ export function useReceiptFormState(
     splitting: null,
     editing: null,
   });
-  const closeView = useCallback((view?: EditModalView) => {
-    if (!view) {
-      setEditModalProps((prev) => ({
-        splitting: prev.splitting ? { ...prev.splitting, open: false } : null,
-        editing: prev.editing ? { ...prev.editing, open: false } : null,
-      }));
-      return;
-    }
 
-    setEditModalProps((prev) => {
-      const current = prev[view];
-      if (!current) return prev;
-      return { ...prev, [view]: { ...current, open: false } };
-    });
-  }, []);
-  const finalizeModalClose = useCallback((view: EditModalView) => {
-    setEditModalProps((prev) => ({ ...prev, [view]: null }));
-  }, []);
   const buildModalWithClose = useCallback(
     (props: EditModalProps): EditModalPropsWithClose => {
       const view = props.view;
       return {
         ...props,
         open: true,
-        close: () => closeView(view),
-        onClosed: () => finalizeModalClose(view),
+        close: () =>
+          setEditModalProps((prev) => {
+            const current = prev[view];
+            if (!current) return prev;
+            return { ...prev, [view]: { ...current, open: false } };
+          }),
+        onClosed: () =>
+          setEditModalProps((prev) => ({ ...prev, [view]: null })),
       };
     },
-    [closeView, finalizeModalClose],
+    [setEditModalProps],
   );
   const openEditModal = useCallback(
     (args: OpenEditModalArgs) => {
