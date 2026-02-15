@@ -31,7 +31,6 @@ interface ActionMenuProps {
   contentAlign?: "start" | "center" | "end";
   contentSide?: "top" | "right" | "bottom" | "left";
   contentSideOffset?: number;
-  stopPropagation?: boolean;
 }
 
 export const ActionMenu: React.FC<ActionMenuProps> = ({
@@ -42,7 +41,6 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
   contentAlign = "end",
   contentSide,
   contentSideOffset,
-  stopPropagation = false,
 }) => {
   return (
     <DropdownMenu>
@@ -54,20 +52,6 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
           }),
           actionMenuTriggerVariants({ kind: triggerKind }),
         )}
-        onClick={
-          stopPropagation
-            ? (event) => {
-                event.stopPropagation();
-              }
-            : undefined
-        }
-        onPointerDown={
-          stopPropagation
-            ? (event) => {
-                event.stopPropagation();
-              }
-            : undefined
-        }
         aria-label={triggerLabel}
         title={triggerLabel}
       >
@@ -81,12 +65,7 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
         {items.map((item) => (
           <DropdownMenuItem
             key={item.id}
-            onClick={(event) => {
-              if (stopPropagation) {
-                event.stopPropagation();
-              }
-              item.onSelect();
-            }}
+            onClick={item.onSelect}
             className={actionMenuItemVariants({ tone: item.tone ?? "default" })}
           >
             {item.icon}
@@ -97,4 +76,3 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
     </DropdownMenu>
   );
 };
-

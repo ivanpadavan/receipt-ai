@@ -569,8 +569,6 @@ export const settingsCropFrameVariants = cva(
   `bg-black/80 ${radiusTokens.lg} overflow-hidden`,
 );
 
-export const splittingEditingHeaderVariants = cva("border-b bg-muted/20 p-3");
-export const splittingEditingInputVariants = cva("bg-background");
 export const splittingTypeSwitchWrapperVariants = cva(
   "border border-border/60 bg-muted/30 p-1 shadow-sm",
 );
@@ -592,16 +590,14 @@ export const splittingAvatarFallbackVariants = cva(
 export const splittingAvatarOverflowVariants = cva(
   "bg-muted flex items-center justify-center text-xs font-medium ring-2 ring-muted-foreground/30",
 );
-export const splittingClaimHeaderVariants = cva(
-  "hover:bg-muted/30 transition-colors bg-background",
-);
+
 export const splittingAddShareButtonVariants = cva(
   `${radiusTokens.full} border`,
 );
 export const splittingClaimsErrorRingVariants = cva(
   `ring-1 ring-destructive/40 ${radiusTokens.xl}`,
 );
-export const splittingClaimInfoVariants = cva("text-foreground");
+
 export const splittingParticipantButtonVariants = cva(
   `relative ${radiusTokens.full} transition-all`,
   {
@@ -616,17 +612,12 @@ export const splittingParticipantButtonVariants = cva(
     },
   },
 );
-export const splittingAccordionContentVariants = cva(
-  "border-t bg-background px-3 py-2",
-);
+
 export const splittingSheetSubtitleVariants = cva("px-4 py-2");
 export const splittingFooterVariants = cva("border-t bg-background pt-2");
-export const splittingAccordionTriggerPaddingVariants = cva("px-3 py-3");
-export const splittingHeaderActionPaddingVariants = cva("px-1");
 export const splittingAddSharePaddingVariants = cva("px-4 pb-3");
 export const splittingClaimsListPaddingVariants = cva("px-4");
 export const splittingFooterContentPaddingVariants = cva("px-4 py-3");
-export const splittingAccordionContentPaddingVariants = cva("p-0");
 
 export const appShellVariants = cva("bg-amber-50");
 

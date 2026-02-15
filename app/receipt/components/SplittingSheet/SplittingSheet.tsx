@@ -99,64 +99,85 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
       className="overflow-hidden"
     >
       <div
-        role="button"
-        tabIndex={0}
-        onClick={onSelect}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            onSelect();
-          }
-        }}
         className={cn(
           rowVariants({ align: "center", width: "full" }),
           inlineGapVariants({ size: "sm" }),
-          "px-3 py-2 text-left",
+          "px-3 py-2",
         )}
       >
-        <div className="min-w-0 flex-1">
-          <div className={cn(rowVariants({ align: "baseline" }), inlineGapVariants({ size: "sm" }))}>
-            <span className={textRoleVariants({ role: "amountSemibold" })}>
-              {formatClaimValue(claim.value)}
-            </span>
-            <span className={textRoleVariants({ role: "labelSmMuted" })}>
-              {claim.type === "amount" ? "₽" : t("pcs")}
-            </span>
-            {claim.type === "quantity" && (
-              <span className={textRoleVariants({ role: "labelSmMuted" })}>
-                = {formatClaimValue(amount)} ₽
+        <button
+          type="button"
+          onClick={onSelect}
+          className={cn(
+            "min-w-0 flex-1 text-left",
+            rowVariants({ align: "center", justify: "between", width: "full" }),
+            inlineGapVariants({ size: "sm" }),
+          )}
+        >
+          <div className="min-w-0 flex-1">
+            <div
+              className={cn(
+                rowVariants({ align: "baseline" }),
+                inlineGapVariants({ size: "sm" }),
+              )}
+            >
+              <span className={textRoleVariants({ role: "amountSemibold" })}>
+                {formatClaimValue(claim.value)}
               </span>
+              <span className={textRoleVariants({ role: "labelSmMuted" })}>
+                {claim.type === "amount" ? "₽" : t("pcs")}
+              </span>
+              {claim.type === "quantity" && (
+                <span className={textRoleVariants({ role: "labelSmMuted" })}>
+                  = {formatClaimValue(amount)} ₽
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex -space-x-2">
+            {selectedParticipants.length > 0 ? (
+              selectedParticipants.slice(0, 4).map((participant, index) => (
+                <div
+                  key={participant.id}
+                  className={cn(
+                    "relative",
+                    splittingAvatarRingVariants(),
+                    radiusTokens.full,
+                  )}
+                  style={{ zIndex: selectedParticipants.length - index }}
+                >
+                  <ParticipantAvatar participant={participant} className="h-7 w-7" />
+                </div>
+              ))
+            ) : (
+              <div
+                className={cn(
+                  "h-7 w-7",
+                  splittingAvatarFallbackVariants(),
+                  radiusTokens.full,
+                )}
+              >
+                ?
+              </div>
+            )}
+            {selectedParticipants.length > 4 && (
+              <div
+                className={cn(
+                  "h-7 w-7",
+                  splittingAvatarOverflowVariants(),
+                  radiusTokens.full,
+                )}
+              >
+                +{selectedParticipants.length - 4}
+              </div>
             )}
           </div>
-        </div>
-
-        <div className="flex -space-x-2">
-          {selectedParticipants.length > 0 ? (
-            selectedParticipants.slice(0, 4).map((participant, index) => (
-              <div
-                key={participant.id}
-                className={cn("relative", splittingAvatarRingVariants(), radiusTokens.full)}
-                style={{ zIndex: selectedParticipants.length - index }}
-              >
-                <ParticipantAvatar participant={participant} className="h-7 w-7" />
-              </div>
-            ))
-          ) : (
-            <div className={cn("h-7 w-7", splittingAvatarFallbackVariants(), radiusTokens.full)}>
-              ?
-            </div>
-          )}
-          {selectedParticipants.length > 4 && (
-            <div className={cn("h-7 w-7", splittingAvatarOverflowVariants(), radiusTokens.full)}>
-              +{selectedParticipants.length - 4}
-            </div>
-          )}
-        </div>
+        </button>
 
         <ActionMenu
           triggerLabel={t("edit")}
           triggerIcon={<MoreVertical className={iconSizeVariants({ size: "sm" })} />}
-          stopPropagation
           items={[
             ...(!active
               ? [
