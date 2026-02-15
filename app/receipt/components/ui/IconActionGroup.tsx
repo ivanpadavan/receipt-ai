@@ -13,12 +13,18 @@ import {
 
 type IconButtonTone = VariantProps<typeof iconButtonVariants>["tone"];
 type IconButtonSize = VariantProps<typeof iconButtonVariants>["size"];
+export interface IconActionRenderProps {
+  className: string;
+  label: string;
+  disabled?: boolean;
+}
 
 export interface IconActionItem {
   id: string;
   label: string;
-  icon: React.ReactNode;
-  onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  icon?: React.ReactNode;
+  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  render?: (props: IconActionRenderProps) => React.ReactNode;
   tone?: IconButtonTone;
   disabled?: boolean;
   className?: string;
@@ -52,26 +58,38 @@ export const IconActionGroup: React.FC<IconActionGroupProps> = ({
               className={cn("mx-0.5 h-5 opacity-30", separatorClassName)}
             />
           )}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className={cn(
-              iconButtonVariants({ size, tone: action.tone ?? "muted" }),
-              "rounded-none first:rounded-l-full last:rounded-r-full",
-              buttonClassName,
-              action.className,
-            )}
-            onClick={action.onClick}
-            disabled={action.disabled}
-            aria-label={action.label}
-            title={action.label}
-          >
-            {action.icon}
-          </Button>
+          {action.render ? (
+            action.render({
+              className: cn(
+                iconButtonVariants({ size, tone: action.tone ?? "muted" }),
+                "rounded-none first:rounded-l-full last:rounded-r-full",
+                buttonClassName,
+                action.className,
+              ),
+              label: action.label,
+              disabled: action.disabled,
+            })
+          ) : (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={cn(
+                iconButtonVariants({ size, tone: action.tone ?? "muted" }),
+                "rounded-none first:rounded-l-full last:rounded-r-full",
+                buttonClassName,
+                action.className,
+              )}
+              onClick={action.onClick}
+              disabled={action.disabled}
+              aria-label={action.label}
+              title={action.label}
+            >
+              {action.icon}
+            </Button>
+          )}
         </Fragment>
       ))}
     </ButtonGroup>
   );
 };
-

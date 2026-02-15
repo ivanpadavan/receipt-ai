@@ -6,13 +6,11 @@ import { Button } from "@/components/ui/button";
 import { ShareReceiptDialog } from "@/app/receipt/components/ShareReceiptDialog";
 import { ActionMenu } from "@/app/receipt/components/ui/ActionMenu";
 import {
-  ButtonGroup,
-  ButtonGroupSeparator,
-} from "@/components/ui/button-group";
+  IconActionGroup,
+  type IconActionRenderProps,
+} from "@/app/receipt/components/ui/IconActionGroup";
 import {
   actionBar,
-  iconButtonVariants,
-  iconGroupVariants,
   iconSizeVariants,
   primaryAction,
   iconLeadSpacingVariants,
@@ -82,112 +80,121 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
             barPadding,
           )}
         >
-          <ButtonGroup
-            className={`justify-center ${iconGroupVariants({ density: "compact" })}`}
-          >
-            <Button
-              variant="ghost"
-              size="sm"
-              className={`relative ${iconButtonVariants({
-                size: "liquid",
-                tone: "muted",
-              })}`}
-              onClick={onOpenParticipants}
-              title={t("participants")}
-              aria-label={t("participants")}
-            >
-              <span className={participantBadge}>
-                {participantsCount}
-              </span>
-              <Users className={iconSizeVariants({ size: "sm" })} />
-            </Button>
-            <ButtonGroupSeparator className="mx-1 h-5 opacity-30" />
-            <ShareReceiptDialog
-              receiptId={receiptId}
-              iconOnly
-              variant="ghost"
-              size="sm"
-              className={iconButtonVariants({
-                size: "liquid",
-                tone: "muted",
-              })}
-              title={t("share")}
-            />
-            {canEditActions && (
-              <>
-                <ButtonGroupSeparator className="mx-1 h-5 opacity-30" />
-                <ActionMenu
-                  triggerLabel={t("edit")}
-                  triggerKind="actionBar"
-                  triggerIcon={<Pencil className={iconSizeVariants({ size: "sm" })} />}
-                  contentAlign="start"
-                  contentSide="top"
-                  items={[
-                    ...(onAddPosition
-                      ? [
-                        {
-                          id: "add-position",
-                          label: t("addPosition"),
-                          onSelect: onAddPosition,
-                          icon: (
-                            <CirclePlus
-                              className={cn(
-                                iconLeadSpacingVariants(),
-                                iconSizeVariants({ size: "sm" }),
-                                menuIconVariants({
-                                  tone: "position",
-                                }),
-                              )}
-                            />
-                          ),
-                        },
-                      ]
-                      : []),
-                    ...(onAddDiscount
-                      ? [
-                        {
-                          id: "add-discount",
-                          label: t("addDiscount"),
-                          onSelect: onAddDiscount,
-                          icon: (
-                            <BadgePercent
-                              className={cn(
-                                iconLeadSpacingVariants(),
-                                iconSizeVariants({ size: "sm" }),
-                                menuIconVariants({
-                                  tone: "discount",
-                                }),
-                              )}
-                            />
-                          ),
-                        },
-                      ]
-                      : []),
-                    ...(onAddFee
-                      ? [
-                        {
-                          id: "add-fee",
-                          label: t("addFee"),
-                          onSelect: onAddFee,
-                          icon: (
-                            <HandCoins
-                              className={cn(
-                                iconLeadSpacingVariants(),
-                                iconSizeVariants({ size: "sm" }),
-                                menuIconVariants({
-                                  tone: "fee",
-                                }),
-                              )}
-                            />
-                          ),
-                        },
-                      ]
-                      : []),
-                  ]}
-                />
-              </>
-            )}
-          </ButtonGroup>
+          <IconActionGroup
+            size="liquid"
+            className="justify-center"
+            actions={[
+              {
+                id: "participants",
+                label: t("participants"),
+                onClick: onOpenParticipants,
+                className: "relative",
+                icon: (
+                  <>
+                    <span className={participantBadge}>
+                      {participantsCount}
+                    </span>
+                    <Users className={iconSizeVariants({ size: "sm" })} />
+                  </>
+                ),
+              },
+              {
+                id: "share",
+                label: t("share"),
+                render: ({ className, label, disabled }) => (
+                  <ShareReceiptDialog
+                    receiptId={receiptId}
+                    iconOnly
+                    variant="ghost"
+                    size="sm"
+                    className={className}
+                    title={label}
+                    disabled={disabled}
+                  />
+                ),
+              },
+              ...(canEditActions
+                ? [
+                  {
+                    id: "edit",
+                    label: t("edit"),
+                    render: ({ className, label }: IconActionRenderProps) => (
+                      <ActionMenu
+                        triggerLabel={label}
+                        triggerKind="actionBar"
+                        triggerClassName={className}
+                        triggerIcon={<Pencil className={iconSizeVariants({ size: "sm" })} />}
+                        contentAlign="start"
+                        contentSide="top"
+                        items={[
+                          ...(onAddPosition
+                            ? [
+                              {
+                                id: "add-position",
+                                label: t("addPosition"),
+                                onSelect: onAddPosition,
+                                icon: (
+                                  <CirclePlus
+                                    className={cn(
+                                      iconLeadSpacingVariants(),
+                                      iconSizeVariants({ size: "sm" }),
+                                      menuIconVariants({
+                                        tone: "position",
+                                      }),
+                                    )}
+                                  />
+                                ),
+                              },
+                            ]
+                            : []),
+                          ...(onAddDiscount
+                            ? [
+                              {
+                                id: "add-discount",
+                                label: t("addDiscount"),
+                                onSelect: onAddDiscount,
+                                icon: (
+                                  <BadgePercent
+                                    className={cn(
+                                      iconLeadSpacingVariants(),
+                                      iconSizeVariants({ size: "sm" }),
+                                      menuIconVariants({
+                                        tone: "discount",
+                                      }),
+                                    )}
+                                  />
+                                ),
+                              },
+                            ]
+                            : []),
+                          ...(onAddFee
+                            ? [
+                              {
+                                id: "add-fee",
+                                label: t("addFee"),
+                                onSelect: onAddFee,
+                                icon: (
+                                  <HandCoins
+                                    className={cn(
+                                      iconLeadSpacingVariants(),
+                                      iconSizeVariants({ size: "sm" }),
+                                      menuIconVariants({
+                                        tone: "fee",
+                                      }),
+                                    )}
+                                  />
+                                ),
+                              },
+                            ]
+                            : []),
+                        ]}
+                      />
+                    ),
+                  },
+                ]
+                : []),
+            ]}
+          />
 
           <Button
             onClick={onPrimaryAction}

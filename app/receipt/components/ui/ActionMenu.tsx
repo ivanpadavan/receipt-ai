@@ -53,6 +53,7 @@ interface ActionMenuProps {
   triggerIcon: React.ReactNode;
   items: ActionMenuItem[];
   triggerKind?: "row" | "actionBar";
+  triggerClassName?: string;
   contentAlign?: "start" | "center" | "end";
   contentSide?: "top" | "right" | "bottom" | "left";
   contentSideOffset?: number;
@@ -63,6 +64,7 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
   triggerIcon,
   items,
   triggerKind = "row",
+  triggerClassName,
   contentAlign = "end",
   contentSide,
   contentSideOffset,
@@ -76,6 +78,7 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
             size: triggerKind === "row" ? "icon" : "sm",
           }),
           menuTriggerVariants({ kind: triggerKind }),
+          triggerClassName,
         )}
         aria-label={triggerLabel}
         title={triggerLabel}
