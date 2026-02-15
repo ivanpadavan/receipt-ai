@@ -2,14 +2,11 @@
 
 import React from "react";
 import { Check, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/utils/cn";
+import { t } from "@/app/i18n/translations";
 import {
-  confirmCancelButtonVariants,
-  confirmCancelDividerVariants,
-  confirmCancelGroupVariants,
   iconSizeVariants,
 } from "@/app/receipt/components/ui-styles";
+import { IconActionGroup } from "@/app/receipt/components/ui/IconActionGroup";
 
 interface ConfirmCancelGroupProps {
   onCancel: () => void;
@@ -26,26 +23,30 @@ export const ConfirmCancelGroup: React.FC<ConfirmCancelGroupProps> = ({
   size = "sm",
   className,
 }) => {
+  const iconSize = size === "md" ? "md" : "sm";
+  const buttonSize = size === "md" ? "liquid" : "compact";
+
   return (
-    <div className={cn(confirmCancelGroupVariants({ size }), className)}>
-      <Button
-        variant="ghost"
-        size="icon"
-        className={cn(confirmCancelButtonVariants({ size, tone: "cancel" }))}
-        onClick={onCancel}
-      >
-        <X className={iconSizeVariants({ size: "sm" })} />
-      </Button>
-      <div className={cn("h-6 w-px", confirmCancelDividerVariants())} />
-      <Button
-        variant="ghost"
-        size="icon"
-        className={cn(confirmCancelButtonVariants({ size, tone: "confirm" }))}
-        onClick={onConfirm}
-        disabled={confirmDisabled}
-      >
-        <Check className={iconSizeVariants({ size: "sm" })} />
-      </Button>
-    </div>
+    <IconActionGroup
+      className={className}
+      size={buttonSize}
+      actions={[
+        {
+          id: "cancel",
+          label: t("cancel"),
+          tone: "muted",
+          onClick: () => onCancel(),
+          icon: <X className={iconSizeVariants({ size: iconSize })} />,
+        },
+        {
+          id: "confirm",
+          label: t("save"),
+          tone: "success",
+          onClick: () => onConfirm(),
+          disabled: confirmDisabled,
+          icon: <Check className={iconSizeVariants({ size: iconSize })} />,
+        },
+      ]}
+    />
   );
 };

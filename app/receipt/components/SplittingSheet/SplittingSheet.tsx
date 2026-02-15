@@ -28,6 +28,7 @@ import { ParticipantAvatar } from "@/app/receipt/components/ui/participant-avata
 import { DistributionBar } from "@/app/receipt/components/ui/DistributionBar";
 import { DistributionStatus } from "@/app/receipt/components/ui/DistributionStatus";
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
+import { IconActionGroup } from "@/app/receipt/components/ui/IconActionGroup";
 import {
   getFormPathErrorMessage,
   hasFormPathError,
@@ -199,27 +200,40 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
           )}
         </div>
 
-        <div className={cn(rowVariants({ align: "center" }), inlineGapVariants({ size: "xs" }))}>
-          {!active && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className={cn(iconSoloVariants({ size: "compact" }), iconButtonVariants({ size: "compact", tone: "muted" }))}
-              onClick={(event) => {
-                event.stopPropagation();
-                onEdit();
-              }}
-              aria-label={t("edit")}
-            >
-              <Pencil className={iconSizeVariants({ size: "sm" })} />
-            </Button>
-          )}
+        {!active ? (
+          <IconActionGroup
+            actions={[
+              {
+                id: "edit",
+                label: t("edit"),
+                tone: "muted",
+                onClick: (event) => {
+                  event.stopPropagation();
+                  onEdit();
+                },
+                icon: <Pencil className={iconSizeVariants({ size: "sm" })} />,
+              },
+              {
+                id: "delete",
+                label: t("delete"),
+                tone: "neutral",
+                onClick: (event) => {
+                  event.stopPropagation();
+                  onDelete();
+                },
+                icon: <Trash2 className={iconSizeVariants({ size: "sm" })} />,
+              },
+            ]}
+          />
+        ) : (
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            className={cn(iconSoloVariants({ size: "compact" }), iconButtonVariants({ size: "compact", tone: "neutral" }))}
+            className={cn(
+              iconSoloVariants({ size: "compact" }),
+              iconButtonVariants({ size: "compact", tone: "neutral" }),
+            )}
             onClick={(event) => {
               event.stopPropagation();
               onDelete();
@@ -228,7 +242,7 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
           >
             <Trash2 className={iconSizeVariants({ size: "sm" })} />
           </Button>
-        </div>
+        )}
       </div>
       <DistributionBar data={claim} className="h-1" />
     </ReceiptCard>

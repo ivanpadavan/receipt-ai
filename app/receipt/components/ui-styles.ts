@@ -542,41 +542,6 @@ export const shareReceiptQrContainerVariants = cva(
 export const shareReceiptTriggerLabelVariants = cva("text-[11px] font-medium");
 export const shareReceiptContentPaddingVariants = cva("py-2");
 
-export const confirmCancelGroupVariants = cva(
-  `inline-flex items-center ${radiusTokens.full} border border-border/60 bg-white/70 ${shadowTokens.sm}`,
-  {
-    variants: {
-      size: {
-        sm: "h-10 px-1",
-        md: "h-12 px-1.5",
-      },
-    },
-    defaultVariants: {
-      size: "sm",
-    },
-  },
-);
-export const confirmCancelButtonVariants = cva(
-  `${radiusTokens.full} transition`,
-  {
-    variants: {
-      size: {
-        sm: "h-8 w-10",
-        md: "h-9 w-12",
-      },
-      tone: {
-        cancel: "text-muted-foreground hover:text-foreground",
-        confirm: "text-emerald-600 hover:text-emerald-700",
-      },
-    },
-    defaultVariants: {
-      size: "sm",
-      tone: "cancel",
-    },
-  },
-);
-export const confirmCancelDividerVariants = cva("bg-border/60");
-
 export const settingsUploadCardPaddingVariants = cva("p-4");
 export const settingsCropFrameVariants = cva(
   `bg-black/80 ${radiusTokens.lg} overflow-hidden`,
