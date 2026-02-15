@@ -185,60 +185,6 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
                       : []),
                   ]}
                 />
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={iconButtonVariants({
-                        size: "liquid",
-                        tone: "muted",
-                      })}
-                      title={t("edit")}
-                      aria-label={t("edit")}
-                    >
-                      <Pencil className={iconSizeVariants({ size: "sm" })} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" side="top" sideOffset={10}>
-                    {onAddPosition && (
-                      <DropdownMenuItem onClick={onAddPosition}>
-                        <CirclePlus
-                          className={cn(
-                            iconLeadSpacingVariants(),
-                            iconSizeVariants({ size: "sm" }),
-                            receiptActionBarMenuIconVariants({ tone: "position" }),
-                          )}
-                        />
-                        {t("addPosition")}
-                      </DropdownMenuItem>
-                    )}
-                    {onAddDiscount && (
-                      <DropdownMenuItem onClick={onAddDiscount}>
-                        <BadgePercent
-                          className={cn(
-                            iconLeadSpacingVariants(),
-                            iconSizeVariants({ size: "sm" }),
-                            receiptActionBarMenuIconVariants({ tone: "discount" }),
-                          )}
-                        />
-                        {t("addDiscount")}
-                      </DropdownMenuItem>
-                    )}
-                    {onAddFee && (
-                      <DropdownMenuItem onClick={onAddFee}>
-                        <HandCoins
-                          className={cn(
-                            iconLeadSpacingVariants(),
-                            iconSizeVariants({ size: "sm" }),
-                            receiptActionBarMenuIconVariants({ tone: "fee" }),
-                          )}
-                        />
-                        {t("addFee")}
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </>
             )}
           </ButtonGroup>

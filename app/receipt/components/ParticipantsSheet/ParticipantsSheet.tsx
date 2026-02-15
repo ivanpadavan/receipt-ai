@@ -315,7 +315,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
         <div className={footer}>
           <Button
             onClick={onClose}
-            className={cn("w-full", participantsDoneButtonVariants())}
+            className="w-full"
           >
             {t("done")}
           </Button>
