@@ -55,8 +55,7 @@ const addShareButton = "border border-dashed border-border/70 text-muted-foregro
 const addSharePadding = "px-3 pt-2";
 const claimsListPadding = "px-3 pt-2 pb-3";
 const claimsErrorRing = "ring-2 ring-destructive/30 rounded-xl";
-const splittingFooter = "border-t border-border/40 bg-background/80 backdrop-blur-sm";
-const footerContentPadding = "px-4 pt-3 pb-1";
+const splittingFooter = "border-t border-border/40 bg-background/80 backdrop-blur-sm px-4 pt-3 pb-4";
 const avatarRing = "ring-2 ring-background";
 const avatarFallback = "bg-muted/50 border-2 border-dashed border-border flex items-center justify-center text-xs text-muted-foreground";
 const avatarOverflow = "bg-muted/70 border border-border flex items-center justify-center text-[10px] font-medium text-muted-foreground";
@@ -405,7 +404,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
       </div>
 
       <DrawerFooter className={splittingFooter}>
-        <div className={footerContentPadding}>
+        <div className="pb-1">
           <div className={cn("mb-2", rowVariants({ justify: "between", width: "full" }), textVariants({ size: "sm", weight: "medium" }))}>
             <span className={textVariants({ size: "sm", tone: "muted" })}>{t("distributed")}</span>
             <span className="font-medium">
@@ -417,7 +416,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
         <DrawerClose asChild>
           <Button
-            className="mx-4 mb-4"
+            className="w-full"
             onClick={handleDone}
             disabled={
               totalClaimed > localPosition.overall + 0.01 || activeDraftId !== null
