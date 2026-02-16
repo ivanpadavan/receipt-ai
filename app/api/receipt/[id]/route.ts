@@ -10,19 +10,24 @@ import type {
   Receipt,
   ReceiptMockParticipant,
   ReceiptUserParticipant,
+  users,
 } from "@/prisma/generated/prisma/client";
 import type {
-  RealtimePostgresChangesPayload,
-  RealtimePresenceState,
-  RealtimePostgresUpdatePayload,
   REALTIME_SUBSCRIBE_STATES,
+  RealtimePostgresChangesPayload,
+  RealtimePostgresUpdatePayload,
+  RealtimePresenceState,
 } from "@supabase/supabase-js";
 import {
   BehaviorSubject,
   combineLatest,
   distinctUntilChanged,
+  EMPTY,
   fromEvent,
-  map,
+  ignoreElements,
+  map, merge,
+  Observable,
+  switchMap,
   takeUntil,
 } from "rxjs";
 
@@ -74,7 +79,8 @@ export async function GET(
       }, 20000);
 
       // Add this connection to the receipt's connection set
-      const channel = supabase.channel(`topic:${receiptId}`);
+      const channelName = `topic:${receiptId}`;
+      const channel = supabase.channel(channelName);
       const currentUserId = (await getUser(supabase)).id;
       const onlineUserIds$ = new BehaviorSubject<Set<string>>(new Set());
 
@@ -96,11 +102,7 @@ export async function GET(
       };
 
       channel
-        .on(
-          "presence",
-          { event: "sync" },
-          syncPresenceState,
-        )
+        .on("presence", { event: "sync" }, syncPresenceState)
         .on(
           "postgres_changes",
           {
@@ -126,7 +128,9 @@ export async function GET(
             table: "ReceiptUserParticipant",
             filter: `receiptId=eq.${receiptId}`,
           },
-          async (_payload: RealtimePostgresChangesPayload<ReceiptUserParticipant>) => {
+          async (
+            _payload: RealtimePostgresChangesPayload<ReceiptUserParticipant>,
+          ) => {
             payload$.next({
               receipt: payload$.value.receipt,
               participants: await buildParticipants(receiptId),
@@ -141,7 +145,9 @@ export async function GET(
             table: "ReceiptMockParticipant",
             filter: `receiptId=eq.${receiptId}`,
           },
-          async (_payload: RealtimePostgresChangesPayload<ReceiptMockParticipant>) => {
+          async (
+            _payload: RealtimePostgresChangesPayload<ReceiptMockParticipant>,
+          ) => {
             payload$.next({
               receipt: payload$.value.receipt,
               participants: await buildParticipants(receiptId),
@@ -153,15 +159,61 @@ export async function GET(
           void channel.track({ userId: currentUserId });
         });
 
-      combineLatest([payload$, onlineUserIds$])
+      const userUpdates$ = payload$.pipe(
+        map((it) => {
+          const userIds = it.participants
+            .filter((p) => p.kind === "REAL")
+            .map((p) => p.id)
+            .sort();
+
+          if (userIds.length === 0) return "";
+
+          const filter = `id=in.(${userIds.join(",")})`;
+          return filter;
+        }),
+        distinctUntilChanged(),
+        switchMap((filter) => {
+          if (!filter) return EMPTY;
+
+          return new Observable((s) => {
+            const usersChannel = supabase.channel(`${channelName}:users`);
+            usersChannel
+              .on(
+                "postgres_changes",
+                {
+                  event: "UPDATE",
+                  schema: "auth",
+                  table: "users",
+                  filter,
+                },
+                async (_payload: RealtimePostgresUpdatePayload<users>) => {
+                  payload$.next({
+                    receipt: payload$.value.receipt,
+                    participants: await buildParticipants(receiptId),
+                  });
+                },
+              )
+              .subscribe();
+
+            () => usersChannel.unsubscribe();
+          });
+        }),
+        ignoreElements()
+      );
+
+      merge(combineLatest([payload$, onlineUserIds$]), userUpdates$)
         .pipe(
-          map(([payload, onlineUserIds]) => withPresence(payload, onlineUserIds)),
+          map(([payload, onlineUserIds]) =>
+            withPresence(payload, onlineUserIds),
+          ),
           distinctUntilChanged(isEqual),
           takeUntil(fromEvent(req.signal, "abort")),
         )
         .subscribe({
           next: (payload) => {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify(payload)}\n\n`),
+            );
           },
           complete: () => {
             try {
