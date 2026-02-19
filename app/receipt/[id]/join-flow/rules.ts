@@ -25,6 +25,19 @@ export function shouldAutoJoinReceipt(
   return !joined(participants, user) && canJoin(user);
 }
 
+export function getOfflineAnonymousCandidates(
+  participants: ParticipantDTO[],
+  user: User,
+) {
+  return participants.filter(
+    (participant) =>
+      participant.kind === "REAL" &&
+      participant.id !== user.id &&
+      participant.isAnonymous &&
+      !participant.isOnline,
+  );
+}
+
 export function getJoinFlowState(
   participants: ParticipantDTO[],
   user: User,

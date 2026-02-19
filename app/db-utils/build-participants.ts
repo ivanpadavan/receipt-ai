@@ -21,13 +21,14 @@ export const buildParticipants = async (receiptId: string) => {
   const userById = new Map(users.map((u) => [u.id, u]));
 
   const realDtos = realParticipants.map((p) => {
-    const rawMeta = (userById.get(p.userId)?.raw_user_meta_data ||
-      {}) as UserMetadata;
+    const user = userById.get(p.userId);
+    const rawMeta = (user?.raw_user_meta_data || {}) as UserMetadata;
     return {
       id: p.userId,
       displayName: rawMeta.displayName,
       avatarUrl: rawMeta.avatarUrl,
       color: p.color,
+      isAnonymous: Boolean(user?.is_anonymous),
       kind: "REAL" as const,
     };
   });

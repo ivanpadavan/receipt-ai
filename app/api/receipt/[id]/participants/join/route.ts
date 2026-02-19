@@ -5,7 +5,7 @@ import { joinReceiptServer } from "@/app/receipt/[id]/join-flow/join-receipt-ser
 export const runtime = "nodejs";
 
 export async function POST(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id: receiptId } = await params;
@@ -16,8 +16,19 @@ export async function POST(
   }
 
   try {
+    const rawBody = await req.text();
+    const body = rawBody ? JSON.parse(rawBody) : {};
+    const replaceParticipantId =
+      typeof body.replaceParticipantId === "string"
+        ? body.replaceParticipantId
+        : undefined;
+
     return NextResponse.json(
-      { participant: await joinReceiptServer(receiptId, user) },
+      {
+        participant: await joinReceiptServer(receiptId, user, {
+          replaceParticipantId,
+        }),
+      },
       { status: 200 },
     );
   } catch (e) {

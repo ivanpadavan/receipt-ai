@@ -64,6 +64,7 @@ export const participantDtoSchema = z.object({
   kind: z.enum(["REAL", "MOCK"]),
   avatarUrl: z.string().optional(),
   isOnline: z.boolean().optional(),
+  isAnonymous: z.boolean().optional(),
 });
 
 export const receiptWithParticipantsSchema = z.object({
