@@ -2,7 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { FormScenario } from "@/app/receipt/[id]/useReceiptFormState";
 import { useUser } from "@/context/AuthContext";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
-import { getJoinFlowState } from "@/app/receipt/[id]/join-flow/rules";
+import {
+  getJoinFlowState,
+  getOfflineAnonymousCandidates,
+} from "@/app/receipt/[id]/join-flow/rules";
 import { joinReceiptClient } from "@/app/receipt/[id]/join-flow/join-receipt-client";
 import { JoinFlowSettingsDialog } from "@/app/receipt/[id]/join-flow/settings-required-dialog";
 import { useRouter } from "next/navigation";
@@ -21,6 +24,10 @@ export function useJoinFlowOverlay(
   const removedInSessionRef = useRef(false);
   const state = getJoinFlowState(participants, user, formType);
   const isJoined = participants.some((p) => p.id === user.id);
+  const offlineAnonymousCandidates = getOfflineAnonymousCandidates(
+    participants,
+    user,
+  );
 
   useEffect(() => {
     const prev = wasJoinedRef.current;
@@ -46,7 +53,12 @@ export function useJoinFlowOverlay(
   }
 
   if (state === "settings") {
-    return <JoinFlowSettingsDialog />;
+    return (
+      <JoinFlowSettingsDialog
+        receiptId={receiptId}
+        offlineAnonymousCandidates={offlineAnonymousCandidates}
+      />
+    );
   }
 
   return <></>;
