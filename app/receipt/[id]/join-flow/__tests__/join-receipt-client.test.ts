@@ -23,4 +23,30 @@ describe("joinReceiptClient", () => {
       },
     );
   });
+
+  it("sends profile payload when provided", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({});
+    vi.stubGlobal("fetch", fetchMock);
+
+    await joinReceiptClient("receipt-1", {
+      profile: {
+        displayName: "Anton",
+        avatarUrl: "https://example.com/avatar.jpg",
+      },
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/receipt/receipt-1/participants/join",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profile: {
+            displayName: "Anton",
+            avatarUrl: "https://example.com/avatar.jpg",
+          },
+        }),
+      },
+    );
+  });
 });

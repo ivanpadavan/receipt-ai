@@ -15,7 +15,6 @@ import { ParticipantDTO } from "@/model/receipt/model";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/app/receipt/components/ui/user-avatar";
 import { cn } from "@/utils/cn";
-import { updateUserProfileClient } from "@/app/settings/update-user-profile-client";
 import {
   dialogContentWide,
   dialogHeaderTitle,
@@ -72,11 +71,16 @@ export function JoinFlowSettingsDialog({
   const handleSettingsSubmit = useCallback(
     async (values: SettingsFormValues) => {
       if (!values.displayName.trim()) return;
-
-      await updateUserProfileClient(values);
+      await joinReceiptClient(receiptId, {
+        profile: {
+          displayName: values.displayName.trim(),
+          avatarUrl: values.avatarUrl,
+          avatarFile: values.avatarFile,
+        },
+      });
       setOpen(false);
     },
-    [],
+    [receiptId],
   );
 
   return (
