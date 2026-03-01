@@ -33,6 +33,19 @@ import {
 
 export const runtime = "nodejs";
 
+type PresenceTrackChannel = {
+  track: (payload: { userId: string }) => Promise<unknown>;
+};
+
+export async function trackPresenceAndSync(
+  channel: PresenceTrackChannel,
+  userId: string,
+  syncPresenceState: () => void,
+) {
+  await channel.track({ userId });
+  syncPresenceState();
+}
+
 const withPresence = (
   payload: { receipt: unknown; participants: ParticipantDTO[] },
   onlineUserIds: Set<string>,
@@ -103,6 +116,8 @@ export async function GET(
 
       channel
         .on("presence", { event: "sync" }, syncPresenceState)
+        .on("presence", { event: "join" }, syncPresenceState)
+        .on("presence", { event: "leave" }, syncPresenceState)
         .on(
           "postgres_changes",
           {
@@ -156,7 +171,7 @@ export async function GET(
         )
         .subscribe((status: REALTIME_SUBSCRIBE_STATES) => {
           if (status !== "SUBSCRIBED") return;
-          void channel.track({ userId: currentUserId });
+          void trackPresenceAndSync(channel, currentUserId, syncPresenceState);
         });
 
       const userUpdates$ = payload$.pipe(

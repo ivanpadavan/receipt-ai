@@ -11,7 +11,7 @@ function mustJoin(
   formType: FormScenario["type"],
 ) {
   if (formType !== "splitting") return false;
-  if (joined(participants, user) && user.user_metadata.displayName) return false;
+  if (joined(participants, user)) return false;
   return true;
 }
 function canJoin(user: User) {

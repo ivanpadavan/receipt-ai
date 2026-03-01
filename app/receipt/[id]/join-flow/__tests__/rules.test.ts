@@ -20,6 +20,24 @@ const makeUser = ({
   }) as User;
 
 describe("join-flow rules", () => {
+  it("returns nothing when user is already a participant even without local display name", () => {
+    const state = getJoinFlowState(
+      [
+        {
+          id: "u-1",
+          displayName: "Saved on server",
+          color: "#111",
+          kind: "REAL",
+          isOnline: true,
+        },
+      ],
+      makeUser({ id: "u-1" }),
+      "splitting",
+    );
+
+    expect(state).toBe("nothing");
+  });
+
   it("keeps settings state when user has no display name in splitting mode", () => {
     const state = getJoinFlowState([], makeUser({ id: "u-1" }), "splitting");
     expect(state).toBe("settings");
