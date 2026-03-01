@@ -66,19 +66,24 @@ const formatClaimValue = (value: number) => {
   return value.toFixed(2).replace(/\.0+$/, "").replace(/(\.[1-9]*)0+$/, "$1");
 };
 
-const parseInputValue = (value: string) => {
-  const normalized = value.replace(/,/g, ".").replace(/[^0-9.]/g, "");
+const normalizeInputText = (value: string) => {
+  const withDots = value.replace(/,/g, ".");
+  const digitsAndDotsOnly = withDots.replace(/[^0-9.]/g, "");
+  if (!digitsAndDotsOnly) return "";
 
-  if (!normalized) {
-    return 0;
-  }
+  const startsWithDot = digitsAndDotsOnly.startsWith(".");
+  const [integerPart, ...decimalParts] = digitsAndDotsOnly.split(".");
+  const joinedIntegerPart = startsWithDot ? `0${integerPart}` : integerPart;
+  const normalized = decimalParts.length
+    ? `${joinedIntegerPart}.${decimalParts.join("")}`
+    : joinedIntegerPart;
 
-  const [integerPart, ...decimalParts] = normalized.split(".");
-  const safeValue = decimalParts.length
-    ? `${integerPart}.${decimalParts.join("")}`
-    : integerPart;
+  return normalized;
+};
 
-  const parsed = Number.parseFloat(safeValue);
+const parseInputValue = (normalizedValue: string) => {
+  if (!normalizedValue) return 0;
+  const parsed = Number.parseFloat(normalizedValue);
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
@@ -108,11 +113,18 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
   onSave,
 }) => {
   const preventScrollHackClass = useTransientPreventScrollHack();
+  const [rawValue, setRawValue] = useState(
+    claim.value > 0 ? formatClaimValue(claim.value) : "",
+  );
 
   const allParticipantIds = useMemo(
     () => participants.map((participant) => participant.id),
     [participants],
   );
+
+  useEffect(() => {
+    setRawValue(claim.value > 0 ? formatClaimValue(claim.value) : "");
+  }, [claim.id]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -147,13 +159,15 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
               "h-16 min-w-0 flex-1 border-0 bg-transparent px-0 text-center text-5xl font-semibold tabular-nums shadow-none focus-visible:ring-0",
               preventScrollHackClass,
             )}
-            value={claim.value > 0 ? formatClaimValue(claim.value) : ""}
-            onChange={(event) =>
+            value={rawValue}
+            onChange={(event) => {
+              const normalized = normalizeInputText(event.target.value);
+              setRawValue(normalized);
               onUpdate({
                 ...claim,
-                value: parseInputValue(event.target.value),
-              })
-            }
+                value: parseInputValue(normalized),
+              });
+            }}
             autoFocus
           />
         </div>
