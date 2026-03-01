@@ -296,6 +296,9 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         {(draftClaim && (
           <SplittingHeroEditor
             claim={draftClaim}
+            claims={localPosition.claims}
+            price={localPosition.price}
+            overall={localPosition.overall}
             participants={participants}
             saveDisabled={saveDisabled}
             allParticipantsSelected={allParticipantsSelected}

@@ -17,7 +17,7 @@ import {
 } from "@/app/receipt/components/ui-styles";
 import { ParticipantDTO, ReceiptPositionClaim } from "@/model/receipt/model";
 import { cva } from "class-variance-authority";
-import { ButtonGroup } from "@/components/ui/button-group";
+import { sumClaims } from "@/app/receipt/utils/claims";
 
 // ── SplittingHeroEditor-scoped styles ──────────────
 const typeSwitchWrapper =
@@ -50,6 +50,9 @@ const participantButtonVariants = cva(
 
 interface SplittingHeroEditorProps {
   claim: ReceiptPositionClaim;
+  claims: ReceiptPositionClaim[];
+  price: number;
+  overall: number;
   participants: ParticipantDTO[];
   saveDisabled: boolean;
   allParticipantsSelected: boolean;
@@ -105,6 +108,9 @@ const useTransientPreventScrollHack = (durationMs = 3000) => {
 
 export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
   claim,
+  claims,
+  price,
+  overall,
   participants,
   saveDisabled,
   allParticipantsSelected,
@@ -121,6 +127,21 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
     () => participants.map((participant) => participant.id),
     [participants],
   );
+
+  const remainingAmount = useMemo(() => {
+    const claimedByOthers = sumClaims(claims, price, claim.id);
+    const remaining = overall - claimedByOthers;
+    return remaining > 0 ? remaining : 0;
+  }, [claim.id, claims, overall, price]);
+
+  const maxValue = useMemo(() => {
+    if (claim.type === "amount") return remainingAmount;
+    if (!Number.isFinite(price) || price <= 0) return 0;
+    return remainingAmount / price;
+  }, [claim.type, price, remainingAmount]);
+
+  const maxIsRelevant = maxValue > 0.01;
+  const isMaxSelected = Math.abs(claim.value - maxValue) <= 0.01;
 
   useEffect(() => {
     setRawValue(claim.value > 0 ? formatClaimValue(claim.value) : "");
@@ -177,11 +198,20 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
             rowVariants({ justify: "between" }),
           )}
         >
-          <ButtonGroup orientation="horizontal">
-            <Button variant="outline">A</Button>
-            <Button variant="outline">B</Button>
-            <Button variant="outline">C</Button>
-          </ButtonGroup>
+          <Button
+            type="button"
+            variant={isMaxSelected ? "default" : "outline"}
+            disabled={!maxIsRelevant}
+            aria-pressed={isMaxSelected}
+            onClick={() => {
+              const precision = claim.type === "amount" ? 2 : 6;
+              const nextValue = Number.parseFloat(maxValue.toFixed(precision));
+              setRawValue(formatClaimValue(nextValue));
+              onUpdate({ ...claim, value: nextValue });
+            }}
+          >
+            {t("max")}
+          </Button>
           <div
             className={cn(
               "flex items-center",
