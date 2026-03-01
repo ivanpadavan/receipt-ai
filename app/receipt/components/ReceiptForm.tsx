@@ -568,13 +568,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                 "sticky bottom-[5.50rem] z-10 mx-auto mb-1 w-full max-w-3xl",
                 stickyBarPadding,
               )}
-            >
-              <DistributionBar
-                data={currentReceipt}
-                tone="glass"
-                className="h-1.5"
-              />
-            </div>
+            ></div>
           )}
           <ReceiptActionBar
             receiptId={receiptId}
@@ -598,6 +592,11 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
             }
           />
         </div>
+        <DistributionBar
+          data={currentReceipt}
+          tone="glass"
+          className="h-1.5 fixed bottom-0"
+        />
       </FormProvider>
     </ReceiptFormContext.Provider>
   );
