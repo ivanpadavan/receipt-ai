@@ -207,11 +207,13 @@ export const rowVariants = cva("flex", {
     align: {
       center: "items-center",
       start: "items-start",
+      end: "items-end",
       baseline: "items-baseline",
       stretch: "items-stretch",
     },
     justify: {
       start: "justify-start",
+      end: "justify-end",
       between: "justify-between",
       center: "justify-center",
     },

@@ -10,12 +10,14 @@ import { ParticipantAvatar } from "@/app/receipt/components/ui/participant-avata
 import { cn } from "@/utils/cn";
 import {
   avatarSizeVariants,
+  inlineGapVariants,
   radiusTokens,
   rowVariants,
   textVariants,
 } from "@/app/receipt/components/ui-styles";
 import { ParticipantDTO, ReceiptPositionClaim } from "@/model/receipt/model";
 import { cva } from "class-variance-authority";
+import { ButtonGroup } from "@/components/ui/button-group";
 
 // ── SplittingHeroEditor-scoped styles ──────────────
 const typeSwitchWrapper =
@@ -154,7 +156,18 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
             }
             autoFocus
           />
-
+        </div>
+        <div
+          className={cn(
+            inlineGapVariants({ size: "sm" }),
+            rowVariants({ justify: "between" }),
+          )}
+        >
+          <ButtonGroup orientation="horizontal">
+            <Button variant="outline">A</Button>
+            <Button variant="outline">B</Button>
+            <Button variant="outline">C</Button>
+          </ButtonGroup>
           <div
             className={cn(
               "flex items-center",
@@ -266,11 +279,7 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
           >
             {t("cancel")}
           </Button>
-          <Button
-            type="submit"
-            className="flex-1"
-            disabled={saveDisabled}
-          >
+          <Button type="submit" className="flex-1" disabled={saveDisabled}>
             {t("save")}
           </Button>
         </div>
