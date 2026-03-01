@@ -63,12 +63,16 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
     toast.success(t("copiedToClipboard"));
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     if (!canShare) return;
-    navigator.share({
-      title: t("receipt"),
-      url: receiptUrl,
-    }).catch();
+    try {
+      await navigator.share({
+        title: t("receipt"),
+        url: receiptUrl,
+      });
+    } catch {
+      // no-op
+    }
   };
 
   const displayLabel = label ?? t("share");
