@@ -562,14 +562,6 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
               </>
             )}
           </ReceiptCard>
-          {scenarioType !== "summary" && (
-            <div
-              className={cn(
-                "sticky bottom-[5.50rem] z-10 mx-auto mb-1 w-full max-w-3xl",
-                stickyBarPadding,
-              )}
-            ></div>
-          )}
           <ReceiptActionBar
             receiptId={receiptId}
             primaryLabel={primaryLabel}
