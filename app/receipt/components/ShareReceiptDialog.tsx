@@ -4,7 +4,6 @@ import React, { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -64,18 +63,12 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
     toast.success(t("copiedToClipboard"));
   };
 
-  const handleShare = async () => {
+  const handleShare = () => {
     if (!canShare) return;
-    try {
-      await navigator.share({
-        title: t("receipt"),
-        url: receiptUrl,
-      });
-    } catch (error) {
-      // User canceled system share dialog.
-      if (error instanceof DOMException && error.name === "AbortError") return;
-      throw error;
-    }
+    navigator.share({
+      title: t("receipt"),
+      url: receiptUrl,
+    }).catch();
   };
 
   const displayLabel = label ?? t("share");
@@ -103,7 +96,9 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
           <AlertDialogTitle className={dialogHeaderTitle}>
             {t("shareReceiptTitle")}
           </AlertDialogTitle>
-          <AlertDialogDescription>{t("shareReceiptHint")}</AlertDialogDescription>
+          <AlertDialogDescription className="mx-auto text-center">
+            {t("shareReceiptHint")}
+          </AlertDialogDescription>
         </AlertDialogHeader>
 
         <div
@@ -143,7 +138,8 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
             {t("close")}
           </AlertDialogCancel>
           {canShare && (
-            <AlertDialogAction
+            <Button
+              type="button"
               onClick={handleShare}
               className={cn(
                 buttonContentVariants({ layout: "inline" }),
@@ -152,7 +148,7 @@ export const ShareReceiptDialog: React.FC<ShareReceiptDialogProps> = ({
             >
               <QrCode className={iconSizeVariants({ size: "sm" })} />
               {t("shareViaSystem")}
-            </AlertDialogAction>
+            </Button>
           )}
         </AlertDialogFooter>
       </AlertDialogContent>
