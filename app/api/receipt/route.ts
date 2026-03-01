@@ -1,7 +1,7 @@
 import { receiptAiSchema } from "@/model/receipt/schema";
 import { Receipt, ReceiptNoId } from "@/model/receipt/model";
 import { NextRequest, NextResponse } from "next/server";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatOpenRouter } from "@langchain/openrouter";
 import { ChatPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
 import { db } from "@/app/db";
 import postValidator from "@/app/api-client/receipt/post";
@@ -29,12 +29,10 @@ const imagePrompt = ChatPromptTemplate.fromMessages([
   ],
 ]);
 
-// Using Google's Gemini model for image analysis
-const model = new ChatGoogleGenerativeAI({
+const model = new ChatOpenRouter({
   temperature: 1,
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  model: process.env.GOOGLE_API_MODEL!,
-  apiKey: process.env.GOOGLE_API_KEY, // Using the Google API key
+  model: process.env.OPENROUTER_API_MODEL,
+  apiKey: process.env.OPENROUTER_API_KEY,
 });
 
 // Create the chain
@@ -93,7 +91,7 @@ async function uploadImage(image: string, userId: string) {
 }
 
 /**
- * This handler initializes and calls a Google Gemini powered
+ * This handler initializes and calls an OpenRouter powered
  * structured output chain for receipt processing.
  */
 export async function POST(req: NextRequest) {

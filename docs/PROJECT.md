@@ -25,7 +25,7 @@
 - Состояние: `zustand` (участники), локально `rxjs` в `join-flow`.
 - База: `PostgreSQL` через `Prisma`.
 - Auth/Realtime/Storage: `Supabase`.
-- AI-парсинг чека: `LangChain` + `Google Gemini`.
+- AI-парсинг чека: `LangChain` + `OpenRouter`.
 - Тесты: `Vitest` + `Testing Library`.
 
 ## 3. Юзер-сценарии
