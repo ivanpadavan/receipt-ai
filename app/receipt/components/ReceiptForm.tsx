@@ -23,10 +23,10 @@ import {
   finalize,
   fromEvent,
   merge,
-  Observable,
+  Observable, of,
   retry,
   startWith,
-  take,
+  take, takeUntil,
   timer,
 } from "rxjs";
 import { receiptWithParticipantsSchema } from "@/model/receipt/schema";

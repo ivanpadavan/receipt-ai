@@ -3,11 +3,11 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/context/AuthContext";
-import { supabase } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { t } from "@/app/i18n/translations";
 import { SettingsForm } from "@/app/settings/SettingsForm";
 import { UserMetadata } from "@supabase/supabase-js";
+import { updateUserProfileClient } from "@/app/settings/update-user-profile-client";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/utils/cn";
 import {
@@ -25,33 +25,12 @@ export default function SettingsPage() {
   }, [user, router]);
 
   const handleSave = async (values: UserMetadata & { avatarFile?: File }) => {
-    let nextAvatarUrl = values.avatarUrl;
-
-    if (values.avatarFile) {
-      const extension = values.avatarFile.name.split(".").pop() || "jpg";
-      const filePath = `${user.id}/avatar.${extension}`;
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, values.avatarFile, { upsert: true });
-      if (uploadError) {
-        toast.error(uploadError.message);
-        return;
-      }
-      const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
-      nextAvatarUrl = data.publicUrl;
+    try {
+      await updateUserProfileClient(values);
+      toast.success(t("save"));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t("genericTryAgain"));
     }
-
-    const { error } = await supabase.auth.updateUser({
-      data: {
-        displayName: values.displayName.trim(),
-        avatarUrl: nextAvatarUrl,
-      },
-    });
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success(t("save"));
   };
 
   return (
