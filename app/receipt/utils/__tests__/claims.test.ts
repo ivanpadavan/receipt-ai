@@ -3,6 +3,7 @@ import type { ReceiptPosition } from "@/model/receipt/model";
 import {
   comparePositionsByFillState,
   isPositionFilled,
+  sortPositionsForDisplay,
 } from "@/app/receipt/utils/claims";
 
 const createPosition = (claims: ReceiptPosition["claims"]): ReceiptPosition => ({
@@ -43,5 +44,23 @@ describe("comparePositionsByFillState", () => {
 
     expect(comparePositionsByFillState(unfilled, filled)).toBeLessThan(0);
     expect(comparePositionsByFillState(filled, unfilled)).toBeGreaterThan(0);
+  });
+});
+
+describe("sortPositionsForDisplay", () => {
+  it("keeps original indices after sorting by fill state", () => {
+    const unfilledFirst = createPosition([
+      { id: "c-1", type: "amount", value: 20, participantIds: ["u-1"] },
+    ]);
+    const filledSecond = createPosition([
+      { id: "c-2", type: "amount", value: 100, participantIds: ["u-1"] },
+    ]);
+
+    const sorted = sortPositionsForDisplay([filledSecond, unfilledFirst]);
+
+    expect(sorted[0].position).toBe(unfilledFirst);
+    expect(sorted[0].originalIndex).toBe(1);
+    expect(sorted[1].position).toBe(filledSecond);
+    expect(sorted[1].originalIndex).toBe(0);
   });
 });

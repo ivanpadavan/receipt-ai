@@ -63,7 +63,6 @@ import {
   receiptCardPadding,
   rowContentPaddingVariants,
   stackGapVariants,
-  stickyBarPadding,
   inlineGapVariants,
   rowVariants,
   textVariants,
@@ -71,8 +70,7 @@ import {
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
 import {
-  comparePositionsByFillState,
-  isPositionFilled,
+  sortPositionsForDisplay,
 } from "@/app/receipt/utils/claims";
 
 interface EditableReceiptFormProps {
@@ -339,28 +337,27 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                 </div>
 
                 <div className={stackGapVariants({ size: "sm" })}>
-                  {[...positionFields]
-                    .sort(comparePositionsByFillState)
-                    .map((field, index) => {
+                  {sortPositionsForDisplay(positionFields as ReceiptPosition[])
+                    .map(({ position: field, originalIndex }) => {
                       const hasPriceError = hasFormPathError(
                         errors,
-                        `positions.${index}.price`,
+                        `positions.${originalIndex}.price`,
                       );
                       const hasQuantityError = hasFormPathError(
                         errors,
-                        `positions.${index}.quantity`,
+                        `positions.${originalIndex}.quantity`,
                       );
                       const hasOverallError = hasFormPathError(
                         errors,
-                        `positions.${index}.overall`,
+                        `positions.${originalIndex}.overall`,
                       );
                       const hasClaimsError = hasFormPathError(
                         errors,
-                        `positions.${index}.claims`,
+                        `positions.${originalIndex}.claims`,
                       );
                       const claimsErrorMessage = getFormPathErrorMessage(
                         errors,
-                        `positions.${index}.claims`,
+                        `positions.${originalIndex}.claims`,
                       );
                       const hasRowNumberError =
                         hasPriceError ||
@@ -379,7 +376,10 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                             type="button"
                             onClick={() =>
                               canEdit.positionForm &&
-                              openEditModal({ type: "position", index })
+                              openEditModal({
+                                type: "position",
+                                index: originalIndex,
+                              })
                             }
                             className={cn(
                               "w-full text-left",
