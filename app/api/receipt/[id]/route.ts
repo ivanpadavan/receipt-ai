@@ -33,9 +33,9 @@ import {
 
 export const runtime = "nodejs";
 
-type PresenceTrackChannel = {
+interface PresenceTrackChannel {
   track: (payload: { userId: string }) => Promise<unknown>;
-};
+}
 
 export async function trackPresenceAndSync(
   channel: PresenceTrackChannel,
@@ -96,6 +96,25 @@ export async function GET(
       const channel = supabase.channel(channelName);
       const currentUserId = (await getUser(supabase)).id;
       const onlineUserIds$ = new BehaviorSubject<Set<string>>(new Set());
+      let syncSeq = 0;
+
+      const syncPayloadFromDb = async () => {
+        const seq = ++syncSeq;
+        const [nextReceipt, nextParticipants] = await Promise.all([
+          db.receipt.findUnique({
+            where: { id: receiptId },
+            select: { data: true },
+          }),
+          buildParticipants(receiptId),
+        ]);
+
+        if (!nextReceipt || seq !== syncSeq) return;
+
+        payload$.next({
+          receipt: nextReceipt.data,
+          participants: nextParticipants,
+        });
+      };
 
       const syncPresenceState = () => {
         const state = channel.presenceState() as RealtimePresenceState<{
@@ -126,13 +145,8 @@ export async function GET(
             table: "Receipt",
             filter: `id=eq.${receiptId}`,
           },
-          async (payload: RealtimePostgresUpdatePayload<Receipt>) => {
-            const data = payload.new.data;
-            if (!data) return;
-            payload$.next({
-              receipt: data,
-              participants: payload$.value.participants,
-            });
+          async (_payload: RealtimePostgresUpdatePayload<Receipt>) => {
+            await syncPayloadFromDb();
           },
         )
         .on(
@@ -146,10 +160,7 @@ export async function GET(
           async (
             _payload: RealtimePostgresChangesPayload<ReceiptUserParticipant>,
           ) => {
-            payload$.next({
-              receipt: payload$.value.receipt,
-              participants: await buildParticipants(receiptId),
-            });
+            await syncPayloadFromDb();
           },
         )
         .on(
@@ -163,10 +174,7 @@ export async function GET(
           async (
             _payload: RealtimePostgresChangesPayload<ReceiptMockParticipant>,
           ) => {
-            payload$.next({
-              receipt: payload$.value.receipt,
-              participants: await buildParticipants(receiptId),
-            });
+            await syncPayloadFromDb();
           },
         )
         .subscribe((status: REALTIME_SUBSCRIBE_STATES) => {
@@ -202,15 +210,14 @@ export async function GET(
                   filter,
                 },
                 async (_payload: RealtimePostgresUpdatePayload<users>) => {
-                  payload$.next({
-                    receipt: payload$.value.receipt,
-                    participants: await buildParticipants(receiptId),
-                  });
+                  await syncPayloadFromDb();
                 },
               )
               .subscribe();
 
-            () => usersChannel.unsubscribe();
+            return () => {
+              void usersChannel.unsubscribe();
+            };
           });
         }),
         ignoreElements()
