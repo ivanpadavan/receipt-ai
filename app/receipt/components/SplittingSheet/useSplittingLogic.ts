@@ -1,11 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ParticipantDTO,
   ReceiptPosition,
   ReceiptPositionClaim,
 } from "@/model/receipt/model";
 import { createDefaultClaim } from "@/app/receipt/[id]/useReceiptFormState";
-import { canApplyClaim, getClaimAmount } from "@/app/receipt/utils/claims";
+import {
+  canApplyClaim,
+  getClaimAmount,
+  isPositionFilled,
+} from "@/app/receipt/utils/claims";
 
 export interface UseSplittingLogicProps {
   initialValue: ReceiptPosition;
@@ -25,6 +29,7 @@ export const useSplittingLogic = ({
   const [localPosition, setLocalPosition] = useState<ReceiptPosition>(() =>
     structuredClone(initialValue),
   );
+  const shouldStartWithDraft = !isPositionFilled(initialValue);
 
   const currentUserParticipantId = participants.find(
     (participant) => participant.id === currentUser?.id,
@@ -40,9 +45,11 @@ export const useSplittingLogic = ({
     [currentUserParticipantId],
   );
 
-  const [activeDraftId, setActiveDraftId] = useState<ActiveDraftId>("new");
+  const [activeDraftId, setActiveDraftId] = useState<ActiveDraftId>(
+    shouldStartWithDraft ? "new" : null,
+  );
   const [draftClaim, setDraftClaim] = useState<ReceiptPositionClaim | null>(
-    createDraft(),
+    shouldStartWithDraft ? createDraft() : null,
   );
 
   const cancelDraft = useCallback(() => {
