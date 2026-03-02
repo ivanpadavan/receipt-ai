@@ -36,6 +36,7 @@ export const DistributionBar = ({
   radius,
 }: DistributionBarProps) => {
   const participants = useParticipantsStore((s) => s.participants);
+  const participantIdSet = new Set((participants || []).map((p) => p.id));
 
   // Aggregate amounts per participant
   const participantAmounts = new Map<string, number>();
@@ -46,11 +47,13 @@ export const DistributionBar = ({
     // This is fine for single-claim bars where relative proportions matter, not absolute currency.
     const amount =
       claim.type === "quantity" ? claim.value * itemPrice : claim.value;
-    const pIds = claim.participantIds || [];
+    const validParticipantIds = (claim.participantIds || []).filter((id) =>
+      participantIdSet.has(id),
+    );
 
-    if (pIds.length > 0) {
-      const splitAmount = amount / pIds.length;
-      pIds.forEach((pid) => {
+    if (validParticipantIds.length > 0) {
+      const splitAmount = amount / validParticipantIds.length;
+      validParticipantIds.forEach((pid) => {
         participantAmounts.set(
           pid,
           (participantAmounts.get(pid) || 0) + splitAmount,
