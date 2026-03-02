@@ -21,8 +21,6 @@ import {
 const summaryHeader = "border-b border-border/30 bg-muted/20 text-center";
 const summaryEmptyState = "py-10";
 const summaryBalanceAmountWrapper = "text-right shrink-0";
-const summaryItemList = "border-l-2 border-border/50";
-const summaryItemIndent = "ml-5";
 const summaryItemRowPadding = "py-0.5";
 const summaryItemContainerPadding = "mr-2";
 const summaryAmount = "whitespace-nowrap";
@@ -144,11 +142,9 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
               </div>
 
               {balance.items.length > 0 && (
-                <div className={cn("w-full", summaryItemIndent)}>
                   <ul
                     className={cn(
                       stackGapVariants({ size: "xs" }),
-                      summaryItemList,
                       textVariants({ size: "sm", tone: "muted" }),
                     )}
                   >
@@ -192,7 +188,6 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
                       </li>
                     ))}
                   </ul>
-                </div>
               )}
             </ReceiptCard>
           );
