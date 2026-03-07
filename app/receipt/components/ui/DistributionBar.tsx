@@ -9,6 +9,7 @@ import {
   ParticipantDTO,
 } from "@/model/receipt/model";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
+import { formatMoneyValue } from "@/app/receipt/utils/formatMoney";
 
 type DistributionData = ReceiptPositionClaim | ReceiptPosition | Receipt;
 
@@ -120,7 +121,7 @@ export const DistributionBar = ({
           <div
             key={bar.id}
             style={style}
-            title={`${bar.displayName}: ${bar.amount.toFixed(2)}`}
+            title={`${bar.displayName}: ${formatMoneyValue(bar.amount)}`}
             className={cn(
               "h-full transition-all relative overflow-hidden",
               rowVariants({ align: "center", justify: "center", width: "full" }),

@@ -34,6 +34,7 @@ import {
   inlineGapVariants,
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
+import { multiplyMoney } from "@/app/receipt/utils/money";
 
 type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
 
@@ -119,7 +120,7 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
         key === "quantity"
           ? (newValue.quantity as number)
           : (localValue.quantity as number);
-      newValue.overall = price * quantity;
+      newValue.overall = multiplyMoney(price, quantity);
     }
 
     setLocalValue(newValue as EditableValue);

@@ -35,7 +35,35 @@ describe("DistributionBar", () => {
 
     render(<DistributionBar data={position} />);
 
-    expect(screen.getByTitle("P1: 112.50")).toBeInTheDocument();
-    expect(screen.getByTitle("P2: 112.50")).toBeInTheDocument();
+    expect(screen.getByTitle("P1: 112.5")).toBeInTheDocument();
+    expect(screen.getByTitle("P2: 112.5")).toBeInTheDocument();
+  });
+
+  it("keeps claim amounts in cent-safe precision", () => {
+    useParticipantsStore.setState({
+      participants: [
+        { id: "p1", displayName: "P1", color: "#111111", kind: "REAL" },
+      ],
+    });
+
+    const position: ReceiptPosition = {
+      id: "pos-1",
+      name: "Coffee",
+      price: 1620,
+      quantity: 1,
+      overall: 1620,
+      claims: [
+        {
+          id: "claim-1",
+          type: "quantity",
+          value: 0.55,
+          participantIds: ["p1"],
+        },
+      ],
+    };
+
+    render(<DistributionBar data={position} />);
+
+    expect(screen.getByTitle("P1: 891")).toBeInTheDocument();
   });
 });

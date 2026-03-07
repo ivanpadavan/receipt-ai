@@ -8,6 +8,7 @@ import {
   iconSizeVariants,
   pillVariants,
 } from "@/app/receipt/components/ui-styles";
+import { formatMoneyValue } from "@/app/receipt/utils/formatMoney";
 
 interface DistributionStatusProps {
   distributed: number;
@@ -47,7 +48,7 @@ export const DistributionStatus: React.FC<DistributionStatusProps> = ({
         )}
       >
         <XCircle className={iconSizeVariants({ size: "xs" })} />
-        {t("overpaid")}: {Math.abs(remaining).toFixed(precision)} ₽
+        {t("overpaid")}: {precision === 0 ? formatMoneyValue(Math.abs(remaining)) : Math.abs(remaining).toFixed(precision)} ₽
       </div>
     );
   }
@@ -60,7 +61,7 @@ export const DistributionStatus: React.FC<DistributionStatusProps> = ({
       )}
     >
       <AlertTriangle className={iconSizeVariants({ size: "xs" })} />
-      {t("remaining")}: {remaining.toFixed(precision)} ₽
+      {t("remaining")}: {precision === 0 ? formatMoneyValue(remaining) : remaining.toFixed(precision)} ₽
     </div>
   );
 };

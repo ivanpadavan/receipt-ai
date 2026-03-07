@@ -130,6 +130,40 @@ describe("useReceiptFormState", () => {
     expect(values.totals.grandTotal).toBe(33);
   });
 
+  it("keeps overall in cent-safe precision for decimal quantity", async () => {
+    const receipt: Receipt = {
+      positions: [
+        {
+          id: "pos-1",
+          name: "Item 1",
+          quantity: 1,
+          price: 1620,
+          overall: 1620,
+          claims: [],
+        },
+      ],
+      totals: {
+        total: 1620,
+        grandTotal: 1620,
+      },
+      fees: [],
+      discounts: [],
+    };
+
+    const { result } = renderHook(() => useReceiptFormState(receipt));
+    const form = result.current.scenario.form;
+
+    await act(async () => {
+      form.setValue("positions.0.quantity", 0.55);
+      await new Promise((r) => setTimeout(r, 10));
+    });
+
+    const values = form.getValues();
+    expect(values.positions[0].overall).toBe(891);
+    expect(values.totals.total).toBe(891);
+    expect(values.totals.grandTotal).toBe(891);
+  });
+
   it("should provide openEditModal function", () => {
     const { result } = renderHook(() => useReceiptFormState(validReceipt));
 

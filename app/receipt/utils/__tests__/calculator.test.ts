@@ -43,4 +43,36 @@ describe("calculateBalances", () => {
     expect(p1Balance).toBeDefined();
     expect(p1Balance?.items[0].description).toBe("0.5 × 100 ₽");
   });
+
+  it("keeps finalAmount in two-decimal money precision", () => {
+    const receipt = {
+      id: "r1",
+      positions: [
+        {
+          id: "pos1",
+          name: "Item",
+          price: 1620,
+          quantity: 1,
+          overall: 1620,
+          claims: [
+            {
+              id: "claim-1",
+              type: "quantity",
+              value: 0.55,
+              participantIds: ["p1"],
+            },
+          ],
+        },
+      ],
+      totals: { total: 1620, grandTotal: 1620 },
+      fees: [],
+      discounts: [],
+    } as unknown as Receipt;
+
+    const balances = calculateBalances(receipt, participants);
+    const p1Balance = balances.find((b) => b.participantId === "p1");
+
+    expect(p1Balance?.baseAmount).toBe(891);
+    expect(p1Balance?.finalAmount).toBe(891);
+  });
 });

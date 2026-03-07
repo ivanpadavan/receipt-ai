@@ -9,6 +9,7 @@ import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { DistributionStatus } from "@/app/receipt/components/ui/DistributionStatus";
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 import { cn } from "@/utils/cn";
+import { formatMoney, formatMoneyValue } from "@/app/receipt/utils/formatMoney";
 import {
   cardPaddingVariants,
   stackGapVariants,
@@ -68,7 +69,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
         <div
           className={textVariants({ size: "4xl", weight: "bold" })}
         >
-          {realGrandTotal.toFixed(0)}{" "}
+          {formatMoneyValue(realGrandTotal)}{" "}
           <span className={textVariants({ size: "2xl", weight: "normal", tone: "muted" })}>
             ₽
           </span>
@@ -127,15 +128,15 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
                   <span
                     className={textVariants({ size: "xl", weight: "semibold" })}
                   >
-                    {balance.finalAmount.toFixed(0)} ₽
+                    {formatMoney(balance.finalAmount)}
                   </span>
                   {Math.abs(balance.finalAmount - balance.baseAmount) > 0.1 && (
                     <span className={textVariants({ size: "xs", tone: "muted" })}>
-                      {balance.baseAmount.toFixed(0)}{" "}
+                      {formatMoneyValue(balance.baseAmount)}{" "}
                       {balance.finalAmount - balance.baseAmount > 0 ? "+" : "−"}{" "}
-                      {Math.abs(
-                        balance.finalAmount - balance.baseAmount,
-                      ).toFixed(0)}
+                      {formatMoneyValue(
+                        Math.abs(balance.finalAmount - balance.baseAmount),
+                      )}
                     </span>
                   )}
                 </div>
@@ -183,7 +184,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
                             textVariants({ size: "sm", weight: "medium" }),
                           )}
                         >
-                          {item.rawAmount.toFixed(0)} ₽
+                          {formatMoney(item.rawAmount)}
                         </span>
                       </li>
                     ))}

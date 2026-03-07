@@ -17,6 +17,7 @@ import {
   switchMap,
 } from "rxjs";
 import { isEqual } from "lodash-es";
+import { multiplyMoney } from "@/app/receipt/utils/money";
 
 import { TranslationKey } from "@/app/i18n/translations";
 import {
@@ -260,7 +261,7 @@ export function useReceiptFormState(
           const positions = getValues("positions");
           const pos = positions[idx];
           if (pos) {
-            const overall = pos.quantity * pos.price;
+            const overall = multiplyMoney(pos.price, pos.quantity);
             setValue(`positions.${idx}.overall`, overall, {
               shouldValidate: true,
             });

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { ReceiptPosition } from "@/model/receipt/model";
 import {
   comparePositionsByFillState,
+  getClaimAmount,
   isPositionFilled,
   sortPositionsForDisplay,
 } from "@/app/receipt/utils/claims";
@@ -16,6 +17,15 @@ const createPosition = (claims: ReceiptPosition["claims"]): ReceiptPosition => (
 });
 
 describe("isPositionFilled", () => {
+  it("calculates quantity claim amount using cent-safe arithmetic", () => {
+    expect(
+      getClaimAmount(
+        { id: "c-1", type: "quantity", value: 0.55, participantIds: ["u-1"] },
+        1620,
+      ),
+    ).toBe(891);
+  });
+
   it("returns true when amount claims fully cover overall", () => {
     const position = createPosition([
       { id: "c-1", type: "amount", value: 100, participantIds: ["u-1"] },

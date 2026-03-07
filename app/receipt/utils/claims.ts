@@ -1,9 +1,10 @@
 import { ReceiptPosition, ReceiptPositionClaim } from "@/model/receipt/model";
+import { addMoney, multiplyMoney, roundMoney } from "@/app/receipt/utils/money";
 
 export const getClaimAmount = (claim: ReceiptPositionClaim, price: number) => {
   if (!Number.isFinite(claim.value) || claim.value <= 0) return 0;
-  if (claim.type === "quantity") return claim.value * price;
-  return claim.value;
+  if (claim.type === "quantity") return multiplyMoney(price, claim.value);
+  return roundMoney(claim.value);
 };
 
 export const sumClaims = (
@@ -13,7 +14,7 @@ export const sumClaims = (
 ) => {
   return claims.reduce((acc, claim) => {
     if (excludeId && claim.id === excludeId) return acc;
-    return acc + getClaimAmount(claim, price);
+    return addMoney(acc, getClaimAmount(claim, price));
   }, 0);
 };
 
@@ -25,8 +26,8 @@ export const getClaimOverage = (
   excludeId?: string,
 ) => {
   const current = sumClaims(claims, price, excludeId);
-  const next = current + getClaimAmount(claim, price);
-  const over = next - overall;
+  const next = addMoney(current, getClaimAmount(claim, price));
+  const over = roundMoney(next - overall);
   return over > 0 ? over : 0;
 };
 
@@ -44,7 +45,7 @@ export const getDistributedPositionAmount = (
 ) =>
   claims.reduce((acc, claim) => {
     if (!claim.participantIds.length) return acc;
-    return acc + getClaimAmount(claim, price);
+    return addMoney(acc, getClaimAmount(claim, price));
   }, 0);
 
 export const isPositionFilled = (
@@ -58,7 +59,7 @@ export const isPositionFilledAndValid = (
 ) => {
   const totalClaims = getDistributedPositionAmount(position.claims, position.price);
   return totalClaims >= position.overall - tolerance && totalClaims <= position.overall + tolerance;
-}
+};
 
 export const comparePositionsByFillState = (
   left: ReceiptPosition,

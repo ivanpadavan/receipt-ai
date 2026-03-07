@@ -6,6 +6,7 @@ import {
 } from "@/model/receipt/model";
 import { receiptSchema } from "@/model/receipt/schema";
 import { t } from "@/app/i18n/translations";
+import { addMoney, multiplyMoney, roundMoney } from "@/app/receipt/utils/money";
 
 const editablePositionBaseSchema = z.object({
   name: z.string().trim().min(1, t("validationNameRequired")),
@@ -31,7 +32,7 @@ const editablePositionBaseSchema = z.object({
 
 export const editablePositionValidationSchema =
   editablePositionBaseSchema.superRefine((value, context) => {
-    const calculatedOverall = value.price * value.quantity;
+    const calculatedOverall = multiplyMoney(value.price, value.quantity);
     if (Math.abs(calculatedOverall - value.overall) > 0.01) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
@@ -77,10 +78,11 @@ export const createEditableTotalsSchema = (receipt: Receipt) =>
       });
     }
 
-    const modifiersDelta =
-      receipt.fees.reduce((acc, fee) => acc + fee.value, 0) -
-      receipt.discounts.reduce((acc, discount) => acc + discount.value, 0);
-    const expectedGrandTotal = value.total + modifiersDelta;
+    const modifiersDelta = roundMoney(
+      receipt.fees.reduce((acc, fee) => addMoney(acc, fee.value), 0) -
+      receipt.discounts.reduce((acc, discount) => addMoney(acc, discount.value), 0),
+    );
+    const expectedGrandTotal = roundMoney(value.total + modifiersDelta);
     if (Math.abs(expectedGrandTotal - value.grandTotal) > 0.01) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
@@ -123,7 +125,7 @@ export const receiptValidationSchema = receiptSchema.superRefine((value: Receipt
 
       const amountClaimsTotal = nonEmptyClaims
         .filter((claim) => claim.type === "amount")
-        .reduce((acc, claim) => acc + claim.value, 0);
+        .reduce((acc, claim) => addMoney(acc, claim.value), 0);
 
       if (amountClaimsTotal - position.overall > 0.01) {
         context.addIssue({

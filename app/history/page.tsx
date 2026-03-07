@@ -6,6 +6,7 @@ import { Receipt } from "@/model/receipt/model";
 import { Card, CardContent } from "@/components/ui/card";
 import { t } from "@/app/i18n/translations";
 import { cn } from "@/utils/cn";
+import { formatMoney } from "@/app/receipt/utils/formatMoney";
 import {
   cardPaddingVariants,
   screenShell,
@@ -130,7 +131,7 @@ export default async function HistoryPage() {
                       <span
                         className={textVariants({ size: "sm", weight: "medium", tone: "brandStrong" })}
                       >
-                        ${totalAmount.toFixed(2)}
+                        {formatMoney(totalAmount)}
                       </span>
                     </div>
                   </Card>

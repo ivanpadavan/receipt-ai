@@ -155,4 +155,30 @@ describe("EditingDialog", () => {
     const saveButton = screen.getByRole("button", { name: "Save" });
     expect(saveButton).toBeDisabled();
   });
+
+  it("recalculates overall with cent-safe precision when quantity changes", () => {
+    render(
+      <EditingDialog
+        {...buildProps({
+          fields: [
+            { key: "name", label: "name", type: "string" as const },
+            { key: "price", label: "price", type: "number" as const },
+            { key: "quantity", label: "quantity", type: "number" as const },
+            { key: "overall", label: "price", type: "number" as const, disabled: true },
+          ],
+          initialValue: {
+            ...basePosition,
+            price: 1620,
+            quantity: 1,
+            overall: 1620,
+          },
+        })}
+      />,
+    );
+
+    const quantityInput = screen.getAllByRole("spinbutton")[1];
+    fireEvent.change(quantityInput, { target: { value: "0.55" } });
+
+    expect(screen.getAllByRole("spinbutton")[2]).toHaveValue(891);
+  });
 });
