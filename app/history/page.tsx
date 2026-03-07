@@ -31,7 +31,18 @@ export default async function HistoryPage() {
   // Fetch the user's receipts from the database
   const receipts = await db.receipt.findMany({
     where: {
-      userId: user.id,
+      OR: [
+        {
+          userId: user.id,
+        },
+        {
+          realParticipants: {
+            some: {
+              userId: user.id,
+            },
+          },
+        },
+      ],
     },
     orderBy: {
       createdAt: "desc",
