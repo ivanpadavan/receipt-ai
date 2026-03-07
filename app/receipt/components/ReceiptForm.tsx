@@ -229,10 +229,10 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
         duration: Infinity,
         closeButton: true,
       });
-      return;
+    } else {
+      toast.dismiss(reviewToastId);
     }
-
-    toast.dismiss(reviewToastId);
+    return () => void toast.dismiss(reviewToastId);
   }, [scenarioType, reviewToastId]);
 
   return (
