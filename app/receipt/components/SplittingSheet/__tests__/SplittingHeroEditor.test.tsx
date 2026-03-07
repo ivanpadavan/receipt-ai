@@ -144,4 +144,30 @@ describe("SplittingHeroEditor", () => {
     expect(maxButton).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
   });
+
+  it("shows participant names in compact pills", () => {
+    render(
+      <SplittingHeroEditor
+        claim={{
+          ...baseClaim,
+          participantIds: ["p-1"],
+        }}
+        claims={[]}
+        price={50}
+        overall={100}
+        participants={[
+          { id: "p-1", displayName: "Anton", color: "#111", kind: "REAL" },
+          { id: "p-2", displayName: "Polina", color: "#222", kind: "REAL" },
+        ]}
+        saveDisabled={false}
+        allParticipantsSelected={false}
+        onUpdate={() => undefined}
+        onCancel={() => undefined}
+        onSave={() => undefined}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: /Anton/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Polina/i })).toBeInTheDocument();
+  });
 });

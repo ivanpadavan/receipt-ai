@@ -30,6 +30,7 @@ import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 import { ActionMenu } from "@/app/receipt/components/ui/ActionMenu";
 import { IconActionGroup } from "@/app/receipt/components/ui/IconActionGroup";
 import { SplittingHeroEditor } from "./SplittingHeroEditor";
+import { prioritizeCurrentUserParticipant } from "./prioritizeCurrentUserParticipant";
 import {
   getFormPathErrorMessage,
   hasFormPathError,
@@ -233,6 +234,10 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
   const participants = useParticipantsStore((store) => store.participants);
   const { user } = useUser();
+  const orderedParticipants = useMemo(
+    () => prioritizeCurrentUserParticipant(participants, user?.id),
+    [participants, user?.id],
+  );
 
   const claimsPath = `${fieldPath}.claims`;
   const hasClaimsError = hasFormPathError(errors, claimsPath);
@@ -259,7 +264,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
     }) as ReceiptPosition,
     onSave,
     currentUser: user,
-    participants,
+    participants: orderedParticipants,
   });
 
   const draftOverage = useMemo(() => {
@@ -279,8 +284,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
   const saveDisabled = !draftClaim || draftClaim.value <= 0 || draftOverage > 0;
   const allParticipantsSelected =
     !!draftClaim &&
-    participants.length > 0 &&
-    draftClaim.participantIds.length === participants.length;
+    orderedParticipants.length > 0 &&
+    draftClaim.participantIds.length === orderedParticipants.length;
 
   const displayedClaims = localPosition.claims.map((claim) => {
     if (activeDraftId === claim.id && draftClaim) {
@@ -302,7 +307,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
             claims={localPosition.claims}
             price={localPosition.price}
             overall={localPosition.overall}
-            participants={participants}
+            participants={orderedParticipants}
             saveDisabled={saveDisabled}
             allParticipantsSelected={allParticipantsSelected}
             onUpdate={updateDraft}
@@ -365,7 +370,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
             key={claim.id}
             claim={claim}
             price={localPosition.price}
-            participants={participants}
+            participants={orderedParticipants}
             active={activeDraftId === claim.id}
             onSelect={() => startEditing(claim)}
             onEdit={() => startEditing(claim)}

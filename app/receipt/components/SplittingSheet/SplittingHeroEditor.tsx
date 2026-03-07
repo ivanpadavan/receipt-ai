@@ -35,12 +35,12 @@ const typeSwitchButtonVariants = cva(
   },
 );
 const participantButtonVariants = cva(
-  `relative ${radiusTokens.full} transition-all`,
+  `border border-transparent bg-white/80 px-2 py-1.5 shadow-sm ${radiusTokens.full} transition-all`,
   {
     variants: {
       selected: {
-        true: "",
-        false: "opacity-50 hover:opacity-80",
+        true: "border-amber-300 bg-amber-100/80",
+        false: "hover:bg-white",
       },
     },
     defaultVariants: {
@@ -301,7 +301,11 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
               <button
                 key={participant.id}
                 type="button"
-                className={participantButtonVariants({ selected })}
+                className={cn(
+                  participantButtonVariants({ selected }),
+                  rowVariants({ align: "center" }),
+                  inlineGapVariants({ size: "sm" }),
+                )}
                 onClick={() => {
                   if (selected) {
                     onUpdate({
@@ -324,6 +328,14 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
                   className={avatarSizeVariants({ size: "sm" })}
                   showRing={selected}
                 />
+                <span
+                  className={cn(
+                    "max-w-28 truncate",
+                    textVariants({ size: "sm", weight: "medium" }),
+                  )}
+                >
+                  {participant.displayName}
+                </span>
               </button>
             );
           })}
