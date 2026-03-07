@@ -1,4 +1,4 @@
-import { receiptAiSchema } from "@/model/receipt/schema";
+import { receiptAiSchema, receiptBusinessSchema } from "@/model/receipt/schema";
 import { Receipt, ReceiptNoId } from "@/model/receipt/model";
 import { NextRequest, NextResponse } from "next/server";
 import { ChatOpenRouter } from "@langchain/openrouter";
@@ -8,7 +8,6 @@ import postValidator from "@/app/api-client/receipt/post";
 import { serverSupabase } from "@/utils/supabase/server";
 import { errorWrap } from "@/app/api/receipt/error-wrap";
 import { getNextColor } from "@/app/receipt/utils/participants";
-import { receiptValidationSchema } from "@/app/receipt/[id]/receiptValidation";
 
 // Edge runtime is not compatible with Prisma, so we need to use the Node.js runtime
 export const runtime = "nodejs";
@@ -118,7 +117,7 @@ export async function POST(req: NextRequest) {
 
     let i = 0;
     while (i < 3) {
-      const validation = receiptValidationSchema.safeParse(result);
+      const validation = receiptBusinessSchema.safeParse(result);
       if (!validation.success) {
         result = await fixErrorsChain.invoke({
           result,

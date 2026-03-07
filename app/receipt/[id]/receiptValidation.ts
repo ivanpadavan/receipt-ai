@@ -1,12 +1,12 @@
 import { z } from "zod";
 import {
   Receipt,
-  calculateGrandTotal,
   calculateTotal,
+  getExpectedReceiptTotals,
 } from "@/model/receipt/model";
 import { receiptSchema } from "@/model/receipt/schema";
 import { t } from "@/app/i18n/translations";
-import { addMoney, multiplyMoney, roundMoney } from "@/app/receipt/utils/money";
+import { addMoney, multiplyMoney } from "@/app/receipt/utils/money";
 
 const editablePositionBaseSchema = z.object({
   name: z.string().trim().min(1, t("validationNameRequired")),
@@ -52,7 +52,7 @@ export const editableModifierSchema = z.object({
     ),
 });
 
-export const editableTotalsSchema = z.object({
+const editableTotalsSchema = z.object({
   total: z
     .number()
     .refine(
@@ -78,11 +78,10 @@ export const createEditableTotalsSchema = (receipt: Receipt) =>
       });
     }
 
-    const modifiersDelta = roundMoney(
-      receipt.fees.reduce((acc, fee) => addMoney(acc, fee.value), 0) -
-      receipt.discounts.reduce((acc, discount) => addMoney(acc, discount.value), 0),
-    );
-    const expectedGrandTotal = roundMoney(value.total + modifiersDelta);
+    const expectedGrandTotal = getExpectedReceiptTotals(
+      receipt,
+      value.total,
+    ).grandTotal;
     if (Math.abs(expectedGrandTotal - value.grandTotal) > 0.01) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
@@ -93,20 +92,6 @@ export const createEditableTotalsSchema = (receipt: Receipt) =>
   });
 
 export const receiptValidationSchema = receiptSchema.superRefine((value: Receipt, context) => {
-    const positionSchema = editablePositionValidationSchema;
-
-    value.positions.forEach((position, index) => {
-      const parsed = positionSchema.safeParse(position);
-      if (parsed.success) return;
-      parsed.error.issues.forEach((issue) => {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["positions", index, ...issue.path],
-          message: issue.message,
-        });
-      });
-    });
-
     value.positions.forEach((position, index) => {
       const nonEmptyClaims = position.claims.filter((claim) => claim.value > 0);
       if (nonEmptyClaims.length === 0) return;
@@ -136,45 +121,4 @@ export const receiptValidationSchema = receiptSchema.superRefine((value: Receipt
       }
     });
 
-    value.fees.forEach((fee, index) => {
-      const parsed = editableModifierSchema.safeParse(fee);
-      if (parsed.success) return;
-      parsed.error.issues.forEach((issue) => {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["fees", index, ...issue.path],
-          message: issue.message,
-        });
-      });
-    });
-
-    value.discounts.forEach((discount, index) => {
-      const parsed = editableModifierSchema.safeParse(discount);
-      if (parsed.success) return;
-      parsed.error.issues.forEach((issue) => {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["discounts", index, ...issue.path],
-          message: issue.message,
-        });
-      });
-    });
-
-    const calculatedTotal = calculateTotal(value.positions);
-    if (Math.abs(calculatedTotal - value.totals.total) > 0.01) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["totals", "total"],
-        message: `${t("validationTotalMismatchPrefix")} ${value.totals.total} ${t("validationTotalMismatchSuffix")} (${calculatedTotal})`,
-      });
-    }
-
-    const calculatedGrandTotal = calculateGrandTotal(value);
-    if (Math.abs(calculatedGrandTotal - value.totals.grandTotal) > 0.01) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["totals", "grandTotal"],
-        message: `${t("validationFinalGrandTotalMismatchPrefix")} ${value.totals.grandTotal} ${t("validationFinalGrandTotalMismatchSuffix")} (${calculatedGrandTotal})`,
-      });
-    }
   });

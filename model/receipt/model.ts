@@ -28,12 +28,40 @@ export function validatePosition(position: ReceiptPositionNoId): string {
  * @param positions Array of receipt positions
  * @returns The sum of all position overall values
  */
-export function calculateTotal(positions: ReceiptPositionNoId[]): number {
+export function calculateTotal<T extends { overall: number }>(
+  positions: T[],
+): number {
   return positions.reduce((sum, position) => addMoney(sum, position.overall), 0);
 }
 
-export function calculateGrandTotal({ totals: { total }, discounts, fees }: ReceiptNoId) {
+export function calculateGrandTotal<
+  T extends {
+    totals: { total: number };
+    discounts: { value: number }[];
+    fees: { value: number }[];
+  },
+>({ totals: { total }, discounts, fees }: T) {
   return roundMoney(total + sumModifiers(fees) - sumModifiers(discounts));
+}
+
+export function getExpectedReceiptTotals<
+  T extends {
+    positions: { overall: number }[];
+    discounts: { value: number }[];
+    fees: { value: number }[];
+  },
+>(
+  { positions, discounts, fees }: T,
+  totalOverride?: number,
+) {
+  const total = totalOverride ?? calculateTotal(positions);
+  const grandTotal = calculateGrandTotal({
+    totals: { total },
+    discounts,
+    fees,
+  });
+
+  return { total, grandTotal };
 }
 
 
@@ -42,6 +70,6 @@ export function calculateGrandTotal({ totals: { total }, discounts, fees }: Rece
  * @param modifiers Array of receipt modifiers
  * @returns The sum of all modifier values
  */
-export function sumModifiers(modifiers: ReceiptModifierNoId[]): number {
+export function sumModifiers<T extends { value: number }>(modifiers: T[]): number {
   return modifiers.reduce((sum, modifier) => addMoney(sum, modifier.value), 0);
 }
