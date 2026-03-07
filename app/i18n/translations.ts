@@ -10,7 +10,7 @@ const ru = {
   total: "Итого:",
   grandTotal: "С учетом скидок и сборов:",
   proceed: "Продолжить",
-  toSplitting: "Распределить",
+  toSplitting: "Изменить",
 
   // Modifiers section titles
   discounts: "Скидки",
@@ -161,7 +161,7 @@ const en: Translations = {
   total: "Total:",
   grandTotal: "Grand Total:",
   proceed: "Proceed",
-  toSplitting: "Split",
+  toSplitting: "Edit",
 
   // Modifiers section titles
   discounts: "Discounts",

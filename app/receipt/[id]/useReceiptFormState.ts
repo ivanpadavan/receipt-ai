@@ -169,7 +169,7 @@ const useSummaryQuery = () => {
   const setSummaryInUrl = useMemo(
     () =>
       (enabled: boolean) => {
-        void setSummaryQuery(enabled ? "1" : null, { history: 'push' });
+        void setSummaryQuery(enabled ? "1" : null, { history: 'push', scroll: true });
       },
     [setSummaryQuery],
   );
