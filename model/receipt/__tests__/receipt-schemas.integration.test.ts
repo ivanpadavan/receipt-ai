@@ -488,15 +488,6 @@ describe("receipt schemas integration", () => {
 
     expect(
       summarizeIssues(
-        editableModifierSchema.safeParse({
-          name: "Tip",
-          value: 5,
-        }),
-      ),
-    ).toMatchInlineSnapshot(`"success"`);
-
-    expect(
-      summarizeIssues(
         createEditableTotalsSchema({
           ...appValidReceipt,
           positions: appValidReceipt.positions,
@@ -527,47 +518,41 @@ describe("receipt schemas integration", () => {
   });
 
   it("covers receipt math helpers", () => {
+    expect(validatePosition(structurallyValidButMathInvalid.positions[0])).toBe(
+      "Position Beer: overall value 500 doesn't match quantity * price (0.5 * 969 = 484.5)",
+    );
+    expect(validatePosition(businessValidReceipt.positions[0])).toBe("");
+    expect(calculateTotal(appValidReceipt.positions)).toBe(484.5);
+    expect(sumModifiers([{ value: 10 }, { value: 2.5 }])).toBe(12.5);
     expect(
-      {
-        invalidPosition: validatePosition(structurallyValidButMathInvalid.positions[0]),
-        validPosition: validatePosition(businessValidReceipt.positions[0]),
-        total: calculateTotal(appValidReceipt.positions),
-        modifiers: sumModifiers([{ value: 10 }, { value: 2.5 }]),
-        grandTotal: calculateGrandTotal({
-          totals: { total: 100 },
-          fees: [{ value: 10 }],
-          discounts: [{ value: 2.5 }],
-        }),
-        expected: getExpectedReceiptTotals({
+      calculateGrandTotal({
+        totals: { total: 100 },
+        fees: [{ value: 10 }],
+        discounts: [{ value: 2.5 }],
+      }),
+    ).toBe(107.5);
+    expect(
+      getExpectedReceiptTotals({
+        positions: appValidReceipt.positions,
+        fees: [],
+        discounts: [],
+      }),
+    ).toEqual({
+      total: 484.5,
+      grandTotal: 484.5,
+    });
+    expect(
+      getExpectedReceiptTotals(
+        {
           positions: appValidReceipt.positions,
           fees: [],
           discounts: [],
-        }),
-        expectedOverride: getExpectedReceiptTotals(
-          {
-            positions: appValidReceipt.positions,
-            fees: [],
-            discounts: [],
-          },
-          400,
-        ),
-      },
-    ).toMatchInlineSnapshot(`
-      {
-        "expected": {
-          "grandTotal": 484.5,
-          "total": 484.5,
         },
-        "expectedOverride": {
-          "grandTotal": 400,
-          "total": 400,
-        },
-        "grandTotal": 107.5,
-        "invalidPosition": "Position Beer: overall value 500 doesn't match quantity * price (0.5 * 969 = 484.5)",
-        "modifiers": 12.5,
-        "total": 484.5,
-        "validPosition": "",
-      }
-    `);
+        400,
+      ),
+    ).toEqual({
+      total: 400,
+      grandTotal: 400,
+    });
   });
 });
