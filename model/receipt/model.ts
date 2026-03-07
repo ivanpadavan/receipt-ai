@@ -1,8 +1,13 @@
 import { z } from "zod";
-import { participantDtoSchema, receiptAiSchema, receiptSchema, receiptWithParticipantsSchema } from "./schema";
-import { addMoney, multiplyMoney, roundMoney } from "@/app/receipt/utils/money";
+import {
+  participantDtoSchema,
+  receiptAiSchema,
+  receiptSchema,
+  receiptWithParticipantsSchema,
+} from "./schema";
+export * from "@/model/receipt/math";
+import { validatePosition } from "@/model/receipt/math";
 
-// Infer TypeScript types from Zod schema
 export type ReceiptModifier = z.infer<typeof receiptSchema>["fees"][number] | z.infer<typeof receiptSchema>["discounts"][number];
 export type ReceiptPosition = z.infer<typeof receiptSchema>["positions"][number];
 export type ReceiptPositionClaim = z.infer<typeof receiptSchema>["positions"][number]["claims"][number];
@@ -12,64 +17,5 @@ export type ReceiptWithParticipants = z.infer<typeof receiptWithParticipantsSche
 export type ParticipantDTO = z.infer<typeof participantDtoSchema>;
 
 // Infer TypeScript types from Zod schema
-export type ReceiptModifierNoId = z.infer<typeof receiptAiSchema>["fees"][number] | z.infer<typeof receiptSchema>["discounts"][number];
-export type ReceiptPositionNoId = z.infer<typeof receiptAiSchema>["positions"][number];
 export type ReceiptNoId = z.infer<typeof receiptAiSchema>;
-
-
-export function validatePosition(position: ReceiptPositionNoId): string {
-  const calculatedOverall = multiplyMoney(position.price, position.quantity);
-  return Math.abs(calculatedOverall - position.overall) > 0.01
-    ? `Position ${position.name}: overall value ${position.overall} doesn't match quantity * price (${position.quantity} * ${position.price} = ${calculatedOverall})` : '';
-}
-
-/**
- * Calculates the sum of all position overall values
- * @param positions Array of receipt positions
- * @returns The sum of all position overall values
- */
-export function calculateTotal<T extends { overall: number }>(
-  positions: T[],
-): number {
-  return positions.reduce((sum, position) => addMoney(sum, position.overall), 0);
-}
-
-export function calculateGrandTotal<
-  T extends {
-    totals: { total: number };
-    discounts: { value: number }[];
-    fees: { value: number }[];
-  },
->({ totals: { total }, discounts, fees }: T) {
-  return roundMoney(total + sumModifiers(fees) - sumModifiers(discounts));
-}
-
-export function getExpectedReceiptTotals<
-  T extends {
-    positions: { overall: number }[];
-    discounts: { value: number }[];
-    fees: { value: number }[];
-  },
->(
-  { positions, discounts, fees }: T,
-  totalOverride?: number,
-) {
-  const total = totalOverride ?? calculateTotal(positions);
-  const grandTotal = calculateGrandTotal({
-    totals: { total },
-    discounts,
-    fees,
-  });
-
-  return { total, grandTotal };
-}
-
-
-/**
- * Calculates the sum of all modifier values
- * @param modifiers Array of receipt modifiers
- * @returns The sum of all modifier values
- */
-export function sumModifiers<T extends { value: number }>(modifiers: T[]): number {
-  return modifiers.reduce((sum, modifier) => addMoney(sum, modifier.value), 0);
-}
+export { validatePosition };
