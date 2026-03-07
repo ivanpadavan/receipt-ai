@@ -11,10 +11,10 @@ export const positionAiSchema = z.object({
   overall: z.number().refine(isPositiveFinite).describe("The total price for this item (quantity * price)"),
 });
 
-const addPositionBusinessIssues = (
+export const addPositionBusinessIssues = (
   value: z.infer<typeof positionAiSchema>,
   context: z.RefinementCtx,
-  pathPrefix: Array<string | number> = [],
+  pathPrefix: (string | number)[] = [],
 ) => {
   const calculatedOverall = multiplyMoney(value.price, value.quantity);
   if (Math.abs(calculatedOverall - value.overall) > 0.01) {
@@ -30,15 +30,18 @@ export const positionSchema = positionAiSchema.superRefine((value, context) => {
   addPositionBusinessIssues(value, context);
 });
 
-const feeModifierSchema = z.object({
+export const modifierSchema = z.object({
   name: z.string().trim().min(1).describe("The name of the modifier (e.g., 'VAT', 'Service Fee', etc)"),
   value: z.number().refine(isPositiveFinite).describe("The value of the modifier (positive)")
 });
 
-const discountModifierSchema = z.object({
-  name: z.string().trim().min(1).describe("The name of the modifier (e.g.'Loyalty Discount' etc)"),
-  value: z.number().refine(isPositiveFinite).describe("The value of the modifier (positive)")
-});
+const feeModifierSchema = modifierSchema.describe(
+  "The name of the modifier (e.g., 'VAT', 'Service Fee', etc)",
+);
+
+const discountModifierSchema = modifierSchema.describe(
+  "The name of the modifier (e.g.'Loyalty Discount' etc)",
+);
 
 export const receiptTotalsSchema = z.object({
   total: z.number().refine(isPositiveFinite).describe("The sum of all item totals before all fees and discounts"),
@@ -59,14 +62,10 @@ export const receiptAiSchema = createReceiptBaseSchema(positionAiSchema).describ
   "Structured data extracted from the receipt",
 );
 
-const addReceiptBusinessIssues = (
-  value: z.infer<typeof receiptAiSchema>,
+export const addReceiptTotalsBusinessIssues = (
+  value: Pick<z.infer<typeof receiptAiSchema>, "positions" | "fees" | "discounts" | "totals">,
   context: z.RefinementCtx,
 ) => {
-  value.positions.forEach((position, index) => {
-    addPositionBusinessIssues(position, context, ["positions", index]);
-  });
-
   const expectedTotals = getExpectedReceiptTotals(value);
   if (Math.abs(expectedTotals.total - value.totals.total) > 0.01) {
     context.addIssue({
@@ -83,6 +82,17 @@ const addReceiptBusinessIssues = (
       message: "Totals.grandTotal must match total + fees - discounts",
     });
   }
+};
+
+const addReceiptBusinessIssues = (
+  value: z.infer<typeof receiptAiSchema>,
+  context: z.RefinementCtx,
+) => {
+  value.positions.forEach((position, index) => {
+    addPositionBusinessIssues(position, context, ["positions", index]);
+  });
+
+  addReceiptTotalsBusinessIssues(value, context);
 };
 
 export const receiptBusinessSchema = receiptAiSchema
@@ -111,8 +121,8 @@ export const receiptSchema = receiptAiSchema
         z.object({ claims: z.array(claimSchema) }),
       ),
     ),
-    fees: z.array(withId(feeModifierSchema)),
-    discounts: z.array(withId(discountModifierSchema)),
+    fees: z.array(withId(modifierSchema)),
+    discounts: z.array(withId(modifierSchema)),
   })
   .superRefine((value, context) => {
     addReceiptBusinessIssues({
