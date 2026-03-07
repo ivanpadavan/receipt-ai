@@ -1,3 +1,4 @@
+import { t } from "@/app/i18n/translations";
 import { multiplyMoney } from "@/app/receipt/utils/money";
 import { getExpectedReceiptTotals } from "@/model/receipt/math";
 import { positionAiSchema, receiptAiSchema } from "@/model/receipt/schema-structural";
@@ -13,7 +14,7 @@ export const addPositionBusinessIssues = (
     context.addIssue({
       code: z.ZodIssueCode.custom,
       path: [...pathPrefix, "overall"],
-      message: "Overall must match quantity * price",
+      message: t("validationOverallMatchesQuantityPrice"),
     });
   }
 };
@@ -27,7 +28,7 @@ export const addReceiptTotalsBusinessIssues = (
     context.addIssue({
       code: z.ZodIssueCode.custom,
       path: ["totals", "total"],
-      message: "Totals.total must match positions overall sum",
+      message: `${t("validationTotalMismatchPrefix")} ${value.totals.total} ${t("validationTotalMismatchSuffix")} (${expectedTotals.total})`,
     });
   }
 
@@ -35,7 +36,7 @@ export const addReceiptTotalsBusinessIssues = (
     context.addIssue({
       code: z.ZodIssueCode.custom,
       path: ["totals", "grandTotal"],
-      message: "Totals.grandTotal must match total + fees - discounts",
+      message: `${t("validationGrandTotalExpectedPrefix")} ${expectedTotals.grandTotal}`,
     });
   }
 };

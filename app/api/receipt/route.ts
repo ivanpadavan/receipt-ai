@@ -7,6 +7,7 @@ import { db } from "@/app/db";
 import postValidator from "@/app/api-client/receipt/post";
 import { serverSupabase } from "@/utils/supabase/server";
 import { errorWrap } from "@/app/api/receipt/error-wrap";
+import { withLanguage } from "@/app/i18n/translations";
 import { getNextColor } from "@/app/receipt/utils/participants";
 
 // Edge runtime is not compatible with Prisma, so we need to use the Node.js runtime
@@ -106,52 +107,54 @@ async function uploadImage(image: string, userId: string) {
  * structured output chain for receipt processing.
  */
 export async function POST(req: NextRequest) {
-  return errorWrap(req, postValidator, async ({ session, body }) => {
-    const userId = session.user.id;
+  return withLanguage("en", () =>
+    errorWrap(req, postValidator, async ({ session, body }) => {
+      const userId = session.user.id;
 
-    // FIXME violates smth
-    const imageUrl = await uploadImage(body.image, userId);
+      // FIXME violates smth
+      const imageUrl = await uploadImage(body.image, userId);
 
-    // Process the image
-    let result = await imageChain.invoke({ image_base64: body.image });
+      // Process the image
+      let result = await imageChain.invoke({ image_base64: body.image });
 
-    let i = 0;
-    while (i < 3) {
-      const validation = receiptBusinessSchema.safeParse(result);
-      if (!validation.success) {
-        result = await fixErrorsChain.invoke({
-          result,
-          errors: validation.error,
-        });
-        i++;
-      } else {
-        break;
+      let i = 0;
+      while (i < 3) {
+        const validation = receiptBusinessSchema.safeParse(result);
+        if (!validation.success) {
+          result = await fixErrorsChain.invoke({
+            result,
+            errors: validation.error,
+          });
+          i++;
+        } else {
+          break;
+        }
       }
-    }
 
-    // Save the receipt to the database
-    const receipt = await db.receipt.create({
-      data: {
-        userId,
-        imageUrl,
-        data: appendIdsAndUser(result), // Store the receipt data as JSON
-      },
-    });
+      // Save the receipt to the database
+      const receipt = await db.receipt.create({
+        data: {
+          userId,
+          imageUrl,
+          data: appendIdsAndUser(result), // Store the receipt data as JSON
+        },
+      });
 
-    await db.receiptUserParticipant.create({
-      data: {
-        receiptId: receipt.id,
-        userId,
-        color: getNextColor([]),
-      },
-    });
+      await db.receiptUserParticipant.create({
+        data: {
+          receiptId: receipt.id,
+          userId,
+          color: getNextColor([]),
+        },
+      });
 
-    // Return the receipt ID instead of the full data
-    return NextResponse.json(
-      {
-        id: receipt.id,
-      },
-      { status: 200 },
-    );
-  });
+      // Return the receipt ID instead of the full data
+      return NextResponse.json(
+        {
+          id: receipt.id,
+        },
+        { status: 200 },
+      );
+    }),
+  );
 }

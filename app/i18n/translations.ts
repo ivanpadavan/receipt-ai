@@ -303,10 +303,28 @@ export const languages = {
   en,
 };
 
-// Current language (could be set based on user preferences or browser settings)
-export const currentLanguage = "ru";
+export type Language = keyof typeof languages;
+
+let currentLanguage: Language = "ru";
+
+export function setLanguage(language: Language) {
+  currentLanguage = language;
+}
+
+export async function withLanguage<T>(
+  language: Language,
+  fn: () => Promise<T> | T,
+): Promise<T> {
+  const previousLanguage = currentLanguage;
+  currentLanguage = language;
+  try {
+    return await fn();
+  } finally {
+    currentLanguage = previousLanguage;
+  }
+}
 
 // Function to get a translation
 export function t(key: keyof Translations): string {
-  return languages[currentLanguage as keyof typeof languages][key] || key;
+  return languages[currentLanguage][key] || key;
 }

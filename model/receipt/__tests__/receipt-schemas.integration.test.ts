@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { withLanguage } from "@/app/i18n/translations";
 import { receiptBusinessSchema } from "@/model/receipt/schema-business";
-import { receiptAiSchema } from "@/model/receipt/schema-structural";
+import {
+  modifierSchema,
+  positionAiSchema,
+  receiptAiSchema,
+  receiptTotalsSchema,
+} from "@/model/receipt/schema-structural";
 import {
   createEditableTotalsSchema,
   editableModifierSchema,
@@ -97,7 +103,7 @@ describe("receipt schemas integration", () => {
     ).toMatchInlineSnapshot(`
       [
         {
-          "message": "Overall must match quantity * price",
+          "message": "Сумма должна совпадать с цена × количество",
           "path": [
             "positions",
             0,
@@ -109,6 +115,115 @@ describe("receipt schemas integration", () => {
     expect(
       summarizeIssues(receiptBusinessSchema.safeParse(businessValidReceipt)),
     ).toMatchInlineSnapshot(`"success"`);
+  });
+
+  it("uses the same business schema with english messages in api context", async () => {
+    await expect(
+      withLanguage("en", () =>
+        summarizeIssues(
+          receiptBusinessSchema.safeParse(structurallyValidButMathInvalid),
+        ),
+      ),
+    ).resolves.toMatchInlineSnapshot(`
+      [
+        {
+          "message": "Overall should match quantity × price",
+          "path": [
+            "positions",
+            0,
+            "overall",
+          ],
+        },
+      ]
+    `);
+  });
+
+  it("validates localized structural field errors", () => {
+    expect(
+      summarizeIssues(
+        positionAiSchema.safeParse({
+          name: "",
+          price: 0,
+          quantity: 0,
+          overall: 0,
+        }),
+      ),
+    ).toMatchInlineSnapshot(`
+      [
+        {
+          "message": "Название не должно быть пустым",
+          "path": [
+            "name",
+          ],
+        },
+        {
+          "message": "Цена должна быть больше 0",
+          "path": [
+            "price",
+          ],
+        },
+        {
+          "message": "Количество должно быть больше 0",
+          "path": [
+            "quantity",
+          ],
+        },
+        {
+          "message": "Сумма должна быть больше 0",
+          "path": [
+            "overall",
+          ],
+        },
+      ]
+    `);
+
+    expect(
+      summarizeIssues(
+        modifierSchema.safeParse({
+          name: "",
+          value: 0,
+        }),
+      ),
+    ).toMatchInlineSnapshot(`
+      [
+        {
+          "message": "Название не должно быть пустым",
+          "path": [
+            "name",
+          ],
+        },
+        {
+          "message": "Значение должно быть больше 0",
+          "path": [
+            "value",
+          ],
+        },
+      ]
+    `);
+
+    expect(
+      summarizeIssues(
+        receiptTotalsSchema.safeParse({
+          total: 0,
+          grandTotal: 0,
+        }),
+      ),
+    ).toMatchInlineSnapshot(`
+      [
+        {
+          "message": "Итог должен быть больше 0",
+          "path": [
+            "total",
+          ],
+        },
+        {
+          "message": "Итог с учетом скидок и сборов должен быть больше 0",
+          "path": [
+            "grandTotal",
+          ],
+        },
+      ]
+    `);
   });
 
   it("requires ids and claims shape at app schema level", () => {
@@ -213,6 +328,44 @@ describe("receipt schemas integration", () => {
   it("reuses shared business validation in editable form schemas", () => {
     expect(
       summarizeIssues(
+        editablePositionValidationSchema.safeParse({
+          name: "",
+          price: 0,
+          quantity: 0,
+          overall: 0,
+        }),
+      ),
+    ).toMatchInlineSnapshot(`
+      [
+        {
+          "message": "Название не должно быть пустым",
+          "path": [
+            "name",
+          ],
+        },
+        {
+          "message": "Цена должна быть больше 0",
+          "path": [
+            "price",
+          ],
+        },
+        {
+          "message": "Количество должно быть больше 0",
+          "path": [
+            "quantity",
+          ],
+        },
+        {
+          "message": "Сумма должна быть больше 0",
+          "path": [
+            "overall",
+          ],
+        },
+      ]
+    `);
+
+    expect(
+      summarizeIssues(
         editablePositionValidationSchema.safeParse(
           structurallyValidButMathInvalid.positions[0],
         ),
@@ -283,7 +436,7 @@ describe("receipt schemas integration", () => {
           ],
         },
         {
-          "message": "С учетом скидок и сборов должно быть 400",
+          "message": "С учетом скидок и сборов должно быть 484.5",
           "path": [
             "grandTotal",
           ],
@@ -329,6 +482,15 @@ describe("receipt schemas integration", () => {
         editableModifierSchema.safeParse({
           name: "Service",
           value: 10,
+        }),
+      ),
+    ).toMatchInlineSnapshot(`"success"`);
+
+    expect(
+      summarizeIssues(
+        editableModifierSchema.safeParse({
+          name: "Tip",
+          value: 5,
         }),
       ),
     ).toMatchInlineSnapshot(`"success"`);
