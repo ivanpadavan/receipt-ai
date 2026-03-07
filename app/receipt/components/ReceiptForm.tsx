@@ -12,6 +12,7 @@ import {
   ReceiptWithParticipants,
 } from "@/model/receipt/model";
 import React, {
+  useCallback,
   createContext,
   useContext,
   useEffect,
@@ -55,6 +56,7 @@ import {
 import { useJoinFlowOverlay } from "@/app/receipt/[id]/join-flow/use-join-flow-overlay";
 import { DistributionBar } from "@/app/receipt/components/ui/DistributionBar";
 import { ReceiptActionBar } from "@/app/receipt/components/ui/ReceiptActionBar";
+import { SearchBar } from "@/app/receipt/components/ui/SearchBar";
 import {
   claimsError,
   divider,
@@ -70,9 +72,7 @@ import {
   dangerToneVariants,
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
-import {
-  sortPositionsForDisplay,
-} from "@/app/receipt/utils/claims";
+import { searchPositionsForDisplay } from "@/app/receipt/utils/search-positions";
 
 interface EditableReceiptFormProps {
   initialData: ReceiptWithParticipants;
@@ -172,7 +172,7 @@ interface ReceiptFormInnerProps {
   receiptId: string;
 }
 
-const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
+export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   receipt,
   participants,
   receiptId,
@@ -188,6 +188,8 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   const formState = useReceiptFormState(receipt, receiptId);
 
   const [participantsModalOpen, setParticipantsModalOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const {
     scenario: { form, canEdit, type: scenarioType },
@@ -213,6 +215,14 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
     control: form.control,
     name: "positions",
   });
+  const displayPositions = useMemo(
+    () =>
+      searchPositionsForDisplay(
+        (positionFields as ReceiptPosition[]) ?? [],
+        searchQuery,
+      ),
+    [positionFields, searchQuery],
+  );
 
   const currentReceipt = useWatch({ control: form.control }) as Receipt;
   const { errors } = form.formState;
@@ -235,6 +245,12 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
     }
     return () => void toast.dismiss(reviewToastId);
   }, [scenarioType, reviewToastId]);
+
+  useEffect(() => {
+    if (scenarioType === "summary") {
+      setIsSearchOpen(false);
+    }
+  }, [scenarioType]);
 
   return (
     <ReceiptFormContext.Provider value={formState}>
@@ -340,9 +356,24 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                 </div>
 
                 <div className={stackGapVariants({ size: "sm" })}>
-                  {sortPositionsForDisplay(
-                    positionFields as ReceiptPosition[],
-                  ).map(({ position: field, originalIndex }) => {
+                  {displayPositions.length === 0 && searchQuery.trim() ? (
+                    <ReceiptCard shadow="sm" radius="2xl">
+                      <CardContent
+                        className={cn(
+                          rowContentPaddingVariants({ density: "regular" }),
+                          textVariants({
+                            size: "2xl",
+                            align: "center",
+                            weight: 'bold'
+                          }),
+                        )}
+                      >
+                        {t("searchNoResults")}
+                      </CardContent>
+                    </ReceiptCard>
+                  ) : null}
+
+                  {displayPositions.map(({ position: field, originalIndex }) => {
                     const hasPriceError = hasFormPathError(
                       errors,
                       `positions.${originalIndex}.price`,
@@ -569,6 +600,9 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
             primaryLabel={primaryLabel}
             participantsCount={participantsCount}
             canProceed={canPrimaryAction}
+            showSearch={scenarioType !== "summary"}
+            isSearchOpen={isSearchOpen}
+            onOpenSearch={() => setIsSearchOpen(true)}
             onOpenParticipants={() => setParticipantsModalOpen(true)}
             onPrimaryAction={scenarioType === "summary" ? goBack : proceed}
             onAddPosition={
@@ -585,6 +619,14 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
               canEdit.modifierForm ? () => openEditModal("addFee") : undefined
             }
           />
+          {scenarioType !== "summary" ? (
+            <SearchBar
+              isOpen={isSearchOpen}
+              searchQuery={searchQuery}
+              onSearchQueryChange={setSearchQuery}
+              onRequestClose={() => setIsSearchOpen(false)}
+            />
+          ) : null}
         </div>
         <DistributionBar
           data={currentReceipt}

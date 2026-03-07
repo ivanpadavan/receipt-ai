@@ -1,0 +1,464 @@
+import React from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { ParticipantsStoreProvider } from "@/app/receipt/store/participants";
+import { Receipt, ReceiptWithParticipants } from "@/model/receipt/model";
+import type { ReactNode } from "react";
+
+const useUserMock = vi.fn();
+const pushMock = vi.fn();
+const setSummaryQueryMock = vi.fn();
+const updateReceiptMock = vi.fn();
+let summaryQueryValue: string | null = null;
+
+vi.mock("@/context/AuthContext", () => ({
+  useUser: () => useUserMock(),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: pushMock,
+  }),
+}));
+
+vi.mock("nuqs", () => ({
+  useQueryState: () => [summaryQueryValue, setSummaryQueryMock],
+}));
+
+vi.mock("sonner", () => ({
+  toast: Object.assign(vi.fn(), {
+    error: vi.fn(),
+    success: vi.fn(),
+    dismiss: vi.fn(),
+  }),
+}));
+
+vi.mock("@/app/api-client", () => ({
+  apiClient: {
+    createReceipt: vi.fn(),
+    updateReceipt: (...args: unknown[]) => updateReceiptMock(...args),
+  },
+}));
+
+vi.mock("@/components/ui/drawer", () => ({
+  Drawer: ({
+    children,
+    open,
+  }: {
+    children: ReactNode;
+    open?: boolean;
+  }) => (open ? <div>{children}</div> : <div />),
+  DrawerContent: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  DrawerHeader: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  DrawerTitle: ({ children }: { children: ReactNode }) => <h2>{children}</h2>,
+  DrawerFooter: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  DrawerClose: ({ children }: { children: ReactNode }) => <>{children}</>,
+}));
+
+const validReceipt: Receipt = {
+  positions: [
+    {
+      id: "pos-milk",
+      name: "Milk",
+      quantity: 1,
+      price: 801,
+      overall: 801,
+      claims: [],
+    },
+    {
+      id: "pos-bread",
+      name: "Bread",
+      quantity: 2,
+      price: 150,
+      overall: 300,
+      claims: [],
+    },
+    {
+      id: "pos-butter",
+      name: "Butter",
+      quantity: 1,
+      price: 220,
+      overall: 220,
+      claims: [],
+    },
+  ],
+  totals: {
+    total: 1321,
+    grandTotal: 1321,
+  },
+  fees: [],
+  discounts: [],
+};
+
+const joinedParticipants: ReceiptWithParticipants["participants"] = [
+  {
+    id: "user-1",
+    displayName: "Ivan",
+    color: "#111111",
+    kind: "REAL",
+    isAnonymous: false,
+    isOnline: true,
+  },
+];
+
+const invalidReceipt: Receipt = {
+  ...validReceipt,
+  totals: {
+    total: 9999,
+    grandTotal: 9999,
+  },
+};
+
+const invalidNameReceipt: Receipt = {
+  ...validReceipt,
+  positions: [
+    {
+      ...validReceipt.positions[0],
+      name: "",
+    },
+    ...validReceipt.positions.slice(1),
+  ],
+};
+
+const overClaimedReceipt: Receipt = {
+  ...validReceipt,
+  positions: [
+    {
+      ...validReceipt.positions[1],
+      claims: [
+        {
+          id: "claim-1",
+          participantIds: ["user-1"],
+          type: "quantity",
+          value: 2,
+        },
+      ],
+    },
+    validReceipt.positions[0],
+    validReceipt.positions[2],
+  ],
+};
+
+async function renderReceiptFormInner({
+  receipt = validReceipt,
+  participants = joinedParticipants,
+}: {
+  receipt?: Receipt;
+  participants?: ReceiptWithParticipants["participants"];
+} = {}) {
+  const { ReceiptFormInner } = await import("@/app/receipt/components/ReceiptForm");
+
+  return render(
+    <ParticipantsStoreProvider initialParticipants={participants}>
+      <ReceiptFormInner
+        receipt={receipt}
+        participants={participants}
+        receiptId="receipt-1"
+      />
+    </ParticipantsStoreProvider>,
+  );
+}
+
+async function renderReceiptFormHarness({
+  receipt = validReceipt,
+  participants = joinedParticipants,
+}: {
+  receipt?: Receipt;
+  participants?: ReceiptWithParticipants["participants"];
+} = {}) {
+  const { ReceiptFormInner } = await import("@/app/receipt/components/ReceiptForm");
+  const controls: { pushReceipt?: (nextReceipt: Receipt) => void } = {};
+
+  const ReceiptFormHarness: React.FC = () => {
+    const [currentReceipt, setCurrentReceipt] = React.useState(receipt);
+    controls.pushReceipt = setCurrentReceipt;
+
+    React.useEffect(() => {
+      updateReceiptMock.mockImplementation(async (_receiptId: string, nextReceipt: Receipt) => {
+        setCurrentReceipt(nextReceipt);
+        return nextReceipt;
+      });
+    }, []);
+
+    return (
+      <ParticipantsStoreProvider initialParticipants={participants}>
+        <ReceiptFormInner
+          receipt={currentReceipt}
+          participants={participants}
+          receiptId="receipt-1"
+        />
+      </ParticipantsStoreProvider>
+    );
+  };
+
+  return {
+    ...render(<ReceiptFormHarness />),
+    pushReceipt: (nextReceipt: Receipt) => controls.pushReceipt?.(nextReceipt),
+  };
+}
+
+function getSearchButton() {
+  return screen.getByRole("button", { name: "Search" });
+}
+
+function getCloseSearchButton() {
+  return screen.getByRole("button", { name: "Close search" });
+}
+
+async function openSearch(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(getSearchButton());
+  return screen.findByRole("textbox");
+}
+
+describe("Receipt flow", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+    summaryQueryValue = null;
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY =
+      "test-publishable-key";
+    useUserMock.mockReturnValue({
+      user: {
+        id: "user-1",
+        user_metadata: {
+          displayName: "Ivan",
+        },
+      },
+    });
+    updateReceiptMock.mockResolvedValue(validReceipt);
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("renders the splitting flow for a joined participant", async () => {
+    // Arrange
+    await renderReceiptFormInner();
+
+    // Act
+    const positions = screen.getAllByRole("button").filter((button) =>
+      ["Milk", "Bread", "Butter"].some((name) =>
+        button.textContent?.includes(name),
+      ),
+    );
+
+    // Assert
+    expect(screen.getByText("Чек")).toBeInTheDocument();
+    expect(positions).toHaveLength(3);
+    expect(screen.getByText("Итого:")).toBeInTheDocument();
+    expect(screen.getByText("С учетом скидок и сборов:")).toBeInTheDocument();
+    expect(getSearchButton()).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Участники" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Готово" })).toBeInTheDocument();
+    expect(screen.queryByText("Настройки")).not.toBeInTheDocument();
+  });
+
+  it("starts invalid receipts in review mode with disabled proceed", async () => {
+    // Arrange
+    await renderReceiptFormInner({ receipt: invalidReceipt });
+
+    // Act
+    const reviewAction = screen.getByRole("button", { name: "Изменить" });
+
+    // Assert
+    expect(screen.getByText("Milk")).toBeInTheDocument();
+    expect(getSearchButton()).toBeInTheDocument();
+    expect(reviewAction).toBeDisabled();
+  });
+
+  it("renders summary mode from the query state and hides search", async () => {
+    // Arrange
+    summaryQueryValue = "1";
+
+    // Act
+    await renderReceiptFormInner();
+
+    // Assert
+    expect(screen.queryByText("Чек")).not.toBeInTheDocument();
+    expect(screen.getByText("Пока нет распределений")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Изменить" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Search" })).not.toBeInTheDocument();
+  });
+
+  it("writes summary query when proceeding from splitting", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner();
+
+    // Act
+    await user.click(screen.getByRole("button", { name: "Готово" }));
+
+    // Assert
+    expect(setSummaryQueryMock).toHaveBeenCalledWith("1", {
+      history: "push",
+      scroll: true,
+    });
+  });
+
+  it("clears summary query when returning from summary", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    summaryQueryValue = "1";
+    await renderReceiptFormInner();
+
+    // Act
+    await user.click(screen.getByRole("button", { name: "Изменить" }));
+
+    // Assert
+    expect(setSummaryQueryMock).toHaveBeenCalledWith(null, {
+      history: "push",
+      scroll: true,
+    });
+  });
+
+  it("filters positions through search", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner();
+
+    // Act
+    const searchInput = await openSearch(user);
+    expect(searchInput).toHaveFocus();
+    await user.type(searchInput, "milk");
+
+    // Assert
+    expect(screen.getByText("Milk")).toBeInTheDocument();
+    expect(screen.queryByText("Bread")).not.toBeInTheDocument();
+    expect(screen.queryByText("Butter")).not.toBeInTheDocument();
+  });
+
+  it("shows empty state for unmatched search while keeping totals visible", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner();
+
+    // Act
+    const searchInput = await openSearch(user);
+    await user.type(searchInput, "zzz");
+
+    // Assert
+    expect(screen.getByText("Ничего не найдено")).toBeInTheDocument();
+    expect(screen.queryByText("Milk")).not.toBeInTheDocument();
+    expect(screen.getByText("Итого:")).toBeInTheDocument();
+    expect(screen.getByText("С учетом скидок и сборов:")).toBeInTheDocument();
+  });
+
+  it("clears the query before closing search", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner();
+    const searchInput = await openSearch(user);
+    await user.type(searchInput, "bread");
+
+    // Act
+    await user.click(getCloseSearchButton());
+
+    // Assert
+    expect(searchInput).toHaveValue("");
+    expect(screen.getByRole("textbox")).toBeInTheDocument();
+    expect(screen.getByText("Milk")).toBeInTheDocument();
+    expect(screen.getByText("Bread")).toBeInTheDocument();
+    expect(screen.getByText("Butter")).toBeInTheDocument();
+  });
+
+  it("closes empty search on blur", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner();
+    const searchInput = await openSearch(user);
+    await user.type(searchInput, "bread");
+    await user.click(getCloseSearchButton());
+
+    // Act
+    await user.click(screen.getByRole("textbox"));
+    await user.tab();
+
+    // Assert
+    await waitFor(() => {
+      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    });
+    expect(getSearchButton()).toBeInTheDocument();
+  });
+
+  it("reopens search when the user taps Search again after blur closes it", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner();
+    const searchInput = await openSearch(user);
+
+    // Act
+    fireEvent.blur(searchInput);
+    await waitFor(() => {
+      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    });
+    await user.click(getSearchButton());
+
+    // Assert
+    expect(screen.getByRole("textbox")).toBeInTheDocument();
+    expect(getSearchButton()).toBeInTheDocument();
+  });
+
+  it("transitions from invalid to valid after editing a position", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const harness = await renderReceiptFormHarness({ receipt: invalidNameReceipt });
+    expect(screen.getByRole("button", { name: "Изменить" })).toBeDisabled();
+
+    // Act
+    await user.click(screen.getAllByRole("button").find((button) =>
+      button.textContent?.includes("801 ₽") && button.textContent?.includes("x")
+    )!);
+
+    const nameInput = await screen.findByDisplayValue("");
+    await user.type(nameInput, "Milk");
+    await user.click(screen.getByRole("button", { name: "Сохранить" }));
+    harness.pushReceipt?.(validReceipt);
+
+    // Assert
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Готово" })).toBeEnabled();
+    });
+    expect(screen.getByText("Milk")).toBeInTheDocument();
+  });
+
+  it("keeps claim error after shrinking a claimed position below distributed quantity", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const harness = await renderReceiptFormHarness({ receipt: overClaimedReceipt });
+
+    const breadRowButton = screen.getAllByRole("button").find((button) =>
+      button.textContent?.includes("Bread")
+    );
+    expect(breadRowButton).toBeDefined();
+
+    // Act
+    await user.click(breadRowButton!);
+    await user.click(screen.getAllByRole("button", { name: "Редактировать" })[0]);
+
+    const quantityInput = screen.getAllByRole("spinbutton")[1];
+    await user.clear(quantityInput);
+    await user.type(quantityInput, "1");
+    await user.click(screen.getByRole("button", { name: "Сохранить" }));
+    harness.pushReceipt?.({
+      ...overClaimedReceipt,
+      positions: [
+        {
+          ...overClaimedReceipt.positions[0],
+          quantity: 1,
+          overall: 150,
+        },
+        overClaimedReceipt.positions[1],
+        overClaimedReceipt.positions[2],
+      ],
+    });
+
+    // Assert
+    expect(
+      await screen.findAllByText("Распределенное количество больше количества позиции"),
+    ).not.toHaveLength(0);
+    expect(screen.getAllByRole("button", { name: "Готово" }).at(-1)).toBeDisabled();
+  });
+});

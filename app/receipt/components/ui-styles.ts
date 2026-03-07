@@ -457,7 +457,7 @@ export const positionRowButtonVariants = cva("", {
 
 // ── Const Styles (shared, multi-consumer) ───────────────
 export const actionBar =
-  `${radiusTokens.action} border border-white/70 bg-white/35 ${shadowTokens.glass} backdrop-blur-2xl`;
+  `${radiusTokens.action} border border-white/70 bg-white/35 ${shadowTokens.glass}`;
 export const primaryAction =
   `${radiusTokens.full} text-base font-semibold ${shadowTokens.orange}`;
 export const sheetShell = "h-[85vh] flex flex-col";

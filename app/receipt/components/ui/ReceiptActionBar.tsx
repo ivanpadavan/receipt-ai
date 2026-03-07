@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useCallback } from "react";
+import { flushSync } from "react-dom";
 import { t, TranslationKey } from "@/app/i18n/translations";
 import { Button } from "@/components/ui/button";
 import { ShareReceiptDialog } from "@/app/receipt/components/ShareReceiptDialog";
@@ -23,6 +24,7 @@ import {
   CirclePlus,
   HandCoins,
   Pencil,
+  Search,
   Users,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
@@ -49,6 +51,9 @@ interface ReceiptActionBarProps {
   primaryLabel: TranslationKey;
   participantsCount: number;
   canProceed: boolean;
+  showSearch?: boolean;
+  isSearchOpen?: boolean;
+  onOpenSearch?: () => void;
   onOpenParticipants: () => void;
   onPrimaryAction: () => void;
   onAddPosition?: () => void;
@@ -61,6 +66,9 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
   primaryLabel,
   participantsCount,
   canProceed,
+  showSearch = false,
+  isSearchOpen = false,
+  onOpenSearch,
   onOpenParticipants,
   onPrimaryAction,
   onAddPosition,
@@ -68,15 +76,25 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
   onAddFee,
 }) => {
   const canEditActions = !!(onAddPosition || onAddDiscount || onAddFee);
+  const handleOpenSearch = useCallback(() => {
+    if (!onOpenSearch) return;
+    flushSync(onOpenSearch);
+  }, [onOpenSearch]);
 
   return (
-    <div className="sticky mb-3 bottom-3 z-10 mx-auto w-full max-w-3xl">
+    <div
+      className={cn(
+        "sticky mb-3 bottom-3 z-10 mx-auto w-full max-w-3xl transition-transform duration-300 ease-out will-change-transform",
+        isSearchOpen ? "translate-y-[calc(100%+1rem)]" : "translate-y-0",
+      )}
+    >
       <div className={cn("w-full", containerPadding)}>
         <div
           className={cn(
             rowVariants({ align: "center", justify: "between", width: "full" }),
             inlineGapVariants({ size: "md" }),
             actionBar,
+            'backdrop-blur-2xl',
             barPadding,
           )}
         >
@@ -189,6 +207,27 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
                             : []),
                         ]}
                       />
+                    ),
+                  },
+                ]
+                : []),
+              ...(showSearch
+                ? [
+                  {
+                    id: "search",
+                    label: t("search"),
+                    render: ({ className }: IconActionRenderProps) => (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleOpenSearch}
+                        aria-label="Search"
+                        title="Search"
+                        className={className}
+                      >
+                        <Search className={iconSizeVariants({ size: "sm" })} />
+                      </Button>
                     ),
                   },
                 ]
