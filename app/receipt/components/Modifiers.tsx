@@ -8,10 +8,10 @@ import { useWatch } from "react-hook-form";
 import { formatMoney } from "@/app/receipt/utils/formatMoney";
 import { hasFormPathError } from "@/app/receipt/utils/hasFormPathError";
 import { cn } from "@/utils/cn";
+import { LabelValueRow } from "@/app/receipt/components/ui/LabelValueRow";
 import {
   interactiveRowVariants,
   modifierValueVariants,
-  rowVariants,
   stackGapVariants,
   textVariants,
 } from "@/app/receipt/components/ui-styles";
@@ -52,11 +52,7 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
               key={item.id}
               type="button"
               className={cn(
-                rowVariants({
-                  align: "center",
-                  justify: "between",
-                  width: "full",
-                }),
+                "w-full",
                 interactiveRowVariants({ interactive: canEdit }),
               )}
               onClick={() =>
@@ -68,20 +64,18 @@ export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
                 })
               }
             >
-              <span className={textVariants({ tone: "muted" })}>
-                {item.name || t("modifierName")}
-              </span>
-              <span
-                className={modifierValueVariants({
+              <LabelValueRow
+                label={item.name || t("modifierName")}
+                value={`${sign} ${formatMoney(item.value)}`}
+                labelClassName={textVariants({ tone: "muted" })}
+                valueClassName={modifierValueVariants({
                   tone: hasValueError
                     ? "danger"
                     : type === "discounts"
                       ? "success"
                       : "default",
                 })}
-              >
-                {sign} {formatMoney(item.value)}
-              </span>
+              />
             </button>
           );
         })}

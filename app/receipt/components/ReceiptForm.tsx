@@ -40,6 +40,7 @@ import { isEqual } from "lodash-es";
 import { FormProvider, useWatch } from "react-hook-form";
 import { CardContent } from "@/components/ui/card";
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
+import { LabelValueRow } from "@/app/receipt/components/ui/LabelValueRow";
 import { toast } from "sonner";
 import { Modifiers } from "@/app/receipt/components/Modifiers";
 import { formatMoney } from "@/app/receipt/utils/formatMoney";
@@ -507,12 +508,7 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       <button
                         type="button"
                         className={cn(
-                          "mt-3",
-                          rowVariants({
-                            align: "center",
-                            justify: "between",
-                            width: "full",
-                          }),
+                          "w-full",
                           interactiveRowVariants({
                             interactive: canEdit.totalsForm,
                           }),
@@ -522,33 +518,25 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                           openEditModal({ type: "totals" })
                         }
                       >
-                        <span
-                          className={textVariants({
+                        <LabelValueRow
+                          label={t("total")}
+                          value={formatMoney(currentReceipt.totals.total)}
+                          labelClassName={textVariants({
                             size: "sm",
                             tone: "muted",
                           })}
-                        >
-                          {t("total")}
-                        </span>
-                        <span
-                          className={dangerToneVariants({
+                          valueClassName={dangerToneVariants({
                             base: "semibold",
                             tone: hasFormPathError(errors, "totals.total")
                               ? "danger"
                               : "default",
                           })}
-                        >
-                          {formatMoney(currentReceipt.totals.total)}
-                        </span>
+                        />
                       </button>
                       <button
                         type="button"
                         className={cn(
-                          rowVariants({
-                            align: "center",
-                            justify: "between",
-                            width: "full",
-                          }),
+                          "w-full",
                           interactiveRowVariants({
                             interactive: canEdit.totalsForm,
                           }),
@@ -558,19 +546,17 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                           openEditModal({ type: "totals" })
                         }
                       >
-                        <span className={textVariants({ weight: "semibold" })}>
-                          {t("grandTotal")}
-                        </span>
-                        <span
-                          className={dangerToneVariants({
+                        <LabelValueRow
+                          label={t("grandTotal")}
+                          value={formatMoney(currentReceipt.totals.grandTotal)}
+                          labelClassName={textVariants({ weight: "semibold" })}
+                          valueClassName={dangerToneVariants({
                             base: "2xlBold",
                             tone: hasFormPathError(errors, "totals.grandTotal")
                               ? "danger"
                               : "default",
                           })}
-                        >
-                          {formatMoney(currentReceipt.totals.grandTotal)}
-                        </span>
+                        />
                       </button>
                     </div>
                   </CardContent>
