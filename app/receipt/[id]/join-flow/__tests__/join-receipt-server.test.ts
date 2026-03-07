@@ -14,6 +14,8 @@ const { dbMock } = vi.hoisted(() => ({
     },
     receiptMockParticipant: {
       findMany: vi.fn(),
+      findUnique: vi.fn(),
+      delete: vi.fn(),
     },
     receipt: {
       update: vi.fn(),
@@ -48,6 +50,9 @@ describe("joinReceiptServer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
+
+  const oldAnonymousUserId = "11111111-1111-4111-8111-111111111111";
+  const newAnonymousUserId = "22222222-2222-4222-8222-222222222222";
 
   it("returns existing participant when already joined", async () => {
     const existing = {
@@ -110,7 +115,7 @@ describe("joinReceiptServer", () => {
               id: "claim-1",
               type: "amount",
               value: 100,
-              participantIds: ["old-anon-user-id"],
+              participantIds: [oldAnonymousUserId],
             },
           ],
         },
@@ -126,10 +131,10 @@ describe("joinReceiptServer", () => {
     dbMock.receiptUserParticipant.findUnique.mockResolvedValue({
       id: "rup-old-anon",
       receiptId: "r-1",
-      userId: "old-anon-user-id",
+      userId: oldAnonymousUserId,
       color: "#F59E0B",
       user: {
-        id: "old-anon-user-id",
+        id: oldAnonymousUserId,
         is_anonymous: true,
         raw_user_meta_data: {
           displayName: "Old Anonymous Name",
@@ -150,10 +155,10 @@ describe("joinReceiptServer", () => {
           .mockResolvedValueOnce({
             id: "rup-old-anon",
             receiptId: "r-1",
-            userId: "old-anon-user-id",
+            userId: oldAnonymousUserId,
             color: "#F59E0B",
             user: {
-              id: "old-anon-user-id",
+              id: oldAnonymousUserId,
               is_anonymous: true,
               raw_user_meta_data: {
                 displayName: "Old Anonymous Name",
@@ -167,7 +172,7 @@ describe("joinReceiptServer", () => {
           .mockResolvedValueOnce({
             id: "rup-old-anon",
             receiptId: "r-1",
-            userId: "new-anon-user-id",
+            userId: newAnonymousUserId,
             color: "#F59E0B",
           }),
       },
@@ -179,14 +184,14 @@ describe("joinReceiptServer", () => {
     const result = await (joinReceiptServer as any)(
       "r-1",
       makeUser({
-        id: "new-anon-user-id",
+        id: newAnonymousUserId,
         isAnonymous: true,
       }),
-      { replaceParticipantId: "old-anon-user-id" },
+      { replaceParticipantId: oldAnonymousUserId },
     );
 
     expect(tx.users.update).toHaveBeenCalledWith({
-      where: { id: "new-anon-user-id" },
+      where: { id: newAnonymousUserId },
       data: {
         raw_user_meta_data: {
           displayName: "Old Anonymous Name",
@@ -195,7 +200,7 @@ describe("joinReceiptServer", () => {
     });
     expect(tx.receiptUserParticipant.update).toHaveBeenCalledWith({
       where: { id: "rup-old-anon" },
-      data: { userId: "new-anon-user-id" },
+      data: { userId: newAnonymousUserId },
     });
     expect(tx.receipt.update).toHaveBeenCalledWith({
       where: { id: "r-1" },
@@ -208,7 +213,7 @@ describe("joinReceiptServer", () => {
               claims: [
                 {
                   ...receiptData.positions[0].claims[0],
-                  participantIds: ["new-anon-user-id"],
+                  participantIds: [newAnonymousUserId],
                 },
               ],
             },
@@ -217,7 +222,380 @@ describe("joinReceiptServer", () => {
       },
     });
     expect(result).toMatchObject({
-      userId: "new-anon-user-id",
+      userId: newAnonymousUserId,
     });
+  });
+
+  it("replaces mock participant and rewrites claim owner ids", async () => {
+    dbMock.receiptUserParticipant.findFirst.mockResolvedValue(null);
+
+    const receiptData: Receipt = {
+      positions: [
+        {
+          id: "pos-1",
+          name: "Item",
+          quantity: 1,
+          price: 100,
+          overall: 100,
+          claims: [
+            {
+              id: "claim-1",
+              type: "amount",
+              value: 100,
+              participantIds: ["mock-1"],
+            },
+          ],
+        },
+      ],
+      fees: [],
+      discounts: [],
+      totals: {
+        total: 100,
+        grandTotal: 100,
+      },
+    };
+
+    const tx = {
+      users: { update: vi.fn().mockResolvedValue({}) },
+      receiptUserParticipant: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue({
+          id: "rup-new",
+          receiptId: "r-1",
+          userId: "new-user-id",
+          color: "#10B981",
+        }),
+      },
+      receiptMockParticipant: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "mock-1",
+          receiptId: "r-1",
+          displayName: "Mock Person",
+          color: "#10B981",
+          receipt: {
+            id: "r-1",
+            data: receiptData,
+          },
+        }),
+        delete: vi.fn().mockResolvedValue({}),
+      },
+      receipt: { update: vi.fn().mockResolvedValue({}) },
+    };
+
+    dbMock.$transaction.mockImplementation(async (cb: any) => cb(tx));
+
+    const result = await (joinReceiptServer as any)(
+      "r-1",
+      makeUser({
+        id: "new-user-id",
+        isAnonymous: true,
+      }),
+      { replaceParticipantId: "mock-1" },
+    );
+
+    expect(tx.users.update).toHaveBeenCalledWith({
+      where: { id: "new-user-id" },
+      data: {
+        raw_user_meta_data: {
+          displayName: "Mock Person",
+        },
+      },
+    });
+    expect(tx.receiptUserParticipant.create).toHaveBeenCalledWith({
+      data: {
+        receiptId: "r-1",
+        userId: "new-user-id",
+        color: "#10B981",
+      },
+    });
+    expect(tx.receipt.update).toHaveBeenCalledWith({
+      where: { id: "r-1" },
+      data: {
+        data: {
+          ...receiptData,
+          positions: [
+            {
+              ...receiptData.positions[0],
+              claims: [
+                {
+                  ...receiptData.positions[0].claims[0],
+                  participantIds: ["new-user-id"],
+                },
+              ],
+            },
+          ],
+        },
+      },
+    });
+    expect(tx.receiptMockParticipant.delete).toHaveBeenCalledWith({
+      where: { id: "mock-1" },
+    });
+    expect(result).toMatchObject({
+      userId: "new-user-id",
+      color: "#10B981",
+    });
+  });
+
+  it("skips offline-anonymous lookup by mock id for non-uuid replaceParticipantId values", async () => {
+    dbMock.receiptUserParticipant.findFirst.mockResolvedValue(null);
+
+    const receiptData: Receipt = {
+      positions: [
+        {
+          id: "pos-1",
+          name: "Item",
+          quantity: 1,
+          price: 100,
+          overall: 100,
+          claims: [
+            {
+              id: "claim-1",
+              type: "amount",
+              value: 100,
+              participantIds: ["cmockparticipant123"],
+            },
+          ],
+        },
+      ],
+      fees: [],
+      discounts: [],
+      totals: {
+        total: 100,
+        grandTotal: 100,
+      },
+    };
+
+    const tx = {
+      users: { update: vi.fn().mockResolvedValue({}) },
+      receiptUserParticipant: {
+        findUnique: vi.fn(),
+        create: vi.fn().mockResolvedValue({
+          id: "rup-new",
+          receiptId: "r-1",
+          userId: "new-user-id",
+          color: "#10B981",
+        }),
+      },
+      receiptMockParticipant: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "cmockparticipant123",
+          receiptId: "r-1",
+          displayName: "Mock Person",
+          color: "#10B981",
+          receipt: {
+            id: "r-1",
+            data: receiptData,
+          },
+        }),
+        delete: vi.fn().mockResolvedValue({}),
+      },
+      receipt: { update: vi.fn().mockResolvedValue({}) },
+    };
+
+    dbMock.$transaction.mockImplementation(async (cb: any) => cb(tx));
+
+    await joinReceiptServer(
+      "r-1",
+      makeUser({
+        id: "new-user-id",
+        displayName: "Current User",
+      }),
+      { replaceParticipantId: "cmockparticipant123" },
+    );
+
+    expect(tx.receiptUserParticipant.findUnique).not.toHaveBeenCalledWith({
+      where: {
+        receiptId_userId: {
+          receiptId: "r-1",
+          userId: "cmockparticipant123",
+        },
+      },
+      include: {
+        user: true,
+        receipt: true,
+      },
+    });
+    expect(tx.receiptMockParticipant.delete).toHaveBeenCalledWith({
+      where: { id: "cmockparticipant123" },
+    });
+  });
+
+  it("prioritizes replace flow over existing participant when replaceParticipantId is provided", async () => {
+    dbMock.receiptUserParticipant.findFirst.mockResolvedValue({
+      id: "rup-existing",
+      receiptId: "r-1",
+      userId: "existing-user-id",
+      color: "#F59E0B",
+    });
+
+    const receiptData: Receipt = {
+      positions: [
+        {
+          id: "pos-1",
+          name: "Item",
+          quantity: 1,
+          price: 100,
+          overall: 100,
+          claims: [
+            {
+              id: "claim-1",
+              type: "amount",
+              value: 100,
+              participantIds: ["mock-1"],
+            },
+          ],
+        },
+      ],
+      fees: [],
+      discounts: [],
+      totals: {
+        total: 100,
+        grandTotal: 100,
+      },
+    };
+
+    const tx = {
+      users: { update: vi.fn().mockResolvedValue({}) },
+      receiptUserParticipant: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue({
+          id: "rup-created",
+          receiptId: "r-1",
+          userId: "existing-user-id",
+          color: "#10B981",
+        }),
+      },
+      receiptMockParticipant: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "mock-1",
+          receiptId: "r-1",
+          displayName: "Mock Person",
+          color: "#10B981",
+          receipt: {
+            id: "r-1",
+            data: receiptData,
+          },
+        }),
+        delete: vi.fn().mockResolvedValue({}),
+      },
+      receipt: { update: vi.fn().mockResolvedValue({}) },
+    };
+
+    dbMock.$transaction.mockImplementation(async (cb: any) => cb(tx));
+
+    await joinReceiptServer(
+      "r-1",
+      makeUser({
+        id: "existing-user-id",
+        displayName: "Existing User",
+      }),
+      { replaceParticipantId: "mock-1" },
+    );
+
+    expect(tx.receiptMockParticipant.delete).toHaveBeenCalledWith({
+      where: { id: "mock-1" },
+    });
+    expect(tx.receipt.update).toHaveBeenCalledWith({
+      where: { id: "r-1" },
+      data: {
+        data: {
+          ...receiptData,
+          positions: [
+            {
+              ...receiptData.positions[0],
+              claims: [
+                {
+                  ...receiptData.positions[0].claims[0],
+                  participantIds: ["existing-user-id"],
+                },
+              ],
+            },
+          ],
+        },
+      },
+    });
+  });
+
+  it("reuses existing participant during mock replacement instead of creating duplicate", async () => {
+    dbMock.receiptUserParticipant.findFirst.mockResolvedValue({
+      id: "rup-existing",
+      receiptId: "r-1",
+      userId: "existing-user-id",
+      color: "#F59E0B",
+    });
+
+    const receiptData: Receipt = {
+      positions: [
+        {
+          id: "pos-1",
+          name: "Item",
+          quantity: 1,
+          price: 100,
+          overall: 100,
+          claims: [
+            {
+              id: "claim-1",
+              type: "amount",
+              value: 100,
+              participantIds: ["mock-1"],
+            },
+          ],
+        },
+      ],
+      fees: [],
+      discounts: [],
+      totals: {
+        total: 100,
+        grandTotal: 100,
+      },
+    };
+
+    const existingParticipant = {
+      id: "rup-existing",
+      receiptId: "r-1",
+      userId: "existing-user-id",
+      color: "#F59E0B",
+    };
+
+    const tx = {
+      users: { update: vi.fn().mockResolvedValue({}) },
+      receiptUserParticipant: {
+        findUnique: vi
+          .fn()
+          .mockResolvedValue(existingParticipant),
+        create: vi.fn(),
+      },
+      receiptMockParticipant: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "mock-1",
+          receiptId: "r-1",
+          displayName: "Mock Person",
+          color: "#10B981",
+          receipt: {
+            id: "r-1",
+            data: receiptData,
+          },
+        }),
+        delete: vi.fn().mockResolvedValue({}),
+      },
+      receipt: { update: vi.fn().mockResolvedValue({}) },
+    };
+
+    dbMock.$transaction.mockImplementation(async (cb: any) => cb(tx));
+
+    const result = await joinReceiptServer(
+      "r-1",
+      makeUser({
+        id: "existing-user-id",
+        displayName: "Existing User",
+      }),
+      { replaceParticipantId: "mock-1" },
+    );
+
+    expect(tx.receiptUserParticipant.create).not.toHaveBeenCalled();
+    expect(tx.receiptMockParticipant.delete).toHaveBeenCalledWith({
+      where: { id: "mock-1" },
+    });
+    expect(result).toBe(existingParticipant);
   });
 });

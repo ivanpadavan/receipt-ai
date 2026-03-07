@@ -27,6 +27,8 @@ import {
 import { t } from "@/app/i18n/translations";
 import { UserPlus, Trash2, MoreVertical } from "lucide-react";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
+import { useUser } from "@/context/AuthContext";
+import { joinReceiptClient } from "@/app/receipt/[id]/join-flow/join-receipt-client";
 import { cn } from "@/utils/cn";
 import {
   rowContentPaddingVariants,
@@ -64,11 +66,13 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
   onClose,
   receiptId,
 }) => {
+  const { user } = useUser();
   const participants = useParticipantsStore((s) => s.participants);
   const setParticipants = useParticipantsStore((s) => s.setParticipants);
 
   const [newParticipantName, setNewParticipantName] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [isClaimingId, setIsClaimingId] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{
     id: string;
     displayName: string;
@@ -116,6 +120,24 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
       displayName: participant.displayName,
       kind: participant.kind,
     });
+  };
+
+  const canClaimParticipant = (participant: ParticipantDTO) =>
+    participant.kind === "MOCK" ||
+    (
+      participant.kind === "REAL" &&
+      participant.isAnonymous &&
+      !participant.isOnline &&
+      participant.id !== user.id
+    );
+
+  const handleClaimParticipant = async (participantId: string) => {
+    setIsClaimingId(participantId);
+    try {
+      await joinReceiptClient(receiptId, { replaceParticipantId: participantId });
+    } finally {
+      setIsClaimingId(null);
+    }
   };
 
   const handleConfirmDelete = async () => {
@@ -218,10 +240,19 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                     triggerLabel={t("edit")}
                     triggerIcon={<MoreVertical className={iconSizeVariants({ size: "sm" })} />}
                     items={[
+                      ...(canClaimParticipant(participant)
+                        ? [
+                            {
+                              id: "claim-self",
+                              label: t("itsMe"),
+                              onSelect: () => void handleClaimParticipant(participant.id),
+                            },
+                          ]
+                        : []),
                       {
                         id: "delete",
                         label: t("delete"),
-                        tone: "danger",
+                        tone: "danger" as const,
                         onSelect: () => handleDeleteClick(participant),
                         icon: (
                           <Trash2

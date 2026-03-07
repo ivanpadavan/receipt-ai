@@ -7,6 +7,9 @@ type JoinReceiptServerOptions = {
   replaceParticipantId?: string;
 };
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 const getDisplayName = (rawMeta: unknown): string | null => {
   if (!rawMeta || typeof rawMeta !== "object") return null;
 
@@ -38,6 +41,10 @@ async function replaceOfflineAnonymousParticipant(
   user: User,
   replaceParticipantId: string,
 ) {
+  if (!UUID_PATTERN.test(replaceParticipantId)) {
+    return null;
+  }
+
   return db.$transaction(async (tx) => {
     const participantToReplace = await tx.receiptUserParticipant.findUnique({
       where: {
@@ -92,18 +99,76 @@ async function replaceOfflineAnonymousParticipant(
   });
 }
 
+async function replaceMockParticipant(
+  receiptId: string,
+  user: User,
+  replaceParticipantId: string,
+) {
+  return db.$transaction(async (tx) => {
+    const participantToReplace = await tx.receiptMockParticipant.findUnique({
+      where: { id: replaceParticipantId },
+      include: { receipt: true },
+    });
+
+    if (!participantToReplace || participantToReplace.receiptId !== receiptId) {
+      return null;
+    }
+
+    if (!user.user_metadata.displayName && participantToReplace.displayName.trim()) {
+      await tx.users.update({
+        where: { id: user.id },
+        data: {
+          raw_user_meta_data: {
+            displayName: participantToReplace.displayName,
+          },
+        },
+      });
+    }
+
+    const receiptData = participantToReplace.receipt.data as Receipt;
+
+    const existingParticipant = await tx.receiptUserParticipant.findUnique({
+      where: {
+        receiptId_userId: {
+          receiptId,
+          userId: user.id,
+        },
+      },
+    });
+
+    const participant = existingParticipant
+      ?? await tx.receiptUserParticipant.create({
+        data: {
+          receiptId,
+          userId: user.id,
+          color: participantToReplace.color,
+        },
+      });
+
+    await tx.receipt.update({
+      where: { id: receiptId },
+      data: {
+        data: replaceClaimParticipantId(
+          receiptData,
+          replaceParticipantId,
+          user.id,
+        ),
+      },
+    });
+
+    await tx.receiptMockParticipant.delete({
+      where: { id: replaceParticipantId },
+    });
+
+    return participant;
+  });
+}
+
 export async function joinReceiptServer(
   receiptId: string,
   user: User,
   options: JoinReceiptServerOptions = {},
 ) {
-  const existing = await db.receiptUserParticipant.findFirst({
-    where: { receiptId, userId: user.id },
-  });
-  if (existing) {
-    return existing;
-  }
-
   if (options.replaceParticipantId) {
     const replacedParticipant = await replaceOfflineAnonymousParticipant(
       receiptId,
@@ -114,6 +179,23 @@ export async function joinReceiptServer(
     if (replacedParticipant) {
       return replacedParticipant;
     }
+
+    const replacedMockParticipant = await replaceMockParticipant(
+      receiptId,
+      user,
+      options.replaceParticipantId,
+    );
+
+    if (replacedMockParticipant) {
+      return replacedMockParticipant;
+    }
+  }
+
+  const existing = await db.receiptUserParticipant.findFirst({
+    where: { receiptId, userId: user.id },
+  });
+  if (existing) {
+    return existing;
   }
 
   if (!user.user_metadata.displayName) {
