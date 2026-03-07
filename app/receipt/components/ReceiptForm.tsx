@@ -293,9 +293,11 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
         <Drawer
           open={participantsModalOpen}
           onClose={() => setParticipantsModalOpen(false)}
+          repositionInputs={false}
         >
           <ParticipantsSheet
             receiptId={receiptId}
+            open={participantsModalOpen}
             onClose={() => setParticipantsModalOpen(false)}
           />
         </Drawer>
@@ -337,145 +339,144 @@ const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                 </div>
 
                 <div className={stackGapVariants({ size: "sm" })}>
-                  {sortPositionsForDisplay(positionFields as ReceiptPosition[])
-                    .map(({ position: field, originalIndex }) => {
-                      const hasPriceError = hasFormPathError(
-                        errors,
-                        `positions.${originalIndex}.price`,
-                      );
-                      const hasQuantityError = hasFormPathError(
-                        errors,
-                        `positions.${originalIndex}.quantity`,
-                      );
-                      const hasOverallError = hasFormPathError(
-                        errors,
-                        `positions.${originalIndex}.overall`,
-                      );
-                      const hasClaimsError = hasFormPathError(
-                        errors,
-                        `positions.${originalIndex}.claims`,
-                      );
-                      const claimsErrorMessage = getFormPathErrorMessage(
-                        errors,
-                        `positions.${originalIndex}.claims`,
-                      );
-                      const hasRowNumberError =
-                        hasPriceError ||
-                        hasQuantityError ||
-                        hasOverallError ||
-                        hasClaimsError;
-                      return (
-                        <ReceiptCard
-                          key={field.id}
-                          shadow={canEdit.positionForm ? "md" : "sm"}
-                          interactive={!!canEdit.positionForm}
-                          radius="2xl"
-                          className="overflow-hidden"
+                  {sortPositionsForDisplay(
+                    positionFields as ReceiptPosition[],
+                  ).map(({ position: field, originalIndex }) => {
+                    const hasPriceError = hasFormPathError(
+                      errors,
+                      `positions.${originalIndex}.price`,
+                    );
+                    const hasQuantityError = hasFormPathError(
+                      errors,
+                      `positions.${originalIndex}.quantity`,
+                    );
+                    const hasOverallError = hasFormPathError(
+                      errors,
+                      `positions.${originalIndex}.overall`,
+                    );
+                    const hasClaimsError = hasFormPathError(
+                      errors,
+                      `positions.${originalIndex}.claims`,
+                    );
+                    const claimsErrorMessage = getFormPathErrorMessage(
+                      errors,
+                      `positions.${originalIndex}.claims`,
+                    );
+                    const hasRowNumberError =
+                      hasPriceError ||
+                      hasQuantityError ||
+                      hasOverallError ||
+                      hasClaimsError;
+                    return (
+                      <ReceiptCard
+                        key={field.id}
+                        shadow={canEdit.positionForm ? "md" : "sm"}
+                        interactive={!!canEdit.positionForm}
+                        radius="2xl"
+                        className="overflow-hidden"
+                      >
+                        <button
+                          type="button"
+                          onClick={() =>
+                            canEdit.positionForm &&
+                            openEditModal({
+                              type: "position",
+                              index: originalIndex,
+                            })
+                          }
+                          className={cn(
+                            "w-full text-left",
+                            positionRowButtonVariants({
+                              interactive: canEdit.positionForm,
+                            }),
+                          )}
                         >
-                          <button
-                            type="button"
-                            onClick={() =>
-                              canEdit.positionForm &&
-                              openEditModal({
-                                type: "position",
-                                index: originalIndex,
-                              })
-                            }
-                            className={cn(
-                              "w-full text-left",
-                              positionRowButtonVariants({
-                                interactive: canEdit.positionForm,
-                              }),
-                            )}
+                          <CardContent
+                            className={rowContentPaddingVariants({
+                              density: "tight",
+                            })}
                           >
-                            <CardContent
-                              className={rowContentPaddingVariants({
-                                density: "tight",
-                              })}
+                            <div
+                              className={cn(
+                                rowVariants({
+                                  align: "center",
+                                  width: "full",
+                                }),
+                                inlineGapVariants({ size: "md" }),
+                                hasRowNumberError ? "text-destructive" : "",
+                              )}
                             >
-                              <div
-                                className={cn(
-                                  rowVariants({
-                                    align: "center",
-                                    width: "full",
-                                  }),
-                                  inlineGapVariants({ size: "md" }),
-                                  hasRowNumberError ? "text-destructive" : "",
-                                )}
-                              >
-                                <div className="min-w-0 flex-1">
-                                  <p
-                                    className={cn(
-                                      "truncate",
-                                      textVariants({ weight: "semibold" }),
-                                    )}
-                                  >
-                                    {field.name}
-                                  </p>
-                                  <p
-                                    className={textVariants({
-                                      size: "xs",
-                                      tone: "muted",
-                                    })}
-                                  >
-                                    <span
-                                      className={dangerToneVariants({
-                                        tone: hasPriceError
-                                          ? "danger"
-                                          : "default",
-                                      })}
-                                    >
-                                      {formatMoney(field.price)}
-                                    </span>{" "}
-                                    x{" "}
-                                    <span
-                                      className={dangerToneVariants({
-                                        tone: hasQuantityError
-                                          ? "danger"
-                                          : "default",
-                                      })}
-                                    >
-                                      {field.quantity}
-                                    </span>
-                                  </p>
-                                </div>
-                                <span
+                              <div className="min-w-0 flex-1">
+                                <p
                                   className={cn(
-                                    pillVariants({
-                                      tone: hasQuantityError
-                                        ? "danger"
-                                        : "neutral",
-                                      radius: "lg",
-                                    }),
+                                    "truncate",
+                                    textVariants({ weight: "semibold" }),
                                   )}
                                 >
-                                  {field.quantity}x
-                                </span>
-                                <span
-                                  className={dangerToneVariants({
-                                    base: "baseSemibold",
-                                    tone: hasOverallError
-                                      ? "danger"
-                                      : "default",
+                                  {field.name}
+                                </p>
+                                <p
+                                  className={textVariants({
+                                    size: "xs",
+                                    tone: "muted",
                                   })}
                                 >
-                                  {formatMoney(field.overall)}
-                                </span>
-                              </div>
-                              <DistributionBar
-                                data={field}
-                                className="mt-2 h-1"
-                              />
-                              {hasClaimsError && claimsErrorMessage && (
-                                <p className={cn("mt-1", claimsError)}>
-                                  {claimsErrorMessage}
+                                  <span
+                                    className={dangerToneVariants({
+                                      tone: hasPriceError
+                                        ? "danger"
+                                        : "default",
+                                    })}
+                                  >
+                                    {formatMoney(field.price)}
+                                  </span>{" "}
+                                  x{" "}
+                                  <span
+                                    className={dangerToneVariants({
+                                      tone: hasQuantityError
+                                        ? "danger"
+                                        : "default",
+                                    })}
+                                  >
+                                    {field.quantity}
+                                  </span>
                                 </p>
-                              )}
-                            </CardContent>
-                          </button>
-                        </ReceiptCard>
-                      );
-                    })}
+                              </div>
+                              <span
+                                className={cn(
+                                  pillVariants({
+                                    tone: hasQuantityError
+                                      ? "danger"
+                                      : "neutral",
+                                    radius: "lg",
+                                  }),
+                                )}
+                              >
+                                {field.quantity}x
+                              </span>
+                              <span
+                                className={dangerToneVariants({
+                                  base: "baseSemibold",
+                                  tone: hasOverallError ? "danger" : "default",
+                                })}
+                              >
+                                {formatMoney(field.overall)}
+                              </span>
+                            </div>
+                            <DistributionBar
+                              data={field}
+                              className="mt-2 h-1"
+                            />
+                            {hasClaimsError && claimsErrorMessage && (
+                              <p className={cn("mt-1", claimsError)}>
+                                {claimsErrorMessage}
+                              </p>
+                            )}
+                          </CardContent>
+                        </button>
+                      </ReceiptCard>
+                    );
+                  })}
                 </div>
 
                 <ReceiptCard

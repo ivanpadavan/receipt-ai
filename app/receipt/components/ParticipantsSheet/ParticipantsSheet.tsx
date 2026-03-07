@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ParticipantDTO } from "@/model/receipt/model";
 import { ParticipantAvatar } from "@/app/receipt/components/ui/participant-avatar";
 import { Button } from "@/components/ui/button";
@@ -59,11 +59,13 @@ const deleteAction = "bg-destructive text-destructive-foreground hover:bg-destru
 
 interface ParticipantsSheetProps {
   onClose?: () => void;
+  open?: boolean;
   receiptId: string;
 }
 
 export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
   onClose,
+  open = true,
   receiptId,
 }) => {
   const { user } = useUser();
@@ -72,7 +74,6 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
 
   const [newParticipantName, setNewParticipantName] = useState("");
   const [isAdding, setIsAdding] = useState(false);
-  const [isClaimingId, setIsClaimingId] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{
     id: string;
     displayName: string;
@@ -86,6 +87,13 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
         p.displayName.trim().toLowerCase() === trimmedNewName.toLowerCase(),
     );
   }, [participants, trimmedNewName]);
+
+  useEffect(() => {
+    if (open) return;
+    setNewParticipantName("");
+    setIsAdding(false);
+    setDeleteConfirm(null);
+  }, [open]);
 
   const handleAddParticipant = async () => {
     if (!trimmedNewName) return;
@@ -132,12 +140,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
     );
 
   const handleClaimParticipant = async (participantId: string) => {
-    setIsClaimingId(participantId);
-    try {
-      await joinReceiptClient(receiptId, { replaceParticipantId: participantId });
-    } finally {
-      setIsClaimingId(null);
-    }
+    await joinReceiptClient(receiptId, { replaceParticipantId: participantId });
   };
 
   const handleConfirmDelete = async () => {
