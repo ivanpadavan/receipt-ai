@@ -8,7 +8,6 @@ import postValidator from "@/app/api-client/receipt/post";
 import { serverSupabase } from "@/utils/supabase/server";
 import { errorWrap } from "@/app/api/receipt/error-wrap";
 import { withLanguage } from "@/app/i18n/translations";
-import { getNextColor } from "@/app/receipt/utils/participants";
 
 // Edge runtime is not compatible with Prisma, so we need to use the Node.js runtime
 export const runtime = "nodejs";
@@ -137,14 +136,6 @@ export async function POST(req: NextRequest) {
           userId,
           imageUrl,
           data: appendIdsAndUser(result), // Store the receipt data as JSON
-        },
-      });
-
-      await db.receiptUserParticipant.create({
-        data: {
-          receiptId: receipt.id,
-          userId,
-          color: getNextColor([]),
         },
       });
 

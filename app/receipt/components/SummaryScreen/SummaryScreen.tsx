@@ -21,7 +21,8 @@ import {
 // ── Summary-scoped styles ──────────────────────
 const summaryHeader = "border-b border-border/30 bg-muted/20 text-center";
 const summaryEmptyState = "py-10";
-const summaryBalanceAmountWrapper = "text-right shrink-0";
+const summaryBalanceAmountWrapper =
+  "text-right shrink-0 flex flex-row items-center gap-1";
 const summaryItemRowPadding = "py-0.5";
 const summaryItemContainerPadding = "mr-2";
 const summaryAmount = "whitespace-nowrap";
@@ -124,20 +125,25 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
                   {participant.displayName}
                 </span>
                 <div className={summaryBalanceAmountWrapper}>
-                  <span
-                    className={textVariants({ size: "xl", weight: "semibold" })}
-                  >
-                    {formatMoney(balance.finalAmount)}
-                  </span>
+                <span
+                  className={textVariants({ size: "xs", tone: "muted" })}
+                >
                   {Math.abs(balance.finalAmount - balance.baseAmount) > 0.1 && (
-                    <span className={textVariants({ size: "xs", tone: "muted" })}>
+                    <>
                       {formatMoneyValue(balance.baseAmount)}{" "}
                       {balance.finalAmount - balance.baseAmount > 0 ? "+" : "−"}{" "}
                       {formatMoneyValue(
                         Math.abs(balance.finalAmount - balance.baseAmount),
                       )}
-                    </span>
+                      {' = '}
+                    </>
                   )}
+                </span>
+                <span
+                  className={textVariants({ size: "xl", weight: "semibold" })}
+                >
+                  {formatMoney(balance.finalAmount)}
+                </span>
                 </div>
               </div>
 

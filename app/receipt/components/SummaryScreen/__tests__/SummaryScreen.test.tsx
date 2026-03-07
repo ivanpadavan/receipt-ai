@@ -129,4 +129,18 @@ describe("SummaryScreen", () => {
     expect(breakdown).toBeInTheDocument();
     expect(breakdown.textContent).toContain("100 + 10");
   });
+
+  it("renders breakdown above the bold final amount", () => {
+    useParticipantsStore.setState({ participants, initialized: true });
+    render(<SummaryScreen receipt={mockReceipt} onBack={() => {}} />);
+
+    const participantCard = screen.getAllByText("Alice").at(-1)?.closest("div");
+    const amountBlock = participantCard?.parentElement?.querySelector(".text-right");
+
+    expect(amountBlock).toBeTruthy();
+    const spans = amountBlock?.querySelectorAll("span");
+    expect(spans).toHaveLength(2);
+    expect(spans?.[0]?.textContent).toContain("100 − 10");
+    expect(spans?.[1]?.textContent).toBe("90 ₽");
+  });
 });
