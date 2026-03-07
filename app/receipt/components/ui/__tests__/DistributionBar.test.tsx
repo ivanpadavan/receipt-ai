@@ -35,8 +35,8 @@ describe("DistributionBar", () => {
 
     render(<DistributionBar data={position} />);
 
-    expect(screen.getByTitle("P1: 112.5")).toBeInTheDocument();
-    expect(screen.getByTitle("P2: 112.5")).toBeInTheDocument();
+    expect(screen.getByTitle("P1: 112.50")).toBeInTheDocument();
+    expect(screen.getByTitle("P2: 112.50")).toBeInTheDocument();
   });
 
   it("keeps claim amounts in cent-safe precision", () => {

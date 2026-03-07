@@ -35,6 +35,7 @@ import {
   hasFormPathError,
 } from "@/app/receipt/utils/hasFormPathError";
 import { getClaimAmount, getClaimOverage } from "@/app/receipt/utils/claims";
+import { formatMoney, formatMoneyValue } from "@/app/receipt/utils/formatMoney";
 import {
   iconLeadSpacingVariants,
   iconSizeVariants,
@@ -122,14 +123,16 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
               )}
             >
               <span className={textVariants({ weight: "semibold" })}>
-                {formatClaimValue(claim.value)}
+                {claim.type === "amount"
+                  ? formatMoneyValue(claim.value)
+                  : formatClaimValue(claim.value)}
               </span>
               <span className={textVariants({ size: "sm", tone: "muted" })}>
                 {claim.type === "amount" ? "₽" : t("pcs")}
               </span>
               {claim.type === "quantity" && (
                 <span className={textVariants({ size: "sm", tone: "muted" })}>
-                  = {formatClaimValue(amount)} ₽
+                  = {formatMoneyValue(amount)} ₽
                 </span>
               )}
             </div>
@@ -311,9 +314,9 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         )) || (
           <div className="flex justify-between items-center">
             <div>
-              {localPosition.quantity} {t("pcs")} × {localPosition.price} ₽ ={" "}
+              {localPosition.quantity} {t("pcs")} × {formatMoney(localPosition.price)} ={" "}
               <span className={textVariants({ weight: "semibold" })}>
-                {localPosition.overall} ₽
+                {formatMoney(localPosition.overall)}
               </span>
             </div>
             <IconActionGroup
@@ -383,7 +386,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
               {t("distributed")}
             </span>
             <span className="font-medium">
-              {totalClaimed.toFixed(0)} / {localPosition.overall} ₽
+              {formatMoneyValue(totalClaimed)} / {formatMoney(localPosition.overall)}
             </span>
           </div>
           <DistributionBar data={effectivePosition} className="h-3" />

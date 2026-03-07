@@ -7,10 +7,7 @@ export const formatMoneyValue = (value: number) => {
     return normalized.toFixed(0);
   }
 
-  return normalized
-    .toFixed(2)
-    .replace(/\.0+$/, "")
-    .replace(/(\.[1-9]*)0+$/, "$1");
+  return normalized.toFixed(2);
 };
 
 export const formatMoney = (value: number) => `${formatMoneyValue(value)} ₽`;

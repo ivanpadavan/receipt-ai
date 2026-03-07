@@ -18,6 +18,7 @@ import {
 import { ParticipantDTO, ReceiptPositionClaim } from "@/model/receipt/model";
 import { cva } from "class-variance-authority";
 import { sumClaims } from "@/app/receipt/utils/claims";
+import { formatMoneyValue } from "@/app/receipt/utils/formatMoney";
 
 // ── SplittingHeroEditor-scoped styles ──────────────
 const typeSwitchWrapper =
@@ -61,7 +62,7 @@ interface SplittingHeroEditorProps {
   onSave: () => void;
 }
 
-const formatClaimValue = (value: number) => {
+const formatQuantityValue = (value: number) => {
   if (Number.isInteger(value)) {
     return value.toFixed(0);
   }
@@ -120,7 +121,11 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
 }) => {
   const preventScrollHackClass = useTransientPreventScrollHack();
   const [rawValue, setRawValue] = useState(
-    claim.value > 0 ? formatClaimValue(claim.value) : "",
+    claim.value > 0
+      ? claim.type === "amount"
+        ? formatMoneyValue(claim.value)
+        : formatQuantityValue(claim.value)
+      : "",
   );
 
   const allParticipantIds = useMemo(
@@ -144,8 +149,14 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
   const isMaxSelected = Math.abs(claim.value - maxValue) <= 0.01;
 
   useEffect(() => {
-    setRawValue(claim.value > 0 ? formatClaimValue(claim.value) : "");
-  }, [claim.id]);
+    setRawValue(
+      claim.value > 0
+        ? claim.type === "amount"
+          ? formatMoneyValue(claim.value)
+          : formatQuantityValue(claim.value)
+        : "",
+    );
+  }, [claim.id, claim.type, claim.value]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -206,7 +217,11 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
             onClick={() => {
               const precision = claim.type === "amount" ? 2 : 6;
               const nextValue = Number.parseFloat(maxValue.toFixed(precision));
-              setRawValue(formatClaimValue(nextValue));
+              setRawValue(
+                claim.type === "amount"
+                  ? formatMoneyValue(nextValue)
+                  : formatQuantityValue(nextValue),
+              );
               onUpdate({ ...claim, value: nextValue });
             }}
           >

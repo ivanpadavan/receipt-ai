@@ -14,14 +14,12 @@ interface DistributionStatusProps {
   distributed: number;
   total: number;
   className?: string;
-  precision?: number;
 }
 
 export const DistributionStatus: React.FC<DistributionStatusProps> = ({
   distributed,
   total,
   className,
-  precision = 2,
 }) => {
   const remaining = total - distributed;
 
@@ -48,7 +46,7 @@ export const DistributionStatus: React.FC<DistributionStatusProps> = ({
         )}
       >
         <XCircle className={iconSizeVariants({ size: "xs" })} />
-        {t("overpaid")}: {precision === 0 ? formatMoneyValue(Math.abs(remaining)) : Math.abs(remaining).toFixed(precision)} ₽
+        {t("overpaid")}: {formatMoneyValue(Math.abs(remaining))} ₽
       </div>
     );
   }
@@ -61,7 +59,7 @@ export const DistributionStatus: React.FC<DistributionStatusProps> = ({
       )}
     >
       <AlertTriangle className={iconSizeVariants({ size: "xs" })} />
-      {t("remaining")}: {precision === 0 ? formatMoneyValue(remaining) : remaining.toFixed(precision)} ₽
+      {t("remaining")}: {formatMoneyValue(remaining)} ₽
     </div>
   );
 };

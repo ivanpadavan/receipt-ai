@@ -81,7 +81,6 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
             <DistributionStatus
               distributed={distributedTotal}
               total={realGrandTotal}
-              precision={0}
             />
           </div>
         )}
