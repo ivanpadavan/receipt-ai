@@ -397,6 +397,21 @@ describe("Receipt flow", () => {
     expect(screen.getByText("Butter")).toBeInTheDocument();
   });
 
+  it("keeps the search input focused when the close button clears a non-empty query", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner();
+    const searchInput = await openSearch(user);
+    await user.type(searchInput, "bread");
+
+    // Act
+    await user.click(getCloseSearchButton());
+
+    // Assert
+    expect(screen.getByRole("textbox")).toHaveFocus();
+    expect(screen.getByRole("textbox")).toHaveValue("");
+  });
+
   it("closes empty search on blur", async () => {
     // Arrange
     const user = userEvent.setup();
@@ -434,7 +449,7 @@ describe("Receipt flow", () => {
     expect(getSearchButton()).toBeInTheDocument();
   });
 
-  it("closes search on Escape while preserving the current filtered state", async () => {
+  it("closes search on Escape and clears the current filtered state", async () => {
     // Arrange
     const user = userEvent.setup();
     await renderReceiptFormInner();
@@ -449,8 +464,8 @@ describe("Receipt flow", () => {
       expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     });
     expect(screen.getByText("Milk")).toBeInTheDocument();
-    expect(screen.queryByText("Bread")).not.toBeInTheDocument();
-    expect(screen.queryByText("Butter")).not.toBeInTheDocument();
+    expect(screen.getByText("Bread")).toBeInTheDocument();
+    expect(screen.getByText("Butter")).toBeInTheDocument();
   });
 
   it("treats whitespace-only search like an empty query", async () => {
@@ -469,7 +484,7 @@ describe("Receipt flow", () => {
     expect(screen.queryByText("Ничего не найдено")).not.toBeInTheDocument();
   });
 
-  it("preserves the active search query when reopening search after Escape", async () => {
+  it("reopens search with an empty query after Escape clears it", async () => {
     // Arrange
     const user = userEvent.setup();
     await renderReceiptFormInner();
@@ -484,9 +499,9 @@ describe("Receipt flow", () => {
     await user.click(getSearchButton());
 
     // Assert
-    expect(await screen.findByDisplayValue("milk")).toBeInTheDocument();
+    expect(await screen.findByDisplayValue("")).toBeInTheDocument();
     expect(screen.getByText("Milk")).toBeInTheDocument();
-    expect(screen.queryByText("Bread")).not.toBeInTheDocument();
+    expect(screen.getByText("Bread")).toBeInTheDocument();
   });
 
   it("keeps the filtered search state when opening splitting sheet", async () => {

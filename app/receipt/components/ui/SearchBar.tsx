@@ -56,7 +56,6 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             {isOpen ? (
               <>
                 <input
-                  ref={inputRef}
                   type="text"
                   value={searchQuery}
                   autoFocus
@@ -70,6 +69,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                   onKeyDown={(event) => {
                     if (event.key === "Escape") {
                       event.preventDefault();
+                      onSearchQueryChange?.("");
                       onRequestClose?.();
                     }
                   }}
@@ -79,6 +79,11 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                   type="button"
                   variant="ghost"
                   size="icon"
+                  onMouseDown={(event) => {
+                    if (searchQuery.trim()) {
+                      event.preventDefault();
+                    }
+                  }}
                   onClick={() => {
                     if (searchQuery.trim() && onSearchQueryChange) {
                       onSearchQueryChange("");
