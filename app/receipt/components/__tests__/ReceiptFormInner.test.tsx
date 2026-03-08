@@ -712,7 +712,7 @@ describe("Receipt flow", () => {
     await expectCurrentScreenshot();
   });
 
-  it("removes an invalid 0/0 position and reaches a valid state after the server confirms deletion", async () => {
+  it("removes an invalid zero-zero position and reaches a valid state after the server confirms deletion", async () => {
     // Arrange
     const user = userEvent.setup();
     const harness = await renderReceiptFormHarness({
@@ -739,7 +739,7 @@ describe("Receipt flow", () => {
     await expectCurrentScreenshot();
   });
 
-  it("does not resurrect a removed invalid 0/0 position when the next server update already reflects the deletion", async () => {
+  it("does not resurrect a removed invalid zero-zero position when the next server update already reflects the deletion", async () => {
     // Arrange
     const user = userEvent.setup();
     const harness = await renderReceiptFormHarness({
@@ -844,28 +844,19 @@ describe("Receipt flow", () => {
     const breadRowButton = screen.getAllByRole("button").find((button) =>
       button.textContent?.includes("Bread")
     );
-    expect(breadRowButton).toBeDefined();
+
+    if (!breadRowButton) {
+      throw new Error('bread row button should be here')
+    }
 
     // Act
-    await user.click(breadRowButton!);
+    await user.click(breadRowButton);
     await user.click(screen.getAllByRole("button", { name: "Редактировать" })[0]);
 
     const quantityInput = screen.getAllByRole("spinbutton")[1];
     await user.clear(quantityInput);
     await user.type(quantityInput, "1");
     await user.click(screen.getByRole("button", { name: "Сохранить" }));
-    harness.pushReceipt?.({
-      ...overClaimedReceipt,
-      positions: [
-        {
-          ...overClaimedReceipt.positions[0],
-          quantity: 1,
-          overall: 150,
-        },
-        overClaimedReceipt.positions[1],
-        overClaimedReceipt.positions[2],
-      ],
-    });
 
     // Assert
     expect(
