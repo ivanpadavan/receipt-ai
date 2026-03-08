@@ -868,5 +868,10 @@ describe("Receipt flow", () => {
         .find((button) => button.hasAttribute("disabled")),
     ).toBeDisabled();
     await expectCurrentScreenshot();
+    await user.keyboard("{Escape}");
+    await waitFor(() => {
+      expect(screen.queryByRole("heading", { name: "Bread" })).not.toBeInTheDocument();
+    });
+    await expectCurrentScreenshot();
   });
 });

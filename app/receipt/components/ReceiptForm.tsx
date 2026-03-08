@@ -45,10 +45,7 @@ import { LabelValueRow } from "@/app/receipt/components/ui/LabelValueRow";
 import { toast } from "sonner";
 import { Modifiers } from "@/app/receipt/components/Modifiers";
 import { formatMoney } from "@/app/receipt/utils/formatMoney";
-import {
-  getFormPathErrorMessage,
-  hasFormPathError,
-} from "@/app/receipt/utils/hasFormPathError";
+import { hasFormPathError } from "@/app/receipt/utils/hasFormPathError";
 import {
   ParticipantsStoreProvider,
   useParticipantsStore,
@@ -58,7 +55,6 @@ import { DistributionBar } from "@/app/receipt/components/ui/DistributionBar";
 import { ReceiptActionBar } from "@/app/receipt/components/ui/ReceiptActionBar";
 import { SearchBar } from "@/app/receipt/components/ui/SearchBar";
 import {
-  claimsError,
   divider,
   interactiveRowVariants,
   pillVariants,
@@ -402,10 +398,6 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       errors,
                       `positions.${originalIndex}.claims`,
                     );
-                    const claimsErrorMessage = getFormPathErrorMessage(
-                      errors,
-                      `positions.${originalIndex}.claims`,
-                    );
                     const hasRowNumberError =
                       hasPriceError ||
                       hasQuantityError ||
@@ -511,11 +503,6 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                               data={field}
                               className="mt-2 h-1"
                             />
-                            {hasClaimsError && claimsErrorMessage && (
-                              <p className={cn("mt-1", claimsError)}>
-                                {claimsErrorMessage}
-                              </p>
-                            )}
                           </CardContent>
                         </button>
                       </ReceiptCard>
