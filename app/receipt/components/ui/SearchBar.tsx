@@ -32,7 +32,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   return createPortal(
     <div
       className={cn(
-        "fixed inset-x-0 top-8 z-40 transition-opacity duration-200",
+        "fixed inset-x-0 top-8 z-[45] transition-opacity duration-200",
         isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0",
       )}
       aria-hidden={!isOpen}
