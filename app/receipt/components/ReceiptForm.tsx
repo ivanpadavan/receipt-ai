@@ -231,9 +231,9 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   const { errors } = form.formState;
   const reviewToastId = `receipt-review-${receiptId}`;
   const primaryLabel: TranslationKey =
-    scenarioType === "splitting"
-      ? "done"
-      : "toSplitting";
+    scenarioType === "summary"
+      ? "toSplitting"
+      : "done";
   const canPrimaryAction = scenarioType === "summary" ? true : canProceed;
 
   useEffect(() => {

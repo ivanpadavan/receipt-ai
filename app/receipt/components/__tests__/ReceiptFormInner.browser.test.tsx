@@ -487,6 +487,21 @@ const receiptWithModifiers: Receipt = {
   },
 };
 
+const invalidReviewReceipt: Receipt = {
+  ...receiptWithModifiers,
+  positions: [
+    {
+      ...validReceipt.positions[0],
+      overall: 999,
+    },
+    ...validReceipt.positions.slice(1),
+  ],
+  totals: {
+    total: 9999,
+    grandTotal: 9999,
+  },
+};
+
 const testUser = {
   id: "user-1",
   app_metadata: {},
@@ -833,13 +848,16 @@ describe("Receipt flow", () => {
 
   it("starts invalid receipts in review mode with disabled proceed", async () => {
     // Arrange
-    await renderReceiptFormInner({ receipt: invalidReceipt });
+    await renderReceiptFormInner({ receipt: invalidReviewReceipt });
 
     // Act
-    const reviewAction = screen.getByRole("button", { name: "Изменить" });
+    const reviewAction = screen.getByRole("button", { name: "Готово" });
 
     // Assert
     expect(screen.getByText("Milk")).toBeInTheDocument();
+    expect(screen.getByText("Delivery")).toBeInTheDocument();
+    expect(screen.getByText("Loyalty")).toBeInTheDocument();
+    expect(screen.getAllByText("999 ₽").length).toBeGreaterThan(0);
     expect(getSearchButton()).toBeInTheDocument();
     expect(reviewAction).toBeDisabled();
     await expectCurrentScreenshot("invalid-review-mode");
@@ -869,10 +887,10 @@ describe("Receipt flow", () => {
 
     // Assert
     expect(screen.getByText("Milk")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Изменить" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Готово" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Search" })).toBeInTheDocument();
     expect(screen.queryByText("Пока нет распределений")).not.toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("summary-invalid-query-fallback");
   });
 
   it("writes summary query when proceeding from splitting", async () => {
@@ -888,7 +906,7 @@ describe("Receipt flow", () => {
       history: "push",
       scroll: true,
     });
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("transition-splitting-primary-action");
   });
 
   it("clears summary query when returning from summary", async () => {
@@ -905,7 +923,7 @@ describe("Receipt flow", () => {
       history: "push",
       scroll: true,
     });
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("transition-summary-primary-action");
   });
 
   it("filters positions through search", async () => {
@@ -958,7 +976,7 @@ describe("Receipt flow", () => {
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(screen.getByText("Bread")).toBeInTheDocument();
     expect(screen.getByText("Butter")).toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("search-query-cleared");
   });
 
   it("keeps the search input focused when the close button clears a non-empty query", async () => {
@@ -974,7 +992,7 @@ describe("Receipt flow", () => {
     // Assert
     expect(screen.getByRole("textbox")).toHaveFocus();
     expect(screen.getByRole("textbox")).toHaveValue("");
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("search-query-cleared-focused");
   });
 
   it("closes empty search on blur", async () => {
@@ -994,7 +1012,7 @@ describe("Receipt flow", () => {
       expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     });
     expect(getSearchButton()).toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("search-closed-on-blur");
   });
 
   it("reopens search when the user taps Search again after blur closes it", async () => {
@@ -1013,7 +1031,7 @@ describe("Receipt flow", () => {
     // Assert
     expect(screen.getByRole("textbox")).toBeInTheDocument();
     expect(getSearchButton()).toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("search-open-empty");
   });
 
   it("closes search on Escape and clears the current filtered state", async () => {
@@ -1033,7 +1051,7 @@ describe("Receipt flow", () => {
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(screen.getByText("Bread")).toBeInTheDocument();
     expect(screen.getByText("Butter")).toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("search-escape-clears-and-closes");
   });
 
   it("treats whitespace-only search like an empty query", async () => {
@@ -1050,7 +1068,7 @@ describe("Receipt flow", () => {
     expect(screen.getByText("Bread")).toBeInTheDocument();
     expect(screen.getByText("Butter")).toBeInTheDocument();
     expect(screen.queryByText("Ничего не найдено")).not.toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("search-whitespace-query");
   });
 
   it("reopens search with an empty query after Escape clears it", async () => {
@@ -1071,7 +1089,7 @@ describe("Receipt flow", () => {
     expect(await screen.findByDisplayValue("")).toBeInTheDocument();
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(screen.getByText("Bread")).toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("search-reopened-after-escape");
   });
 
   it("keeps the filtered search state when opening splitting sheet", async () => {
@@ -1120,7 +1138,7 @@ describe("Receipt flow", () => {
     });
     expect(screen.queryByText("Milk")).not.toBeInTheDocument();
     expect(screen.queryByText("Tea")).not.toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("search-rename-removed-match");
   });
 
   it("adds a position into filtered results when a receipt update renames it to match the query", async () => {
@@ -1151,7 +1169,7 @@ describe("Receipt flow", () => {
     });
     expect(screen.getAllByText("Milk").length).toBeGreaterThan(0);
     expect(screen.queryByText("Butter")).not.toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("search-rename-added-match");
   });
 
   it("opens splitting with a draft editor for a partially distributed position and prioritizes the current user", async () => {
@@ -1218,7 +1236,7 @@ describe("Receipt flow", () => {
 
     // Assert
     expect(input).toHaveValue("1.");
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("splitting-trailing-decimal");
   });
 
   it("converts a leading dot into 0. in the splitting draft editor", async () => {
@@ -1237,7 +1255,7 @@ describe("Receipt flow", () => {
 
     // Assert
     expect(input).toHaveValue("0.");
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("splitting-leading-dot-normalized");
   });
 
   it("opens a new draft editor from add share for a fully distributed position", async () => {
@@ -1259,7 +1277,7 @@ describe("Receipt flow", () => {
         ["Выбрать всех", "Снять всех"].includes(button.textContent?.trim() ?? ""),
       ),
     ).toBe(true);
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("splitting-add-share-draft");
   });
 
   it("saves a new splitting claim from the draft editor", async () => {
@@ -1279,7 +1297,7 @@ describe("Receipt flow", () => {
     // Assert
     expect(screen.queryByRole("button", { name: "Сохранить" })).not.toBeInTheDocument();
     expect(getClaimButtonByText("1шт=150₽")).toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("splitting-claim-created");
   });
 
   it("saves edits for an existing splitting claim", async () => {
@@ -1324,7 +1342,7 @@ describe("Receipt flow", () => {
 
     // Assert
     expect(screen.getByRole("button", { name: "Выбрать всех" })).toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("splitting-select-all-cleared");
   });
 
   it("toggles individual participant selection in the splitting draft editor", async () => {
@@ -1347,7 +1365,7 @@ describe("Receipt flow", () => {
 
     // Assert
     expect(screen.getByRole("button", { name: "Выбрать всех" })).toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("splitting-participant-toggled");
   });
 
   it("recalculates max state when switching a quantity claim to amount", async () => {
@@ -1371,7 +1389,7 @@ describe("Receipt flow", () => {
 
     // Assert
     expect(maxButton).toHaveAttribute("aria-pressed", "false");
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("splitting-quantity-to-amount-switch");
   });
 
   it("applies max value in quantity mode", async () => {
@@ -1392,6 +1410,7 @@ describe("Receipt flow", () => {
       "aria-pressed",
       "true",
     );
+    await expectCurrentScreenshot("splitting-max-quantity");
   });
 
   it("applies max value in amount mode", async () => {
@@ -1413,6 +1432,7 @@ describe("Receipt flow", () => {
       "aria-pressed",
       "true",
     );
+    await expectCurrentScreenshot("splitting-max-amount");
   });
 
   it("disables saving when an amount max becomes invalid after switching to quantity", async () => {
@@ -1474,7 +1494,7 @@ describe("Receipt flow", () => {
     await waitFor(() => {
       expect(screen.queryByRole("heading", { name: "Bread" })).not.toBeInTheDocument();
     });
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("splitting-sheet-closed");
   });
 
   it("keeps the filtered search state when opening participants sheet", async () => {
@@ -1492,7 +1512,7 @@ describe("Receipt flow", () => {
     expect(screen.getByDisplayValue("milk")).toBeInTheDocument();
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(screen.queryByText("Butter")).not.toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("search-over-participants-sheet");
   });
 
   it("opens add position editing from the action bar in validation mode with editable overall", async () => {
@@ -1656,7 +1676,7 @@ describe("Receipt flow", () => {
     });
     expect(screen.queryByText("Сборы:")).not.toBeInTheDocument();
     expect(screen.getByText("Loyalty")).toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("modifiers-fee-deleted");
   });
 
   it("removes an existing discount", async () => {
@@ -1674,7 +1694,7 @@ describe("Receipt flow", () => {
     });
     expect(screen.queryByText("Скидки:")).not.toBeInTheDocument();
     expect(screen.getByText("Delivery")).toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("modifiers-discount-deleted");
   });
 
   it("saves totals edits before the server echo arrives", async () => {
@@ -1696,7 +1716,7 @@ describe("Receipt flow", () => {
     await waitFor(() => {
       expect(screen.getAllByText("1321 ₽").length).toBeGreaterThan(0);
     });
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("validation-totals-optimistic");
   });
 
   it("opens position editing in validation mode with save disabled for an invalid name", async () => {
@@ -1734,7 +1754,7 @@ describe("Receipt flow", () => {
       receipt: invalidZeroPositionReceipt,
       echoReceiptUpdates: false,
     });
-    expect(screen.getByRole("button", { name: "Изменить" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Готово" })).toBeDisabled();
     await expectCurrentScreenshot("zero-zero-before-delete");
 
     // Act
@@ -1779,6 +1799,7 @@ describe("Receipt flow", () => {
     });
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(screen.getByText("Bread")).toBeInTheDocument();
+    await expectCurrentScreenshot("zero-zero-not-resurrected");
   });
 
   it("opens totals editing in validation mode with invalid values prefilled and save disabled", async () => {
@@ -1801,7 +1822,7 @@ describe("Receipt flow", () => {
     // Arrange
     const user = userEvent.setup();
     const harness = await renderReceiptFormHarness({ receipt: invalidReceipt });
-    expect(screen.getByRole("button", { name: "Изменить" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Готово" })).toBeDisabled();
 
     // Act
     await user.click(await findInteractiveButtonByFragments(["Итого:", "9999 ₽"]));
@@ -1827,7 +1848,7 @@ describe("Receipt flow", () => {
     // Arrange
     const user = userEvent.setup();
     const harness = await renderReceiptFormHarness({ receipt: invalidNameReceipt });
-    expect(screen.getByRole("button", { name: "Изменить" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Готово" })).toBeDisabled();
 
     // Act
     await user.click(await findInteractiveButtonByFragments(["801 ₽", "x"]));
@@ -1842,7 +1863,7 @@ describe("Receipt flow", () => {
       expect(screen.getByRole("button", { name: "Готово" })).toBeEnabled();
     });
     expect(screen.getByText("Milk")).toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("validation-position-fixed");
   });
 
   it("keeps claim error after shrinking a claimed position below distributed quantity", async () => {
@@ -1934,7 +1955,7 @@ describe("Receipt flow", () => {
     });
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(screen.queryByText("Пока нет распределений")).not.toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("summary-fallback-to-validation");
   });
 
   it("updates the summary UI after a server receipt update", async () => {
@@ -1957,6 +1978,6 @@ describe("Receipt flow", () => {
     });
     expect(screen.queryByText("Polina")).not.toBeInTheDocument();
     expect(screen.queryByText("Butter")).not.toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("summary-live-update-remaining");
   });
 });

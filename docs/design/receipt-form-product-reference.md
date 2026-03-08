@@ -119,7 +119,7 @@ flowchart TD
 - `positionForm: true`
 - `modifierForm: true`
 - `totalsForm: true`
-- primary action визуально присутствует, но `canProceed = false`, пока форма невалидна
+- primary action показывает `Готово`, но `canProceed = false`, пока форма невалидна
 - `summary` недоступен
 
 Пользовательская логика:
@@ -130,6 +130,7 @@ flowchart TD
 
 Базовый скриншот:
 
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/invalid-review-mode-chromium.png)
 ![invalid-review-mode](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/invalid-review-mode-chromium.png)
 
 ### 4.2. `splitting`
@@ -157,6 +158,7 @@ flowchart TD
 
 Базовый скриншот:
 
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/receipt-overview-chromium.png)
 ![receipt-overview](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/receipt-overview-chromium.png)
 
 ### 4.3. `summary`
@@ -180,13 +182,16 @@ flowchart TD
 
 Базовые скриншоты:
 
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/summary-empty-state-chromium.png)
 ![summary-empty-state](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/summary-empty-state-chromium.png)
 
 <details>
 <summary>Дополнительные `summary`-состояния</summary>
 
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/summary-balances-chromium.png)
 ![summary-balances](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/summary-balances-chromium.png)
 
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/summary-remaining-chromium.png)
 ![summary-remaining](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/summary-remaining-chromium.png)
 
 </details>
@@ -296,7 +301,7 @@ action bar не просто панель кнопок, а главный пер
 **Продуктовый смысл**
 Это canonical working state формы. Если команда обсуждает развитие экрана, именно это состояние должно считаться базовой нормой, от которой измеряются все усложнения.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/receipt-overview-chromium.png)
 ![receipt-overview](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/receipt-overview-chromium.png)
 
 ### 7.2. Открыть чек, который требует ревью
@@ -312,13 +317,13 @@ action bar не просто панель кнопок, а главный пер
 - чек остаётся видимым;
 - позиции не исчезают;
 - search остаётся доступным;
-- primary action визуально присутствует, но disabled;
+- primary action `Готово` визуально присутствует, но disabled;
 - режим не отправляет пользователя на отдельный “экран ошибки”.
 
 **Продуктовый смысл**
 Система не прерывает основной user journey, а встраивает исправление ошибок в тот же экран. Это снижает переключение контекста, но увеличивает плотность логики внутри формы.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/invalid-review-mode-chromium.png)
 ![invalid-review-mode](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/invalid-review-mode-chromium.png)
 
 ---
@@ -367,7 +372,7 @@ Primary action в `summary` вызывает тот же `proceed()`, но те�
 - кнопку возврата в editing;
 - отсутствие search.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/summary-empty-state-chromium.png)
 ![summary-empty-state](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/summary-empty-state-chromium.png)
 
 ### 8.4. Попытаться открыть `summary` для invalid receipt
@@ -381,8 +386,8 @@ URL может содержать `summary=1`, но экран не обязан
 **Почему это важно**
 Это защищает продукт от режима, в котором итоговая витрина показывала бы семантически недостоверные данные.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/summary-invalid-query-fallback-chromium.png)
+![summary-invalid-query-fallback](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/summary-invalid-query-fallback-chromium.png)
 
 ### 8.5. Потерять валидность уже в `summary`
 
@@ -392,8 +397,8 @@ URL может содержать `summary=1`, но экран не обязан
 **Правило**
 Экран автоматически уходит из `summary` назад в рабочий режим исправления.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/summary-fallback-to-validation-chromium.png)
+![summary-fallback-to-validation](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/summary-fallback-to-validation-chromium.png)
 
 <details>
 <summary>Edge cases для transitions</summary>
@@ -428,8 +433,8 @@ URL может содержать `summary=1`, но экран не обязан
 **Продуктовый смысл**
 Поиск не перестраивает страницу, а действует как временный режим фокусировки.
 
-**Скриншот**
-Скриншот открытия поиска без фильтра отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-open-empty-chromium.png)
+![search-open-empty](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-open-empty-chromium.png)
 
 ### 9.2. Найти конкретную позицию
 
@@ -442,7 +447,7 @@ URL может содержать `summary=1`, но экран не обязан
 - totals block продолжает отображаться;
 - позиция остаётся интерактивной.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-filtered-milk-chromium.png)
 ![search-filtered-milk](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-filtered-milk-chromium.png)
 
 ### 9.3. Не найти ничего, но сохранить totals
@@ -459,7 +464,7 @@ URL может содержать `summary=1`, но экран не обязан
 **Продуктовый смысл**
 Поиск работает как фильтр списка, а не как альтернативный экран.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-empty-state-chromium.png)
 ![search-empty-state](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-empty-state-chromium.png)
 
 ### 9.4. Закрыть поиск с непустым запросом
@@ -470,32 +475,32 @@ URL может содержать `summary=1`, но экран не обязан
 **Продуктовый смысл**
 Это двухшаговое закрытие уменьшает риск случайной потери найденного контекста.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-query-cleared-chromium.png)
+![search-query-cleared](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-query-cleared-chromium.png)
 
 ### 9.5. Сохранить фокус после очистки запроса
 
 **Правило**
 Если close-button очищает непустой query, input остаётся в фокусе.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-query-cleared-focused-chromium.png)
+![search-query-cleared-focused](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-query-cleared-focused-chromium.png)
 
 ### 9.6. Закрыть пустой поиск по blur
 
 **Правило**
 Если input пустой, blur закрывает search overlay.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-closed-on-blur-chromium.png)
+![search-closed-on-blur](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-closed-on-blur-chromium.png)
 
 ### 9.7. Повторно открыть поиск после blur
 
 **Правило**
 После закрытия по blur поиск должен открыться снова без застревания в промежуточном состоянии.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-open-empty-chromium.png)
+![search-open-empty](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-open-empty-chromium.png)
 
 ### 9.8. Закрыть поиск по `Escape`
 
@@ -505,24 +510,24 @@ URL может содержать `summary=1`, но экран не обязан
 - search overlay закрывается;
 - список возвращается к полному состоянию.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-escape-clears-and-closes-chromium.png)
+![search-escape-clears-and-closes](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-escape-clears-and-closes-chromium.png)
 
 ### 9.9. Считать whitespace-only query пустым
 
 **Правило**
 Пробелы не должны создавать fake-empty-state.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-whitespace-query-chromium.png)
+![search-whitespace-query](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-whitespace-query-chromium.png)
 
 ### 9.10. Повторно открыть поиск после `Escape`
 
 **Правило**
 После `Escape` пользователь возвращается в пустой search, а не в предыдущее значение.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-reopened-after-escape-chromium.png)
+![search-reopened-after-escape](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-reopened-after-escape-chromium.png)
 
 ### 9.11. Сохранить search context при открытии `SplittingSheet`
 
@@ -536,7 +541,7 @@ URL может содержать `summary=1`, но экран не обязан
 - filtered state сохраняется;
 - невидимые по фильтру позиции не возвращаются.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-over-splitting-sheet-chromium.png)
 ![search-over-splitting-sheet](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-over-splitting-sheet-chromium.png)
 
 ### 9.12. Сохранить search context при открытии participants
@@ -544,8 +549,8 @@ URL может содержать `summary=1`, но экран не обязан
 **Поведение**
 Открытие `ParticipantsSheet` не должно сбрасывать фильтр.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-over-participants-sheet-chromium.png)
+![search-over-participants-sheet](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-over-participants-sheet-chromium.png)
 
 ### 9.13. Перестроить результаты поиска после внешнего rename
 
@@ -558,7 +563,11 @@ URL может содержать `summary=1`, но экран не обязан
 Поиск работает поверх live data, а не поверх frozen snapshot.
 
 **Скриншоты**
-Оба скриншота отсутствуют.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-rename-removed-match-chromium.png)
+![search-rename-removed-match](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-rename-removed-match-chromium.png)
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-rename-added-match-chromium.png)
+![search-rename-added-match](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-rename-added-match-chromium.png)
 
 <details>
 <summary>Edge cases поиска</summary>
@@ -596,7 +605,7 @@ URL может содержать `summary=1`, но экран не обязан
 **Продуктовый смысл**
 Экран отдаёт приоритет продолжению действия, а не чтению истории claims.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-draft-editor-chromium.png)
 ![splitting-draft-editor](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-draft-editor-chromium.png)
 
 ### 10.2. Открыть fully distributed позицию
@@ -611,7 +620,7 @@ URL может содержать `summary=1`, но экран не обязан
 - доступны actions редактирования;
 - показана агрегированная арифметика позиции.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-claims-list-chromium.png)
 ![splitting-claims-list](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-claims-list-chromium.png)
 
 ### 10.3. Ввод числа в draft editor
@@ -625,7 +634,11 @@ URL может содержать `summary=1`, но экран не обязан
 Инпут ведёт себя как tolerant numeric editor, а не как жёсткий parser на каждом keypress.
 
 **Скриншоты**
-Оба сценария без скриншота.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-trailing-decimal-chromium.png)
+![splitting-trailing-decimal](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-trailing-decimal-chromium.png)
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-leading-dot-normalized-chromium.png)
+![splitting-leading-dot-normalized](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-leading-dot-normalized-chromium.png)
 
 ### 10.4. Создать новый draft из fully distributed позиции
 
@@ -638,8 +651,8 @@ URL может содержать `summary=1`, но экран не обязан
 - `Сохранить` initially disabled;
 - доступны actions выбора участников.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-add-share-draft-chromium.png)
+![splitting-add-share-draft](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-add-share-draft-chromium.png)
 
 ### 10.5. Сохранить новую claim
 
@@ -649,15 +662,15 @@ URL может содержать `summary=1`, но экран не обязан
 - claim становится видимой в claims list;
 - строка claim становится новой интерактивной сущностью.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-claim-created-chromium.png)
+![splitting-claim-created](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-claim-created-chromium.png)
 
 ### 10.6. Отредактировать существующую claim
 
 **Поведение**
 После сохранения updated claim отображается в списке без промежуточного зависания в draft state.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-claim-edited-chromium.png)
 ![splitting-claim-edited](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-claim-edited-chromium.png)
 
 ### 10.7. Выбрать всех / снять всех
@@ -665,40 +678,40 @@ URL может содержать `summary=1`, но экран не обязан
 **Продуктовый смысл**
 Это bulk-selection shortcut для draft editor.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-select-all-cleared-chromium.png)
+![splitting-select-all-cleared](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-select-all-cleared-chromium.png)
 
 ### 10.8. Переключать отдельных участников
 
 **Поведение**
 Локальная работа с participant selection не должна ломать bulk actions и draft validity.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-participant-toggled-chromium.png)
+![splitting-participant-toggled](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-participant-toggled-chromium.png)
 
 ### 10.9. `Макс` в quantity mode
 
 **Правило**
 В quantity mode `Макс` заполняет максимальное допустимое количество.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-max-quantity-chromium.png)
+![splitting-max-quantity](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-max-quantity-chromium.png)
 
 ### 10.10. `Макс` в amount mode
 
 **Правило**
 В amount mode `Макс` заполняет максимально допустимую сумму.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-max-amount-chromium.png)
+![splitting-max-amount](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-max-amount-chromium.png)
 
 ### 10.11. Переключение quantity claim в amount
 
 **Поведение**
 При смене единицы пересчитывается состояние `Макс`.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-quantity-to-amount-switch-chromium.png)
+![splitting-quantity-to-amount-switch](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-quantity-to-amount-switch-chromium.png)
 
 ### 10.12. Переключение amount max в quantity с потерей валидности
 
@@ -708,7 +721,7 @@ URL может содержать `summary=1`, но экран не обязан
 **Смысл**
 Форма отказывается сохранять неконсистентный claim даже при том, что пользователь пришёл к нему через валидное промежуточное состояние.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-invalid-max-switch-chromium.png)
 ![splitting-invalid-max-switch](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-invalid-max-switch-chromium.png)
 
 ### 10.13. Удалить существующую claim
@@ -716,7 +729,7 @@ URL может содержать `summary=1`, но экран не обязан
 **Поведение**
 После удаления claim пропадает из списка, без её “призрачного” сохранения в UI.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-claim-deleted-chromium.png)
 ![splitting-claim-deleted](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-claim-deleted-chromium.png)
 
 ### 10.14. Закрыть `SplittingSheet` по `Готово`
@@ -724,8 +737,8 @@ URL может содержать `summary=1`, но экран не обязан
 **Правило**
 Если активного draft нет, sheet можно закрыть без дополнительных действий.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-sheet-closed-chromium.png)
+![splitting-sheet-closed](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/splitting-sheet-closed-chromium.png)
 
 <details>
 <summary>Edge cases распределения</summary>
@@ -750,7 +763,7 @@ URL может содержать `summary=1`, но экран не обязан
 <details>
 <summary>Визуальные пробелы по claims</summary>
 
-Для сценариев `10.4`, `10.5`, `10.7`, `10.8`, `10.9`, `10.10`, `10.11` и `10.14` отдельных baseline-скриншотов пока нет.
+Для ключевых сценариев этого блока baseline теперь есть. Отдельного переходного кадра для смены `splitting`/`summary` всё ещё нет, потому что тесты там фиксируют вызов `proceed()`, а не устойчивое промежуточное UI-состояние.
 
 </details>
 
@@ -769,8 +782,8 @@ URL может содержать `summary=1`, но экран не обязан
 - search context сохраняется, если он был;
 - пользователь остаётся внутри того же большого сценария работы с чеком.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-over-participants-sheet-chromium.png)
+![search-over-participants-sheet](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/search-over-participants-sheet-chromium.png)
 
 ---
 
@@ -784,7 +797,7 @@ URL может содержать `summary=1`, но экран не обязан
 **Смысл**
 Когда чек уже невалиден, пользователь должен иметь право восстановить totals вручную, а не только через derived arithmetic.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/validation-add-position-dialog-chromium.png)
 ![validation-add-position-dialog](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/validation-add-position-dialog-chromium.png)
 
 ### 12.2. Добавить позицию в `splitting`
@@ -795,7 +808,7 @@ URL может содержать `summary=1`, но экран не обязан
 **Продуктовый смысл**
 После достижения рабочего состояния экран минимизирует число независимых degrees of freedom и предпочитает derived totals.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/position-added-chromium.png)
 ![position-added](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/position-added-chromium.png)
 
 ### 12.3. Добавить `fee`
@@ -806,12 +819,12 @@ URL может содержать `summary=1`, но экран не обязан
 - после сохранения появляется блок `Сборы:`;
 - `grandTotal` визуально остаётся частью общего totals narrative.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/modifiers-add-fee-chromium.png)
 ![modifiers-add-fee](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/modifiers-add-fee-chromium.png)
 
 ### 12.4. Добавить `discount`
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/modifiers-add-discount-chromium.png)
 ![modifiers-add-discount](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/modifiers-add-discount-chromium.png)
 
 ---
@@ -820,12 +833,12 @@ URL может содержать `summary=1`, но экран не обязан
 
 ### 13.1. Отредактировать существующий `fee`
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/modifiers-fee-edited-chromium.png)
 ![modifiers-fee-edited](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/modifiers-fee-edited-chromium.png)
 
 ### 13.2. Отредактировать существующий `discount`
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/modifiers-discount-edited-chromium.png)
 ![modifiers-discount-edited](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/modifiers-discount-edited-chromium.png)
 
 ### 13.3. Удалить `fee`
@@ -833,16 +846,16 @@ URL может содержать `summary=1`, но экран не обязан
 **Поведение**
 Если `fees` больше нет, заголовок секции должен исчезнуть.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/modifiers-fee-deleted-chromium.png)
+![modifiers-fee-deleted](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/modifiers-fee-deleted-chromium.png)
 
 ### 13.4. Удалить `discount`
 
 **Поведение**
 Если `discounts` больше нет, заголовок секции должен исчезнуть.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/modifiers-discount-deleted-chromium.png)
+![modifiers-discount-deleted](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/modifiers-discount-deleted-chromium.png)
 
 <details>
 <summary>Edge cases modifiers</summary>
@@ -860,7 +873,7 @@ URL может содержать `summary=1`, но экран не обязан
 <details>
 <summary>Визуальные пробелы по modifiers</summary>
 
-Для удаления `fee` и `discount` отдельных baseline-скриншотов пока нет.
+Ключевые CRUD-состояния по `fee` и `discount` теперь покрыты baseline-скриншотами.
 
 </details>
 
@@ -873,7 +886,7 @@ URL может содержать `summary=1`, но экран не обязан
 **Правило**
 В `validation` totals редактируемы и могут быть invalid уже на входе.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/validation-totals-invalid-dialog-chromium.png)
 ![validation-totals-invalid-dialog](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/validation-totals-invalid-dialog-chromium.png)
 
 ### 14.2. Сохранить totals до server echo
@@ -884,8 +897,8 @@ UI должен немедленно отразить редактировани
 **Продуктовый смысл**
 Это optimistic UX для данных формы, который уменьшает ощущение задержки и укрепляет доверие к действию пользователя.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/validation-totals-optimistic-chromium.png)
+![validation-totals-optimistic](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/validation-totals-optimistic-chromium.png)
 
 ### 14.3. Перевести invalid totals в valid state
 
@@ -896,7 +909,7 @@ UI должен немедленно отразить редактировани
 - primary action разблокируется;
 - пользователь фактически выводится из режима forced review.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/validation-totals-fixed-chromium.png)
 ![validation-totals-fixed](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/validation-totals-fixed-chromium.png)
 
 <details>
@@ -927,7 +940,7 @@ UI должен немедленно отразить редактировани
 **Смысл**
 Экран не прячет проблему, а делает её редактируемой в контексте.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/validation-position-invalid-dialog-chromium.png)
 ![validation-position-invalid-dialog](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/validation-position-invalid-dialog-chromium.png)
 
 ### 15.2. Открыть позицию с overall mismatch
@@ -938,7 +951,7 @@ UI должен немедленно отразить редактировани
 - `Сохранить` disabled до исправления;
 - mismatch подсвечивается как реальная продуктовая проблема, а не как тихая арифметическая неточность.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/validation-position-overall-mismatch-dialog-chromium.png)
 ![validation-position-overall-mismatch-dialog](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/validation-position-overall-mismatch-dialog-chromium.png)
 
 ### 15.3. Исправить позицию и вывести форму в valid state
@@ -948,8 +961,8 @@ UI должен немедленно отразить редактировани
 - после исправления позиции экран становится пригодным к продолжению;
 - primary action разблокируется.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/validation-position-fixed-chromium.png)
+![validation-position-fixed](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/validation-position-fixed-chromium.png)
 
 ---
 
@@ -963,7 +976,7 @@ UI должен немедленно отразить редактировани
 - primary action disabled;
 - позиция видима и удаляема.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/zero-zero-before-delete-chromium.png)
 ![zero-zero-before-delete](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/zero-zero-before-delete-chromium.png)
 
 ### 16.2. Удалить invalid zero-zero position и дождаться valid state
@@ -975,7 +988,7 @@ UI должен немедленно отразить редактировани
 - после подтверждения `Готово` становится enabled;
 - позиция больше не возвращается в UI.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/zero-zero-after-delete-chromium.png)
 ![zero-zero-after-delete](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/zero-zero-after-delete-chromium.png)
 
 ### 16.3. Не resurrect deleted zero-zero position
@@ -983,8 +996,8 @@ UI должен немедленно отразить редактировани
 **Правило**
 Если следующий server update уже отражает удаление, удалённая строка не должна “воскреснуть”.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/zero-zero-not-resurrected-chromium.png)
+![zero-zero-not-resurrected](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/zero-zero-not-resurrected-chromium.png)
 
 <details>
 <summary>Edge cases zero-zero позиции</summary>
@@ -1018,7 +1031,7 @@ UI должен немедленно отразить редактировани
   `Распределенное количество больше количества позиции`;
 - `Готово` остаётся disabled.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/claim-error-sheet-chromium.png)
 ![claim-error-sheet](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/claim-error-sheet-chromium.png)
 
 ### 17.2. Закрыть sheet и сохранить claim error в основном экране
@@ -1026,7 +1039,7 @@ UI должен немедленно отразить редактировани
 **Правило**
 Закрытие `SplittingSheet` не должно “магически” убирать проблему.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/claim-error-after-close-chromium.png)
 ![claim-error-after-close](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/claim-error-after-close-chromium.png)
 
 **Продуктовый смысл**
@@ -1041,7 +1054,7 @@ UI должен немедленно отразить редактировани
 **Цель пользователя**
 Понять не только итог по суммам, но и из чего именно он сложился по людям и позициям.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/summary-balances-chromium.png)
 ![summary-balances](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/summary-balances-chromium.png)
 
 ### 18.2. Показать remaining indicator
@@ -1055,7 +1068,7 @@ UI должен немедленно отразить редактировани
 - нераспределённые части не маскируются как будто их не существует;
 - summary остаётся честной витриной текущего состояния.
 
-**Скриншот**
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/summary-remaining-chromium.png)
 ![summary-remaining](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/summary-remaining-chromium.png)
 
 ### 18.3. Обновить summary после server receipt update
@@ -1063,8 +1076,8 @@ UI должен немедленно отразить редактировани
 **Поведение**
 Summary должен оставаться live representation текущего receipt, а не frozen snapshot.
 
-**Скриншот**
-Скриншот отсутствует.
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/summary-live-update-remaining-chromium.png)
+![summary-live-update-remaining](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/summary-live-update-remaining-chromium.png)
 
 ---
 
@@ -1200,7 +1213,7 @@ Summary должен оставаться live representation текущего r
 | Скриншот | Что фиксирует |
 | --- | --- |
 | `receipt-overview` | canonical working `splitting` state |
-| `invalid-review-mode` | `validation` с disabled primary action |
+| `invalid-review-mode` | `validation` с disabled `Готово` |
 | `summary-empty-state` | `summary` без распределений |
 | `search-filtered-milk` | filtered list |
 | `search-empty-state` | empty search state с сохранением totals |
