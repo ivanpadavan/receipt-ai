@@ -151,6 +151,23 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
     onSave();
   };
 
+  const preventIOsAutoScroll = (ev: React.FocusEvent<HTMLInputElement, HTMLElement>) => {
+    ev.target.style.opacity = "0";
+    setTimeout(() => (ev.target.style.opacity = "1"));
+  };
+
+  const handleIOsDone = (
+    ev: React.FocusEvent<HTMLInputElement, HTMLElement>,
+  ) => {
+    if (ev.relatedTarget === null) {
+      if (saveDisabled) {
+        return;
+      }
+
+      onSave();
+    }
+  };
+
   const editorCard = (
     <ReceiptCard
       tone="warm"
@@ -170,10 +187,8 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
             type="text"
             inputMode="decimal"
             enterKeyHint="done"
-            onFocus={(ev) => {
-              ev.target.style.opacity = '0';
-              setTimeout(() => (ev.target.style.opacity = '1'));
-            }}
+            onFocus={preventIOsAutoScroll}
+            onBlur={handleIOsDone}
             className={cn(
               "h-16 min-w-0 flex-1 border-0 bg-transparent px-0 text-center text-5xl font-semibold tabular-nums shadow-none focus-visible:ring-0",
             )}
