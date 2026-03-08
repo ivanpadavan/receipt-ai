@@ -25,10 +25,10 @@ function readGitCommitHash() {
 
 const hawkRelease = readGitCommitHash();
 const hawkIntegrationToken = process.env.NEXT_PUBLIC_HAWK_INTEGRATION_TOKEN;
-type WebpackConfigShape = {
+interface WebpackConfigShape {
   devtool?: string;
   plugins?: unknown[];
-};
+}
 
 const nextConfig: NextConfig = withBundleAnalyzer({
   output: "standalone",
@@ -41,6 +41,11 @@ const nextConfig: NextConfig = withBundleAnalyzer({
     config: WebpackConfigShape,
     { dev, isServer }: { dev: boolean; isServer: boolean },
   ) => {
+    console.log({
+      hawkRelease,
+      hawkIntegrationToken,
+      dev, isServer
+    });
     if (!dev && !isServer && hawkIntegrationToken && hawkRelease) {
       config.devtool = "source-map";
       config.plugins = config.plugins ?? [];
