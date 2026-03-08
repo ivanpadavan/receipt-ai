@@ -293,6 +293,9 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
           {editingModalProps?.view === "editing" && (
             <DialogContent
               className="sm:max-w-xl"
+              onOpenAutoFocus={(event) => {
+                event.preventDefault();
+              }}
               onAnimationEnd={(e) => {
                 const state = (e.currentTarget as HTMLElement).getAttribute(
                   "data-state",
