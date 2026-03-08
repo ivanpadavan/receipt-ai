@@ -4,6 +4,10 @@ FROM node:24-alpine AS builder
 # Set working directory
 WORKDIR /app
 
+# Prisma config requires DATABASE_URL even for client generation during build.
+ARG DATABASE_URL
+ENV DATABASE_URL=${DATABASE_URL}
+
 # Install pnpm
 RUN npm install -g pnpm@10.25.0
 
