@@ -11,13 +11,13 @@ RUN npm install -g pnpm@10.25.0
 COPY package.json pnpm-lock.yaml ./
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy the rest of the application code
 COPY . .
 
-# Generate Prisma client
-RUN pnpm prisma generate
+# Run lifecycle scripts after the full project context is available
+RUN pnpm rebuild
 
 # Build the Next.js application
 RUN pnpm build
