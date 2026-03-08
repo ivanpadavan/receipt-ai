@@ -1,6 +1,6 @@
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ParticipantsStoreProvider } from "@/app/receipt/store/participants";
 import { Receipt, ReceiptWithParticipants } from "@/model/receipt/model";
@@ -121,6 +121,21 @@ const invalidNameReceipt: Receipt = {
   ],
 };
 
+const invalidZeroPositionReceipt: Receipt = {
+  ...validReceipt,
+  positions: [
+    {
+      id: "pos-zero",
+      name: "",
+      quantity: 0,
+      price: 0,
+      overall: 0,
+      claims: [],
+    },
+    ...validReceipt.positions,
+  ],
+};
+
 const overClaimedReceipt: Receipt = {
   ...validReceipt,
   positions: [
@@ -163,9 +178,11 @@ async function renderReceiptFormInner({
 async function renderReceiptFormHarness({
   receipt = validReceipt,
   participants = joinedParticipants,
+  echoReceiptUpdates = true,
 }: {
   receipt?: Receipt;
   participants?: ReceiptWithParticipants["participants"];
+  echoReceiptUpdates?: boolean;
 } = {}) {
   const { ReceiptFormInner } = await import("@/app/receipt/components/ReceiptForm");
   const controls: { pushReceipt?: (nextReceipt: Receipt) => void } = {};
@@ -176,7 +193,9 @@ async function renderReceiptFormHarness({
 
     React.useEffect(() => {
       updateReceiptMock.mockImplementation(async (_receiptId: string, nextReceipt: Receipt) => {
-        setCurrentReceipt(nextReceipt);
+        if (echoReceiptUpdates) {
+          setCurrentReceipt(nextReceipt);
+        }
         return nextReceipt;
       });
     }, []);
@@ -204,6 +223,20 @@ function getSearchButton() {
 
 function getCloseSearchButton() {
   return screen.getByRole("button", { name: "Close search" });
+}
+
+function getPositionButtonByText(fragment: string) {
+  return screen.getAllByRole("button").find((button) =>
+    button.textContent?.includes(fragment),
+  );
+}
+
+function getZeroPositionButton() {
+  return screen.getAllByRole("button").find(
+    (button) =>
+      button.textContent?.includes("0 ₽") &&
+      button.textContent?.includes("0x"),
+  );
 }
 
 async function openSearch(user: ReturnType<typeof userEvent.setup>) {
@@ -399,6 +432,268 @@ describe("Receipt flow", () => {
     // Assert
     expect(screen.getByRole("textbox")).toBeInTheDocument();
     expect(getSearchButton()).toBeInTheDocument();
+  });
+
+  it("closes search on Escape while preserving the current filtered state", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner();
+    const searchInput = await openSearch(user);
+    await user.type(searchInput, "milk");
+
+    // Act
+    await user.keyboard("{Escape}");
+
+    // Assert
+    await waitFor(() => {
+      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    });
+    expect(screen.getByText("Milk")).toBeInTheDocument();
+    expect(screen.queryByText("Bread")).not.toBeInTheDocument();
+    expect(screen.queryByText("Butter")).not.toBeInTheDocument();
+  });
+
+  it("treats whitespace-only search like an empty query", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner();
+
+    // Act
+    const searchInput = await openSearch(user);
+    await user.type(searchInput, "   ");
+
+    // Assert
+    expect(screen.getByText("Milk")).toBeInTheDocument();
+    expect(screen.getByText("Bread")).toBeInTheDocument();
+    expect(screen.getByText("Butter")).toBeInTheDocument();
+    expect(screen.queryByText("Ничего не найдено")).not.toBeInTheDocument();
+  });
+
+  it("preserves the active search query when reopening search after Escape", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner();
+    const searchInput = await openSearch(user);
+    await user.type(searchInput, "milk");
+
+    // Act
+    await user.keyboard("{Escape}");
+    await waitFor(() => {
+      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    });
+    await user.click(getSearchButton());
+
+    // Assert
+    expect(await screen.findByDisplayValue("milk")).toBeInTheDocument();
+    expect(screen.getByText("Milk")).toBeInTheDocument();
+    expect(screen.queryByText("Bread")).not.toBeInTheDocument();
+  });
+
+  it("keeps the filtered search state when opening splitting sheet", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner();
+    const searchInput = await openSearch(user);
+    await user.type(searchInput, "milk");
+
+    // Act
+    await user.click(screen.getAllByRole("button").find((button) =>
+      button.textContent?.includes("Milk") && button.textContent?.includes("801 ₽")
+    )!);
+
+    // Assert
+    expect(screen.getByRole("heading", { name: "Milk" })).toBeInTheDocument();
+    expect(screen.getByDisplayValue("milk")).toBeInTheDocument();
+    expect(screen.getAllByText("Milk").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Bread")).not.toBeInTheDocument();
+  });
+
+  it("removes a position from filtered results when a receipt update renames it away from the query", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const harness = await renderReceiptFormHarness();
+    const searchInput = await openSearch(user);
+    await user.type(searchInput, "milk");
+
+    // Act
+    await act(async () => {
+      harness.pushReceipt?.({
+        ...validReceipt,
+        positions: [
+          {
+            ...validReceipt.positions[0],
+            name: "Tea",
+          },
+          validReceipt.positions[1],
+          validReceipt.positions[2],
+        ],
+      });
+    });
+
+    // Assert
+    await waitFor(() => {
+      expect(screen.getByText("Ничего не найдено")).toBeInTheDocument();
+    });
+    expect(screen.queryByText("Milk")).not.toBeInTheDocument();
+    expect(screen.queryByText("Tea")).not.toBeInTheDocument();
+  });
+
+  it("adds a position into filtered results when a receipt update renames it to match the query", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const harness = await renderReceiptFormHarness();
+    const searchInput = await openSearch(user);
+    await user.type(searchInput, "milk");
+
+    // Act
+    await act(async () => {
+      harness.pushReceipt?.({
+        ...validReceipt,
+        positions: [
+          validReceipt.positions[0],
+          {
+            ...validReceipt.positions[1],
+            name: "Milk Bread",
+          },
+          validReceipt.positions[2],
+        ],
+      });
+    });
+
+    // Assert
+    await waitFor(() => {
+      expect(screen.getByText("Milk Bread")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Milk")).toBeInTheDocument();
+    expect(screen.queryByText("Butter")).not.toBeInTheDocument();
+  });
+
+  it("keeps the filtered search state when opening participants sheet", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner();
+    const searchInput = await openSearch(user);
+    await user.type(searchInput, "milk");
+
+    // Act
+    await user.click(screen.getByRole("button", { name: "Участники" }));
+
+    // Assert
+    expect(screen.getByRole("heading", { name: "Участники" })).toBeInTheDocument();
+    expect(screen.getByDisplayValue("milk")).toBeInTheDocument();
+    expect(screen.getByText("Milk")).toBeInTheDocument();
+    expect(screen.queryByText("Butter")).not.toBeInTheDocument();
+  });
+
+  it("opens position editing in validation mode with save disabled for an invalid name", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({ receipt: invalidNameReceipt });
+
+    // Act
+    await user.click(screen.getAllByRole("button").find((button) =>
+      button.textContent?.includes("801 ₽") && button.textContent?.includes("x")
+    )!);
+
+    // Assert
+    expect(await screen.findByDisplayValue("")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
+  });
+
+  it("removes an invalid 0/0 position and reaches a valid state after the server confirms deletion", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const harness = await renderReceiptFormHarness({
+      receipt: invalidZeroPositionReceipt,
+      echoReceiptUpdates: false,
+    });
+    expect(screen.getByRole("button", { name: "Изменить" })).toBeDisabled();
+
+    // Act
+    await user.click(getZeroPositionButton()!);
+    await user.click(screen.getByRole("button", { name: "Удалить" }));
+    await act(async () => {
+      harness.pushReceipt?.(structuredClone(invalidZeroPositionReceipt));
+    });
+    await act(async () => {
+      harness.pushReceipt?.(validReceipt);
+    });
+
+    // Assert
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Готово" })).toBeEnabled();
+    });
+    expect(getZeroPositionButton()).toBeUndefined();
+  });
+
+  it("does not resurrect a removed invalid 0/0 position when the next server update already reflects the deletion", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const harness = await renderReceiptFormHarness({
+      receipt: invalidZeroPositionReceipt,
+      echoReceiptUpdates: false,
+    });
+
+    // Act
+    await user.click(getZeroPositionButton()!);
+    await user.click(screen.getByRole("button", { name: "Удалить" }));
+    await act(async () => {
+      harness.pushReceipt?.(structuredClone(invalidZeroPositionReceipt));
+    });
+    await act(async () => {
+      harness.pushReceipt?.(validReceipt);
+    });
+
+    // Assert
+    await waitFor(() => {
+      expect(getZeroPositionButton()).toBeUndefined();
+    });
+    expect(screen.getByText("Milk")).toBeInTheDocument();
+    expect(screen.getByText("Bread")).toBeInTheDocument();
+  });
+
+  it("opens totals editing in validation mode with invalid values prefilled and save disabled", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({ receipt: invalidReceipt });
+
+    // Act
+    await user.click(screen.getAllByRole("button").find((button) =>
+      button.textContent?.includes("Итого:") && button.textContent?.includes("9999 ₽")
+    )!);
+
+    // Assert
+    const totalInputs = await screen.findAllByRole("spinbutton");
+    expect(totalInputs[0]).toHaveValue(9999);
+    expect(totalInputs[1]).toHaveValue(9999);
+    expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
+  });
+
+  it("transitions from invalid to valid after editing totals", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const harness = await renderReceiptFormHarness({ receipt: invalidReceipt });
+    expect(screen.getByRole("button", { name: "Изменить" })).toBeDisabled();
+
+    // Act
+    await user.click(screen.getAllByRole("button").find((button) =>
+      button.textContent?.includes("Итого:") && button.textContent?.includes("9999 ₽")
+    )!);
+
+    const totalInputs = await screen.findAllByRole("spinbutton");
+    await user.clear(totalInputs[0]);
+    await user.type(totalInputs[0], "1321");
+    await user.clear(totalInputs[1]);
+    await user.type(totalInputs[1], "1321");
+    await user.click(screen.getByRole("button", { name: "Сохранить" }));
+    harness.pushReceipt?.(validReceipt);
+
+    // Assert
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Готово" })).toBeEnabled();
+    });
+    expect(screen.getByText("Итого:")).toBeInTheDocument();
+    expect(screen.getAllByText("1321 ₽").length).toBeGreaterThan(0);
   });
 
   it("transitions from invalid to valid after editing a position", async () => {
