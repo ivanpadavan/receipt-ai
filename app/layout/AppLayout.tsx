@@ -1,4 +1,5 @@
 "use client";
+import "../globals.css";
 
 import { ReactNode } from "react";
 import { User } from "@supabase/supabase-js";

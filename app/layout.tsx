@@ -1,5 +1,3 @@
-// app/layout.tsx
-import "./globals.css";
 
 import { Public_Sans } from "next/font/google";
 import { getUser } from "@/utils/supabase/server";
