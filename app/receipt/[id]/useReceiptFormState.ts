@@ -110,7 +110,6 @@ export interface ReceiptState {
   scenario: FormScenario;
   openEditModal: (v: OpenEditModalArgs) => void;
   proceed: () => void;
-  goBack: () => void;
   canProceed: boolean;
   editModalProps: EditModalPropsByView;
 }
@@ -561,26 +560,15 @@ export function useReceiptFormState(
   // -------------------------------------------------------------------------
   // 7. Proceed logic
   // -------------------------------------------------------------------------
-  const proceed$ = useMemo(() => new Subject<void>(), []);
-
   const proceed = useCallback(() => {
     if (!formState.isValid) return;
 
-    if (type === "validation") {
-      // Переход в splitting mode
-      setSummaryInUrl(false);
-    } else if (type === "splitting") {
+    if (type === "splitting") {
       setSummaryInUrl(true);
-    }
-
-    proceed$.next();
-  }, [formState.isValid, type, proceed$, setSummaryInUrl]);
-
-  const goBack = useCallback(() => {
-    if (type === "summary") {
+    } else if (type === "summary") {
       setSummaryInUrl(false);
     }
-  }, [type, setSummaryInUrl]);
+  }, [formState.isValid, type, setSummaryInUrl]);
 
   // -------------------------------------------------------------------------
   // 8. Return state
@@ -593,7 +581,6 @@ export function useReceiptFormState(
     },
     canProceed: formState.isValid,
     proceed,
-    goBack,
     openEditModal,
     editModalProps,
   };

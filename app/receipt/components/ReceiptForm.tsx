@@ -199,7 +199,6 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
     scenario: { form, canEdit, type: scenarioType },
     openEditModal,
     proceed,
-    goBack,
     canProceed,
     editModalProps,
   } = formState;
@@ -337,7 +336,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
               <SummaryScreen
                 receipt={currentReceipt}
                 receiptId={receiptId}
-                onBack={goBack}
+                onBack={proceed}
               />
             ) : (
               <>
@@ -603,7 +602,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
             isSearchOpen={isSearchOpen}
             onOpenSearch={() => setIsSearchOpen(true)}
             onOpenParticipants={openParticipantsSheet}
-            onPrimaryAction={scenarioType === "summary" ? goBack : proceed}
+            onPrimaryAction={proceed}
             onAddPosition={
               canEdit.positionForm
                 ? () => openEditModal("addPosition")
