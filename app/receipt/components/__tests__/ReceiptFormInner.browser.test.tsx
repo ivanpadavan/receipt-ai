@@ -37,6 +37,16 @@ function requireElement<T>(value: T | null | undefined, message: string): T {
   return value;
 }
 
+function isPointerInteractive(element: HTMLElement) {
+  return getComputedStyle(element).pointerEvents !== "none";
+}
+
+async function waitForDocumentInteractivity() {
+  await waitFor(() => {
+    expect(isPointerInteractive(document.body)).toBe(true);
+  });
+}
+
 const screen = {
   getByText(text: string | RegExp) {
     return getActiveBrowserScreen().getByText(text).element() as HTMLElement;
@@ -510,12 +520,13 @@ async function renderReceiptFormInner({
   );
 
   browserScreen = await render(ui);
+  await waitForDocumentInteractivity();
   return browserScreen;
 }
 
 async function renderReceiptFormHarness({
-  receipt = validReceipt,
-  participants = joinedParticipants,
+  receipt = structuredClone(validReceipt),
+  participants = structuredClone(joinedParticipants),
   echoReceiptUpdates = true,
 }: {
   receipt?: Receipt;
@@ -553,8 +564,11 @@ async function renderReceiptFormHarness({
     );
   };
 
+  browserScreen = await render(<ReceiptFormHarness />);
+  await waitForDocumentInteractivity();
+
   return {
-    ...(browserScreen = await render(<ReceiptFormHarness />)),
+    ...browserScreen,
     pushReceipt: (nextReceipt: Receipt) => controls.pushReceipt?.(nextReceipt),
   };
 }
@@ -563,7 +577,7 @@ function getSearchButton() {
   return requireElement(
     screen.getAllByRole("button").find((button) =>
       button.getAttribute("aria-label") === "Search" &&
-      getComputedStyle(button).pointerEvents !== "none",
+      isPointerInteractive(button),
     ),
     'Search button should be present',
   );
@@ -573,7 +587,7 @@ function getCloseSearchButton() {
   return requireElement(
     screen.getAllByRole("button").find((button) =>
       button.getAttribute("aria-label") === "Close search" &&
-      getComputedStyle(button).pointerEvents !== "none",
+      isPointerInteractive(button),
     ),
     'Close search button should be present',
   );
@@ -583,7 +597,7 @@ function getPositionButtonByText(fragment: string) {
   return requireElement(
     screen.getAllByRole("button").find((button) =>
       button.textContent?.includes(fragment) &&
-      getComputedStyle(button).pointerEvents !== "none",
+      isPointerInteractive(button),
     ),
     `position button containing "${fragment}" should be present`,
   );
@@ -612,7 +626,7 @@ function getButtonByExactText(label: string) {
   return requireElement(
     screen.getAllByRole("button").find((button) =>
       button.textContent?.trim() === label &&
-      getComputedStyle(button).pointerEvents !== "none",
+      isPointerInteractive(button),
     ),
     `button "${label}" should be present`,
   );
@@ -622,7 +636,7 @@ function getActionBarEditButton() {
   return requireElement(
     screen.getAllByRole("button").find((button) =>
       button.getAttribute("aria-label") === "Редактировать" &&
-      getComputedStyle(button).pointerEvents !== "none",
+      isPointerInteractive(button),
     ),
     "action bar edit button should be present",
   );
@@ -649,7 +663,7 @@ function getZeroPositionButton() {
       (button) =>
         button.textContent?.includes("0 ₽") &&
         button.textContent?.includes("0x") &&
-        getComputedStyle(button).pointerEvents !== "none",
+        isPointerInteractive(button)
     ),
     "zero-zero position button should be present",
   );
@@ -660,7 +674,7 @@ function queryZeroPositionButton() {
     (button) =>
       button.textContent?.includes("0 ₽") &&
       button.textContent?.includes("0x") &&
-      getComputedStyle(button).pointerEvents !== "none",
+      isPointerInteractive(button)
   );
 }
 
@@ -668,7 +682,7 @@ function getInteractiveButtonByText(fragment: string) {
   return requireElement(
     screen.getAllByRole("button").find((button) =>
       button.textContent?.includes(fragment) &&
-      getComputedStyle(button).pointerEvents !== "none",
+      isPointerInteractive(button)
     ),
     `interactive button containing "${fragment}" should be present`,
   );
@@ -678,10 +692,54 @@ function getInteractiveButtonByFragments(fragments: string[]) {
   return requireElement(
     screen.getAllByRole("button").find((button) =>
       fragments.every((fragment) => button.textContent?.includes(fragment)) &&
-      getComputedStyle(button).pointerEvents !== "none",
+      isPointerInteractive(button),
     ),
     `interactive button containing fragments "${fragments.join('", "')}" should be present`,
   );
+}
+
+async function findInteractiveButtonByText(fragment: string) {
+  let button: HTMLElement | undefined;
+  await waitFor(() => {
+    button = screen.getAllByRole("button").find((candidate) =>
+      candidate.textContent?.includes(fragment) &&
+      isPointerInteractive(candidate)
+    );
+    expect(button, `interactive button containing "${fragment}" should be present`).toBeDefined();
+  });
+  return requireElement(button, `interactive button containing "${fragment}" should be present`);
+}
+
+async function findInteractiveButtonByFragments(fragments: string[]) {
+  let button: HTMLElement | undefined;
+  await waitFor(() => {
+    button = screen.getAllByRole("button").find((candidate) =>
+      fragments.every((fragment) => candidate.textContent?.includes(fragment)) &&
+      isPointerInteractive(candidate)
+    );
+    expect(
+      button,
+      `interactive button containing fragments "${fragments.join('", "')}" should be present`,
+    ).toBeDefined();
+  });
+  return requireElement(
+    button,
+    `interactive button containing fragments "${fragments.join('", "')}" should be present`,
+  );
+}
+
+async function findZeroPositionButton() {
+  let button: HTMLElement | undefined;
+  await waitFor(() => {
+    button = screen.getAllByRole("button").find(
+      (candidate) =>
+        candidate.textContent?.includes("0 ₽") &&
+        candidate.textContent?.includes("0x") &&
+        isPointerInteractive(candidate),
+    );
+    expect(button, "zero-zero position button should be present").toBeDefined();
+  });
+  return requireElement(button, "zero-zero position button should be present");
 }
 
 async function openSearch(user: ReturnType<typeof userEvent.setup>) {
@@ -717,6 +775,7 @@ async function openActionBarMenuItem(
 
 describe("Receipt flow", () => {
   beforeEach(async () => {
+    document.body.style.pointerEvents = "";
     await page.viewport(VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
     vi.clearAllMocks();
     vi.resetModules();
@@ -739,12 +798,14 @@ describe("Receipt flow", () => {
       },
     });
     updateReceiptMock.mockResolvedValue(validReceipt);
+    await waitForDocumentInteractivity();
   });
 
   afterEach(async () => {
     browserScreen = null;
     vi.unstubAllEnvs();
     await cleanup();
+    document.body.style.pointerEvents = "";
   });
 
   it("renders the splitting flow for a joined participant", async () => {
@@ -1538,7 +1599,7 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner({ receipt: receiptWithModifiers });
 
     // Act
-    await user.click(getInteractiveButtonByText("Delivery"));
+    await user.click(await findInteractiveButtonByText("Delivery"));
 
     const nameInput = await screen.findByDisplayValue("Delivery");
     const valueInput = screen.getByRole("spinbutton");
@@ -1562,7 +1623,7 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner({ receipt: receiptWithModifiers });
 
     // Act
-    await user.click(getInteractiveButtonByText("Loyalty"));
+    await user.click(await findInteractiveButtonByText("Loyalty"));
 
     const nameInput = await screen.findByDisplayValue("Loyalty");
     const valueInput = screen.getByRole("spinbutton");
@@ -1586,7 +1647,7 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner({ receipt: receiptWithModifiers });
 
     // Act
-    await user.click(getInteractiveButtonByText("Delivery"));
+    await user.click(await findInteractiveButtonByText("Delivery"));
     await user.click(screen.getByRole("button", { name: "Удалить" }));
 
     // Assert
@@ -1604,7 +1665,7 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner({ receipt: receiptWithModifiers });
 
     // Act
-    await user.click(getInteractiveButtonByText("Loyalty"));
+    await user.click(await findInteractiveButtonByText("Loyalty"));
     await user.click(screen.getByRole("button", { name: "Удалить" }));
 
     // Assert
@@ -1622,7 +1683,7 @@ describe("Receipt flow", () => {
     await renderReceiptFormHarness({ receipt: invalidReceipt, echoReceiptUpdates: false });
 
     // Act
-    await user.click(getInteractiveButtonByFragments(["Итого:", "9999 ₽"]));
+    await user.click(await findInteractiveButtonByFragments(["Итого:", "9999 ₽"]));
 
     const totalInputs = await screen.findAllByRole("spinbutton");
     await user.clear(totalInputs[0]);
@@ -1644,7 +1705,7 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner({ receipt: invalidPositionAndTotalsReceipt });
 
     // Act
-    await user.click(getInteractiveButtonByFragments(["801 ₽", "x"]));
+    await user.click(await findInteractiveButtonByFragments(["801 ₽", "x"]));
 
     // Assert
     expect(await screen.findByDisplayValue("")).toBeInTheDocument();
@@ -1658,7 +1719,7 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner({ receipt: invalidOverallMismatchReceipt });
 
     // Act
-    await user.click(getInteractiveButtonByFragments(["999 ₽", "x"]));
+    await user.click(await findInteractiveButtonByFragments(["999 ₽", "x"]));
 
     // Assert
     expect(await screen.findByDisplayValue("999")).toBeInTheDocument();
@@ -1677,7 +1738,7 @@ describe("Receipt flow", () => {
     await expectCurrentScreenshot("zero-zero-before-delete");
 
     // Act
-    await user.click(getZeroPositionButton());
+    await user.click(await findZeroPositionButton());
     await user.click(screen.getByRole("button", { name: "Удалить" }));
     await act(async () => {
       harness.pushReceipt?.(structuredClone(invalidZeroPositionReceipt));
@@ -1703,7 +1764,7 @@ describe("Receipt flow", () => {
     });
 
     // Act
-    await user.click(getZeroPositionButton());
+    await user.click(await findZeroPositionButton());
     await user.click(screen.getByRole("button", { name: "Удалить" }));
     await act(async () => {
       harness.pushReceipt?.(structuredClone(invalidZeroPositionReceipt));
@@ -1726,7 +1787,7 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner({ receipt: invalidReceipt });
 
     // Act
-    await user.click(getInteractiveButtonByFragments(["Итого:", "9999 ₽"]));
+    await user.click(await findInteractiveButtonByFragments(["Итого:", "9999 ₽"]));
 
     // Assert
     const totalInputs = await screen.findAllByRole("spinbutton");
@@ -1743,7 +1804,7 @@ describe("Receipt flow", () => {
     expect(screen.getByRole("button", { name: "Изменить" })).toBeDisabled();
 
     // Act
-    await user.click(getInteractiveButtonByFragments(["Итого:", "9999 ₽"]));
+    await user.click(await findInteractiveButtonByFragments(["Итого:", "9999 ₽"]));
 
     const totalInputs = await screen.findAllByRole("spinbutton");
     await user.clear(totalInputs[0]);
@@ -1769,7 +1830,7 @@ describe("Receipt flow", () => {
     expect(screen.getByRole("button", { name: "Изменить" })).toBeDisabled();
 
     // Act
-    await user.click(getInteractiveButtonByFragments(["801 ₽", "x"]));
+    await user.click(await findInteractiveButtonByFragments(["801 ₽", "x"]));
 
     const nameInput = await screen.findByDisplayValue("");
     await user.type(nameInput, "Milk");
@@ -1788,16 +1849,9 @@ describe("Receipt flow", () => {
     // Arrange
     const user = userEvent.setup();
     await renderReceiptFormHarness({ receipt: overClaimedReceipt });
-    const breadRowButton = requireElement(
-      screen.getAllByRole("button").find((button) =>
-        button.textContent?.includes("Bread") &&
-        getComputedStyle(button).pointerEvents !== "none",
-      ),
-      'bread row button should be present',
-    );
 
     // Act
-    await user.click(breadRowButton);
+    await user.click(await findInteractiveButtonByText("Bread"));
     await user.click(screen.getAllByRole("button", { name: "Редактировать" })[0]);
 
     const quantityInput = screen.getAllByRole("spinbutton")[1];
