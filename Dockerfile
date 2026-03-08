@@ -5,7 +5,7 @@ FROM node:24-alpine AS builder
 WORKDIR /app
 
 # Prisma config requires DATABASE_URL even for client generation during build.
-ARG DATABASE_URL
+ARG DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/postgres?schema=public"
 ENV DATABASE_URL=${DATABASE_URL}
 
 # Install pnpm
