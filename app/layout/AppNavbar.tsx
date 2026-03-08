@@ -34,13 +34,13 @@ const navLinkVariants = cva(
     },
   },
 );
-const navContainer = "bg-background border-b shadow-sm";
+const navContainer = "relative z-40 bg-background border-b shadow-sm";
 const mobileMenuButton =
   "text-foreground hover:bg-accent hover:text-accent-foreground";
 const menuPanel =
   "flex flex-col md:flex-row items-start md:items-center md:space-x-4 bg-background";
 const menuPanelFrame =
-  "absolute md:static left-0 right-0 top-16 md:top-auto border-t md:border-t-0";
+  "absolute md:static left-0 right-0 top-16 z-40 md:z-auto md:top-auto border-t md:border-t-0";
 const userName = "text-foreground font-medium";
 const mobileUserContainer = "text-center";
 const navOuterPadding = "px-4 sm:px-6 lg:px-8";
