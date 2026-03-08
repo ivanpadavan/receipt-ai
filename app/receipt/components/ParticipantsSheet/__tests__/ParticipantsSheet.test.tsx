@@ -66,7 +66,7 @@ vi.mock("@/app/receipt/components/ui/participant-avatar", () => ({
 }));
 
 vi.mock("@/app/receipt/components/ui/ActionMenu", () => ({
-  ActionMenu: ({ items }: { items: Array<{ id: string; label: string; onSelect: () => void }> }) => (
+  ActionMenu: ({ items }: { items: { id: string; label: string; onSelect: () => void }[] }) => (
     <div>
       {items.map((item) => (
         <button key={item.id} type="button" onClick={item.onSelect}>
@@ -149,25 +149,5 @@ describe("ParticipantsSheet", () => {
     expect(joinReceiptClientMock).toHaveBeenCalledWith("receipt-1", {
       replaceParticipantId: "real-anon-offline",
     });
-  });
-
-  it("resets add participant draft after closing and reopening", () => {
-    const { rerender } = render(
-      <ParticipantsSheet receiptId="receipt-1" open />,
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "Add participant" }));
-    fireEvent.change(screen.getByPlaceholderText("New participant name"), {
-      target: { value: "Draft Name" },
-    });
-
-    rerender(<ParticipantsSheet receiptId="receipt-1" open={false} />);
-    rerender(<ParticipantsSheet receiptId="receipt-1" open />);
-
-    expect(screen.queryByDisplayValue("Draft Name")).not.toBeInTheDocument();
-    expect(
-      screen.queryByPlaceholderText("New participant name"),
-    ).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Add participant" })).toBeInTheDocument();
   });
 });

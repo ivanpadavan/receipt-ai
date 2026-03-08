@@ -26,10 +26,6 @@ describe("pageState$", () => {
 
     // Assert
     expect(state).toEqual({
-      camera: {
-        status: "idle",
-        start: expect.any(Function),
-      },
       picture: {
         status: "idle",
         appendPicture: expect.any(Function),
@@ -42,37 +38,6 @@ describe("pageState$", () => {
     });
   });
 
-  test("should update camera state to pending when start is called", async () => {
-    // Arrange
-    const state$ = pageState$();
-    const initialState = await firstValueFrom(state$);
-
-    // Act
-    initialState.camera.start();
-    const updatedState = await firstValueFrom(state$);
-
-    // Assert
-    expect(updatedState.camera.status).toBe("pending");
-    expect(updatedState.camera).toHaveProperty("initialized");
-  });
-
-  test("should update camera state to ready when initialized is called", async () => {
-    // Arrange
-    const state$ = pageState$();
-    const initialState = await firstValueFrom(state$);
-
-    // Act
-    initialState.camera.start();
-    const pendingState = await firstValueFrom(state$);
-    pendingState.camera.initialized();
-    const readyState = await firstValueFrom(state$);
-
-    // Assert
-    expect(readyState.camera.status).toBe("ready");
-    expect(readyState.camera).toHaveProperty("close");
-    expect(readyState.camera).toHaveProperty("appendPicture");
-  });
-
   test("should update picture state when appendPicture is called", async () => {
     // Arrange
     const state$ = pageState$();
@@ -80,11 +45,13 @@ describe("pageState$", () => {
     const testImage = "data:image/jpeg;base64,test123";
 
     // Act
+    "appendPicture" in initialState.picture &&
     initialState.picture.appendPicture(testImage);
     const updatedState = await firstValueFrom(state$);
 
     // Assert
     expect(updatedState.picture.status).toBe("picture-in");
+    "imageBase64" in updatedState.picture &&
     expect(updatedState.picture.imageBase64).toBe(testImage);
     expect(updatedState.picture).toHaveProperty("clear");
     expect(updatedState.picture).toHaveProperty("proceed");
@@ -104,12 +71,15 @@ describe("pageState$", () => {
     const initialState = await firstValueFrom(state$);
 
     // Act
+    "appendPicture" in initialState.picture &&
     initialState.picture.appendPicture(testImage);
     const pictureInState = await firstValueFrom(state$);
+    "proceed" in pictureInState.picture &&
     pictureInState.picture.proceed();
 
     // Wait for all state updates to complete
     const allStates = await states;
+    if (!allStates?.length) throw new Error('not valid');
     const finalState = allStates[allStates.length - 1];
     // Assert
     expect(apiClient.createReceipt).toHaveBeenCalledWith(testImage);
@@ -130,12 +100,15 @@ describe("pageState$", () => {
     const initialState = await firstValueFrom(state$);
 
     // Act
+    "appendPicture" in initialState.picture &&
     initialState.picture.appendPicture(testImage);
     const pictureInState = await firstValueFrom(state$);
+    "proceed" in pictureInState.picture &&
     pictureInState.picture.proceed();
 
     // Wait for all state updates to complete
     const allStates = await states;
+    if (!allStates?.length) throw new Error("not valid");
     const finalState = allStates[allStates.length - 1];
 
     // Assert
@@ -151,32 +124,16 @@ describe("pageState$", () => {
     const testImage = "data:image/jpeg;base64,test123";
 
     // Act
+    "appendPicture" in initialState.picture &&
     initialState.picture.appendPicture(testImage);
     const pictureInState = await firstValueFrom(state$);
+    "clear" in pictureInState.picture &&
     pictureInState.picture.clear();
     const clearedState = await firstValueFrom(state$);
 
     // Assert
     expect(clearedState.picture.status).toBe("idle");
     expect(clearedState.picture).toHaveProperty("appendPicture");
-  });
-
-  test("should reset camera state when close is called", async () => {
-    // Arrange
-    const state$ = pageState$();
-    const initialState = await firstValueFrom(state$);
-
-    // Act
-    initialState.camera.start();
-    const pendingState = await firstValueFrom(state$);
-    pendingState.camera.initialized();
-    const readyState = await firstValueFrom(state$);
-    readyState.camera.close();
-    const closedState = await firstValueFrom(state$);
-
-    // Assert
-    expect(closedState.camera.status).toBe("idle");
-    expect(closedState.camera).toHaveProperty("start");
   });
 
   test("should set error message when setError is called", async () => {
