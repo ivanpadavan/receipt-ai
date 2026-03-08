@@ -102,7 +102,7 @@ export const iconButtonVariants = cva("px-0", {
   variants: {
     size: {
       compact: "h-10 w-10",
-      liquid: "h-12 w-14",
+      liquid: "h-12 w-12",
     },
     tone: {
       muted:
