@@ -211,13 +211,15 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
         )}
 
         <FieldGroup>
-          {fields.map((field) => (
+          {fields.map((field, index) => (
             <FormField
               key={field.key}
+              fieldId={`${header}-${field.key}`}
               label={field.label}
               value={(localValue as Record<string, unknown>)[field.key]}
               type={field.type}
               disabled={field.disabled}
+              enterKeyHint={index === fields.length - 1 ? "done" : "next"}
               hasError={
                 errors[field.key] !== undefined &&
                 (!hideErrorsUntilTouched || touched.has(field.key))
@@ -259,20 +261,24 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
 };
 
 interface FormFieldProps {
+  fieldId: string;
   label: TranslationKey;
   value: unknown;
   type: "string" | "number";
   hasError: boolean;
   disabled?: boolean;
+  enterKeyHint?: React.HTMLAttributes<HTMLInputElement>["enterKeyHint"];
   onChange: (value: string) => void;
 }
 
 const FormField: React.FC<FormFieldProps> = ({
+  fieldId,
   label,
   value,
   type,
   hasError,
   disabled,
+  enterKeyHint,
   onChange,
 }) => {
   const displayValue =
@@ -282,10 +288,13 @@ const FormField: React.FC<FormFieldProps> = ({
 
   return (
     <Field>
-      <Label>{t(label)}</Label>
+      <Label htmlFor={fieldId}>{t(label)}</Label>
       <Input
+        id={fieldId}
+        name={fieldId}
         type={type === "number" ? "number" : "text"}
         inputMode={type === "number" ? "decimal" : "text"}
+        enterKeyHint={enterKeyHint}
         value={displayValue}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}

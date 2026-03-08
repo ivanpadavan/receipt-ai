@@ -181,4 +181,21 @@ describe("EditingDialog", () => {
 
     expect(screen.getAllByRole("spinbutton")[2]).toHaveValue(891);
   });
+
+  it("adds form navigation attributes for iPhone next and done controls", () => {
+    render(<EditingDialog {...buildProps()} />);
+
+    const nameInput = screen.getByRole("textbox");
+    const priceInput = screen.getByRole("spinbutton");
+
+    expect(nameInput).toHaveAttribute("id", "editPosition-name");
+    expect(nameInput).toHaveAttribute("name", "editPosition-name");
+    expect(nameInput).toHaveAttribute("enterkeyhint", "next");
+    expect(screen.getByText("Name")).toHaveAttribute("for", "editPosition-name");
+
+    expect(priceInput).toHaveAttribute("id", "editPosition-price");
+    expect(priceInput).toHaveAttribute("name", "editPosition-price");
+    expect(priceInput).toHaveAttribute("enterkeyhint", "done");
+    expect(screen.getByText("Price")).toHaveAttribute("for", "editPosition-price");
+  });
 });
