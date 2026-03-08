@@ -2,13 +2,8 @@
 import "./globals.css";
 
 import { Public_Sans } from "next/font/google";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { Providers } from "./providers";
-import { AuthProvider } from "@/context/AuthContext";
 import { getUser } from "@/utils/supabase/server";
-import { AppNavbar } from "@/app/layout/AppNavbar";
-import { cn } from "@/utils/cn";
-import { appShell } from "@/app/receipt/components/ui-styles";
+import { AppLayout } from "@/app/layout/AppLayout";
 
 const publicSans = Public_Sans({ subsets: ["latin"] });
 export default async function RootLayout({
@@ -50,21 +45,7 @@ export default async function RootLayout({
         <meta name="twitter:image" content="/images/og-image.png" />
       </head>
       <body className={publicSans.className}>
-        <NuqsAdapter>
-          <Providers>
-            <AuthProvider initialUser={user}>
-              <div
-                className={cn(
-                  "min-h-[100dvh] flex flex-col",
-                  appShell,
-                )}
-              >
-                <AppNavbar />
-                <main className="flex-1 flex flex-col">{children}</main>
-              </div>
-            </AuthProvider>
-          </Providers>
-        </NuqsAdapter>
+        <AppLayout user={user}>{children}</AppLayout>
       </body>
     </html>
   );

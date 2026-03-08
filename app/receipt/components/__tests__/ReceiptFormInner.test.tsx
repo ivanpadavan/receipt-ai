@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { ParticipantsStoreProvider } from "@/app/receipt/store/participants";
 import { Receipt, ReceiptWithParticipants } from "@/model/receipt/model";
 import { cleanup, render, type RenderResult as BrowserRenderResult } from "vitest-browser-react";
+import { User } from "@supabase/supabase-js";
 
 const VIEWPORT_WIDTH = 390;
 const VIEWPORT_HEIGHT = 844;
@@ -26,6 +27,14 @@ function queryBrowserDisplayValue(value: string) {
       "input, textarea, select",
     ),
   ).find((element) => element.value === value) ?? null;
+}
+
+function requireElement<T>(value: T | null | undefined, message: string): T {
+  if (value == null) {
+    throw new Error(message);
+  }
+
+  return value;
 }
 
 const screen = {
@@ -75,7 +84,10 @@ const screen = {
   },
   async findByDisplayValue(value: string) {
     await expect.poll(() => queryBrowserDisplayValue(value)).not.toBeNull();
-    return queryBrowserDisplayValue(value)!;
+    return requireElement(
+      queryBrowserDisplayValue(value),
+      `Unable to find display value "${value}"`,
+    );
   },
 };
 
@@ -93,6 +105,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: pushMock,
   }),
+  usePathname: () => "/receipt/receipt-1",
 }));
 
 vi.mock("nuqs", () => ({
@@ -112,6 +125,18 @@ vi.mock("@/app/api-client", () => ({
     createReceipt: vi.fn(),
     updateReceipt: (...args: unknown[]) => updateReceiptMock(...args),
   },
+}));
+
+vi.mock("@/app/providers", () => ({
+  Providers: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
+vi.mock("@react-oauth/google", () => ({
+  GoogleOAuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  GoogleLogin: ({ containerProps, type }: { containerProps?: { className?: string }; type?: string }) => (
+    <div className={containerProps?.className} data-google-login={type ?? "default"} />
+  ),
+  useGoogleOneTapLogin: () => undefined,
 }));
 
 const validReceipt: Receipt = {
@@ -174,6 +199,31 @@ const invalidNameReceipt: Receipt = {
     {
       ...validReceipt.positions[0],
       name: "",
+    },
+    ...validReceipt.positions.slice(1),
+  ],
+};
+
+const invalidPositionAndTotalsReceipt: Receipt = {
+  ...invalidReceipt,
+  positions: [
+    {
+      ...validReceipt.positions[0],
+      name: "",
+      price: -801,
+      quantity: -1,
+      overall: -1,
+    },
+    ...validReceipt.positions.slice(1),
+  ],
+};
+
+const invalidOverallMismatchReceipt: Receipt = {
+  ...validReceipt,
+  positions: [
+    {
+      ...validReceipt.positions[0],
+      overall: 999,
     },
     ...validReceipt.positions.slice(1),
   ],
@@ -427,6 +477,17 @@ const receiptWithModifiers: Receipt = {
   },
 };
 
+const testUser = {
+  id: "user-1",
+  app_metadata: {},
+  user_metadata: {
+    displayName: "Ivan",
+  },
+  is_anonymous: true,
+  aud: "authenticated",
+  created_at: "2026-03-09T00:00:00.000Z",
+} as User;
+
 async function renderReceiptFormInner({
   receipt = validReceipt,
   participants = joinedParticipants,
@@ -435,14 +496,17 @@ async function renderReceiptFormInner({
   participants?: ReceiptWithParticipants["participants"];
 } = {}) {
   const { ReceiptFormInner } = await import("@/app/receipt/components/ReceiptForm");
+  const { AppLayout } = await import("@/app/layout/AppLayout");
   const ui = (
-    <ParticipantsStoreProvider initialParticipants={participants}>
-      <ReceiptFormInner
-        receipt={receipt}
-        participants={participants}
-        receiptId="receipt-1"
-      />
-    </ParticipantsStoreProvider>
+    <AppLayout user={testUser}>
+      <ParticipantsStoreProvider initialParticipants={participants}>
+        <ReceiptFormInner
+          receipt={receipt}
+          participants={participants}
+          receiptId="receipt-1"
+        />
+      </ParticipantsStoreProvider>
+    </AppLayout>
   );
 
   browserScreen = await render(ui);
@@ -459,10 +523,12 @@ async function renderReceiptFormHarness({
   echoReceiptUpdates?: boolean;
 } = {}) {
   const { ReceiptFormInner } = await import("@/app/receipt/components/ReceiptForm");
+  const { AppLayout } = await import("@/app/layout/AppLayout");
   const controls: { pushReceipt?: (nextReceipt: Receipt) => void } = {};
 
   const ReceiptFormHarness: React.FC = () => {
     const [currentReceipt, setCurrentReceipt] = React.useState(receipt);
+    // eslint-disable-next-line react-hooks/immutability
     controls.pushReceipt = setCurrentReceipt;
 
     React.useEffect(() => {
@@ -475,13 +541,15 @@ async function renderReceiptFormHarness({
     }, []);
 
     return (
-      <ParticipantsStoreProvider initialParticipants={participants}>
-        <ReceiptFormInner
-          receipt={currentReceipt}
-          participants={participants}
-          receiptId="receipt-1"
-        />
-      </ParticipantsStoreProvider>
+      <AppLayout user={testUser}>
+        <ParticipantsStoreProvider initialParticipants={participants}>
+          <ReceiptFormInner
+            receipt={currentReceipt}
+            participants={participants}
+            receiptId="receipt-1"
+          />
+        </ParticipantsStoreProvider>
+      </AppLayout>
     );
   };
 
@@ -492,31 +560,47 @@ async function renderReceiptFormHarness({
 }
 
 function getSearchButton() {
-  return screen
-    .getAllByRole("button")
-    .find((button) =>
+  return requireElement(
+    screen.getAllByRole("button").find((button) =>
       button.getAttribute("aria-label") === "Search" &&
       getComputedStyle(button).pointerEvents !== "none",
-    )!;
+    ),
+    'Search button should be present',
+  );
 }
 
 function getCloseSearchButton() {
-  return screen
-    .getAllByRole("button")
-    .find((button) =>
+  return requireElement(
+    screen.getAllByRole("button").find((button) =>
       button.getAttribute("aria-label") === "Close search" &&
       getComputedStyle(button).pointerEvents !== "none",
-    )!;
+    ),
+    'Close search button should be present',
+  );
 }
 
 function getPositionButtonByText(fragment: string) {
-  return screen.getAllByRole("button").find((button) =>
-    button.textContent?.includes(fragment) &&
-    getComputedStyle(button).pointerEvents !== "none",
+  return requireElement(
+    screen.getAllByRole("button").find((button) =>
+      button.textContent?.includes(fragment) &&
+      getComputedStyle(button).pointerEvents !== "none",
+    ),
+    `position button containing "${fragment}" should be present`,
   );
 }
 
 function getClaimButtonByText(fragment: string) {
+  const normalizedFragment = fragment.replace(/\s+/g, "");
+
+  return requireElement(
+    screen.getAllByRole("button").find((button) =>
+      (button.textContent?.replace(/\s+/g, "") ?? "").startsWith(normalizedFragment),
+    ),
+    `claim button starting with "${fragment}" should be present`,
+  );
+}
+
+function queryClaimButtonByText(fragment: string) {
   const normalizedFragment = fragment.replace(/\s+/g, "");
 
   return screen.getAllByRole("button").find((button) =>
@@ -525,19 +609,23 @@ function getClaimButtonByText(fragment: string) {
 }
 
 function getButtonByExactText(label: string) {
-  return screen.getAllByRole("button").find((button) =>
-    button.textContent?.trim() === label &&
-    getComputedStyle(button).pointerEvents !== "none",
+  return requireElement(
+    screen.getAllByRole("button").find((button) =>
+      button.textContent?.trim() === label &&
+      getComputedStyle(button).pointerEvents !== "none",
+    ),
+    `button "${label}" should be present`,
   );
 }
 
 function getActionBarEditButton() {
-  return screen
-    .getAllByRole("button")
-    .find((button) =>
+  return requireElement(
+    screen.getAllByRole("button").find((button) =>
       button.getAttribute("aria-label") === "Редактировать" &&
       getComputedStyle(button).pointerEvents !== "none",
-    );
+    ),
+    "action bar edit button should be present",
+  );
 }
 
 function getOpenDrawerButtonByText(label: string) {
@@ -547,12 +635,27 @@ function getOpenDrawerButtonByText(label: string) {
     throw new Error("open drawer should be present");
   }
 
-  return Array.from(openDrawer.querySelectorAll<HTMLButtonElement>("button")).find(
-    (button) => button.textContent?.trim() === label,
+  return requireElement(
+    Array.from(openDrawer.querySelectorAll<HTMLButtonElement>("button")).find(
+      (button) => button.textContent?.trim() === label,
+    ),
+    `open drawer button "${label}" should be present`,
   );
 }
 
 function getZeroPositionButton() {
+  return requireElement(
+    screen.getAllByRole("button").find(
+      (button) =>
+        button.textContent?.includes("0 ₽") &&
+        button.textContent?.includes("0x") &&
+        getComputedStyle(button).pointerEvents !== "none",
+    ),
+    "zero-zero position button should be present",
+  );
+}
+
+function queryZeroPositionButton() {
   return screen.getAllByRole("button").find(
     (button) =>
       button.textContent?.includes("0 ₽") &&
@@ -562,9 +665,22 @@ function getZeroPositionButton() {
 }
 
 function getInteractiveButtonByText(fragment: string) {
-  return screen.getAllByRole("button").find((button) =>
-    button.textContent?.includes(fragment) &&
-    getComputedStyle(button).pointerEvents !== "none",
+  return requireElement(
+    screen.getAllByRole("button").find((button) =>
+      button.textContent?.includes(fragment) &&
+      getComputedStyle(button).pointerEvents !== "none",
+    ),
+    `interactive button containing "${fragment}" should be present`,
+  );
+}
+
+function getInteractiveButtonByFragments(fragments: string[]) {
+  return requireElement(
+    screen.getAllByRole("button").find((button) =>
+      fragments.every((fragment) => button.textContent?.includes(fragment)) &&
+      getComputedStyle(button).pointerEvents !== "none",
+    ),
+    `interactive button containing fragments "${fragments.join('", "')}" should be present`,
   );
 }
 
@@ -578,19 +694,16 @@ async function openSplittingSheetFor(
   fragment: string,
 ) {
   const positionButton = getPositionButtonByText(fragment);
-
-  if (!positionButton) {
-    throw new Error(`position button containing "${fragment}" should be here`);
-  }
-
   await user.click(positionButton);
   await screen.findByRole("heading", { name: fragment });
 }
 
-async function expectCurrentScreenshot() {
-  await expect
-    .element(page.elementLocator(document.body))
-    .toMatchScreenshot();
+async function expectCurrentScreenshot(name?: string) {
+  if (!name) {
+    return;
+  }
+
+  await expect.element(page.elementLocator(document.body)).toMatchScreenshot(name);
 }
 
 async function openActionBarMenuItem(
@@ -598,11 +711,6 @@ async function openActionBarMenuItem(
   label: string,
 ) {
   const editButton = getActionBarEditButton();
-
-  if (!editButton) {
-    throw new Error("action bar edit button should be present");
-  }
-
   await user.click(editButton);
   await user.click(screen.getByRole("menuitem", { name: label }));
 }
@@ -624,6 +732,7 @@ describe("Receipt flow", () => {
     useUserMock.mockReturnValue({
       user: {
         id: "user-1",
+        is_anonymous: true,
         user_metadata: {
           displayName: "Ivan",
         },
@@ -658,7 +767,7 @@ describe("Receipt flow", () => {
     expect(screen.getByRole("button", { name: "Участники" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Готово" })).toBeInTheDocument();
     expect(screen.queryByText("Настройки")).not.toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("receipt-overview");
   });
 
   it("starts invalid receipts in review mode with disabled proceed", async () => {
@@ -672,7 +781,7 @@ describe("Receipt flow", () => {
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(getSearchButton()).toBeInTheDocument();
     expect(reviewAction).toBeDisabled();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("invalid-review-mode");
   });
 
   it("renders summary mode from the query state and hides search", async () => {
@@ -687,7 +796,7 @@ describe("Receipt flow", () => {
     expect(screen.getByText("Пока нет распределений")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Изменить" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Search" })).not.toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("summary-empty-state");
   });
 
   it("ignores the summary query for an invalid receipt and stays in validation mode", async () => {
@@ -752,7 +861,7 @@ describe("Receipt flow", () => {
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(screen.queryByText("Bread")).not.toBeInTheDocument();
     expect(screen.queryByText("Butter")).not.toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("search-filtered-milk");
   });
 
   it("shows empty state for unmatched search while keeping totals visible", async () => {
@@ -769,7 +878,7 @@ describe("Receipt flow", () => {
     expect(screen.queryByText("Milk")).not.toBeInTheDocument();
     expect(screen.getByText("Итого:")).toBeInTheDocument();
     expect(screen.getByText("С учетом скидок и сборов:")).toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("search-empty-state");
   });
 
   it("clears the query before closing search", async () => {
@@ -912,16 +1021,14 @@ describe("Receipt flow", () => {
     await user.type(searchInput, "milk");
 
     // Act
-    await user.click(screen.getAllByRole("button").find((button) =>
-      button.textContent?.includes("Milk") && button.textContent?.includes("801 ₽")
-    )!);
+    await user.click(getInteractiveButtonByFragments(["Milk", "801 ₽"]));
 
     // Assert
     expect(screen.getByRole("heading", { name: "Milk" })).toBeInTheDocument();
     expect(screen.getByDisplayValue("milk")).toBeInTheDocument();
     expect(screen.getAllByText("Milk").length).toBeGreaterThan(0);
     expect(screen.queryByText("Bread")).not.toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("search-over-splitting-sheet");
   });
 
   it("removes a position from filtered results when a receipt update renames it away from the query", async () => {
@@ -1012,7 +1119,7 @@ describe("Receipt flow", () => {
       "Polina",
     ]);
 
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("splitting-draft-editor");
   });
 
   it("opens splitting without a draft editor for a fully distributed position", async () => {
@@ -1031,7 +1138,7 @@ describe("Receipt flow", () => {
     expect(screen.getAllByRole("button", { name: "Редактировать" }).length).toBeGreaterThan(0);
     expect(screen.getByText(/2 шт × 150 ₽ =/i)).toBeInTheDocument();
 
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("splitting-claims-list");
   });
 
   it("keeps trailing decimal separator while typing in the splitting draft editor", async () => {
@@ -1124,7 +1231,7 @@ describe("Receipt flow", () => {
 
     // Act
     await openSplittingSheetFor(user, "Bread");
-    await user.click(getClaimButtonByText("1шт=150₽")!);
+    await user.click(getClaimButtonByText("1шт=150₽"));
     const input = screen.getAllByRole("textbox")[0];
     await user.clear(input);
     await user.type(input, "0.5");
@@ -1133,7 +1240,7 @@ describe("Receipt flow", () => {
     // Assert
     expect(screen.queryByRole("button", { name: "Сохранить" })).not.toBeInTheDocument();
     expect(getClaimButtonByText("0.5шт=75₽")).toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("splitting-claim-edited");
   });
 
   it("toggles select all and clear all in the splitting draft editor", async () => {
@@ -1192,14 +1299,14 @@ describe("Receipt flow", () => {
 
     // Act
     await openSplittingSheetFor(user, "Bread");
-    await user.click(getClaimButtonByText("1шт=150₽")!);
+    await user.click(getClaimButtonByText("1шт=150₽"));
 
     // Assert
     const maxButton = screen.getByRole("button", { name: "Макс" });
     expect(maxButton).toHaveAttribute("aria-pressed", "true");
 
     // Act
-    await user.click(getButtonByExactText("₽")!);
+    await user.click(getButtonByExactText("₽"));
 
     // Assert
     expect(maxButton).toHaveAttribute("aria-pressed", "false");
@@ -1236,7 +1343,7 @@ describe("Receipt flow", () => {
 
     // Act
     await openSplittingSheetFor(user, "Bread");
-    await user.click(getButtonByExactText("₽")!);
+    await user.click(getButtonByExactText("₽"));
     await user.click(screen.getByRole("button", { name: "Макс" }));
 
     // Assert
@@ -1257,19 +1364,19 @@ describe("Receipt flow", () => {
 
     // Act
     await openSplittingSheetFor(user, "Bread");
-    await user.click(getClaimButtonByText("150₽")!);
+    await user.click(getClaimButtonByText("150₽"));
 
     // Assert
     const maxButton = screen.getByRole("button", { name: "Макс" });
     expect(maxButton).toHaveAttribute("aria-pressed", "true");
 
     // Act
-    await user.click(getButtonByExactText("ШТ")!);
+    await user.click(getButtonByExactText("ШТ"));
 
     // Assert
     expect(maxButton).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("splitting-invalid-max-switch");
   });
 
   it("deletes an existing splitting claim from the sheet", async () => {
@@ -1286,8 +1393,8 @@ describe("Receipt flow", () => {
     await user.click(screen.getByRole("menuitem", { name: "Удалить" }));
 
     // Assert
-    expect(getClaimButtonByText("1шт=150₽")).toBeUndefined();
-    await expectCurrentScreenshot();
+    expect(queryClaimButtonByText("1шт=150₽")).toBeUndefined();
+    await expectCurrentScreenshot("splitting-claim-deleted");
   });
 
   it("closes the splitting sheet with done when there is no active draft", async () => {
@@ -1300,7 +1407,7 @@ describe("Receipt flow", () => {
 
     // Act
     await openSplittingSheetFor(user, "Bread");
-    await user.click(getOpenDrawerButtonByText("Готово")!);
+    await user.click(getOpenDrawerButtonByText("Готово"));
 
     // Assert
     await waitFor(() => {
@@ -1341,7 +1448,7 @@ describe("Receipt flow", () => {
     expect(inputs).toHaveLength(3);
     expect(inputs.every((input) => !input.hasAttribute("disabled"))).toBe(true);
     expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("validation-add-position-dialog");
   });
 
   it("adds a new position from the action bar in splitting mode", async () => {
@@ -1374,7 +1481,7 @@ describe("Receipt flow", () => {
       expect(screen.getByText("Tea")).toBeInTheDocument();
     });
     expect(screen.getAllByText("200 ₽").length).toBeGreaterThan(0);
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("position-added");
   });
 
   it("adds a fee from the action bar", async () => {
@@ -1398,7 +1505,7 @@ describe("Receipt flow", () => {
     });
     expect(screen.getByText("Delivery")).toBeInTheDocument();
     expect(screen.getByText("С учетом скидок и сборов:")).toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("modifiers-add-fee");
   });
 
   it("adds a discount from the action bar", async () => {
@@ -1422,7 +1529,7 @@ describe("Receipt flow", () => {
     });
     expect(screen.getByText("Promo")).toBeInTheDocument();
     expect(screen.getByText("С учетом скидок и сборов:")).toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("modifiers-add-discount");
   });
 
   it("saves edits for an existing fee", async () => {
@@ -1431,7 +1538,7 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner({ receipt: receiptWithModifiers });
 
     // Act
-    await user.click(getInteractiveButtonByText("Delivery")!);
+    await user.click(getInteractiveButtonByText("Delivery"));
 
     const nameInput = await screen.findByDisplayValue("Delivery");
     const valueInput = screen.getByRole("spinbutton");
@@ -1446,7 +1553,7 @@ describe("Receipt flow", () => {
       expect(screen.getByText("Service")).toBeInTheDocument();
     });
     expect(screen.getByText("Сборы:")).toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("modifiers-fee-edited");
   });
 
   it("saves edits for an existing discount", async () => {
@@ -1455,7 +1562,7 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner({ receipt: receiptWithModifiers });
 
     // Act
-    await user.click(getInteractiveButtonByText("Loyalty")!);
+    await user.click(getInteractiveButtonByText("Loyalty"));
 
     const nameInput = await screen.findByDisplayValue("Loyalty");
     const valueInput = screen.getByRole("spinbutton");
@@ -1470,7 +1577,7 @@ describe("Receipt flow", () => {
       expect(screen.getByText("Weekend")).toBeInTheDocument();
     });
     expect(screen.getByText("Скидки:")).toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("modifiers-discount-edited");
   });
 
   it("removes an existing fee", async () => {
@@ -1479,7 +1586,7 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner({ receipt: receiptWithModifiers });
 
     // Act
-    await user.click(getInteractiveButtonByText("Delivery")!);
+    await user.click(getInteractiveButtonByText("Delivery"));
     await user.click(screen.getByRole("button", { name: "Удалить" }));
 
     // Assert
@@ -1497,7 +1604,7 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner({ receipt: receiptWithModifiers });
 
     // Act
-    await user.click(getInteractiveButtonByText("Loyalty")!);
+    await user.click(getInteractiveButtonByText("Loyalty"));
     await user.click(screen.getByRole("button", { name: "Удалить" }));
 
     // Assert
@@ -1515,10 +1622,7 @@ describe("Receipt flow", () => {
     await renderReceiptFormHarness({ receipt: invalidReceipt, echoReceiptUpdates: false });
 
     // Act
-    await user.click(screen.getAllByRole("button").find((button) =>
-      button.textContent?.includes("Итого:") && button.textContent?.includes("9999 ₽")
-      && getComputedStyle(button).pointerEvents !== "none"
-    )!);
+    await user.click(getInteractiveButtonByFragments(["Итого:", "9999 ₽"]));
 
     const totalInputs = await screen.findAllByRole("spinbutton");
     await user.clear(totalInputs[0]);
@@ -1537,18 +1641,29 @@ describe("Receipt flow", () => {
   it("opens position editing in validation mode with save disabled for an invalid name", async () => {
     // Arrange
     const user = userEvent.setup();
-    await renderReceiptFormInner({ receipt: invalidNameReceipt });
+    await renderReceiptFormInner({ receipt: invalidPositionAndTotalsReceipt });
 
     // Act
-    await user.click(screen.getAllByRole("button").find((button) =>
-      button.textContent?.includes("801 ₽") && button.textContent?.includes("x")
-      && getComputedStyle(button).pointerEvents !== "none"
-    )!);
+    await user.click(getInteractiveButtonByFragments(["801 ₽", "x"]));
 
     // Assert
     expect(await screen.findByDisplayValue("")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("validation-position-invalid-dialog");
+  });
+
+  it("opens position editing in validation mode with mismatched overall", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({ receipt: invalidOverallMismatchReceipt });
+
+    // Act
+    await user.click(getInteractiveButtonByFragments(["999 ₽", "x"]));
+
+    // Assert
+    expect(await screen.findByDisplayValue("999")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
+    await expectCurrentScreenshot("validation-position-overall-mismatch-dialog");
   });
 
   it("removes an invalid zero-zero position and reaches a valid state after the server confirms deletion", async () => {
@@ -1559,9 +1674,10 @@ describe("Receipt flow", () => {
       echoReceiptUpdates: false,
     });
     expect(screen.getByRole("button", { name: "Изменить" })).toBeDisabled();
+    await expectCurrentScreenshot("zero-zero-before-delete");
 
     // Act
-    await user.click(getZeroPositionButton()!);
+    await user.click(getZeroPositionButton());
     await user.click(screen.getByRole("button", { name: "Удалить" }));
     await act(async () => {
       harness.pushReceipt?.(structuredClone(invalidZeroPositionReceipt));
@@ -1574,8 +1690,8 @@ describe("Receipt flow", () => {
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Готово" })).toBeEnabled();
     });
-    expect(getZeroPositionButton()).toBeUndefined();
-    await expectCurrentScreenshot();
+    expect(queryZeroPositionButton()).toBeUndefined();
+    await expectCurrentScreenshot("zero-zero-after-delete");
   });
 
   it("does not resurrect a removed invalid zero-zero position when the next server update already reflects the deletion", async () => {
@@ -1587,7 +1703,7 @@ describe("Receipt flow", () => {
     });
 
     // Act
-    await user.click(getZeroPositionButton()!);
+    await user.click(getZeroPositionButton());
     await user.click(screen.getByRole("button", { name: "Удалить" }));
     await act(async () => {
       harness.pushReceipt?.(structuredClone(invalidZeroPositionReceipt));
@@ -1598,11 +1714,10 @@ describe("Receipt flow", () => {
 
     // Assert
     await waitFor(() => {
-      expect(getZeroPositionButton()).toBeUndefined();
+      expect(queryZeroPositionButton()).toBeUndefined();
     });
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(screen.getByText("Bread")).toBeInTheDocument();
-    await expectCurrentScreenshot();
   });
 
   it("opens totals editing in validation mode with invalid values prefilled and save disabled", async () => {
@@ -1611,17 +1726,14 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner({ receipt: invalidReceipt });
 
     // Act
-    await user.click(screen.getAllByRole("button").find((button) =>
-      button.textContent?.includes("Итого:") && button.textContent?.includes("9999 ₽")
-      && getComputedStyle(button).pointerEvents !== "none"
-    )!);
+    await user.click(getInteractiveButtonByFragments(["Итого:", "9999 ₽"]));
 
     // Assert
     const totalInputs = await screen.findAllByRole("spinbutton");
     expect(totalInputs[0]).toHaveValue(9999);
     expect(totalInputs[1]).toHaveValue(9999);
     expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("validation-totals-invalid-dialog");
   });
 
   it("transitions from invalid to valid after editing totals", async () => {
@@ -1631,9 +1743,7 @@ describe("Receipt flow", () => {
     expect(screen.getByRole("button", { name: "Изменить" })).toBeDisabled();
 
     // Act
-    await user.click(screen.getAllByRole("button").find((button) =>
-      button.textContent?.includes("Итого:") && button.textContent?.includes("9999 ₽")
-    )!);
+    await user.click(getInteractiveButtonByFragments(["Итого:", "9999 ₽"]));
 
     const totalInputs = await screen.findAllByRole("spinbutton");
     await user.clear(totalInputs[0]);
@@ -1649,7 +1759,7 @@ describe("Receipt flow", () => {
     });
     expect(screen.getByText("Итого:")).toBeInTheDocument();
     expect(screen.getAllByText("1321 ₽").length).toBeGreaterThan(0);
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("validation-totals-fixed");
   });
 
   it("transitions from invalid to valid after editing a position", async () => {
@@ -1659,10 +1769,7 @@ describe("Receipt flow", () => {
     expect(screen.getByRole("button", { name: "Изменить" })).toBeDisabled();
 
     // Act
-    await user.click(screen.getAllByRole("button").find((button) =>
-      button.textContent?.includes("801 ₽") && button.textContent?.includes("x")
-      && getComputedStyle(button).pointerEvents !== "none"
-    )!);
+    await user.click(getInteractiveButtonByFragments(["801 ₽", "x"]));
 
     const nameInput = await screen.findByDisplayValue("");
     await user.type(nameInput, "Milk");
@@ -1681,14 +1788,13 @@ describe("Receipt flow", () => {
     // Arrange
     const user = userEvent.setup();
     await renderReceiptFormHarness({ receipt: overClaimedReceipt });
-
-    const breadRowButton = screen.getAllByRole("button").find((button) =>
-      button.textContent?.includes("Bread")
+    const breadRowButton = requireElement(
+      screen.getAllByRole("button").find((button) =>
+        button.textContent?.includes("Bread") &&
+        getComputedStyle(button).pointerEvents !== "none",
+      ),
+      'bread row button should be present',
     );
-
-    if (!breadRowButton) {
-      throw new Error('bread row button should be here')
-    }
 
     // Act
     await user.click(breadRowButton);
@@ -1708,12 +1814,12 @@ describe("Receipt flow", () => {
         .getAllByRole("button", { name: "Готово", includeHidden: true })
         .find((button) => button.hasAttribute("disabled")),
     ).toBeDisabled();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("claim-error-sheet");
     await user.keyboard("{Escape}");
     await waitFor(() => {
       expect(screen.queryByRole("heading", { name: "Bread" })).not.toBeInTheDocument();
     });
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("claim-error-after-close");
   });
 
   it("renders participant balances and item breakdown in summary mode", async () => {
@@ -1735,7 +1841,7 @@ describe("Receipt flow", () => {
     expect(screen.getByText("1 × 801 ₽")).toBeInTheDocument();
     expect(screen.getAllByText("1 × 150 ₽").length).toBeGreaterThan(1);
     expect(screen.queryByText(/Осталось:/)).not.toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("summary-balances");
   });
 
   it("shows remaining indicator in summary mode when the receipt is not fully distributed", async () => {
@@ -1752,7 +1858,7 @@ describe("Receipt flow", () => {
     expect(screen.getByText("Осталось: 370 ₽")).toBeInTheDocument();
     expect(screen.queryByText("Polina")).not.toBeInTheDocument();
     expect(screen.queryByText("Butter")).not.toBeInTheDocument();
-    await expectCurrentScreenshot();
+    await expectCurrentScreenshot("summary-remaining");
   });
 
   it("falls back from summary to validation when a server update makes the receipt invalid", async () => {
