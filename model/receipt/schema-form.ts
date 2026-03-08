@@ -22,7 +22,7 @@ const claimSchema = z.object({
   value: z.number(),
 });
 
-export const receiptSchema = receiptAiSchema
+export const receiptWithIdsSchema = receiptAiSchema
   .extend({
     positions: z.array(
       z.intersection(
@@ -32,11 +32,15 @@ export const receiptSchema = receiptAiSchema
     ),
     fees: z.array(withId(modifierSchema)),
     discounts: z.array(withId(modifierSchema)),
-  })
+  });
+
+export const receiptSchema = receiptWithIdsSchema
   .superRefine((value, context) => {
     addReceiptBusinessIssues(
       {
-        positions: value.positions.map(({ claims: _claims, ...position }) => position),
+        positions: value.positions.map(
+          ({ claims: _claims, ...position }) => position,
+        ),
         fees: value.fees,
         discounts: value.discounts,
         totals: value.totals,

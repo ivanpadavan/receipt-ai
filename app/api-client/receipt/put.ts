@@ -1,9 +1,9 @@
 import { ApiValidator } from "@/app/api-client/api-validator";
 import { z } from "zod";
-import { receiptSchema } from "@/model/receipt/schema";
+import { receiptWithIdsSchema } from "@/model/receipt/schema";
 
 const validator = {
-  request: receiptSchema,
+  request: receiptWithIdsSchema,
   response: z.unknown(),
 } satisfies ApiValidator;
 
