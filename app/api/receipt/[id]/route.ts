@@ -5,6 +5,7 @@ import putValidator from "@/app/api-client/receipt/put";
 import { errorWrap } from "@/app/api/receipt/error-wrap";
 import { getUser, serverSupabase } from "@/utils/supabase/server";
 import { buildParticipants } from "@/app/db-utils/build-participants";
+import { trackPresenceAndSync } from "@/app/api/receipt/[id]/trackPresenceAndSync";
 import type { ParticipantDTO } from "@/model/receipt/model";
 import type {
   Receipt,
@@ -32,19 +33,6 @@ import {
 } from "rxjs";
 
 export const runtime = "nodejs";
-
-interface PresenceTrackChannel {
-  track: (payload: { userId: string }) => Promise<unknown>;
-}
-
-export async function trackPresenceAndSync(
-  channel: PresenceTrackChannel,
-  userId: string,
-  syncPresenceState: () => void,
-) {
-  await channel.track({ userId });
-  syncPresenceState();
-}
 
 const withPresence = (
   payload: { receipt: unknown; participants: ParticipantDTO[] },

@@ -5,6 +5,7 @@ import { ReactNode, useEffect } from "react";
 import { devTools } from "@ngneat/elf-devtools";
 import { Toaster } from "@/components/ui/sonner";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { HawkInit } from "@/app/observability/HawkInit";
 
 export function Providers({ children }: { children: ReactNode }) {
   useEffect(() => {
@@ -14,6 +15,7 @@ export function Providers({ children }: { children: ReactNode }) {
 
   return (
     <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
+      <HawkInit />
       <Toaster
         style={{ pointerEvents: "auto" }}
         position={"top-center"}

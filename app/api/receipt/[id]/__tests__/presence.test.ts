@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { trackPresenceAndSync } from "@/app/api/receipt/[id]/route";
+import { trackPresenceAndSync } from "@/app/api/receipt/[id]/trackPresenceAndSync";
 
 describe("trackPresenceAndSync", () => {
   it("tracks current user and then synchronizes presence state", async () => {
@@ -20,4 +20,3 @@ describe("trackPresenceAndSync", () => {
     expect(order).toEqual(["track", "sync"]);
   });
 });
-
