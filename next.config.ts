@@ -8,6 +8,11 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 const HawkWebpackPlugin = require("@hawk.so/webpack-plugin");
 
 function readGitCommitHash() {
+  const railwayCommitSha = process.env.RAILWAY_GIT_COMMIT_SHA;
+  if (railwayCommitSha) {
+    return railwayCommitSha;
+  }
+
   try {
     return execSync("git rev-parse HEAD", {
       encoding: "utf8",
