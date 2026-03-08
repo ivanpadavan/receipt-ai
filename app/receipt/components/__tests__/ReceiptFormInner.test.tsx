@@ -213,6 +213,121 @@ const overClaimedReceipt: Receipt = {
   ],
 };
 
+const splittingParticipants: ReceiptWithParticipants["participants"] = [
+  {
+    id: "user-2",
+    displayName: "Anton",
+    color: "#f59e0b",
+    kind: "REAL",
+    isAnonymous: false,
+    isOnline: true,
+  },
+  {
+    id: "user-1",
+    displayName: "Ivan",
+    color: "#111111",
+    kind: "REAL",
+    isAnonymous: false,
+    isOnline: true,
+  },
+  {
+    id: "user-3",
+    displayName: "Polina",
+    color: "#22c55e",
+    kind: "REAL",
+    isAnonymous: false,
+    isOnline: true,
+  },
+];
+
+const partiallyDistributedReceipt: Receipt = {
+  ...validReceipt,
+  positions: [
+    validReceipt.positions[0],
+    {
+      ...validReceipt.positions[1],
+      claims: [
+        {
+          id: "claim-existing",
+          type: "amount",
+          value: 150,
+          participantIds: ["user-2"],
+        },
+      ],
+    },
+    validReceipt.positions[2],
+  ],
+};
+
+const fullyDistributedReceipt: Receipt = {
+  ...validReceipt,
+  positions: [
+    validReceipt.positions[0],
+    {
+      ...validReceipt.positions[1],
+      claims: [
+        {
+          id: "claim-fully-distributed",
+          type: "amount",
+          value: 300,
+          participantIds: ["user-2"],
+        },
+      ],
+    },
+    validReceipt.positions[2],
+  ],
+};
+
+const quantityMaxSwitchReceipt: Receipt = {
+  ...validReceipt,
+  positions: [
+    validReceipt.positions[0],
+    {
+      ...validReceipt.positions[1],
+      claims: [
+        {
+          id: "claim-edit-quantity",
+          type: "quantity",
+          value: 1,
+          participantIds: ["user-1"],
+        },
+        {
+          id: "claim-other-amount",
+          type: "amount",
+          value: 150,
+          participantIds: ["user-2"],
+        },
+      ],
+    },
+    validReceipt.positions[2],
+  ],
+};
+
+const amountMaxSwitchReceipt: Receipt = {
+  ...validReceipt,
+  positions: [
+    validReceipt.positions[0],
+    {
+      ...validReceipt.positions[1],
+      claims: [
+        {
+          id: "claim-edit-amount",
+          type: "amount",
+          value: 150,
+          participantIds: ["user-1"],
+        },
+        {
+          id: "claim-other-amount",
+          type: "amount",
+          value: 150,
+          participantIds: ["user-2"],
+        },
+      ],
+    },
+    validReceipt.positions[2],
+  ],
+};
+
 async function renderReceiptFormInner({
   receipt = validReceipt,
   participants = joinedParticipants,
@@ -295,6 +410,32 @@ function getPositionButtonByText(fragment: string) {
   );
 }
 
+function getClaimButtonByText(fragment: string) {
+  const normalizedFragment = fragment.replace(/\s+/g, "");
+
+  return screen.getAllByRole("button").find((button) =>
+    (button.textContent?.replace(/\s+/g, "") ?? "").startsWith(normalizedFragment),
+  );
+}
+
+function getButtonByExactText(label: string) {
+  return screen.getAllByRole("button").find((button) =>
+    button.textContent?.trim() === label,
+  );
+}
+
+function getOpenDrawerButtonByText(label: string) {
+  const openDrawer = document.querySelector<HTMLElement>("[data-vaul-drawer][data-state='open']");
+
+  if (!openDrawer) {
+    throw new Error("open drawer should be present");
+  }
+
+  return Array.from(openDrawer.querySelectorAll<HTMLButtonElement>("button")).find(
+    (button) => button.textContent?.trim() === label,
+  );
+}
+
 function getZeroPositionButton() {
   return screen.getAllByRole("button").find(
     (button) =>
@@ -306,6 +447,20 @@ function getZeroPositionButton() {
 async function openSearch(user: ReturnType<typeof userEvent.setup>) {
   await user.click(getSearchButton());
   return screen.findByRole("textbox");
+}
+
+async function openSplittingSheetFor(
+  user: ReturnType<typeof userEvent.setup>,
+  fragment: string,
+) {
+  const positionButton = getPositionButtonByText(fragment);
+
+  if (!positionButton) {
+    throw new Error(`position button containing "${fragment}" should be here`);
+  }
+
+  await user.click(positionButton);
+  await screen.findByRole("heading", { name: fragment });
 }
 
 async function expectCurrentScreenshot() {
@@ -678,6 +833,329 @@ describe("Receipt flow", () => {
     await expectCurrentScreenshot();
   });
 
+  it("opens splitting with a draft editor for a partially distributed position and prioritizes the current user", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: partiallyDistributedReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await openSplittingSheetFor(user, "Bread");
+
+    // Assert
+    expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Выбрать всех" })).toBeInTheDocument();
+
+    const participantButtons = screen.getAllByRole("button").filter((button) =>
+      ["Anton", "Ivan", "Polina"].some((name) => button.textContent?.includes(name)),
+    );
+    expect(participantButtons.map((button) =>
+      ["Ivan", "Anton", "Polina"].find((name) => button.textContent?.includes(name)),
+    )).toEqual([
+      "Ivan",
+      "Anton",
+      "Polina",
+    ]);
+
+    await expectCurrentScreenshot();
+  });
+
+  it("opens splitting without a draft editor for a fully distributed position", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: fullyDistributedReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await openSplittingSheetFor(user, "Bread");
+
+    // Assert
+    expect(screen.queryByRole("button", { name: "Сохранить" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Редактировать" }).length).toBeGreaterThan(0);
+    expect(screen.getByText(/2 шт × 150 ₽ =/i)).toBeInTheDocument();
+
+    await expectCurrentScreenshot();
+  });
+
+  it("keeps trailing decimal separator while typing in the splitting draft editor", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: partiallyDistributedReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await openSplittingSheetFor(user, "Bread");
+    const input = screen.getAllByRole("textbox")[0];
+    await user.clear(input);
+    await user.type(input, "1.");
+
+    // Assert
+    expect(input).toHaveValue("1.");
+    await expectCurrentScreenshot();
+  });
+
+  it("converts a leading dot into 0. in the splitting draft editor", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: partiallyDistributedReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await openSplittingSheetFor(user, "Bread");
+    const input = screen.getAllByRole("textbox")[0];
+    await user.clear(input);
+    await user.type(input, ".");
+
+    // Assert
+    expect(input).toHaveValue("0.");
+    await expectCurrentScreenshot();
+  });
+
+  it("opens a new draft editor from add share for a fully distributed position", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: fullyDistributedReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await openSplittingSheetFor(user, "Bread");
+    await user.click(screen.getByRole("button", { name: "Добавить долю" }));
+
+    // Assert
+    expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
+    expect(
+      screen.getAllByRole("button").some((button) =>
+        ["Выбрать всех", "Снять всех"].includes(button.textContent?.trim() ?? ""),
+      ),
+    ).toBe(true);
+    await expectCurrentScreenshot();
+  });
+
+  it("saves a new splitting claim from the draft editor", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: partiallyDistributedReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await openSplittingSheetFor(user, "Bread");
+    const input = screen.getAllByRole("textbox")[0];
+    await user.type(input, "1");
+    await user.click(screen.getByRole("button", { name: "Сохранить" }));
+
+    // Assert
+    expect(screen.queryByRole("button", { name: "Сохранить" })).not.toBeInTheDocument();
+    expect(getClaimButtonByText("1шт=150₽")).toBeInTheDocument();
+    await expectCurrentScreenshot();
+  });
+
+  it("saves edits for an existing splitting claim", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: quantityMaxSwitchReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await openSplittingSheetFor(user, "Bread");
+    await user.click(getClaimButtonByText("1шт=150₽")!);
+    const input = screen.getAllByRole("textbox")[0];
+    await user.clear(input);
+    await user.type(input, "0.5");
+    await user.click(screen.getByRole("button", { name: "Сохранить" }));
+
+    // Assert
+    expect(screen.queryByRole("button", { name: "Сохранить" })).not.toBeInTheDocument();
+    expect(getClaimButtonByText("0.5шт=75₽")).toBeInTheDocument();
+    await expectCurrentScreenshot();
+  });
+
+  it("toggles select all and clear all in the splitting draft editor", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: partiallyDistributedReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await openSplittingSheetFor(user, "Bread");
+    await user.click(screen.getByRole("button", { name: "Выбрать всех" }));
+
+    // Assert
+    expect(screen.getByRole("button", { name: "Снять всех" })).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole("button", { name: "Снять всех" }));
+
+    // Assert
+    expect(screen.getByRole("button", { name: "Выбрать всех" })).toBeInTheDocument();
+    await expectCurrentScreenshot();
+  });
+
+  it("toggles individual participant selection in the splitting draft editor", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: partiallyDistributedReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await openSplittingSheetFor(user, "Bread");
+    await user.click(screen.getByRole("button", { name: /Anton/i }));
+
+    // Assert
+    expect(screen.getByRole("button", { name: "Выбрать всех" })).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole("button", { name: /Anton/i }));
+
+    // Assert
+    expect(screen.getByRole("button", { name: "Выбрать всех" })).toBeInTheDocument();
+    await expectCurrentScreenshot();
+  });
+
+  it("recalculates max state when switching a quantity claim to amount", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: quantityMaxSwitchReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await openSplittingSheetFor(user, "Bread");
+    await user.click(getClaimButtonByText("1шт=150₽")!);
+
+    // Assert
+    const maxButton = screen.getByRole("button", { name: "Макс" });
+    expect(maxButton).toHaveAttribute("aria-pressed", "true");
+
+    // Act
+    await user.click(getButtonByExactText("₽")!);
+
+    // Assert
+    expect(maxButton).toHaveAttribute("aria-pressed", "false");
+    await expectCurrentScreenshot();
+  });
+
+  it("applies max value in quantity mode", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: partiallyDistributedReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await openSplittingSheetFor(user, "Bread");
+    await user.click(screen.getByRole("button", { name: "Макс" }));
+
+    // Assert
+    expect(screen.getAllByRole("textbox")[0]).toHaveValue("1");
+    expect(screen.getByRole("button", { name: "Макс" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
+  it("applies max value in amount mode", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: partiallyDistributedReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await openSplittingSheetFor(user, "Bread");
+    await user.click(getButtonByExactText("₽")!);
+    await user.click(screen.getByRole("button", { name: "Макс" }));
+
+    // Assert
+    expect(screen.getAllByRole("textbox")[0]).toHaveValue("150");
+    expect(screen.getByRole("button", { name: "Макс" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
+  it("disables saving when an amount max becomes invalid after switching to quantity", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: amountMaxSwitchReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await openSplittingSheetFor(user, "Bread");
+    await user.click(getClaimButtonByText("150₽")!);
+
+    // Assert
+    const maxButton = screen.getByRole("button", { name: "Макс" });
+    expect(maxButton).toHaveAttribute("aria-pressed", "true");
+
+    // Act
+    await user.click(getButtonByExactText("ШТ")!);
+
+    // Assert
+    expect(maxButton).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
+    await expectCurrentScreenshot();
+  });
+
+  it("deletes an existing splitting claim from the sheet", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: quantityMaxSwitchReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await openSplittingSheetFor(user, "Bread");
+    await user.click(screen.getAllByRole("button", { name: "Редактировать" })[1]);
+    await user.click(screen.getByRole("menuitem", { name: "Удалить" }));
+
+    // Assert
+    expect(getClaimButtonByText("1шт=150₽")).toBeUndefined();
+    await expectCurrentScreenshot();
+  });
+
+  it("closes the splitting sheet with done when there is no active draft", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: fullyDistributedReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await openSplittingSheetFor(user, "Bread");
+    await user.click(getOpenDrawerButtonByText("Готово")!);
+
+    // Assert
+    await waitFor(() => {
+      expect(screen.queryByRole("heading", { name: "Bread" })).not.toBeInTheDocument();
+    });
+    await expectCurrentScreenshot();
+  });
+
   it("keeps the filtered search state when opening participants sheet", async () => {
     // Arrange
     const user = userEvent.setup();
@@ -839,7 +1317,7 @@ describe("Receipt flow", () => {
   it("keeps claim error after shrinking a claimed position below distributed quantity", async () => {
     // Arrange
     const user = userEvent.setup();
-    const harness = await renderReceiptFormHarness({ receipt: overClaimedReceipt });
+    await renderReceiptFormHarness({ receipt: overClaimedReceipt });
 
     const breadRowButton = screen.getAllByRole("button").find((button) =>
       button.textContent?.includes("Bread")
