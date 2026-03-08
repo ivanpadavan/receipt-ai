@@ -188,8 +188,16 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   const formState = useReceiptFormState(receipt, receiptId);
 
   const [participantsModalOpen, setParticipantsModalOpen] = useState(false);
+  const [participantsSheetMounted, setParticipantsSheetMounted] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const openParticipantsSheet = useCallback(() => {
+    setParticipantsSheetMounted(true);
+    setParticipantsModalOpen(true);
+  }, []);
+  const closeParticipantsSheet = useCallback(() => {
+    setParticipantsModalOpen(false);
+  }, []);
 
   const {
     scenario: { form, canEdit, type: scenarioType },
@@ -309,14 +317,15 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
         {/* Participants Modal Drawer */}
         <Drawer
           open={participantsModalOpen}
-          onClose={() => setParticipantsModalOpen(false)}
+          onClose={closeParticipantsSheet}
+          onCloseAnimationEnd={() => setParticipantsSheetMounted(false)}
           repositionInputs={false}
         >
-          <ParticipantsSheet
-            receiptId={receiptId}
-            open={participantsModalOpen}
-            onClose={() => setParticipantsModalOpen(false)}
-          />
+          {participantsSheetMounted &&
+            <ParticipantsSheet
+              receiptId={receiptId}
+              onClose={closeParticipantsSheet}
+            />}
         </Drawer>
 
         <div className="flex-1 flex flex-col justify-between">
@@ -603,7 +612,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
             showSearch={scenarioType !== "summary"}
             isSearchOpen={isSearchOpen}
             onOpenSearch={() => setIsSearchOpen(true)}
-            onOpenParticipants={() => setParticipantsModalOpen(true)}
+            onOpenParticipants={openParticipantsSheet}
             onPrimaryAction={scenarioType === "summary" ? goBack : proceed}
             onAddPosition={
               canEdit.positionForm

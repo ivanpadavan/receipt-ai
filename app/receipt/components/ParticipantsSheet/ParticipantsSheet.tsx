@@ -59,13 +59,11 @@ const deleteAction = "bg-destructive text-destructive-foreground hover:bg-destru
 
 interface ParticipantsSheetProps {
   onClose?: () => void;
-  open?: boolean;
   receiptId: string;
 }
 
 export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
   onClose,
-  open = true,
   receiptId,
 }) => {
   const { user } = useUser();
@@ -87,13 +85,6 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
         p.displayName.trim().toLowerCase() === trimmedNewName.toLowerCase(),
     );
   }, [participants, trimmedNewName]);
-
-  useEffect(() => {
-    if (open) return;
-    setNewParticipantName("");
-    setIsAdding(false);
-    setDeleteConfirm(null);
-  }, [open]);
 
   const handleAddParticipant = async () => {
     if (!trimmedNewName) return;
