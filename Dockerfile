@@ -4,6 +4,9 @@ FROM node:24-alpine AS builder
 # Set working directory
 WORKDIR /app
 
+# Install git for release metadata during webpack builds
+RUN apk add --no-cache git
+
 # Install pnpm
 RUN npm install -g pnpm@10.25.0
 
