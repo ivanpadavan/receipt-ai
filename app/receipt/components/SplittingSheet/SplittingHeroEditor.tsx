@@ -35,11 +35,11 @@ const typeSwitchButtonVariants = cva(
   },
 );
 const participantButtonVariants = cva(
-  `border border-transparent bg-white/80 px-2 py-1.5 shadow-sm ${radiusTokens.full} transition-all`,
+  `border border-transparent bg-white/80 shadow-sm ${radiusTokens.full} transition-all`,
   {
     variants: {
       selected: {
-        true: "border-amber-300 bg-amber-100/80",
+        true: "border-amber-300 border-2 bg-amber-100/80",
         false: "hover:bg-white",
       },
     },
@@ -91,22 +91,6 @@ const parseInputValue = (normalizedValue: string) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const useTransientPreventScrollHack = (durationMs = 3000) => {
-  const [enabled, setEnabled] = useState(true);
-
-  useEffect(() => {
-    const timerId = window.setTimeout(() => {
-      setEnabled(false);
-    }, durationMs);
-
-    return () => {
-      window.clearTimeout(timerId);
-    };
-  }, [durationMs]);
-
-  return enabled ? "prevent_scrolling_when_focus" : "";
-};
-
 export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
   claim,
   claims,
@@ -119,7 +103,6 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
   onCancel,
   onSave,
 }) => {
-  const preventScrollHackClass = useTransientPreventScrollHack();
   const [rawValue, setRawValue] = useState(
     claim.value > 0
       ? claim.type === "amount"
@@ -187,9 +170,12 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
             type="text"
             inputMode="decimal"
             enterKeyHint="done"
+            onFocus={(ev) => {
+              ev.target.style.opacity = '0';
+              setTimeout(() => (ev.target.style.opacity = '1'));
+            }}
             className={cn(
               "h-16 min-w-0 flex-1 border-0 bg-transparent px-0 text-center text-5xl font-semibold tabular-nums shadow-none focus-visible:ring-0",
-              preventScrollHackClass,
             )}
             value={rawValue}
             onChange={(event) => {
@@ -293,7 +279,7 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
           </button>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2 overflow-auto">
           {participants.map((participant) => {
             const selected = claim.participantIds.includes(participant.id);
 
@@ -330,7 +316,7 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
                 />
                 <span
                   className={cn(
-                    "max-w-28 truncate",
+                    "max-w-28 truncate pr-2",
                     textVariants({ size: "sm", weight: "medium" }),
                   )}
                 >
