@@ -11,7 +11,8 @@
     "lint": "eslint",
     "format": "prettier --write \"app\"",
     "test": "vitest",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "test:browser": "vitest --config=vitest.browser.config.ts"
   },
   "engines": {
     "node": "^24.14.0",
@@ -100,6 +101,7 @@
     "@types/pg": "^8.16.0",
     "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^4.6.0",
+    "@vitest/browser-playwright": "^4.0.18",
     "@vitest/coverage-v8": "^4.0.18",
     "autoprefixer": "10.4.14",
     "eslint": "9.39.2",
@@ -112,6 +114,7 @@
     "typescript": "5.4.5",
     "typescript-eslint": "^8.49.0",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "vitest-browser-react": "^2.0.5"
   }
 }

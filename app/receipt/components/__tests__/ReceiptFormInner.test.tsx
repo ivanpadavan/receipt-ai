@@ -1,10 +1,83 @@
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, waitFor } from "@testing-library/react";
+import { page } from "vitest/browser";
 import userEvent from "@testing-library/user-event";
 import { ParticipantsStoreProvider } from "@/app/receipt/store/participants";
 import { Receipt, ReceiptWithParticipants } from "@/model/receipt/model";
-import type { ReactNode } from "react";
+import { cleanup, render, type RenderResult as BrowserRenderResult } from "vitest-browser-react";
+
+const VIEWPORT_WIDTH = 390;
+const VIEWPORT_HEIGHT = 844;
+
+let browserScreen: BrowserRenderResult | null = null;
+
+function getActiveBrowserScreen() {
+  if (!browserScreen) {
+    throw new Error("browser screen is not initialized");
+  }
+  return browserScreen;
+}
+
+function queryBrowserDisplayValue(value: string) {
+  const root = getActiveBrowserScreen().baseElement;
+  return Array.from(
+    root.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
+      "input, textarea, select",
+    ),
+  ).find((element) => element.value === value) ?? null;
+}
+
+const screen = {
+  getByText(text: string | RegExp) {
+    return getActiveBrowserScreen().getByText(text).element() as HTMLElement;
+  },
+  queryByText(text: string | RegExp) {
+    return getActiveBrowserScreen().getByText(text).query() as HTMLElement | null;
+  },
+  getAllByText(text: string | RegExp) {
+    return getActiveBrowserScreen()
+      .getByText(text)
+      .all()
+      .map((locator) => locator.element() as HTMLElement);
+  },
+  async findAllByText(text: string | RegExp) {
+    const locator = getActiveBrowserScreen().getByText(text);
+    await expect.poll(() => locator.length).toBeGreaterThan(0);
+    return locator.all().map((item) => item.element() as HTMLElement);
+  },
+  getByRole(role: string, options?: Record<string, unknown>) {
+    return getActiveBrowserScreen().getByRole(role, options).element() as HTMLElement;
+  },
+  queryByRole(role: string, options?: Record<string, unknown>) {
+    return getActiveBrowserScreen().getByRole(role, options).query() as HTMLElement | null;
+  },
+  async findByRole(role: string, options?: Record<string, unknown>) {
+    const locator = getActiveBrowserScreen().getByRole(role, options);
+    await expect.element(locator).toBeInTheDocument();
+    return locator.element() as HTMLElement;
+  },
+  getAllByRole(role: string, options?: Record<string, unknown>) {
+    return getActiveBrowserScreen()
+      .getByRole(role, options)
+      .all()
+      .map((locator) => locator.element() as HTMLElement);
+  },
+  async findAllByRole(role: string, options?: Record<string, unknown>) {
+    const locator = getActiveBrowserScreen().getByRole(role, options);
+    await expect.poll(() => locator.length).toBeGreaterThan(0);
+    return locator.all().map((item) => item.element() as HTMLElement);
+  },
+  getByDisplayValue(value: string) {
+    const element = queryBrowserDisplayValue(value);
+    if (!element) throw new Error(`Unable to find display value "${value}"`);
+    return element;
+  },
+  async findByDisplayValue(value: string) {
+    await expect.poll(() => queryBrowserDisplayValue(value)).not.toBeNull();
+    return queryBrowserDisplayValue(value)!;
+  },
+};
 
 const useUserMock = vi.fn();
 const pushMock = vi.fn();
@@ -39,21 +112,6 @@ vi.mock("@/app/api-client", () => ({
     createReceipt: vi.fn(),
     updateReceipt: (...args: unknown[]) => updateReceiptMock(...args),
   },
-}));
-
-vi.mock("@/components/ui/drawer", () => ({
-  Drawer: ({
-    children,
-    open,
-  }: {
-    children: ReactNode;
-    open?: boolean;
-  }) => (open ? <div>{children}</div> : <div />),
-  DrawerContent: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  DrawerHeader: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  DrawerTitle: ({ children }: { children: ReactNode }) => <h2>{children}</h2>,
-  DrawerFooter: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  DrawerClose: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
 const validReceipt: Receipt = {
@@ -163,16 +221,18 @@ async function renderReceiptFormInner({
   participants?: ReceiptWithParticipants["participants"];
 } = {}) {
   const { ReceiptFormInner } = await import("@/app/receipt/components/ReceiptForm");
-
-  return render(
+  const ui = (
     <ParticipantsStoreProvider initialParticipants={participants}>
       <ReceiptFormInner
         receipt={receipt}
         participants={participants}
         receiptId="receipt-1"
       />
-    </ParticipantsStoreProvider>,
+    </ParticipantsStoreProvider>
   );
+
+  browserScreen = await render(ui);
+  return browserScreen;
 }
 
 async function renderReceiptFormHarness({
@@ -212,17 +272,21 @@ async function renderReceiptFormHarness({
   };
 
   return {
-    ...render(<ReceiptFormHarness />),
+    ...(browserScreen = await render(<ReceiptFormHarness />)),
     pushReceipt: (nextReceipt: Receipt) => controls.pushReceipt?.(nextReceipt),
   };
 }
 
 function getSearchButton() {
-  return screen.getByRole("button", { name: "Search" });
+  return screen
+    .getAllByRole("button")
+    .find((button) => button.getAttribute("aria-label") === "Search")!;
 }
 
 function getCloseSearchButton() {
-  return screen.getByRole("button", { name: "Close search" });
+  return screen
+    .getAllByRole("button")
+    .find((button) => button.getAttribute("aria-label") === "Close search")!;
 }
 
 function getPositionButtonByText(fragment: string) {
@@ -244,11 +308,23 @@ async function openSearch(user: ReturnType<typeof userEvent.setup>) {
   return screen.findByRole("textbox");
 }
 
+async function expectCurrentScreenshot() {
+  await expect
+    .element(page.elementLocator(document.body))
+    .toMatchScreenshot();
+}
+
 describe("Receipt flow", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await page.viewport(VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
     vi.clearAllMocks();
     vi.resetModules();
     summaryQueryValue = null;
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv(
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY",
+      "test-publishable-key",
+    );
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY =
       "test-publishable-key";
@@ -263,8 +339,10 @@ describe("Receipt flow", () => {
     updateReceiptMock.mockResolvedValue(validReceipt);
   });
 
-  afterEach(() => {
-    cleanup();
+  afterEach(async () => {
+    browserScreen = null;
+    vi.unstubAllEnvs();
+    await cleanup();
   });
 
   it("renders the splitting flow for a joined participant", async () => {
@@ -287,6 +365,7 @@ describe("Receipt flow", () => {
     expect(screen.getByRole("button", { name: "Участники" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Готово" })).toBeInTheDocument();
     expect(screen.queryByText("Настройки")).not.toBeInTheDocument();
+    await expectCurrentScreenshot();
   });
 
   it("starts invalid receipts in review mode with disabled proceed", async () => {
@@ -300,6 +379,7 @@ describe("Receipt flow", () => {
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(getSearchButton()).toBeInTheDocument();
     expect(reviewAction).toBeDisabled();
+    await expectCurrentScreenshot();
   });
 
   it("renders summary mode from the query state and hides search", async () => {
@@ -314,6 +394,7 @@ describe("Receipt flow", () => {
     expect(screen.getByText("Пока нет распределений")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Изменить" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Search" })).not.toBeInTheDocument();
+    await expectCurrentScreenshot();
   });
 
   it("writes summary query when proceeding from splitting", async () => {
@@ -329,6 +410,7 @@ describe("Receipt flow", () => {
       history: "push",
       scroll: true,
     });
+    await expectCurrentScreenshot();
   });
 
   it("clears summary query when returning from summary", async () => {
@@ -345,6 +427,7 @@ describe("Receipt flow", () => {
       history: "push",
       scroll: true,
     });
+    await expectCurrentScreenshot();
   });
 
   it("filters positions through search", async () => {
@@ -361,6 +444,7 @@ describe("Receipt flow", () => {
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(screen.queryByText("Bread")).not.toBeInTheDocument();
     expect(screen.queryByText("Butter")).not.toBeInTheDocument();
+    await expectCurrentScreenshot();
   });
 
   it("shows empty state for unmatched search while keeping totals visible", async () => {
@@ -377,6 +461,7 @@ describe("Receipt flow", () => {
     expect(screen.queryByText("Milk")).not.toBeInTheDocument();
     expect(screen.getByText("Итого:")).toBeInTheDocument();
     expect(screen.getByText("С учетом скидок и сборов:")).toBeInTheDocument();
+    await expectCurrentScreenshot();
   });
 
   it("clears the query before closing search", async () => {
@@ -395,6 +480,7 @@ describe("Receipt flow", () => {
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(screen.getByText("Bread")).toBeInTheDocument();
     expect(screen.getByText("Butter")).toBeInTheDocument();
+    await expectCurrentScreenshot();
   });
 
   it("keeps the search input focused when the close button clears a non-empty query", async () => {
@@ -410,6 +496,7 @@ describe("Receipt flow", () => {
     // Assert
     expect(screen.getByRole("textbox")).toHaveFocus();
     expect(screen.getByRole("textbox")).toHaveValue("");
+    await expectCurrentScreenshot();
   });
 
   it("closes empty search on blur", async () => {
@@ -429,6 +516,7 @@ describe("Receipt flow", () => {
       expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     });
     expect(getSearchButton()).toBeInTheDocument();
+    await expectCurrentScreenshot();
   });
 
   it("reopens search when the user taps Search again after blur closes it", async () => {
@@ -438,7 +526,7 @@ describe("Receipt flow", () => {
     const searchInput = await openSearch(user);
 
     // Act
-    fireEvent.blur(searchInput);
+    searchInput.blur();
     await waitFor(() => {
       expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     });
@@ -447,6 +535,7 @@ describe("Receipt flow", () => {
     // Assert
     expect(screen.getByRole("textbox")).toBeInTheDocument();
     expect(getSearchButton()).toBeInTheDocument();
+    await expectCurrentScreenshot();
   });
 
   it("closes search on Escape and clears the current filtered state", async () => {
@@ -466,6 +555,7 @@ describe("Receipt flow", () => {
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(screen.getByText("Bread")).toBeInTheDocument();
     expect(screen.getByText("Butter")).toBeInTheDocument();
+    await expectCurrentScreenshot();
   });
 
   it("treats whitespace-only search like an empty query", async () => {
@@ -482,6 +572,7 @@ describe("Receipt flow", () => {
     expect(screen.getByText("Bread")).toBeInTheDocument();
     expect(screen.getByText("Butter")).toBeInTheDocument();
     expect(screen.queryByText("Ничего не найдено")).not.toBeInTheDocument();
+    await expectCurrentScreenshot();
   });
 
   it("reopens search with an empty query after Escape clears it", async () => {
@@ -502,6 +593,7 @@ describe("Receipt flow", () => {
     expect(await screen.findByDisplayValue("")).toBeInTheDocument();
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(screen.getByText("Bread")).toBeInTheDocument();
+    await expectCurrentScreenshot();
   });
 
   it("keeps the filtered search state when opening splitting sheet", async () => {
@@ -521,6 +613,7 @@ describe("Receipt flow", () => {
     expect(screen.getByDisplayValue("milk")).toBeInTheDocument();
     expect(screen.getAllByText("Milk").length).toBeGreaterThan(0);
     expect(screen.queryByText("Bread")).not.toBeInTheDocument();
+    await expectCurrentScreenshot();
   });
 
   it("removes a position from filtered results when a receipt update renames it away from the query", async () => {
@@ -551,6 +644,7 @@ describe("Receipt flow", () => {
     });
     expect(screen.queryByText("Milk")).not.toBeInTheDocument();
     expect(screen.queryByText("Tea")).not.toBeInTheDocument();
+    await expectCurrentScreenshot();
   });
 
   it("adds a position into filtered results when a receipt update renames it to match the query", async () => {
@@ -579,8 +673,9 @@ describe("Receipt flow", () => {
     await waitFor(() => {
       expect(screen.getByText("Milk Bread")).toBeInTheDocument();
     });
-    expect(screen.getByText("Milk")).toBeInTheDocument();
+    expect(screen.getAllByText("Milk").length).toBeGreaterThan(0);
     expect(screen.queryByText("Butter")).not.toBeInTheDocument();
+    await expectCurrentScreenshot();
   });
 
   it("keeps the filtered search state when opening participants sheet", async () => {
@@ -598,6 +693,7 @@ describe("Receipt flow", () => {
     expect(screen.getByDisplayValue("milk")).toBeInTheDocument();
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(screen.queryByText("Butter")).not.toBeInTheDocument();
+    await expectCurrentScreenshot();
   });
 
   it("opens position editing in validation mode with save disabled for an invalid name", async () => {
@@ -613,6 +709,7 @@ describe("Receipt flow", () => {
     // Assert
     expect(await screen.findByDisplayValue("")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
+    await expectCurrentScreenshot();
   });
 
   it("removes an invalid 0/0 position and reaches a valid state after the server confirms deletion", async () => {
@@ -639,6 +736,7 @@ describe("Receipt flow", () => {
       expect(screen.getByRole("button", { name: "Готово" })).toBeEnabled();
     });
     expect(getZeroPositionButton()).toBeUndefined();
+    await expectCurrentScreenshot();
   });
 
   it("does not resurrect a removed invalid 0/0 position when the next server update already reflects the deletion", async () => {
@@ -665,6 +763,7 @@ describe("Receipt flow", () => {
     });
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(screen.getByText("Bread")).toBeInTheDocument();
+    await expectCurrentScreenshot();
   });
 
   it("opens totals editing in validation mode with invalid values prefilled and save disabled", async () => {
@@ -682,6 +781,7 @@ describe("Receipt flow", () => {
     expect(totalInputs[0]).toHaveValue(9999);
     expect(totalInputs[1]).toHaveValue(9999);
     expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
+    await expectCurrentScreenshot();
   });
 
   it("transitions from invalid to valid after editing totals", async () => {
@@ -709,6 +809,7 @@ describe("Receipt flow", () => {
     });
     expect(screen.getByText("Итого:")).toBeInTheDocument();
     expect(screen.getAllByText("1321 ₽").length).toBeGreaterThan(0);
+    await expectCurrentScreenshot();
   });
 
   it("transitions from invalid to valid after editing a position", async () => {
@@ -732,6 +833,7 @@ describe("Receipt flow", () => {
       expect(screen.getByRole("button", { name: "Готово" })).toBeEnabled();
     });
     expect(screen.getByText("Milk")).toBeInTheDocument();
+    await expectCurrentScreenshot();
   });
 
   it("keeps claim error after shrinking a claimed position below distributed quantity", async () => {
@@ -769,6 +871,11 @@ describe("Receipt flow", () => {
     expect(
       await screen.findAllByText("Распределенное количество больше количества позиции"),
     ).not.toHaveLength(0);
-    expect(screen.getAllByRole("button", { name: "Готово" }).at(-1)).toBeDisabled();
+    expect(
+      screen
+        .getAllByRole("button", { name: "Готово", includeHidden: true })
+        .find((button) => button.hasAttribute("disabled")),
+    ).toBeDisabled();
+    await expectCurrentScreenshot();
   });
 });

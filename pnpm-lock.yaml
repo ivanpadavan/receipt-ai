@@ -23,7 +23,7 @@ importers:
         version: 5.2.2(react-hook-form@7.71.1(react@19.2.3))
       '@langchain/community':
         specifier: ^1.1.20
-        version: 1.1.20(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/credential-provider-node@3.954.0)(@browserbasehq/sdk@2.7.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.57.0)(deepmerge@4.3.1)(dotenv@16.6.1)(openai@6.25.0(ws@8.18.3)(zod@3.25.76))(zod@3.25.76))(@ibm-cloud/watsonx-ai@1.7.5)(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.18.3)(zod@3.25.76)))(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@smithy/eventstream-codec@4.2.10)(@smithy/protocol-http@5.3.10)(@smithy/signature-v4@5.3.10)(@smithy/util-utf8@4.2.1)(@supabase/supabase-js@2.89.0)(fast-xml-parser@5.2.5)(ibm-cloud-sdk-core@5.4.5)(ignore@7.0.5)(jsdom@26.1.0)(jsonwebtoken@9.0.3)(openai@6.25.0(ws@8.18.3)(zod@3.25.76))(pg@8.16.3)(ws@8.18.3)
+        version: 1.1.20(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/credential-provider-node@3.954.0)(@browserbasehq/sdk@2.7.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.57.0)(deepmerge@4.3.1)(dotenv@16.6.1)(openai@6.25.0(ws@8.18.3)(zod@3.25.76))(zod@3.25.76))(@ibm-cloud/watsonx-ai@1.7.5)(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.18.3)(zod@3.25.76)))(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@smithy/eventstream-codec@4.2.10)(@smithy/protocol-http@5.3.10)(@smithy/signature-v4@5.3.10)(@smithy/util-utf8@4.2.1)(@supabase/supabase-js@2.89.0)(fast-xml-parser@5.2.5)(ibm-cloud-sdk-core@5.4.5)(ignore@7.0.5)(jsdom@26.1.0)(jsonwebtoken@9.0.3)(openai@6.25.0(ws@8.18.3)(zod@3.25.76))(pg@8.16.3)(playwright@1.57.0)(ws@8.18.3)
       '@langchain/core':
         specifier: ^1.1.29
         version: 1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.18.3)(zod@3.25.76))
@@ -241,9 +241,12 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^4.6.0
         version: 4.7.0(vite@7.2.7(@types/node@20.12.12)(jiti@2.6.1)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2))
+      '@vitest/browser-playwright':
+        specifier: ^4.0.18
+        version: 4.0.18(playwright@1.57.0)(vite@7.2.7(@types/node@20.12.12)(jiti@2.6.1)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.18)
       '@vitest/coverage-v8':
         specifier: ^4.0.18
-        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.12.12)(jiti@2.6.1)(jsdom@26.1.0)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2))
+        version: 4.0.18(@vitest/browser@4.0.18(vite@7.2.7(@types/node@20.12.12)(jiti@2.6.1)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.18))(vitest@4.0.18)
       autoprefixer:
         specifier: 10.4.14
         version: 10.4.14(postcss@8.4.31)
@@ -279,7 +282,10 @@ importers:
         version: 5.1.4(typescript@5.4.5)(vite@7.2.7(@types/node@20.12.12)(jiti@2.6.1)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2))
       vitest:
         specifier: ^4.0.18
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.12.12)(jiti@2.6.1)(jsdom@26.1.0)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.12.12)(@vitest/browser-playwright@4.0.18)(jiti@2.6.1)(jsdom@26.1.0)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2)
+      vitest-browser-react:
+        specifier: ^2.0.5
+        version: 2.0.5(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(vitest@4.0.18)
 
 packages:
 
@@ -3067,6 +3073,17 @@ packages:
     peerDependencies:
       vite: ^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0
 
+  '@vitest/browser-playwright@4.0.18':
+    resolution: {integrity: sha512-gfajTHVCiwpxRj1qh0Sh/5bbGLG4F/ZH/V9xvFVoFddpITfMta9YGow0W6ZpTTORv2vdJuz9TnrNSmjKvpOf4g==}
+    peerDependencies:
+      playwright: '*'
+      vitest: 4.0.18
+
+  '@vitest/browser@4.0.18':
+    resolution: {integrity: sha512-gVQqh7paBz3gC+ZdcCmNSWJMk70IUjDeVqi+5m5vYpEHsIwRgw3Y545jljtajhkekIpIp5Gg8oK7bctgY0E2Ng==}
+    peerDependencies:
+      vitest: 4.0.18
+
   '@vitest/coverage-v8@4.0.18':
     resolution: {integrity: sha512-7i+N2i0+ME+2JFZhfuz7Tg/FqKtilHjGyGvoHYQ6iLV0zahbsJ9sljC9OcFcPDbhYKCet+sG8SsVqlyGvPflZg==}
     peerDependencies:
@@ -4903,6 +4920,10 @@ packages:
     resolution: {integrity: sha512-o8mkY4E/+LNUf6LzX96ht6k6CEDi65k9G2rjMtBe9Oo+VPKSvl+0GKHuH/AlG+GA5LPG/i5hrekkxUc3s2HU+Q==}
     hasBin: true
 
+  pixelmatch@7.1.0:
+    resolution: {integrity: sha512-1wrVzJ2STrpmONHKBy228LM1b84msXDUoAzVEl0R8Mz4Ce6EPr+IVtxm8+yvrqLYMHswREkjYFaMxnyGnaY3Ng==}
+    hasBin: true
+
   pkg-types@2.3.0:
     resolution: {integrity: sha512-SIqCzDRg0s9npO5XQ3tNZioRY1uK06lA41ynBC1YmFTmnY6FjUjVt6s4LoADmwoig1qqD0oK8h1p/8mlMx8Oig==}
 
@@ -5328,6 +5349,10 @@ packages:
   sirv@2.0.4:
     resolution: {integrity: sha512-94Bdh3cC2PKrbgSOUqTiGPWVZeSiXfKOVZNJniWoqrWrRkB1CJzBU3NEbiTsPcYy1lDsANA/THzS+9WBiy5nfQ==}
     engines: {node: '>= 10'}
+
+  sirv@3.0.2:
+    resolution: {integrity: sha512-2wcC/oGxHis/BoHkkPwldgiPSYcpZK3JU28WoMVv55yHJgcZ8rlXvuG9iZggz+sU1d4bRgIGASwyWqjxu3FM0g==}
+    engines: {node: '>=18'}
 
   sonner@1.7.4:
     resolution: {integrity: sha512-DIS8z4PfJRbIyfVFDVnK9rO3eYDtse4Omcm6bt0oEr5/jtLgysmjuBl1frJ9E/EQZrFmKx2A8m/s5s9CRXIzhw==}
@@ -5773,6 +5798,20 @@ packages:
       tsx:
         optional: true
       yaml:
+        optional: true
+
+  vitest-browser-react@2.0.5:
+    resolution: {integrity: sha512-YODQX8mHTJCyKNVYTWJrLEYrUtw+QfLl78owgvuE7C5ydgmGBq6v5s4jK2w6wdPhIZsN9PpV1rQbmAevWJjO9g==}
+    peerDependencies:
+      '@types/react': 19.2.7
+      '@types/react-dom': 19.2.3
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+      vitest: ^4.0.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      '@types/react-dom':
         optional: true
 
   vitest@4.0.18:
@@ -7263,7 +7302,7 @@ snapshots:
       - openai
       - ws
 
-  '@langchain/community@1.1.20(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/credential-provider-node@3.954.0)(@browserbasehq/sdk@2.7.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.57.0)(deepmerge@4.3.1)(dotenv@16.6.1)(openai@6.25.0(ws@8.18.3)(zod@3.25.76))(zod@3.25.76))(@ibm-cloud/watsonx-ai@1.7.5)(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.18.3)(zod@3.25.76)))(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@smithy/eventstream-codec@4.2.10)(@smithy/protocol-http@5.3.10)(@smithy/signature-v4@5.3.10)(@smithy/util-utf8@4.2.1)(@supabase/supabase-js@2.89.0)(fast-xml-parser@5.2.5)(ibm-cloud-sdk-core@5.4.5)(ignore@7.0.5)(jsdom@26.1.0)(jsonwebtoken@9.0.3)(openai@6.25.0(ws@8.18.3)(zod@3.25.76))(pg@8.16.3)(ws@8.18.3)':
+  '@langchain/community@1.1.20(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/credential-provider-node@3.954.0)(@browserbasehq/sdk@2.7.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.57.0)(deepmerge@4.3.1)(dotenv@16.6.1)(openai@6.25.0(ws@8.18.3)(zod@3.25.76))(zod@3.25.76))(@ibm-cloud/watsonx-ai@1.7.5)(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.18.3)(zod@3.25.76)))(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@smithy/eventstream-codec@4.2.10)(@smithy/protocol-http@5.3.10)(@smithy/signature-v4@5.3.10)(@smithy/util-utf8@4.2.1)(@supabase/supabase-js@2.89.0)(fast-xml-parser@5.2.5)(ibm-cloud-sdk-core@5.4.5)(ignore@7.0.5)(jsdom@26.1.0)(jsonwebtoken@9.0.3)(openai@6.25.0(ws@8.18.3)(zod@3.25.76))(pg@8.16.3)(playwright@1.57.0)(ws@8.18.3)':
     dependencies:
       '@browserbasehq/stagehand': 1.14.0(@playwright/test@1.57.0)(deepmerge@4.3.1)(dotenv@16.6.1)(openai@6.25.0(ws@8.18.3)(zod@3.25.76))(zod@3.25.76)
       '@ibm-cloud/watsonx-ai': 1.7.5
@@ -7293,6 +7332,7 @@ snapshots:
       jsdom: 26.1.0
       jsonwebtoken: 9.0.3
       pg: 8.16.3
+      playwright: 1.57.0
       ws: 8.18.3
     transitivePeerDependencies:
       - '@opentelemetry/api'
@@ -8776,7 +8816,37 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@vitest/coverage-v8@4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.12.12)(jiti@2.6.1)(jsdom@26.1.0)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2))':
+  '@vitest/browser-playwright@4.0.18(playwright@1.57.0)(vite@7.2.7(@types/node@20.12.12)(jiti@2.6.1)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.18)':
+    dependencies:
+      '@vitest/browser': 4.0.18(vite@7.2.7(@types/node@20.12.12)(jiti@2.6.1)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.18)
+      '@vitest/mocker': 4.0.18(vite@7.2.7(@types/node@20.12.12)(jiti@2.6.1)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2))
+      playwright: 1.57.0
+      tinyrainbow: 3.0.3
+      vitest: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.12.12)(@vitest/browser-playwright@4.0.18)(jiti@2.6.1)(jsdom@26.1.0)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2)
+    transitivePeerDependencies:
+      - bufferutil
+      - msw
+      - utf-8-validate
+      - vite
+
+  '@vitest/browser@4.0.18(vite@7.2.7(@types/node@20.12.12)(jiti@2.6.1)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.18)':
+    dependencies:
+      '@vitest/mocker': 4.0.18(vite@7.2.7(@types/node@20.12.12)(jiti@2.6.1)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2))
+      '@vitest/utils': 4.0.18
+      magic-string: 0.30.21
+      pixelmatch: 7.1.0
+      pngjs: 7.0.0
+      sirv: 3.0.2
+      tinyrainbow: 3.0.3
+      vitest: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.12.12)(@vitest/browser-playwright@4.0.18)(jiti@2.6.1)(jsdom@26.1.0)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2)
+      ws: 8.19.0
+    transitivePeerDependencies:
+      - bufferutil
+      - msw
+      - utf-8-validate
+      - vite
+
+  '@vitest/coverage-v8@4.0.18(@vitest/browser@4.0.18(vite@7.2.7(@types/node@20.12.12)(jiti@2.6.1)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.18))(vitest@4.0.18)':
     dependencies:
       '@bcoe/v8-coverage': 1.0.2
       '@vitest/utils': 4.0.18
@@ -8788,7 +8858,9 @@ snapshots:
       obug: 2.1.1
       std-env: 3.10.0
       tinyrainbow: 3.0.3
-      vitest: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.12.12)(jiti@2.6.1)(jsdom@26.1.0)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2)
+      vitest: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.12.12)(@vitest/browser-playwright@4.0.18)(jiti@2.6.1)(jsdom@26.1.0)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2)
+    optionalDependencies:
+      '@vitest/browser': 4.0.18(vite@7.2.7(@types/node@20.12.12)(jiti@2.6.1)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.18)
 
   '@vitest/expect@4.0.18':
     dependencies:
@@ -10078,7 +10150,7 @@ snapshots:
       isstream: 0.1.2
       jsonwebtoken: 9.0.3
       mime-types: 2.1.35
-      retry-axios: 2.6.0(axios@1.13.6)
+      retry-axios: 2.6.0(axios@1.13.6(debug@4.4.3))
       tough-cookie: 4.1.4
     transitivePeerDependencies:
       - supports-color
@@ -10835,6 +10907,10 @@ snapshots:
     dependencies:
       pngjs: 6.0.0
 
+  pixelmatch@7.1.0:
+    dependencies:
+      pngjs: 7.0.0
+
   pkg-types@2.3.0:
     dependencies:
       confbox: 0.2.2
@@ -11110,7 +11186,7 @@ snapshots:
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
 
-  retry-axios@2.6.0(axios@1.13.6):
+  retry-axios@2.6.0(axios@1.13.6(debug@4.4.3)):
     dependencies:
       axios: 1.13.6(debug@4.4.3)
 
@@ -11296,6 +11372,12 @@ snapshots:
   simple-xml-to-json@1.2.3: {}
 
   sirv@2.0.4:
+    dependencies:
+      '@polka/url': 1.0.0-next.29
+      mrmime: 2.0.1
+      totalist: 3.0.1
+
+  sirv@3.0.2:
     dependencies:
       '@polka/url': 1.0.0-next.29
       mrmime: 2.0.1
@@ -11794,7 +11876,16 @@ snapshots:
       tsx: 4.21.0
       yaml: 2.8.2
 
-  vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.12.12)(jiti@2.6.1)(jsdom@26.1.0)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2):
+  vitest-browser-react@2.0.5(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(vitest@4.0.18):
+    dependencies:
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+      vitest: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.12.12)(@vitest/browser-playwright@4.0.18)(jiti@2.6.1)(jsdom@26.1.0)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2)
+    optionalDependencies:
+      '@types/react': 19.2.7
+      '@types/react-dom': 19.2.3(@types/react@19.2.7)
+
+  vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.12.12)(@vitest/browser-playwright@4.0.18)(jiti@2.6.1)(jsdom@26.1.0)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2):
     dependencies:
       '@vitest/expect': 4.0.18
       '@vitest/mocker': 4.0.18(vite@7.2.7(@types/node@20.12.12)(jiti@2.6.1)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2))
@@ -11819,6 +11910,7 @@ snapshots:
     optionalDependencies:
       '@opentelemetry/api': 1.9.0
       '@types/node': 20.12.12
+      '@vitest/browser-playwright': 4.0.18(playwright@1.57.0)(vite@7.2.7(@types/node@20.12.12)(jiti@2.6.1)(terser@5.16.9)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.18)
       jsdom: 26.1.0
     transitivePeerDependencies:
       - jiti
