@@ -44,13 +44,6 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Fix of thing
-RUN npm pack @libsql/linux-x64-musl@0.4.7 --registry=https://registry.npmjs.org/
-RUN tar -xvzf libsql-linux-x64-musl-0.4.7.tgz
-RUN rm libsql-linux-x64-musl-0.4.7.tgz
-RUN mv package /app/node_modules/linux-x64-musl
-##
-
 USER nextjs
 
 ENV PORT=80
