@@ -401,7 +401,8 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     document.body.style.pointerEvents = "";
   });
 
-  it("renders the splitting flow for a joined participant", async () => {
+  describe("Entry and mode transitions", () => {
+    it("renders the splitting flow for a joined participant", async () => {
     // Arrange
     await renderReceiptFormInner();
 
@@ -487,7 +488,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     await expectCurrentScreenshot("transition-splitting-primary-action");
   });
 
-  it("clears summary query when returning from summary", async () => {
+    it("clears summary query when returning from summary", async () => {
     // Arrange
     const user = userEvent.setup();
     summaryQueryValue = "1";
@@ -502,9 +503,11 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       scroll: true,
     });
     await expectCurrentScreenshot("transition-summary-primary-action");
+    });
   });
 
-  it("filters positions through search", async () => {
+  describe("Search", () => {
+    it("filters positions through search", async () => {
     // Arrange
     const user = userEvent.setup();
     await renderReceiptFormInner();
@@ -719,7 +722,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     await expectCurrentScreenshot("search-rename-removed-match");
   });
 
-  it("adds a position into filtered results when a receipt update renames it to match the query", async () => {
+    it("adds a position into filtered results when a receipt update renames it to match the query", async () => {
     // Arrange
     const user = userEvent.setup();
     const harness = await renderReceiptFormHarness();
@@ -748,9 +751,11 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     expect(screen.getAllByText("Milk").length).toBeGreaterThan(0);
     expect(screen.queryByText("Butter")).not.toBeInTheDocument();
     await expectCurrentScreenshot("search-rename-added-match");
+    });
   });
 
-  it("opens splitting with a draft editor for a partially distributed position and prioritizes the current user", async () => {
+  describe("Splitting and claims", () => {
+    it("opens splitting with a draft editor for a partially distributed position and prioritizes the current user", async () => {
     // Arrange
     const user = userEvent.setup();
     await renderReceiptFormInner({
@@ -1075,7 +1080,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     await expectCurrentScreenshot("splitting-sheet-closed");
   });
 
-  it("keeps the filtered search state when opening participants sheet", async () => {
+    it("keeps the filtered search state when opening participants sheet", async () => {
     // Arrange
     const user = userEvent.setup();
     await renderReceiptFormInner();
@@ -1091,9 +1096,11 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(screen.queryByText("Butter")).not.toBeInTheDocument();
     await expectCurrentScreenshot("search-over-participants-sheet");
+    });
   });
 
-  it("opens the action bar add menu", async () => {
+  describe("Action bar and modifiers", () => {
+    it("opens the action bar add menu", async () => {
     // Arrange
     const user = userEvent.setup();
     await renderReceiptFormInner();
@@ -1272,7 +1279,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     await expectCurrentScreenshot("modifiers-fee-deleted");
   });
 
-  it("removes an existing discount", async () => {
+    it("removes an existing discount", async () => {
     // Arrange
     const user = userEvent.setup();
     await renderReceiptFormInner({ receipt: receiptWithModifiers });
@@ -1288,9 +1295,11 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     expect(screen.queryByText(tWithColon("discounts"))).not.toBeInTheDocument();
     expect(screen.getByText("Delivery")).toBeInTheDocument();
     await expectCurrentScreenshot("modifiers-discount-deleted");
+    });
   });
 
-  it("saves totals edits before the server echo arrives", async () => {
+  describe("Validation and recovery", () => {
+    it("saves totals edits before the server echo arrives", async () => {
     // Arrange
     const user = userEvent.setup();
     await renderReceiptFormHarness({ receipt: invalidReceipt, echoReceiptUpdates: false });
@@ -1459,7 +1468,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     await expectCurrentScreenshot("validation-position-fixed");
   });
 
-  it("keeps claim error after shrinking a claimed position below distributed quantity", async () => {
+    it("keeps claim error after shrinking a claimed position below distributed quantity", async () => {
     // Arrange
     const user = userEvent.setup();
     await renderReceiptFormHarness({ receipt: overClaimedReceipt });
@@ -1488,9 +1497,10 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       expect(screen.queryByRole("heading", { name: "Bread" })).not.toBeInTheDocument();
     });
     await expectCurrentScreenshot("claim-error-after-close");
+    });
   });
 
-  describe('conflict handling', () => {
+  describe("Server conflicts", () => {
     it("shows a modified conflict and applies server values when Use server is chosen", async () => {
       // Arrange
       const user = userEvent.setup();
@@ -1622,7 +1632,8 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     });
   });
 
-  it("renders participant balances and item breakdown in summary mode", async () => {
+  describe("Summary", () => {
+    it("renders participant balances and item breakdown in summary mode", async () => {
     // Arrange
     summaryQueryValue = "1";
 
@@ -1683,7 +1694,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     await expectCurrentScreenshot("summary-fallback-to-validation");
   });
 
-  it("updates the summary UI after a server receipt update", async () => {
+    it("updates the summary UI after a server receipt update", async () => {
     // Arrange
     summaryQueryValue = "1";
     const harness = await renderReceiptFormHarness({
@@ -1704,5 +1715,6 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     expect(screen.queryByText("Polina")).not.toBeInTheDocument();
     expect(screen.queryByText("Butter")).not.toBeInTheDocument();
     await expectCurrentScreenshot("summary-live-update-remaining");
+    });
   });
 });
