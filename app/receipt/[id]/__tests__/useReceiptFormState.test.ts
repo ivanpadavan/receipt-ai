@@ -19,7 +19,7 @@ describe("useReceiptFormState", () => {
   // Sample receipt data for testing
   const validReceipt: Receipt = {
     receiptMeta: {
-      displayName: "Receipt",
+      title: "Receipt",
     },
     positions: [
       {
@@ -53,7 +53,7 @@ describe("useReceiptFormState", () => {
 
   const invalidReceipt: Receipt = {
     receiptMeta: {
-      displayName: "Receipt",
+      title: "Receipt",
     },
     positions: [
       {
@@ -140,7 +140,7 @@ describe("useReceiptFormState", () => {
   it("keeps overall in cent-safe precision for decimal quantity", async () => {
     const receipt: Receipt = {
       receiptMeta: {
-        displayName: "Receipt",
+        title: "Receipt",
       },
       positions: [
         {

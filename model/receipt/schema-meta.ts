@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const receiptMetaBaseSchema = z.object({
-  displayName: z
+  title: z
     .string()
     .trim()
     .min(3)

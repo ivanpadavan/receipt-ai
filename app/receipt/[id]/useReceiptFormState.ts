@@ -549,17 +549,17 @@ export function useReceiptFormState(
         const nextModal = buildModalWithClose({
           view: "editing",
           validator: receiptMetaSchema,
-          fields: [{ key: "displayName", label: "receiptName", type: "string" }],
+          fields: [{ key: "title", label: "receiptName", type: "string" }],
           fieldType: "totals",
-          fieldPath: "receiptMeta.displayName",
+          fieldPath: "receiptMeta.title",
           initialValue: {
-            displayName: getValues("receiptMeta.displayName"),
+            title: getValues("receiptMeta.title"),
           },
           header: "editReceipt",
           onSave: (data) => {
-            const rawValue = (data as ReceiptMeta).displayName;
+            const rawValue = (data as ReceiptMeta).title;
             const trimmedValue = rawValue.trim();
-            setValue("receiptMeta.displayName", trimmedValue, {
+            setValue("receiptMeta.title", trimmedValue, {
               shouldValidate: true,
             });
           },

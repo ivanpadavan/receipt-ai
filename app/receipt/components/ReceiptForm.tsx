@@ -227,7 +227,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   );
 
   const currentReceipt = useWatch({ control: form.control }) as Receipt;
-  const receiptTitle = currentReceipt.receiptMeta.displayName;
+  const receiptTitle = currentReceipt.receiptMeta.title;
   const { errors } = form.formState;
   const reviewToastId = `receipt-review-${receiptId}`;
   const primaryLabel: TranslationKey =

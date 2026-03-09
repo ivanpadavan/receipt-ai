@@ -63,7 +63,7 @@ const businessValidReceipt = {
 const appValidReceipt = {
   ...businessValidReceipt,
   receiptMeta: {
-    displayName: "Receipt",
+    title: "Receipt",
   },
   positions: [
     {
@@ -240,7 +240,7 @@ describe("receipt schemas integration", () => {
           "message": "Required",
           "path": [
             "receiptMeta",
-            "displayName",
+            "title",
           ],
         },
         {

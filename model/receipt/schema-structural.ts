@@ -5,7 +5,7 @@ import { receiptMetaBaseSchema } from "@/model/receipt/schema-meta";
 const isPositiveFinite = (value: number) => Number.isFinite(value) && value > 0;
 
 export const receiptMetaAiSchema = receiptMetaBaseSchema.extend({
-  displayName: receiptMetaBaseSchema.shape.displayName.optional(),
+  title: receiptMetaBaseSchema.shape.title.optional(),
 });
 
 
