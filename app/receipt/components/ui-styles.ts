@@ -1,5 +1,11 @@
 import { cva } from "class-variance-authority";
 
+export const tappableSurfaceBase =
+  "select-none touch-manipulation [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none]";
+
+export const tappableSurfaceFeedback =
+  `${tappableSurfaceBase} transition duration-150 active:scale-95`;
+
 // ── Tokens ──────────────────────────────────────────────
 export const radiusTokens = {
   xs: "rounded-sm",
@@ -98,7 +104,7 @@ export const iconSoloVariants = cva(
   },
 );
 
-export const iconButtonVariants = cva("px-0", {
+export const iconButtonVariants = cva(`px-0 ${tappableSurfaceFeedback}`, {
   variants: {
     size: {
       compact: "h-10 w-10",
@@ -401,7 +407,7 @@ export const inputStateVariants = cva("", {
 export const interactiveRowVariants = cva(`${radiusTokens.sm} px-1 py-1 text-sm`, {
   variants: {
     interactive: {
-      true: "cursor-pointer hover:bg-muted/45",
+      true: `cursor-pointer hover:bg-muted/45 ${tappableSurfaceFeedback}`,
       false: "cursor-default",
     },
   },
@@ -446,7 +452,7 @@ export const modifierValueVariants = cva("font-medium", {
 export const positionRowButtonVariants = cva("", {
   variants: {
     interactive: {
-      true: "cursor-pointer",
+      true: `cursor-pointer ${tappableSurfaceBase}`,
       false: "cursor-default",
     },
   },
@@ -459,7 +465,7 @@ export const positionRowButtonVariants = cva("", {
 export const actionBar =
   `${radiusTokens.action} border border-white/70 bg-white/35 ${shadowTokens.glass}`;
 export const primaryAction =
-  `${radiusTokens.full} text-base font-semibold ${shadowTokens.orange}`;
+  `${radiusTokens.full} text-base font-semibold ${shadowTokens.orange} ${tappableSurfaceFeedback}`;
 export const sheetShell = "h-[85vh] flex flex-col";
 export const sheetBodyPadding = "px-4 py-2";
 export const dialogHeaderTitle = "text-center";

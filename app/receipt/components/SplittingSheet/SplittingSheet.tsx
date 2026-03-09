@@ -47,6 +47,8 @@ import {
   rowVariants,
   sheetShell,
   stackGapVariants,
+  tappableSurfaceBase,
+  tappableSurfaceFeedback,
   textVariants,
 } from "@/app/receipt/components/ui-styles";
 
@@ -59,6 +61,8 @@ const splittingFooter = "border-t border-border/40 bg-background/80 backdrop-blu
 const avatarRing = "ring-2 ring-background";
 const avatarFallback = "bg-muted/50 border-2 border-dashed border-border flex items-center justify-center text-xs text-muted-foreground";
 const avatarOverflow = "bg-muted/70 border border-border flex items-center justify-center text-[10px] font-medium text-muted-foreground";
+const claimRowPressFeedback =
+  "transition duration-150 has-[button[data-claim-main-button]:active]:scale-95";
 
 interface ClaimRowProps {
   claim: ReceiptPositionClaim;
@@ -98,7 +102,7 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
       state={active ? "active" : "default"}
       shadow="md"
       radius="xl"
-      className="overflow-hidden"
+      className={cn("overflow-hidden", claimRowPressFeedback)}
     >
       <div
         className={cn(
@@ -110,8 +114,10 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
         <button
           type="button"
           onClick={onSelect}
+          data-claim-main-button
           className={cn(
             "min-w-0 flex-1 text-left",
+            tappableSurfaceBase,
             rowVariants({ align: "center", justify: "between", width: "full" }),
             inlineGapVariants({ size: "sm" }),
           )}
@@ -405,7 +411,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
 
         <DrawerClose asChild>
           <Button
-            className="w-full"
+            className={cn("w-full", tappableSurfaceFeedback)}
             onClick={handleDone}
             disabled={
               totalClaimed > localPosition.overall + 0.01 ||

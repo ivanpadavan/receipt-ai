@@ -13,6 +13,7 @@ import {
   inlineGapVariants,
   radiusTokens,
   rowVariants,
+  tappableSurfaceFeedback,
   textVariants,
 } from "@/app/receipt/components/ui-styles";
 import { ParticipantDTO, ReceiptPositionClaim } from "@/model/receipt/model";
@@ -24,7 +25,7 @@ import { formatMoneyValue } from "@/app/receipt/utils/formatMoney";
 const typeSwitchWrapper =
   "border border-border/60 bg-muted/30 p-1 shadow-sm";
 const typeSwitchButtonVariants = cva(
-  "h-8 w-16 text-xs font-semibold transition",
+  `h-8 w-16 text-xs font-semibold transition ${tappableSurfaceFeedback}`,
   {
     variants: {
       active: {
@@ -35,7 +36,7 @@ const typeSwitchButtonVariants = cva(
   },
 );
 const participantButtonVariants = cva(
-  `border border-transparent bg-white/80 shadow-sm ${radiusTokens.full} transition-all`,
+  `border border-transparent bg-white/80 shadow-sm ${radiusTokens.full} transition-all ${tappableSurfaceFeedback}`,
   {
     variants: {
       selected: {
@@ -215,6 +216,7 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
             variant={isMaxSelected ? "default" : "outline"}
             disabled={!maxIsRelevant}
             aria-pressed={isMaxSelected}
+            className={tappableSurfaceFeedback}
             onClick={() => {
               const precision = claim.type === "amount" ? 2 : 6;
               const nextValue = Number.parseFloat(maxValue.toFixed(precision));
@@ -279,7 +281,10 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
           </span>
           <button
             type="button"
-            className={textVariants({ size: "sm", tone: "brandStrong" })}
+            className={cn(
+              textVariants({ size: "sm", tone: "brandStrong" }),
+              tappableSurfaceFeedback,
+            )}
             disabled={participants.length === 0}
             onClick={() =>
               onUpdate({
@@ -346,12 +351,16 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
           <Button
             type="button"
             variant="outline"
-            className="flex-1"
+            className={cn("flex-1", tappableSurfaceFeedback)}
             onClick={onCancel}
           >
             {t("cancel")}
           </Button>
-          <Button type="submit" className="flex-1" disabled={saveDisabled}>
+          <Button
+            type="submit"
+            className={cn("flex-1", tappableSurfaceFeedback)}
+            disabled={saveDisabled}
+          >
             {t("save")}
           </Button>
         </div>

@@ -44,6 +44,7 @@ import {
   dialogHeaderTitle,
   sheetBodyPadding,
   sheetShell,
+  tappableSurfaceFeedback,
   textVariants,
   radiusTokens,
 } from "@/app/receipt/components/ui-styles";
@@ -320,7 +321,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
             <Button
               variant="outline"
               onClick={() => setIsAdding(true)}
-              className="w-full"
+              className={cn("w-full", tappableSurfaceFeedback)}
             >
               <UserPlus
                 className={cn(
@@ -336,7 +337,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
         <div className={footer}>
           <Button
             onClick={onClose}
-            className="w-full"
+            className={cn("w-full", tappableSurfaceFeedback)}
           >
             {t("done")}
           </Button>
@@ -370,10 +371,12 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
           <AlertDialogFooter
             className={cn(dialogFooter, inlineGapVariants({ size: "sm" }))}
           >
-            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogCancel className={tappableSurfaceFeedback}>
+              {t("cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className={deleteAction}
+              className={cn(deleteAction, tappableSurfaceFeedback)}
             >
               {t("delete")}
             </AlertDialogAction>

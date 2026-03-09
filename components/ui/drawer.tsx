@@ -2,19 +2,7 @@ import * as React from "react"
 import { Drawer as DrawerPrimitive } from "vaul"
 
 import { cn } from "@/utils/cn"
-import { createContext, useContext, useState } from "react";
-
-interface WithinDrawerState { closing: boolean }
-
-const WithinDrawerContext = createContext<WithinDrawerState | null>(null);
-
-export const useWithinDrawerContext = (): WithinDrawerState => {
-  const ctx = useContext(WithinDrawerContext);
-  if (ctx === null) {
-    throw new Error('should be provided');
-  }
-  return ctx;
-}
+import { useState } from "react";
 
 
 const Drawer = ({
@@ -41,7 +29,7 @@ const Drawer = ({
     } }
     shouldScaleBackground={shouldScaleBackground}
     {...props}
-  ><WithinDrawerContext.Provider value={{ closing }}>{children}</WithinDrawerContext.Provider></DrawerPrimitive.Root>
+  >{children}</DrawerPrimitive.Root>
 }
 Drawer.displayName = "Drawer"
 
@@ -83,7 +71,7 @@ const DrawerContent = React.forwardRef<
       }}
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[28px] border border-white/70 bg-background/95 shadow-[0_-20px_44px_rgba(15,23,42,0.22)] backdrop-blur-xl",
+        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[28px] border border-white/70 bg-background/95 shadow-[0_-20px_44px_rgba(15,23,42,0.22)] backdrop-blur-xl outline-none focus-visible:outline-none focus-visible:ring-0",
         className
       )}
       {...props}

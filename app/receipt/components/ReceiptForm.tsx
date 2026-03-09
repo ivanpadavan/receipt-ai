@@ -65,7 +65,7 @@ import {
   inlineGapVariants,
   rowVariants,
   textVariants,
-  dangerToneVariants,
+  dangerToneVariants, tappableSurfaceFeedback,
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
 import { searchPositionsForDisplay } from "@/app/receipt/utils/search-positions";
@@ -408,7 +408,10 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                         shadow={canEdit.positionForm ? "md" : "sm"}
                         interactive={!!canEdit.positionForm}
                         radius="2xl"
-                        className="overflow-hidden"
+                        className={cn(
+                          "overflow-hidden",
+                          tappableSurfaceFeedback,
+                        )}
                       >
                         <button
                           type="button"
