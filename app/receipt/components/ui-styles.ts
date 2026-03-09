@@ -1,10 +1,6 @@
 import { cva } from "class-variance-authority";
 
-export const tappableSurfaceBase =
-  "select-none touch-manipulation [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none]";
-
-export const tappableSurfaceFeedback =
-  `${tappableSurfaceBase} transition duration-150 active:scale-95`;
+export const tappableSurfaceFeedback = `select-none touch-manipulation [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] transition duration-150 active:scale-95`;
 
 // ── Tokens ──────────────────────────────────────────────
 export const radiusTokens = {
@@ -49,7 +45,7 @@ export const surfaceVariants = cva(
         lg: shadowTokens.lg,
       },
       interactive: {
-        true: "cursor-pointer transition hover:shadow-[0_16px_34px_rgba(15,23,42,0.12),0_4px_10px_rgba(15,23,42,0.08)]",
+        true: `cursor-pointer transition hover:shadow-[0_16px_34px_rgba(15,23,42,0.12),0_4px_10px_rgba(15,23,42,0.08)] ${tappableSurfaceFeedback}`,
         false: "",
       },
       state: {
@@ -449,18 +445,6 @@ export const modifierValueVariants = cva("font-medium", {
   },
 });
 
-export const positionRowButtonVariants = cva("", {
-  variants: {
-    interactive: {
-      true: `cursor-pointer ${tappableSurfaceBase}`,
-      false: "cursor-default",
-    },
-  },
-  defaultVariants: {
-    interactive: false,
-  },
-});
-
 // ── Const Styles (shared, multi-consumer) ───────────────
 export const actionBar =
   `${radiusTokens.action} border border-white/70 bg-white/35 ${shadowTokens.glass}`;
@@ -486,9 +470,7 @@ export const addButton =
   `h-6 w-6 p-0 ${radiusTokens.xs} bg-accent text-foreground hover:bg-accent/80`;
 export const appShell = "bg-amber-50";
 export const screenShell = "bg-amber-50 p-4";
-export const claimsError = "text-xs text-destructive";
 export const divider = "border-t border-border/70";
 export const iconButtonCompact = "h-8 w-8";
 export const receiptCardPadding = "p-4 md:p-5";
-export const stickyBarPadding = "px-2";
 export const errorList = "list-disc pl-5";

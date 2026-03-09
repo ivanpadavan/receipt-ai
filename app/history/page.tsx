@@ -14,14 +14,13 @@ import {
   stackGapVariants,
   textVariants,
   radiusTokens,
-  shadowTokens,
 } from "@/app/receipt/components/ui-styles";
+import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 
 // ── History-scoped styles ──────────────────────────
 const historyEmptyCardText = "text-center";
 const historyCta =
   `${radiusTokens.full} bg-amber-500 px-4 py-2 font-bold text-white shadow-md hover:bg-amber-600`;
-const historyReceiptCard = "border-amber-200 hover:border-amber-400";
 
 // export const runtime = 'edge';
 
@@ -97,13 +96,11 @@ export default async function HistoryPage() {
 
               return (
                 <Link className="block" href={`/receipt/${receipt.id}`} key={receipt.id}>
-                  <Card
-                    variant="interactive"
+                  <ReceiptCard
                     shadow="md"
                     interactive
                     className={cn(
                       "w-full",
-                      historyReceiptCard,
                       cardPaddingVariants({ size: "md" }),
                     )}
                   >
@@ -134,7 +131,7 @@ export default async function HistoryPage() {
                         {formatMoney(totalAmount)}
                       </span>
                     </div>
-                  </Card>
+                  </ReceiptCard>
                 </Link>
               );
             })}

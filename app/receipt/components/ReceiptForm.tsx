@@ -58,14 +58,13 @@ import {
   divider,
   interactiveRowVariants,
   pillVariants,
-  positionRowButtonVariants,
   receiptCardPadding,
   rowContentPaddingVariants,
   stackGapVariants,
   inlineGapVariants,
   rowVariants,
   textVariants,
-  dangerToneVariants, tappableSurfaceFeedback,
+  dangerToneVariants,
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
 import { searchPositionsForDisplay } from "@/app/receipt/utils/search-positions";
@@ -410,7 +409,6 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                         radius="2xl"
                         className={cn(
                           "overflow-hidden",
-                          tappableSurfaceFeedback,
                         )}
                       >
                         <button
@@ -422,12 +420,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                               index: originalIndex,
                             })
                           }
-                          className={cn(
-                            "w-full text-left",
-                            positionRowButtonVariants({
-                              interactive: canEdit.positionForm,
-                            }),
-                          )}
+                          className={cn("w-full text-left")}
                         >
                           <CardContent
                             className={rowContentPaddingVariants({
