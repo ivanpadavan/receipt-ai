@@ -4,6 +4,7 @@ import { act, waitFor } from "@testing-library/react";
 import { page } from "vitest/browser";
 import userEvent from "@testing-library/user-event";
 import { ParticipantsStoreProvider } from "@/app/receipt/store/participants";
+import { setLanguage, t, type Language } from "@/app/i18n/translations";
 import { Receipt, ReceiptWithParticipants } from "@/model/receipt/model";
 import { cleanup, render, type RenderResult as BrowserRenderResult } from "vitest-browser-react";
 import { User } from "@supabase/supabase-js";
@@ -12,6 +13,7 @@ const VIEWPORT_WIDTH = 390;
 const VIEWPORT_HEIGHT = 844;
 
 let browserScreen: BrowserRenderResult | null = null;
+let activeLanguage: Language = "en";
 
 function getActiveBrowserScreen() {
   if (!browserScreen) {
@@ -520,6 +522,8 @@ async function renderReceiptFormInner({
   receipt?: Receipt;
   participants?: ReceiptWithParticipants["participants"];
 } = {}) {
+  const translations = await import("@/app/i18n/translations");
+  translations.setLanguage(activeLanguage);
   const { ReceiptFormInner } = await import("@/app/receipt/components/ReceiptForm");
   const { AppLayout } = await import("@/app/layout/AppLayout");
   const ui = (
@@ -548,6 +552,8 @@ async function renderReceiptFormHarness({
   participants?: ReceiptWithParticipants["participants"];
   echoReceiptUpdates?: boolean;
 } = {}) {
+  const translations = await import("@/app/i18n/translations");
+  translations.setLanguage(activeLanguage);
   const { ReceiptFormInner } = await import("@/app/receipt/components/ReceiptForm");
   const { AppLayout } = await import("@/app/layout/AppLayout");
   const controls: { pushReceipt?: (nextReceipt: Receipt) => void } = {};
@@ -591,8 +597,7 @@ async function renderReceiptFormHarness({
 function getSearchButton() {
   return requireElement(
     screen.getAllByRole("button").find((button) =>
-      button.getAttribute("aria-label") === "Search" &&
-      isPointerInteractive(button),
+      button.getAttribute("aria-label") === t("search"),
     ),
     'Search button should be present',
   );
@@ -601,7 +606,7 @@ function getSearchButton() {
 function getCloseSearchButton() {
   return requireElement(
     screen.getAllByRole("button").find((button) =>
-      button.getAttribute("aria-label") === "Close search" &&
+      button.getAttribute("aria-label") === t("close") &&
       isPointerInteractive(button),
     ),
     'Close search button should be present',
@@ -638,9 +643,10 @@ function queryClaimButtonByText(fragment: string) {
 }
 
 function getButtonByExactText(label: string) {
+  const normalizedLabel = label.trim().toLowerCase();
   return requireElement(
     screen.getAllByRole("button").find((button) =>
-      button.textContent?.trim() === label &&
+      button.textContent?.trim().toLowerCase() === normalizedLabel &&
       isPointerInteractive(button),
     ),
     `button "${label}" should be present`,
@@ -650,7 +656,7 @@ function getButtonByExactText(label: string) {
 function getActionBarEditButton() {
   return requireElement(
     screen.getAllByRole("button").find((button) =>
-      button.getAttribute("aria-label") === "Редактировать" &&
+      button.getAttribute("aria-label") === t("edit") &&
       isPointerInteractive(button),
     ),
     "action bar edit button should be present",
@@ -672,34 +678,12 @@ function getOpenDrawerButtonByText(label: string) {
   );
 }
 
-function getZeroPositionButton() {
-  return requireElement(
-    screen.getAllByRole("button").find(
-      (button) =>
-        button.textContent?.includes("0 ₽") &&
-        button.textContent?.includes("0x") &&
-        isPointerInteractive(button)
-    ),
-    "zero-zero position button should be present",
-  );
-}
-
 function queryZeroPositionButton() {
   return screen.getAllByRole("button").find(
     (button) =>
       button.textContent?.includes("0 ₽") &&
       button.textContent?.includes("0x") &&
       isPointerInteractive(button)
-  );
-}
-
-function getInteractiveButtonByText(fragment: string) {
-  return requireElement(
-    screen.getAllByRole("button").find((button) =>
-      button.textContent?.includes(fragment) &&
-      isPointerInteractive(button)
-    ),
-    `interactive button containing "${fragment}" should be present`,
   );
 }
 
@@ -772,7 +756,7 @@ async function openSplittingSheetFor(
 }
 
 async function expectCurrentScreenshot(name?: string) {
-  if (!name) {
+  if (!name || activeLanguage !== "en") {
     return;
   }
 
@@ -788,8 +772,22 @@ async function openActionBarMenuItem(
   await user.click(screen.getByRole("menuitem", { name: label }));
 }
 
-describe("Receipt flow", () => {
+function tWithColon(key: "fees" | "discounts") {
+  return `${t(key)}:`;
+}
+
+function claimButtonText(value: string, amount: string) {
+  return `${value}${t("pcs")}=${amount}₽`;
+}
+
+function remainingText(value: string) {
+  return `${t("remaining")}: ${value}`;
+}
+
+describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
   beforeEach(async () => {
+    activeLanguage = language;
+    setLanguage(activeLanguage);
     document.body.style.pointerEvents = "";
     await page.viewport(VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
     vi.clearAllMocks();
@@ -835,14 +833,14 @@ describe("Receipt flow", () => {
     );
 
     // Assert
-    expect(screen.getByText("Чек")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: t("receipt") })).toBeInTheDocument();
     expect(positions).toHaveLength(3);
-    expect(screen.getByText("Итого:")).toBeInTheDocument();
-    expect(screen.getByText("С учетом скидок и сборов:")).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`^${t("total")}$`))).toBeInTheDocument();
+    expect(screen.getByText(t("grandTotal"))).toBeInTheDocument();
     expect(getSearchButton()).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Участники" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Готово" })).toBeInTheDocument();
-    expect(screen.queryByText("Настройки")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: t("participants") })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: t("done") })).toBeInTheDocument();
+    expect(screen.queryByText(t("settings"))).not.toBeInTheDocument();
     await expectCurrentScreenshot("receipt-overview");
   });
 
@@ -851,7 +849,7 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner({ receipt: invalidReviewReceipt });
 
     // Act
-    const reviewAction = screen.getByRole("button", { name: "Готово" });
+    const reviewAction = screen.getByRole("button", { name: t("done") });
 
     // Assert
     expect(screen.getByText("Milk")).toBeInTheDocument();
@@ -871,10 +869,10 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner();
 
     // Assert
-    expect(screen.queryByText("Чек")).not.toBeInTheDocument();
-    expect(screen.getByText("Пока нет распределений")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Изменить" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Search" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: t("receipt") })).not.toBeInTheDocument();
+    expect(screen.getByText(t("noClaims"))).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: t("toSplitting") })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: t("search") })).not.toBeInTheDocument();
     await expectCurrentScreenshot("summary-empty-state");
   });
 
@@ -887,9 +885,9 @@ describe("Receipt flow", () => {
 
     // Assert
     expect(screen.getByText("Milk")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Готово" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Search" })).toBeInTheDocument();
-    expect(screen.queryByText("Пока нет распределений")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: t("done") })).toBeDisabled();
+    expect(screen.getByRole("button", { name: t("search") })).toBeInTheDocument();
+    expect(screen.queryByText(t("noClaims"))).not.toBeInTheDocument();
     await expectCurrentScreenshot("summary-invalid-query-fallback");
   });
 
@@ -899,7 +897,7 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner();
 
     // Act
-    await user.click(screen.getByRole("button", { name: "Готово" }));
+    await user.click(screen.getByRole("button", { name: t("done") }));
 
     // Assert
     expect(setSummaryQueryMock).toHaveBeenCalledWith("1", {
@@ -916,7 +914,7 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner();
 
     // Act
-    await user.click(screen.getByRole("button", { name: "Изменить" }));
+    await user.click(screen.getByRole("button", { name: t("toSplitting") }));
 
     // Assert
     expect(setSummaryQueryMock).toHaveBeenCalledWith(null, {
@@ -953,10 +951,10 @@ describe("Receipt flow", () => {
     await user.type(searchInput, "zzz");
 
     // Assert
-    expect(screen.getByText("Ничего не найдено")).toBeInTheDocument();
+    expect(screen.getByText(t("searchNoResults"))).toBeInTheDocument();
     expect(screen.queryByText("Milk")).not.toBeInTheDocument();
-    expect(screen.getByText("Итого:")).toBeInTheDocument();
-    expect(screen.getByText("С учетом скидок и сборов:")).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`^${t("total")}$`))).toBeInTheDocument();
+    expect(screen.getByText(t("grandTotal"))).toBeInTheDocument();
     await expectCurrentScreenshot("search-empty-state");
   });
 
@@ -1067,7 +1065,7 @@ describe("Receipt flow", () => {
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(screen.getByText("Bread")).toBeInTheDocument();
     expect(screen.getByText("Butter")).toBeInTheDocument();
-    expect(screen.queryByText("Ничего не найдено")).not.toBeInTheDocument();
+    expect(screen.queryByText(t("searchNoResults"))).not.toBeInTheDocument();
     await expectCurrentScreenshot("search-whitespace-query");
   });
 
@@ -1134,7 +1132,7 @@ describe("Receipt flow", () => {
 
     // Assert
     await waitFor(() => {
-      expect(screen.getByText("Ничего не найдено")).toBeInTheDocument();
+      expect(screen.getByText(t("searchNoResults"))).toBeInTheDocument();
     });
     expect(screen.queryByText("Milk")).not.toBeInTheDocument();
     expect(screen.queryByText("Tea")).not.toBeInTheDocument();
@@ -1184,8 +1182,8 @@ describe("Receipt flow", () => {
     await openSplittingSheetFor(user, "Bread");
 
     // Assert
-    expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Выбрать всех" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: t("save") })).toBeDisabled();
+    expect(screen.getByRole("button", { name: t("selectAll") })).toBeInTheDocument();
 
     const participantButtons = screen.getAllByRole("button").filter((button) =>
       ["Anton", "Ivan", "Polina"].some((name) => button.textContent?.includes(name)),
@@ -1213,9 +1211,9 @@ describe("Receipt flow", () => {
     await openSplittingSheetFor(user, "Bread");
 
     // Assert
-    expect(screen.queryByRole("button", { name: "Сохранить" })).not.toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Редактировать" }).length).toBeGreaterThan(0);
-    expect(screen.getByText(/2 шт × 150 ₽ =/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: t("save") })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: t("edit") }).length).toBeGreaterThan(0);
+    expect(screen.getByText(new RegExp(`2\\s*${t("pcs")}\\s*×\\s*150\\s*₽\\s*=`, "i"))).toBeInTheDocument();
 
     await expectCurrentScreenshot("splitting-claims-list");
   });
@@ -1268,13 +1266,13 @@ describe("Receipt flow", () => {
 
     // Act
     await openSplittingSheetFor(user, "Bread");
-    await user.click(screen.getByRole("button", { name: "Добавить долю" }));
+    await user.click(screen.getByRole("button", { name: t("addShare") }));
 
     // Assert
-    expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: t("save") })).toBeDisabled();
     expect(
       screen.getAllByRole("button").some((button) =>
-        ["Выбрать всех", "Снять всех"].includes(button.textContent?.trim() ?? ""),
+        [t("selectAll"), t("clearAll")].includes(button.textContent?.trim() ?? ""),
       ),
     ).toBe(true);
     await expectCurrentScreenshot("splitting-add-share-draft");
@@ -1292,11 +1290,11 @@ describe("Receipt flow", () => {
     await openSplittingSheetFor(user, "Bread");
     const input = screen.getAllByRole("textbox")[0];
     await user.type(input, "1");
-    await user.click(screen.getByRole("button", { name: "Сохранить" }));
+    await user.click(screen.getByRole("button", { name: t("save") }));
 
     // Assert
-    expect(screen.queryByRole("button", { name: "Сохранить" })).not.toBeInTheDocument();
-    expect(getClaimButtonByText("1шт=150₽")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: t("save") })).not.toBeInTheDocument();
+    expect(getClaimButtonByText(claimButtonText("1", "150"))).toBeInTheDocument();
     await expectCurrentScreenshot("splitting-claim-created");
   });
 
@@ -1310,15 +1308,15 @@ describe("Receipt flow", () => {
 
     // Act
     await openSplittingSheetFor(user, "Bread");
-    await user.click(getClaimButtonByText("1шт=150₽"));
+    await user.click(getClaimButtonByText(claimButtonText("1", "150")));
     const input = screen.getAllByRole("textbox")[0];
     await user.clear(input);
     await user.type(input, "0.5");
-    await user.click(screen.getByRole("button", { name: "Сохранить" }));
+    await user.click(screen.getByRole("button", { name: t("save") }));
 
     // Assert
-    expect(screen.queryByRole("button", { name: "Сохранить" })).not.toBeInTheDocument();
-    expect(getClaimButtonByText("0.5шт=75₽")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: t("save") })).not.toBeInTheDocument();
+    expect(getClaimButtonByText(claimButtonText("0.5", "75"))).toBeInTheDocument();
     await expectCurrentScreenshot("splitting-claim-edited");
   });
 
@@ -1332,16 +1330,16 @@ describe("Receipt flow", () => {
 
     // Act
     await openSplittingSheetFor(user, "Bread");
-    await user.click(screen.getByRole("button", { name: "Выбрать всех" }));
+    await user.click(screen.getByRole("button", { name: t("selectAll") }));
 
     // Assert
-    expect(screen.getByRole("button", { name: "Снять всех" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: t("clearAll") })).toBeInTheDocument();
 
     // Act
-    await user.click(screen.getByRole("button", { name: "Снять всех" }));
+    await user.click(screen.getByRole("button", { name: t("clearAll") }));
 
     // Assert
-    expect(screen.getByRole("button", { name: "Выбрать всех" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: t("selectAll") })).toBeInTheDocument();
     await expectCurrentScreenshot("splitting-select-all-cleared");
   });
 
@@ -1358,13 +1356,13 @@ describe("Receipt flow", () => {
     await user.click(screen.getByRole("button", { name: /Anton/i }));
 
     // Assert
-    expect(screen.getByRole("button", { name: "Выбрать всех" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: t("selectAll") })).toBeInTheDocument();
 
     // Act
     await user.click(screen.getByRole("button", { name: /Anton/i }));
 
     // Assert
-    expect(screen.getByRole("button", { name: "Выбрать всех" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: t("selectAll") })).toBeInTheDocument();
     await expectCurrentScreenshot("splitting-participant-toggled");
   });
 
@@ -1378,10 +1376,10 @@ describe("Receipt flow", () => {
 
     // Act
     await openSplittingSheetFor(user, "Bread");
-    await user.click(getClaimButtonByText("1шт=150₽"));
+    await user.click(getClaimButtonByText(claimButtonText("1", "150")));
 
     // Assert
-    const maxButton = screen.getByRole("button", { name: "Макс" });
+    const maxButton = screen.getByRole("button", { name: t("max") });
     expect(maxButton).toHaveAttribute("aria-pressed", "true");
 
     // Act
@@ -1402,11 +1400,11 @@ describe("Receipt flow", () => {
 
     // Act
     await openSplittingSheetFor(user, "Bread");
-    await user.click(screen.getByRole("button", { name: "Макс" }));
+    await user.click(screen.getByRole("button", { name: t("max") }));
 
     // Assert
     expect(screen.getAllByRole("textbox")[0]).toHaveValue("1");
-    expect(screen.getByRole("button", { name: "Макс" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: t("max") })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
@@ -1424,11 +1422,11 @@ describe("Receipt flow", () => {
     // Act
     await openSplittingSheetFor(user, "Bread");
     await user.click(getButtonByExactText("₽"));
-    await user.click(screen.getByRole("button", { name: "Макс" }));
+    await user.click(screen.getByRole("button", { name: t("max") }));
 
     // Assert
     expect(screen.getAllByRole("textbox")[0]).toHaveValue("150");
-    expect(screen.getByRole("button", { name: "Макс" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: t("max") })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
@@ -1448,7 +1446,7 @@ describe("Receipt flow", () => {
     await user.click(getClaimButtonByText("150₽"));
 
     // Assert
-    const maxButton = screen.getByRole("button", { name: "Макс" });
+    const maxButton = screen.getByRole("button", { name: t("max") });
     expect(maxButton).toHaveAttribute("aria-pressed", "true");
 
     // Act
@@ -1456,7 +1454,7 @@ describe("Receipt flow", () => {
 
     // Assert
     expect(maxButton).toHaveAttribute("aria-pressed", "false");
-    expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: t("save") })).toBeDisabled();
     await expectCurrentScreenshot("splitting-invalid-max-switch");
   });
 
@@ -1470,11 +1468,11 @@ describe("Receipt flow", () => {
 
     // Act
     await openSplittingSheetFor(user, "Bread");
-    await user.click(screen.getAllByRole("button", { name: "Редактировать" })[1]);
-    await user.click(screen.getByRole("menuitem", { name: "Удалить" }));
+    await user.click(screen.getAllByRole("button", { name: t("edit") })[1]);
+    await user.click(screen.getByRole("menuitem", { name: t("delete") }));
 
     // Assert
-    expect(queryClaimButtonByText("1шт=150₽")).toBeUndefined();
+    expect(queryClaimButtonByText(claimButtonText("1", "150"))).toBeUndefined();
     await expectCurrentScreenshot("splitting-claim-deleted");
   });
 
@@ -1488,7 +1486,7 @@ describe("Receipt flow", () => {
 
     // Act
     await openSplittingSheetFor(user, "Bread");
-    await user.click(getOpenDrawerButtonByText("Готово"));
+    await user.click(getOpenDrawerButtonByText(t("done")));
 
     // Assert
     await waitFor(() => {
@@ -1505,10 +1503,10 @@ describe("Receipt flow", () => {
     await user.type(searchInput, "milk");
 
     // Act
-    await user.click(screen.getByRole("button", { name: "Участники" }));
+    await user.click(screen.getByRole("button", { name: t("participants") }));
 
     // Assert
-    expect(screen.getByRole("heading", { name: "Участники" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: t("participants") })).toBeInTheDocument();
     expect(screen.getByDisplayValue("milk")).toBeInTheDocument();
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(screen.queryByText("Butter")).not.toBeInTheDocument();
@@ -1521,14 +1519,14 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner({ receipt: invalidReceipt });
 
     // Act
-    await openActionBarMenuItem(user, "Добавить позицию");
+    await openActionBarMenuItem(user, t("addPosition"));
 
     // Assert
     const inputs = await screen.findAllByRole("spinbutton");
-    expect(screen.getByRole("heading", { name: "Добавить позицию" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: t("addPosition") })).toBeInTheDocument();
     expect(inputs).toHaveLength(3);
     expect(inputs.every((input) => !input.hasAttribute("disabled"))).toBe(true);
-    expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: t("save") })).toBeDisabled();
     await expectCurrentScreenshot("validation-add-position-dialog");
   });
 
@@ -1538,7 +1536,7 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner();
 
     // Act
-    await openActionBarMenuItem(user, "Добавить позицию");
+    await openActionBarMenuItem(user, t("addPosition"));
 
     const nameInput = await screen.findByRole("textbox");
     const numberInputs = screen.getAllByRole("spinbutton");
@@ -1555,7 +1553,7 @@ describe("Receipt flow", () => {
     await waitFor(() => {
       expect(overallInput).toHaveValue(200);
     });
-    await user.click(screen.getByRole("button", { name: "Сохранить" }));
+    await user.click(screen.getByRole("button", { name: t("save") }));
 
     // Assert
     await waitFor(() => {
@@ -1571,21 +1569,21 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner();
 
     // Act
-    await openActionBarMenuItem(user, "Добавить сбор");
+    await openActionBarMenuItem(user, t("addFee"));
 
     const nameInput = await screen.findByRole("textbox");
     const valueInput = screen.getByRole("spinbutton");
     await user.type(nameInput, "Delivery");
     await user.clear(valueInput);
     await user.type(valueInput, "100");
-    await user.click(screen.getByRole("button", { name: "Сохранить" }));
+    await user.click(screen.getByRole("button", { name: t("save") }));
 
     // Assert
     await waitFor(() => {
-      expect(screen.getByText("Сборы:")).toBeInTheDocument();
+      expect(screen.getByText(tWithColon("fees"))).toBeInTheDocument();
     });
     expect(screen.getByText("Delivery")).toBeInTheDocument();
-    expect(screen.getByText("С учетом скидок и сборов:")).toBeInTheDocument();
+    expect(screen.getByText(t("grandTotal"))).toBeInTheDocument();
     await expectCurrentScreenshot("modifiers-add-fee");
   });
 
@@ -1595,21 +1593,21 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner();
 
     // Act
-    await openActionBarMenuItem(user, "Добавить скидку");
+    await openActionBarMenuItem(user, t("addDiscount"));
 
     const nameInput = await screen.findByRole("textbox");
     const valueInput = screen.getByRole("spinbutton");
     await user.type(nameInput, "Promo");
     await user.clear(valueInput);
     await user.type(valueInput, "50");
-    await user.click(screen.getByRole("button", { name: "Сохранить" }));
+    await user.click(screen.getByRole("button", { name: t("save") }));
 
     // Assert
     await waitFor(() => {
-      expect(screen.getByText("Скидки:")).toBeInTheDocument();
+      expect(screen.getByText(tWithColon("discounts"))).toBeInTheDocument();
     });
     expect(screen.getByText("Promo")).toBeInTheDocument();
-    expect(screen.getByText("С учетом скидок и сборов:")).toBeInTheDocument();
+    expect(screen.getByText(t("grandTotal"))).toBeInTheDocument();
     await expectCurrentScreenshot("modifiers-add-discount");
   });
 
@@ -1627,13 +1625,13 @@ describe("Receipt flow", () => {
     await user.type(nameInput, "Service");
     await user.clear(valueInput);
     await user.type(valueInput, "120");
-    await user.click(screen.getByRole("button", { name: "Сохранить" }));
+    await user.click(screen.getByRole("button", { name: t("save") }));
 
     // Assert
     await waitFor(() => {
       expect(screen.getByText("Service")).toBeInTheDocument();
     });
-    expect(screen.getByText("Сборы:")).toBeInTheDocument();
+    expect(screen.getByText(tWithColon("fees"))).toBeInTheDocument();
     await expectCurrentScreenshot("modifiers-fee-edited");
   });
 
@@ -1651,13 +1649,13 @@ describe("Receipt flow", () => {
     await user.type(nameInput, "Weekend");
     await user.clear(valueInput);
     await user.type(valueInput, "80");
-    await user.click(screen.getByRole("button", { name: "Сохранить" }));
+    await user.click(screen.getByRole("button", { name: t("save") }));
 
     // Assert
     await waitFor(() => {
       expect(screen.getByText("Weekend")).toBeInTheDocument();
     });
-    expect(screen.getByText("Скидки:")).toBeInTheDocument();
+    expect(screen.getByText(tWithColon("discounts"))).toBeInTheDocument();
     await expectCurrentScreenshot("modifiers-discount-edited");
   });
 
@@ -1668,13 +1666,13 @@ describe("Receipt flow", () => {
 
     // Act
     await user.click(await findInteractiveButtonByText("Delivery"));
-    await user.click(screen.getByRole("button", { name: "Удалить" }));
+    await user.click(screen.getByRole("button", { name: t("remove") }));
 
     // Assert
     await waitFor(() => {
       expect(screen.queryByText("Delivery")).not.toBeInTheDocument();
     });
-    expect(screen.queryByText("Сборы:")).not.toBeInTheDocument();
+    expect(screen.queryByText(tWithColon("fees"))).not.toBeInTheDocument();
     expect(screen.getByText("Loyalty")).toBeInTheDocument();
     await expectCurrentScreenshot("modifiers-fee-deleted");
   });
@@ -1686,13 +1684,13 @@ describe("Receipt flow", () => {
 
     // Act
     await user.click(await findInteractiveButtonByText("Loyalty"));
-    await user.click(screen.getByRole("button", { name: "Удалить" }));
+    await user.click(screen.getByRole("button", { name: t("remove") }));
 
     // Assert
     await waitFor(() => {
       expect(screen.queryByText("Loyalty")).not.toBeInTheDocument();
     });
-    expect(screen.queryByText("Скидки:")).not.toBeInTheDocument();
+    expect(screen.queryByText(tWithColon("discounts"))).not.toBeInTheDocument();
     expect(screen.getByText("Delivery")).toBeInTheDocument();
     await expectCurrentScreenshot("modifiers-discount-deleted");
   });
@@ -1703,14 +1701,14 @@ describe("Receipt flow", () => {
     await renderReceiptFormHarness({ receipt: invalidReceipt, echoReceiptUpdates: false });
 
     // Act
-    await user.click(await findInteractiveButtonByFragments(["Итого:", "9999 ₽"]));
+    await user.click(await findInteractiveButtonByFragments([t("total"), "9999 ₽"]));
 
     const totalInputs = await screen.findAllByRole("spinbutton");
     await user.clear(totalInputs[0]);
     await user.type(totalInputs[0], "1321");
     await user.clear(totalInputs[1]);
     await user.type(totalInputs[1], "1321");
-    await user.click(screen.getByRole("button", { name: "Сохранить" }));
+    await user.click(screen.getByRole("button", { name: t("save") }));
 
     // Assert
     await waitFor(() => {
@@ -1729,7 +1727,7 @@ describe("Receipt flow", () => {
 
     // Assert
     expect(await screen.findByDisplayValue("")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: t("save") })).toBeDisabled();
     await expectCurrentScreenshot("validation-position-invalid-dialog");
   });
 
@@ -1743,7 +1741,7 @@ describe("Receipt flow", () => {
 
     // Assert
     expect(await screen.findByDisplayValue("999")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: t("save") })).toBeDisabled();
     await expectCurrentScreenshot("validation-position-overall-mismatch-dialog");
   });
 
@@ -1754,12 +1752,12 @@ describe("Receipt flow", () => {
       receipt: invalidZeroPositionReceipt,
       echoReceiptUpdates: false,
     });
-    expect(screen.getByRole("button", { name: "Готово" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: t("done") })).toBeDisabled();
     await expectCurrentScreenshot("zero-zero-before-delete");
 
     // Act
     await user.click(await findZeroPositionButton());
-    await user.click(screen.getByRole("button", { name: "Удалить" }));
+    await user.click(screen.getByRole("button", { name: t("remove") }));
     await act(async () => {
       harness.pushReceipt?.(structuredClone(invalidZeroPositionReceipt));
     });
@@ -1769,7 +1767,7 @@ describe("Receipt flow", () => {
 
     // Assert
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Готово" })).toBeEnabled();
+      expect(screen.getByRole("button", { name: t("done") })).toBeEnabled();
     });
     expect(queryZeroPositionButton()).toBeUndefined();
     await expectCurrentScreenshot("zero-zero-after-delete");
@@ -1785,7 +1783,7 @@ describe("Receipt flow", () => {
 
     // Act
     await user.click(await findZeroPositionButton());
-    await user.click(screen.getByRole("button", { name: "Удалить" }));
+    await user.click(screen.getByRole("button", { name: t("remove") }));
     await act(async () => {
       harness.pushReceipt?.(structuredClone(invalidZeroPositionReceipt));
     });
@@ -1808,13 +1806,13 @@ describe("Receipt flow", () => {
     await renderReceiptFormInner({ receipt: invalidReceipt });
 
     // Act
-    await user.click(await findInteractiveButtonByFragments(["Итого:", "9999 ₽"]));
+    await user.click(await findInteractiveButtonByFragments([t("total"), "9999 ₽"]));
 
     // Assert
     const totalInputs = await screen.findAllByRole("spinbutton");
     expect(totalInputs[0]).toHaveValue(9999);
     expect(totalInputs[1]).toHaveValue(9999);
-    expect(screen.getByRole("button", { name: "Сохранить" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: t("save") })).toBeDisabled();
     await expectCurrentScreenshot("validation-totals-invalid-dialog");
   });
 
@@ -1822,24 +1820,24 @@ describe("Receipt flow", () => {
     // Arrange
     const user = userEvent.setup();
     const harness = await renderReceiptFormHarness({ receipt: invalidReceipt });
-    expect(screen.getByRole("button", { name: "Готово" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: t("done") })).toBeDisabled();
 
     // Act
-    await user.click(await findInteractiveButtonByFragments(["Итого:", "9999 ₽"]));
+    await user.click(await findInteractiveButtonByFragments([t("total"), "9999 ₽"]));
 
     const totalInputs = await screen.findAllByRole("spinbutton");
     await user.clear(totalInputs[0]);
     await user.type(totalInputs[0], "1321");
     await user.clear(totalInputs[1]);
     await user.type(totalInputs[1], "1321");
-    await user.click(screen.getByRole("button", { name: "Сохранить" }));
+    await user.click(screen.getByRole("button", { name: t("save") }));
     harness.pushReceipt?.(validReceipt);
 
     // Assert
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Готово" })).toBeEnabled();
+      expect(screen.getByRole("button", { name: t("done") })).toBeEnabled();
     });
-    expect(screen.getByText("Итого:")).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`^${t("total")}$`))).toBeInTheDocument();
     expect(screen.getAllByText("1321 ₽").length).toBeGreaterThan(0);
     await expectCurrentScreenshot("validation-totals-fixed");
   });
@@ -1848,19 +1846,19 @@ describe("Receipt flow", () => {
     // Arrange
     const user = userEvent.setup();
     const harness = await renderReceiptFormHarness({ receipt: invalidNameReceipt });
-    expect(screen.getByRole("button", { name: "Готово" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: t("done") })).toBeDisabled();
 
     // Act
     await user.click(await findInteractiveButtonByFragments(["801 ₽", "x"]));
 
     const nameInput = await screen.findByDisplayValue("");
     await user.type(nameInput, "Milk");
-    await user.click(screen.getByRole("button", { name: "Сохранить" }));
+    await user.click(screen.getByRole("button", { name: t("save") }));
     harness.pushReceipt?.(validReceipt);
 
     // Assert
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Готово" })).toBeEnabled();
+      expect(screen.getByRole("button", { name: t("done") })).toBeEnabled();
     });
     expect(screen.getByText("Milk")).toBeInTheDocument();
     await expectCurrentScreenshot("validation-position-fixed");
@@ -1873,20 +1871,20 @@ describe("Receipt flow", () => {
 
     // Act
     await user.click(await findInteractiveButtonByText("Bread"));
-    await user.click(screen.getAllByRole("button", { name: "Редактировать" })[0]);
+    await user.click(screen.getAllByRole("button", { name: t("edit") })[0]);
 
     const quantityInput = screen.getAllByRole("spinbutton")[1];
     await user.clear(quantityInput);
     await user.type(quantityInput, "1");
-    await user.click(screen.getByRole("button", { name: "Сохранить" }));
+    await user.click(screen.getByRole("button", { name: t("save") }));
 
     // Assert
     expect(
-      await screen.findAllByText("Распределенное количество больше количества позиции"),
+      await screen.findAllByText(t("validationClaimedQuantityExceeds")),
     ).not.toHaveLength(0);
     expect(
       screen
-        .getAllByRole("button", { name: "Готово", includeHidden: true })
+        .getAllByRole("button", { name: t("done"), includeHidden: true })
         .find((button) => button.hasAttribute("disabled")),
     ).toBeDisabled();
     await expectCurrentScreenshot("claim-error-sheet");
@@ -1915,7 +1913,7 @@ describe("Receipt flow", () => {
     expect(screen.getAllByText("Bread").length).toBeGreaterThan(0);
     expect(screen.getByText("1 × 801 ₽")).toBeInTheDocument();
     expect(screen.getAllByText("1 × 150 ₽").length).toBeGreaterThan(1);
-    expect(screen.queryByText(/Осталось:/)).not.toBeInTheDocument();
+    expect(screen.queryByText(new RegExp(`${t("remaining")}:`))).not.toBeInTheDocument();
     await expectCurrentScreenshot("summary-balances");
   });
 
@@ -1930,7 +1928,7 @@ describe("Receipt flow", () => {
     });
 
     // Assert
-    expect(screen.getByText("Осталось: 370 ₽")).toBeInTheDocument();
+    expect(screen.getByText(remainingText("370 ₽"))).toBeInTheDocument();
     expect(screen.queryByText("Polina")).not.toBeInTheDocument();
     expect(screen.queryByText("Butter")).not.toBeInTheDocument();
     await expectCurrentScreenshot("summary-remaining");
@@ -1951,10 +1949,10 @@ describe("Receipt flow", () => {
 
     // Assert
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Search" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: t("search") })).toBeInTheDocument();
     });
     expect(screen.getByText("Milk")).toBeInTheDocument();
-    expect(screen.queryByText("Пока нет распределений")).not.toBeInTheDocument();
+    expect(screen.queryByText(t("noClaims"))).not.toBeInTheDocument();
     await expectCurrentScreenshot("summary-fallback-to-validation");
   });
 
@@ -1974,7 +1972,7 @@ describe("Receipt flow", () => {
 
     // Assert
     await waitFor(() => {
-      expect(screen.getByText("Осталось: 370 ₽")).toBeInTheDocument();
+      expect(screen.getByText(remainingText("370 ₽"))).toBeInTheDocument();
     });
     expect(screen.queryByText("Polina")).not.toBeInTheDocument();
     expect(screen.queryByText("Butter")).not.toBeInTheDocument();

@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { t } from "@/app/i18n/translations";
 import {
   actionBar,
   iconSizeVariants,
@@ -92,8 +93,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                     }
                     onRequestClose?.();
                   }}
-                  aria-label="Close search"
-                  title="Close search"
+                  aria-label={t("close")}
+                  title={t("close")}
                   className="relative h-10 w-10 rounded-full bg-foreground/5 text-foreground hover:bg-foreground/10 pointer-events-auto"
                 >
                   <X

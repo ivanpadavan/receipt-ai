@@ -133,6 +133,8 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
   const visibleErrors = Object.entries(errors).filter(
     ([key]) => !hideErrorsUntilTouched || touched.has(key),
   );
+  const formatErrorFieldLabel = (key: string) =>
+    t(key as TranslationKey).replace(/:\s*$/, "");
 
   const handleSave = () => {
     onSave(localValue);
@@ -203,7 +205,7 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
             <ul className={cn(stackGapVariants({ size: "xs" }), errorList)}>
               {visibleErrors.map(([key, error], index) => (
                 <li key={index}>
-                  <strong>{t(key as TranslationKey)}:</strong> {error}
+                  <strong>{formatErrorFieldLabel(key)}:</strong> {error}
                 </li>
               ))}
             </ul>

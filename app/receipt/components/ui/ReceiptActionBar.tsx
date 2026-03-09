@@ -222,8 +222,8 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
                         variant="ghost"
                         size="icon"
                         onClick={handleOpenSearch}
-                        aria-label="Search"
-                        title="Search"
+                        aria-label={t("search")}
+                        title={t("search")}
                         className={className}
                       >
                         <Search className={iconSizeVariants({ size: "sm" })} />
