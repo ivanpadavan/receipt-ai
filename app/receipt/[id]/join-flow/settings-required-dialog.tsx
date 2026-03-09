@@ -29,6 +29,7 @@ import {
   avatarSizeVariants,
   buttonContentVariants,
 } from "@/app/receipt/components/ui-styles";
+import "./scroll-detect.css";
 
 interface JoinFlowSettingsDialogProps {
   receiptId: string;
@@ -99,7 +100,15 @@ export function JoinFlowSettingsDialog({
               <div className={textVariants({ size: "sm", weight: "medium" })}>
                 {t("alreadyParticipated")}
               </div>
-              <div className={cn("flex flex-col", stackGapVariants({ size: "sm" }))}>
+              <div
+                className={cn(
+                  "scroll-detect flex flex-col max-h-[14rem] overflow-y-auto pr-1 border-y",
+                  "[--scroll-border-off:transparent]",
+                  "[--scroll-border-on:var(--can-scroll)_theme(colors.border/50%)]",
+                  "border-y-[var(--scroll-border-on,var(--scroll-border-off))]",
+                  stackGapVariants({ size: "sm" }),
+                )}
+              >
                 {offlineAnonymousCandidates.map((participant) => (
                   <Button
                     key={participant.id}
@@ -140,7 +149,8 @@ export function JoinFlowSettingsDialog({
           <SettingsForm
             user={user}
             onSubmit={handleSettingsSubmit}
-            submitLabel={t("save")}
+            submitLabel={t("join")}
+            submitPendingLabel={t("joining")}
           />
         </div>
       </AlertDialogContent>

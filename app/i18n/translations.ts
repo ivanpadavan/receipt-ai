@@ -22,6 +22,8 @@ const ru = {
 
   // Form edit modal
   save: "Сохранить",
+  join: "Присоединиться",
+  joining: "Присоединение...",
   saving: "Сохранение...",
   cancel: "Отмена",
   value: "Значение",
@@ -178,6 +180,8 @@ const en: Translations = {
 
   // Form edit modal
   save: "Save",
+  join: "Join",
+  joining: "Joining...",
   saving: "Saving...",
   cancel: "Cancel",
   value: "Value",

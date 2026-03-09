@@ -95,6 +95,7 @@ interface SettingsFormProps {
   user: User;
   onSubmit: (values: SettingsFormValues) => Promise<void> | void;
   submitLabel?: string;
+  submitPendingLabel?: string;
   onValidChange?: (valid: boolean) => void;
 }
 
@@ -102,6 +103,7 @@ export const SettingsForm = ({
   user,
   onSubmit,
   submitLabel,
+  submitPendingLabel,
   onValidChange,
 }: SettingsFormProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -368,7 +370,9 @@ export const SettingsForm = ({
         type="submit"
         disabled={!displayName?.trim() || saving || isSubmitting}
       >
-        {saving || isSubmitting ? t("saving") : (submitLabel ?? t("save"))}
+        {saving || isSubmitting
+          ? (submitPendingLabel ?? t("saving"))
+          : (submitLabel ?? t("save"))}
       </Button>
     </form>
   );

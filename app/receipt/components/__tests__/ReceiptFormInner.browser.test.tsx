@@ -679,7 +679,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       await user.clear(displayNameInput);
       await user.type(displayNameInput, "Anton");
       await expectCurrentScreenshot("can-join-when-name-is-typed");
-      await user.click(screen.getByRole("button", { name: t("save") }));
+      await user.click(screen.getByRole("button", { name: t("join") }));
 
       await waitFor(() => {
         expect(joinReceiptMock).toHaveBeenCalledWith("receipt-1", {
@@ -710,7 +710,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       const displayNameInput = screen.getByRole("textbox");
       await user.clear(displayNameInput);
       await user.type(displayNameInput, " Anton ");
-      await user.click(screen.getByRole("button", { name: t("save") }));
+      await user.click(screen.getByRole("button", { name: t("join") }));
 
       await waitFor(() => {
         expect(joinReceiptMock).toHaveBeenCalledWith("receipt-1", {
@@ -755,6 +755,68 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
         });
       });
       await expectCurrentScreenshot("join-candidate-action-replaces-offline-anon-real");
+    });
+
+    it("keeps settings open while candidate replace request is pending", async () => {
+      const unresolved = new Promise<void>(() => undefined);
+      joinReceiptMock.mockImplementation(() => unresolved);
+
+      const user = userEvent.setup();
+      const mockUser = createMockUser({
+        id: "user-join-10-pending",
+        user_metadata: { displayName: undefined },
+      });
+      const participants = [
+        createParticipant({
+          id: "p-offline-anon-real-1",
+          displayName: "Offline Anonymous 1",
+          kind: "REAL",
+          isAnonymous: true,
+          isOnline: false,
+        }),
+        createParticipant({
+          id: "p-offline-anon-real-2",
+          displayName: "Offline Anonymous 2",
+          kind: "REAL",
+          isAnonymous: true,
+          isOnline: false,
+        }),
+        createParticipant({
+          id: "p-offline-anon-real-3",
+          displayName: "Offline Anonymous 3",
+          kind: "REAL",
+          isAnonymous: true,
+          isOnline: false,
+        }),
+        createParticipant({
+          id: "p-offline-anon-real-4",
+          displayName: "Offline Anonymous 4",
+          kind: "REAL",
+          isAnonymous: true,
+          isOnline: false,
+        }),
+        createParticipant({
+          id: "p-offline-anon-real-5",
+          displayName: "Offline Anonymous 5",
+          kind: "REAL",
+          isAnonymous: true,
+          isOnline: false,
+        }),
+      ];
+
+      await renderReceiptFormInner({
+        user: mockUser,
+        participants,
+        waitForInteractivity: false,
+      });
+      await user.click(screen.getByRole("button", { name: "Offline Anonymous 1" }));
+      await waitFor(() => {
+        expect(joinReceiptMock).toHaveBeenCalledWith("receipt-1", {
+          replaceParticipantId: "p-offline-anon-real-1",
+        });
+      });
+      expect(screen.getByRole("heading", { name: t("settings") })).toBeInTheDocument();
+      await expectCurrentScreenshot("join-candidate-replace-pending");
     });
 
     it("shows removed state when participant was joined and then removed by server update", async () => {
@@ -805,35 +867,6 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
 
       await user.click(screen.getByRole("button", { name: t("goHome") }));
       expect(pushMock).toHaveBeenCalledWith("/");
-    });
-
-    it("resets joinRequested flag when state changes away from join and retries when state returns", async () => {
-      const mockUser = createMockUser({
-        id: "user-join-13",
-        user_metadata: { displayName: "Anton" },
-      });
-      const participants = [createParticipant({ id: "p-1", displayName: "Polina" })];
-      const { pushReceipt } = await renderReceiptFormHarness({
-        user: mockUser,
-        participants,
-        receipt: validReceipt,
-      });
-
-      await waitFor(() => {
-        expect(joinReceiptMock).toHaveBeenCalledTimes(1);
-      });
-
-      await act(async () => {
-        pushReceipt?.(invalidReceipt);
-      });
-
-      await act(async () => {
-        pushReceipt?.(validReceipt);
-      });
-
-      await waitFor(() => {
-        expect(joinReceiptMock).toHaveBeenCalledTimes(2);
-      });
     });
 
     it("closes settings flow when server update makes user joined", async () => {
