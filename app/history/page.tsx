@@ -95,15 +95,17 @@ export default async function HistoryPage() {
               const totalAmount = receiptData.totals.total;
 
               return (
-                <Link className="block" href={`/receipt/${receipt.id}`} key={receipt.id}>
-                  <ReceiptCard
-                    shadow="md"
-                    interactive
-                    className={cn(
-                      "w-full",
-                      cardPaddingVariants({ size: "md" }),
-                    )}
-                  >
+                <ReceiptCard
+                  asChild
+                  key={receipt.id}
+                  shadow="md"
+                  interactive
+                  className={cn(
+                    "block w-full",
+                    cardPaddingVariants({ size: "md" }),
+                  )}
+                >
+                  <Link href={`/receipt/${receipt.id}`}>
                     <div className={cn(rowVariants({ align: "center", justify: "between", width: "full" }), "mb-2")}>
                       <h2
                         className={textVariants({ size: "lg", weight: "semibold", tone: "brandStrong" })}
@@ -131,8 +133,8 @@ export default async function HistoryPage() {
                         {formatMoney(totalAmount)}
                       </span>
                     </div>
-                  </ReceiptCard>
-                </Link>
+                  </Link>
+                </ReceiptCard>
               );
             })}
           </div>

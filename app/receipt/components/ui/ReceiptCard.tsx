@@ -1,11 +1,13 @@
 "use client";
 
 import React from "react";
+import { Slot } from "@radix-ui/react-slot";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/utils/cn";
 import { surfaceVariants } from "@/app/receipt/components/ui-styles";
 
 interface ReceiptCardProps extends React.HTMLAttributes<HTMLDivElement> {
+  asChild?: boolean;
   tone?: "default" | "soft" | "warm" | "warmStrong" | "danger";
   shadow?: "none" | "sm" | "md" | "lg";
   interactive?: boolean;
@@ -14,6 +16,7 @@ interface ReceiptCardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const ReceiptCard: React.FC<ReceiptCardProps> = ({
+  asChild = false,
   tone,
   shadow,
   interactive,
@@ -22,9 +25,11 @@ export const ReceiptCard: React.FC<ReceiptCardProps> = ({
   className,
   ...props
 }) => {
+  const Comp = asChild ? Slot : Card;
+
   return (
-    <Card
-      shadow="none"
+    <Comp
+      {...(!asChild ? { shadow: "none" as const } : {})}
       className={cn(
         surfaceVariants({ tone, shadow, interactive, state, radius }),
         className,

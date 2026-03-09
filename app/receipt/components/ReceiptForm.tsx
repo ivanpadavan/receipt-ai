@@ -403,6 +403,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       hasClaimsError;
                     return (
                       <ReceiptCard
+                        asChild
                         key={field.id}
                         shadow={canEdit.positionForm ? "md" : "sm"}
                         interactive={!!canEdit.positionForm}
@@ -420,7 +421,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                               index: originalIndex,
                             })
                           }
-                          className={cn("w-full text-left")}
+                          className={cn("block w-full text-left")}
                         >
                           <CardContent
                             className={rowContentPaddingVariants({
