@@ -318,6 +318,7 @@ export const SettingsForm = ({
                             crop={crop}
                             zoom={zoom}
                             aspect={1}
+                            cropShape="round"
                             onCropChange={setCrop}
                             onZoomChange={setZoom}
                             onCropComplete={onCropComplete}

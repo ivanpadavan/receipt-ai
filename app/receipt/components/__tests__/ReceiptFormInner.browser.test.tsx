@@ -1,6 +1,6 @@
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, waitFor } from "@testing-library/react";
+import { act, fireEvent, waitFor } from "@testing-library/react";
 import { page } from "vitest/browser";
 import userEvent from "@testing-library/user-event";
 import { setLanguage, t, type Language } from "@/app/i18n/translations";
@@ -186,6 +186,12 @@ function createParticipant(
     isAnonymous: overrides.isAnonymous ?? false,
     isOnline: overrides.isOnline ?? true,
   };
+}
+
+async function createAvatarFixtureFile(name = "avatar.png") {
+  const response = await fetch(new URL("./avatar.png", import.meta.url).href);
+  const blob = await response.blob();
+  return new File([blob], name, { type: blob.type || "image/png" });
 }
 
 function getSearchButton() {
@@ -897,6 +903,63 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       await waitFor(() => {
         expect(screen.queryByRole("heading", { name: t("settings") })).not.toBeInTheDocument();
       });
+    });
+
+    it("walks through avatar upload flow with crop and submit screenshots", async () => {
+      const user = userEvent.setup();
+      const mockUser = createMockUser({
+        id: "user-join-avatar-flow",
+        user_metadata: { displayName: undefined },
+      });
+      const participants = [createParticipant({ id: "p-1", displayName: "Polina" })];
+
+      await renderReceiptFormInner({
+        user: mockUser,
+        participants,
+        waitForInteractivity: false,
+      });
+
+      await expectCurrentScreenshot("join-avatar-upload-settings-open");
+
+      const uploadInput = requireElement(
+        Array.from(document.querySelectorAll<HTMLInputElement>("input[type='file'][accept='image/*']"))
+          .find((input) => !input.hasAttribute("capture")),
+        "avatar upload input should be present",
+      );
+      const avatarFile = await createAvatarFixtureFile();
+      await user.upload(uploadInput, avatarFile);
+
+      expect(await screen.findByRole("heading", { name: t("cropAvatar") })).toBeInTheDocument();
+      await expectCurrentScreenshot("join-avatar-upload-crop-open");
+
+      const zoomSlider = requireElement(
+        document.querySelector<HTMLInputElement>("input[type='range']"),
+        "crop zoom slider should be present",
+      );
+      fireEvent.change(zoomSlider, { target: { value: "1.5" } });
+      await expectCurrentScreenshot("join-avatar-upload-zoom-slider-used");
+      await user.click(screen.getByRole("button", { name: t("save") }));
+
+      await waitFor(() => {
+        expect(screen.queryByRole("heading", { name: t("cropAvatar") })).not.toBeInTheDocument();
+      });
+      await expectCurrentScreenshot("join-avatar-upload-crop-applied");
+
+      const displayNameInput = screen.getByRole("textbox");
+      await user.clear(displayNameInput);
+      await user.type(displayNameInput, "Avatar User");
+      await user.click(screen.getByRole("button", { name: t("join") }));
+
+      await waitFor(() => {
+        expect(joinReceiptMock).toHaveBeenCalledWith("receipt-1", {
+          profile: {
+            avatarFile: expect.any(File),
+            avatarUrl: expect.any(String),
+            displayName: "Avatar User",
+          },
+        });
+      });
+      await expectCurrentScreenshot("join-avatar-upload-submit");
     });
   });
 
