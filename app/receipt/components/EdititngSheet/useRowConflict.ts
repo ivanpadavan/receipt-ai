@@ -6,12 +6,15 @@ import {
   ReceiptModifier,
 } from "@/model/receipt/model";
 import { isEqual } from "lodash-es";
+import { t } from "@/app/i18n/translations";
 
 type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
 
 interface UseRowConflictProps<T extends EditableValue> {
   /** Current local value being edited */
   localValue: T;
+  /** Change current local value being edited */
+  setLocalValue: (v: T) => void;
   /** Initial value when the modal opened */
   initialValue: T;
   /** The main form to watch for external changes */
@@ -34,6 +37,7 @@ export interface ConflictState<T> {
  */
 export const useRowConflict = <T extends EditableValue>({
   localValue,
+  setLocalValue,
   initialValue,
   form,
   fieldPath,
@@ -55,8 +59,15 @@ export const useRowConflict = <T extends EditableValue>({
       if (!liveValue) {
         setConflict({
           type: "deleted",
-          message: "Item has been deleted by another user.",
+          message: t("conflictItemDeleted"),
         });
+        return;
+      }
+
+      // Case 2: If form is pristine - apply server notification without notice
+      if (isEqual(localValue, initialValue)) {
+        setLocalValue(liveValue);
+        setConflict(null);
         return;
       }
 
@@ -71,7 +82,7 @@ export const useRowConflict = <T extends EditableValue>({
         } else {
           setConflict({
             type: "modified",
-            message: "Item has been modified by another user.",
+            message: t("conflictItemModified"),
             serverValue: liveValue,
           });
         }

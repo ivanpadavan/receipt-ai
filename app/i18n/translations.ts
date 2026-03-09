@@ -37,6 +37,8 @@ const ru = {
   close: "Закрыть",
   useServer: "Принять серверное",
   keepMine: "Оставить моё",
+  conflictItemDeleted: "Позиция была удалена другим пользователем.",
+  conflictItemModified: "Позиция была изменена другим пользователем.",
 
   // Splitting mode
   splitEvenly: "Поделить поровну",
@@ -191,6 +193,8 @@ const en: Translations = {
   close: "Close",
   useServer: "Use server",
   keepMine: "Keep mine",
+  conflictItemDeleted: "Item has been deleted by another user.",
+  conflictItemModified: "Item has been modified by another user.",
 
   // Splitting mode
   splitEvenly: "Split evenly",

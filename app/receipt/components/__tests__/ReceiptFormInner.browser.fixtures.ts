@@ -352,3 +352,25 @@ export const invalidReviewReceipt: Receipt = {
     grandTotal: 9999,
   },
 };
+
+export const serverUpdatedMilkReceipt: Receipt = {
+  ...invalidPositionAndTotalsReceipt,
+  positions: [
+    {
+      ...invalidPositionAndTotalsReceipt.positions[0],
+      name: "Milk",
+      price: 777,
+      quantity: 1,
+      overall: 777,
+    },
+    ...invalidPositionAndTotalsReceipt.positions.slice(1),
+  ],
+};
+
+export const receiptWithoutButterPosition: Receipt = {
+  ...invalidPositionAndTotalsReceipt,
+  positions: [
+    invalidPositionAndTotalsReceipt.positions[0],
+    invalidPositionAndTotalsReceipt.positions[1],
+  ],
+};

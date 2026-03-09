@@ -19,7 +19,9 @@ import {
   overClaimedReceipt,
   partiallyDistributedReceipt,
   quantityMaxSwitchReceipt,
+  receiptWithoutButterPosition,
   receiptWithModifiers,
+  serverUpdatedMilkReceipt,
   splittingParticipants,
   summaryBalancedReceipt,
   summaryRemainingReceipt,
@@ -296,6 +298,40 @@ async function openSplittingSheetFor(
   const positionButton = getPositionButtonByText(fragment);
   await user.click(positionButton);
   await screen.findByRole("heading", { name: fragment });
+}
+
+async function openInvalidValidationPositionDialog(
+  user: ReturnType<typeof userEvent.setup>,
+) {
+  await user.click(await findInteractiveButtonByFragments(["801 ₽", "x"]));
+  const nameInput = await screen.findByDisplayValue("");
+  const [priceInput, quantityInput, overallInput] = await screen.findAllByRole("spinbutton");
+  return {
+    nameInput,
+    priceInput,
+    quantityInput,
+    overallInput,
+  };
+}
+
+async function setPositionDraft(
+  user: ReturnType<typeof userEvent.setup>,
+  next: { name: string; price: string; quantity: string; overall: string },
+) {
+  const { nameInput, priceInput, quantityInput, overallInput } =
+    await openInvalidValidationPositionDialog(user);
+
+  await user.clear(nameInput);
+  await user.type(nameInput, next.name);
+
+  await user.clear(priceInput);
+  await user.type(priceInput, next.price);
+
+  await user.clear(quantityInput);
+  await user.type(quantityInput, next.quantity);
+
+  await user.clear(overallInput);
+  await user.type(overallInput, next.overall);
 }
 
 async function expectCurrentScreenshot(name?: string) {
@@ -1450,6 +1486,137 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       expect(screen.queryByRole("heading", { name: "Bread" })).not.toBeInTheDocument();
     });
     await expectCurrentScreenshot("claim-error-after-close");
+  });
+
+  describe('conflict handling', () => {
+    it("shows a modified conflict and applies server values when Use server is chosen", async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const harness = await renderReceiptFormHarness({
+        receipt: invalidPositionAndTotalsReceipt,
+        echoReceiptUpdates: false,
+      });
+      await setPositionDraft(user, {
+        name: "Milk draft",
+        price: "900",
+        quantity: "1",
+        overall: "900",
+      });
+
+      // Act
+      await act(async () => {
+        harness.pushReceipt?.(serverUpdatedMilkReceipt);
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(
+          screen.getByText(t("conflictItemModified")),
+        ).toBeInTheDocument();
+      });
+
+      await expectCurrentScreenshot("server-update-conflict-use-server");
+
+      await user.click(screen.getByRole("button", { name: t("useServer") }));
+      await waitFor(() => {
+        expect(screen.getAllByRole("spinbutton")[0]).toHaveValue(777);
+      });
+
+      expect(screen.getByDisplayValue("Milk")).toBeInTheDocument();
+      expect(screen.getAllByRole("spinbutton")[0]).toHaveValue(777);
+      expect(screen.getByRole("button", { name: t("save") })).toBeEnabled();
+      expect(
+        screen.queryByText(t("conflictItemModified")),
+      ).not.toBeInTheDocument();
+    });
+
+    it("shows a modified conflict and keeps local draft when Keep mine is chosen", async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const harness = await renderReceiptFormHarness({
+        receipt: invalidPositionAndTotalsReceipt,
+        echoReceiptUpdates: false,
+      });
+      await setPositionDraft(user, {
+        name: "Milk mine",
+        price: "905",
+        quantity: "1",
+        overall: "905",
+      });
+
+      // Act
+      await act(async () => {
+        harness.pushReceipt?.(serverUpdatedMilkReceipt);
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(
+          screen.getByText(t("conflictItemModified")),
+        ).toBeInTheDocument();
+      });
+      await user.click(screen.getByRole("button", { name: t("keepMine") }));
+      await waitFor(() => {
+        expect(
+          screen.queryByText(t("conflictItemModified")),
+        ).not.toBeInTheDocument();
+      });
+      expect(screen.getByDisplayValue("Milk mine")).toBeInTheDocument();
+      expect(screen.getAllByRole("spinbutton")[0]).toHaveValue(905);
+      expect(screen.getByRole("button", { name: t("save") })).toBeEnabled();
+      expect(
+        screen.queryByText(t("conflictItemModified")),
+      ).not.toBeInTheDocument();
+    });
+
+    it("shows a deleted conflict and disables save when the edited row disappears on server update", async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const harness = await renderReceiptFormHarness({
+        receipt: invalidPositionAndTotalsReceipt,
+        echoReceiptUpdates: false,
+      });
+      await user.click(await findInteractiveButtonByFragments(["220 ₽", "x"]));
+      await screen.findByDisplayValue("Butter");
+
+      // Act
+      await act(async () => {
+        harness.pushReceipt?.(receiptWithoutButterPosition);
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(
+          screen.getByText(t("conflictItemDeleted")),
+        ).toBeInTheDocument();
+      });
+      expect(screen.getByRole("button", { name: t("save") })).toBeDisabled();
+      await expectCurrentScreenshot("server-update-conflict-deleted");
+    });
+
+    it("auto-applies server updates for a pristine validation form", async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const harness = await renderReceiptFormHarness({
+        receipt: invalidPositionAndTotalsReceipt,
+        echoReceiptUpdates: false,
+      });
+      expect(screen.queryByText("Milk")).not.toBeInTheDocument();
+      await user.click(await findInteractiveButtonByFragments(["801 ₽", "x"]));
+
+      // Act
+      await act(async () => {
+        harness.pushReceipt?.(serverUpdatedMilkReceipt);
+      });
+
+      // Assert
+      expect(screen.getByDisplayValue("Milk")).toBeInTheDocument();
+      expect(screen.getAllByRole("spinbutton")[0]).toHaveValue(777);
+      expect(screen.getByRole("button", { name: t("save") })).toBeEnabled();
+      expect(
+        screen.queryByText(t("conflictItemModified")),
+      ).not.toBeInTheDocument();
+    });
   });
 
   it("renders participant balances and item breakdown in summary mode", async () => {

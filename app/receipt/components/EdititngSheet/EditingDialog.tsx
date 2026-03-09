@@ -35,6 +35,7 @@ import {
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
 import { multiplyMoney } from "@/app/receipt/utils/money";
+import { flushSync } from "react-dom";
 
 type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
 
@@ -69,6 +70,7 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
 
   const { conflict, resolveConflict } = useRowConflict({
     localValue,
+    setLocalValue,
     initialValue,
     form,
     fieldPath,
@@ -173,7 +175,7 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
                   onClick={() => {
                     const serverValue = resolveConflict("accept");
                     if (serverValue && fieldPath) {
-                      setLocalValue(serverValue);
+                      flushSync(() => setLocalValue(serverValue));
                       setValue(fieldPath, serverValue as never, {
                         shouldDirty: true,
                       });
