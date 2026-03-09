@@ -4,7 +4,7 @@ import { act, waitFor } from "@testing-library/react";
 import { page } from "vitest/browser";
 import userEvent from "@testing-library/user-event";
 import { setLanguage, t, type Language } from "@/app/i18n/translations";
-import { Receipt, ReceiptWithParticipants } from "@/model/receipt/model";
+import { ParticipantDTO, Receipt, ReceiptWithParticipants } from "@/model/receipt/model";
 import { User } from "@supabase/supabase-js";
 import { cleanup, render, type RenderResult as BrowserRenderResult } from "vitest-browser-react";
 import {
@@ -36,7 +36,7 @@ import {
   VIEWPORT_WIDTH,
   waitForDocumentInteractivity,
 } from "./browser-test-helpers";
-import { AppLayoutMock, defaultMockUser } from "./AppLayout.mock";
+import { AppLayoutMock, defaultMockUser, pushMock } from "./AppLayout.mock";
 
 let browserScreen: BrowserRenderResult | null = null;
 let activeLanguage: Language = "en";
@@ -51,12 +51,13 @@ function getActiveBrowserScreen() {
 const screen = createBrowserScreen(getActiveBrowserScreen);
 
 export const updateReceiptMock = vi.fn();
+export const joinReceiptMock = vi.fn().mockResolvedValue(undefined);
 
 vi.mock("@/app/api-client", () => ({
   apiClient: {
     createReceipt: vi.fn(),
     updateReceipt: (...args: unknown[]) => updateReceiptMock(...args),
-    joinReceipt: vi.fn().mockResolvedValue(undefined),
+    joinReceipt: (...args: unknown[]) => joinReceiptMock(...args),
   },
 }));
 
@@ -72,10 +73,12 @@ async function renderReceiptFormInner({
   receipt = validReceipt,
   participants = joinedParticipants,
   user,
+  waitForInteractivity = true,
 }: {
   receipt?: Receipt;
   participants?: ReceiptWithParticipants["participants"];
   user?: User;
+  waitForInteractivity?: boolean;
 } = {}) {
   const translations = await import("@/app/i18n/translations");
   translations.setLanguage(activeLanguage);
@@ -91,7 +94,9 @@ async function renderReceiptFormInner({
   );
 
   browserScreen = await render(ui);
-  await waitForDocumentInteractivity();
+  if (waitForInteractivity) {
+    await waitForDocumentInteractivity();
+  }
   return browserScreen;
 }
 
@@ -100,21 +105,29 @@ async function renderReceiptFormHarness({
   participants = structuredClone(joinedParticipants),
   echoReceiptUpdates = true,
   user,
+  waitForInteractivity = true,
 }: {
   receipt?: Receipt;
   participants?: ReceiptWithParticipants["participants"];
   echoReceiptUpdates?: boolean;
   user?: User;
+  waitForInteractivity?: boolean;
 } = {}) {
   const translations = await import("@/app/i18n/translations");
   translations.setLanguage(activeLanguage);
   const { ReceiptFormInner } = await import("@/app/receipt/components/ReceiptForm");
-  const controls: { pushReceipt?: (nextReceipt: Receipt) => void } = {};
+  const controls: {
+    pushReceipt?: (nextReceipt: Receipt) => void;
+    pushParticipants?: (nextParticipants: ReceiptWithParticipants["participants"]) => void;
+  } = {};
 
   const ReceiptFormHarness: React.FC = () => {
     const [currentReceipt, setCurrentReceipt] = React.useState(receipt);
+    const [currentParticipants, setCurrentParticipants] = React.useState(participants);
     // eslint-disable-next-line react-hooks/immutability
     controls.pushReceipt = setCurrentReceipt;
+    // eslint-disable-next-line react-hooks/immutability
+    controls.pushParticipants = setCurrentParticipants;
 
     React.useEffect(() => {
       updateReceiptMock.mockImplementation(async (_receiptId: string, nextReceipt: Receipt) => {
@@ -126,10 +139,10 @@ async function renderReceiptFormHarness({
     }, []);
 
     return (
-      <AppLayoutMock participants={participants} user={user}>
+      <AppLayoutMock participants={currentParticipants} user={user}>
         <ReceiptFormInner
           receipt={currentReceipt}
-          participants={participants}
+          participants={currentParticipants}
           receiptId="receipt-1"
         />
       </AppLayoutMock>
@@ -137,11 +150,41 @@ async function renderReceiptFormHarness({
   };
 
   browserScreen = await render(<ReceiptFormHarness />);
-  await waitForDocumentInteractivity();
+  if (waitForInteractivity) {
+    await waitForDocumentInteractivity();
+  }
 
   return {
     ...browserScreen,
     pushReceipt: (nextReceipt: Receipt) => controls.pushReceipt?.(nextReceipt),
+    pushParticipants: (nextParticipants: ReceiptWithParticipants["participants"]) =>
+      controls.pushParticipants?.(nextParticipants),
+  };
+}
+
+function createMockUser(
+  overrides: Partial<User> & { user_metadata?: Record<string, unknown> } = {},
+) {
+  return {
+    ...defaultMockUser,
+    ...overrides,
+    user_metadata: {
+      ...(defaultMockUser.user_metadata as Record<string, unknown>),
+      ...(overrides.user_metadata ?? {}),
+    },
+  } as User;
+}
+
+function createParticipant(
+  overrides: Partial<ParticipantDTO> & Pick<ParticipantDTO, "id" | "displayName">,
+): ParticipantDTO {
+  return {
+    id: overrides.id,
+    displayName: overrides.displayName,
+    color: overrides.color ?? "#111111",
+    kind: overrides.kind ?? "REAL",
+    isAnonymous: overrides.isAnonymous ?? false,
+    isOnline: overrides.isOnline ?? true,
   };
 }
 
@@ -397,7 +440,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY =
       "test-publishable-key";
     updateReceiptMock.mockResolvedValue(validReceipt);
-    await waitForDocumentInteractivity();
+    joinReceiptMock.mockResolvedValue(undefined);
   });
 
   afterEach(async () => {
@@ -509,6 +552,318 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       scroll: true,
     });
     await expectCurrentScreenshot("transition-summary-primary-action");
+    });
+  });
+
+  describe("Join flow", () => {
+    it("auto-joins a recognized user with displayName in splitting mode", async () => {
+      const user = createMockUser({
+        id: "user-join-1",
+        user_metadata: { displayName: "Anton" },
+      });
+      const participants = [createParticipant({ id: "p-1", displayName: "Polina" })];
+
+      await renderReceiptFormInner({ user, participants, waitForInteractivity: false });
+
+      await waitFor(() => {
+        expect(joinReceiptMock).toHaveBeenCalledWith("receipt-1");
+      });
+      expect(screen.queryByRole("heading", { name: t("settings") })).not.toBeInTheDocument();
+    });
+
+    it("does not auto-join when user is already present in participants", async () => {
+      const user = createMockUser({
+        id: "user-join-2",
+        user_metadata: { displayName: "Anton" },
+      });
+      const participants = [createParticipant({ id: "user-join-2", displayName: "Anton" })];
+
+      await renderReceiptFormInner({ user, participants, waitForInteractivity: false });
+
+      await waitFor(() => {
+        expect(joinReceiptMock).not.toHaveBeenCalled();
+      });
+      expect(screen.queryByRole("heading", { name: t("settings") })).not.toBeInTheDocument();
+    });
+
+    it("opens settings step when displayName is missing and join is required", async () => {
+      const user = createMockUser({
+        id: "user-join-3",
+        user_metadata: { displayName: undefined },
+      });
+      const participants = [createParticipant({ id: "p-1", displayName: "Polina" })];
+
+      await renderReceiptFormInner({ user, participants, waitForInteractivity: false });
+
+      expect(await screen.findByRole("heading", { name: t("settings") })).toBeInTheDocument();
+      expect(joinReceiptMock).not.toHaveBeenCalled();
+      await expectCurrentScreenshot("join-settings-open-when-display-name-missing");
+    });
+
+    it("shows offline anonymous candidates list in settings step", async () => {
+      const user = createMockUser({
+        id: "user-join-6",
+        user_metadata: { displayName: undefined },
+      });
+      const participants = [
+        createParticipant({
+          id: "p-offline-anon-real",
+          displayName: "Offline Anonymous",
+          kind: "REAL",
+          isAnonymous: true,
+          isOnline: false,
+        }),
+      ];
+
+      await renderReceiptFormInner({ user, participants, waitForInteractivity: false });
+
+      expect(screen.getByText(t("alreadyParticipated"))).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Offline Anonymous" })).toBeInTheDocument();
+      await expectCurrentScreenshot("join-settings-shows-offline-anonymous-candidates");
+    });
+
+    it("hides candidates section when there are no offline anonymous candidates", async () => {
+      const user = createMockUser({
+        id: "user-join-7",
+        user_metadata: { displayName: undefined },
+      });
+      const participants = [
+        createParticipant({
+          id: "p-online-anon-real",
+          displayName: "Online Anonymous",
+          kind: "REAL",
+          isAnonymous: true,
+          isOnline: true,
+        }),
+        createParticipant({
+          id: "p-offline-named",
+          displayName: "Offline Named",
+          kind: "REAL",
+          isAnonymous: false,
+          isOnline: false,
+        }),
+        createParticipant({
+          id: "p-offline-anon-mock",
+          displayName: "Offline Mock",
+          kind: "MOCK",
+          isAnonymous: true,
+          isOnline: false,
+        }),
+      ];
+
+      await renderReceiptFormInner({ user, participants, waitForInteractivity: false });
+
+      expect(screen.queryByText(t("alreadyParticipated"))).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Online Anonymous" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Offline Named" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Offline Mock" })).not.toBeInTheDocument();
+    });
+
+    it("keeps settings dialog open while join request is pending", async () => {
+      const unresolved = new Promise<void>(() => undefined);
+      joinReceiptMock.mockImplementation(() => unresolved);
+
+      const user = userEvent.setup();
+      const mockUser = createMockUser({
+        id: "user-join-8",
+        user_metadata: { displayName: undefined },
+      });
+      const participants = [createParticipant({ id: "p-1", displayName: "Polina" })];
+
+      await renderReceiptFormInner({
+        user: mockUser,
+        participants,
+        waitForInteractivity: false,
+      });
+      const displayNameInput = screen.getByRole("textbox");
+      await user.clear(displayNameInput);
+      await user.type(displayNameInput, "Anton");
+      await expectCurrentScreenshot("can-join-when-name-is-typed");
+      await user.click(screen.getByRole("button", { name: t("save") }));
+
+      await waitFor(() => {
+        expect(joinReceiptMock).toHaveBeenCalledWith("receipt-1", {
+          profile: {
+            avatarFile: undefined,
+            avatarUrl: undefined,
+            displayName: "Anton",
+          },
+        });
+      });
+      expect(screen.getByRole("heading", { name: t("settings") })).toBeInTheDocument();
+      await expectCurrentScreenshot("join-settings-stays-open-while-request-pending");
+    });
+
+    it("closes settings dialog after successful profile submit", async () => {
+      const user = userEvent.setup();
+      const mockUser = createMockUser({
+        id: "user-join-9",
+        user_metadata: { displayName: undefined },
+      });
+      const participants = [createParticipant({ id: "p-1", displayName: "Polina" })];
+
+      await renderReceiptFormInner({
+        user: mockUser,
+        participants,
+        waitForInteractivity: false,
+      });
+      const displayNameInput = screen.getByRole("textbox");
+      await user.clear(displayNameInput);
+      await user.type(displayNameInput, " Anton ");
+      await user.click(screen.getByRole("button", { name: t("save") }));
+
+      await waitFor(() => {
+        expect(joinReceiptMock).toHaveBeenCalledWith("receipt-1", {
+          profile: {
+            avatarFile: undefined,
+            avatarUrl: undefined,
+            displayName: "Anton",
+          },
+        });
+      });
+      await waitFor(() => {
+        expect(screen.queryByRole("heading", { name: t("settings") })).not.toBeInTheDocument();
+      });
+    });
+
+    it("joins as existing participant via candidate action for offline anonymous REAL", async () => {
+      const user = userEvent.setup();
+      const mockUser = createMockUser({
+        id: "user-join-10",
+        user_metadata: { displayName: undefined },
+      });
+      const participants = [
+        createParticipant({
+          id: "p-offline-anon-real",
+          displayName: "Offline Anonymous",
+          kind: "REAL",
+          isAnonymous: true,
+          isOnline: false,
+        }),
+      ];
+
+      await renderReceiptFormInner({
+        user: mockUser,
+        participants,
+        waitForInteractivity: false,
+      });
+      await user.click(screen.getByRole("button", { name: "Offline Anonymous" }));
+
+      await waitFor(() => {
+        expect(joinReceiptMock).toHaveBeenCalledWith("receipt-1", {
+          replaceParticipantId: "p-offline-anon-real",
+        });
+      });
+      await expectCurrentScreenshot("join-candidate-action-replaces-offline-anon-real");
+    });
+
+    it("shows removed state when participant was joined and then removed by server update", async () => {
+      const mockUser = createMockUser({
+        id: "user-join-11",
+        user_metadata: { displayName: "Anton" },
+      });
+      const initialParticipants = [
+        createParticipant({ id: "user-join-11", displayName: "Anton" }),
+        createParticipant({ id: "p-1", displayName: "Polina" }),
+      ];
+      const { pushParticipants } = await renderReceiptFormHarness({
+        user: mockUser,
+        participants: initialParticipants,
+        waitForInteractivity: false,
+      });
+
+      await act(async () => {
+        pushParticipants?.([createParticipant({ id: "p-1", displayName: "Polina" })]);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(t("removedTitle"))).toBeInTheDocument();
+      });
+      expect(screen.getByText(t("removedBody"))).toBeInTheDocument();
+      await expectCurrentScreenshot("join-removed-state-after-server-removal");
+    });
+
+    it("navigates home from removed state action", async () => {
+      const user = userEvent.setup();
+      const mockUser = createMockUser({
+        id: "user-join-12",
+        user_metadata: { displayName: "Anton" },
+      });
+      const initialParticipants = [
+        createParticipant({ id: "user-join-12", displayName: "Anton" }),
+        createParticipant({ id: "p-1", displayName: "Polina" }),
+      ];
+      const { pushParticipants } = await renderReceiptFormHarness({
+        user: mockUser,
+        participants: initialParticipants,
+        waitForInteractivity: false,
+      });
+
+      await act(async () => {
+        pushParticipants?.([createParticipant({ id: "p-1", displayName: "Polina" })]);
+      });
+
+      await user.click(screen.getByRole("button", { name: t("goHome") }));
+      expect(pushMock).toHaveBeenCalledWith("/");
+    });
+
+    it("resets joinRequested flag when state changes away from join and retries when state returns", async () => {
+      const mockUser = createMockUser({
+        id: "user-join-13",
+        user_metadata: { displayName: "Anton" },
+      });
+      const participants = [createParticipant({ id: "p-1", displayName: "Polina" })];
+      const { pushReceipt } = await renderReceiptFormHarness({
+        user: mockUser,
+        participants,
+        receipt: validReceipt,
+      });
+
+      await waitFor(() => {
+        expect(joinReceiptMock).toHaveBeenCalledTimes(1);
+      });
+
+      await act(async () => {
+        pushReceipt?.(invalidReceipt);
+      });
+
+      await act(async () => {
+        pushReceipt?.(validReceipt);
+      });
+
+      await waitFor(() => {
+        expect(joinReceiptMock).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it("closes settings flow when server update makes user joined", async () => {
+      const mockUser = createMockUser({
+        id: "user-join-14",
+        user_metadata: { displayName: undefined },
+      });
+      const initialParticipants = [createParticipant({ id: "p-1", displayName: "Polina" })];
+      const { pushParticipants } = await renderReceiptFormHarness({
+        user: mockUser,
+        participants: initialParticipants,
+        waitForInteractivity: false,
+      });
+
+      expect(await screen.findByRole("heading", { name: t("settings") })).toBeInTheDocument();
+
+      await act(async () => {
+        pushParticipants?.([
+          createParticipant({ id: "p-1", displayName: "Polina" }),
+          createParticipant({
+            id: "user-join-14",
+            displayName: "Anton",
+            isAnonymous: true,
+          }),
+        ]);
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByRole("heading", { name: t("settings") })).not.toBeInTheDocument();
+      });
     });
   });
 

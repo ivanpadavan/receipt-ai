@@ -32,14 +32,13 @@ describe("join-flow rules", () => {
         },
       ],
       makeUser({ id: "u-1" }),
-      "splitting",
     );
 
     expect(state).toBe("nothing");
   });
 
   it("keeps settings state when user has no display name in splitting mode", () => {
-    const state = getJoinFlowState([], makeUser({ id: "u-1" }), "splitting");
+    const state = getJoinFlowState([], makeUser({ id: "u-1" }));
     expect(state).toBe("settings");
   });
 

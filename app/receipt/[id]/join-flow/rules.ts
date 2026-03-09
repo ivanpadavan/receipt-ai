@@ -8,9 +8,7 @@ function joined(participants: ParticipantDTO[], user: User) {
 function mustJoin(
   participants: ParticipantDTO[],
   user: User,
-  formType: FormScenario["type"],
 ) {
-  if (formType !== "splitting") return false;
   if (joined(participants, user)) return false;
   return true;
 }
@@ -41,9 +39,8 @@ export function getOfflineAnonymousCandidates(
 export function getJoinFlowState(
   participants: ParticipantDTO[],
   user: User,
-  formType: FormScenario["type"],
 ) {
-  if (mustJoin(participants, user, formType)) {
+  if (mustJoin(participants, user)) {
     if (canJoin(user)) {
       return "join";
     } else {

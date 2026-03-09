@@ -204,7 +204,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   const splittingModalProps = editModalProps.splitting;
   const editingModalProps = editModalProps.editing;
 
-  const JoinFlow = useJoinFlowOverlay(scenarioType, receiptId);
+  const JoinFlow = useJoinFlowOverlay(receiptId);
 
   useEffect(() => {
     if (scenarioType !== "splitting" && splittingModalProps) {
