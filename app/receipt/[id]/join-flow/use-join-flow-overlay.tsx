@@ -6,10 +6,9 @@ import {
   getJoinFlowState,
   getOfflineAnonymousCandidates,
 } from "@/app/receipt/[id]/join-flow/rules";
-import { joinReceiptClient } from "@/app/receipt/[id]/join-flow/join-receipt-client";
 import { JoinFlowSettingsDialog } from "@/app/receipt/[id]/join-flow/settings-required-dialog";
-import { useRouter } from "next/navigation";
 import { RemovedFromReceiptDialog } from "@/app/receipt/[id]/join-flow/removed-from-receipt-dialog";
+import { apiClient } from "@/app/api-client";
 
 export function useJoinFlowOverlay(
   formType: FormScenario["type"],
@@ -17,7 +16,6 @@ export function useJoinFlowOverlay(
 ): React.ReactNode {
   const { user } = useUser();
   const participants = useParticipantsStore((s) => s.participants);
-  const router = useRouter();
   const [removedOpen, setRemovedOpen] = useState(false);
   const wasJoinedRef = useRef<boolean | null>(null);
   const joinRequestedRef = useRef(false);
@@ -45,11 +43,11 @@ export function useJoinFlowOverlay(
     }
     if (joinRequestedRef.current) return;
     joinRequestedRef.current = true;
-    void joinReceiptClient(receiptId).catch(() => undefined);
+    void apiClient.joinReceipt(receiptId).catch(() => undefined);
   }, [isJoined, removedOpen, state, receiptId]);
 
   if (removedOpen) {
-    return <RemovedFromReceiptDialog onGoHome={() => router.push("/")} />;
+    return <RemovedFromReceiptDialog />;
   }
 
   if (state === "settings") {

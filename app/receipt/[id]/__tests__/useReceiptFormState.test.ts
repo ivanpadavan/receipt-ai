@@ -11,6 +11,7 @@ vi.mock("@/app/api-client", () => ({
   apiClient: {
     createReceipt: vi.fn(),
     updateReceipt: vi.fn().mockReturnValue(Promise.resolve({})),
+    joinReceipt: vi.fn().mockReturnValue(Promise.resolve(undefined)),
   },
 }));
 

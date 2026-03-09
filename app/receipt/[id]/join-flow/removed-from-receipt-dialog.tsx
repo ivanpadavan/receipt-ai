@@ -16,14 +16,11 @@ import {
   inlineGapVariants,
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
+import { useRouter } from "next/navigation";
 
-interface RemovedFromReceiptDialogProps {
-  onGoHome: () => void;
-}
+export function RemovedFromReceiptDialog() {
+  const router = useRouter();
 
-export function RemovedFromReceiptDialog({
-  onGoHome,
-}: RemovedFromReceiptDialogProps) {
   return (
     <AlertDialog open>
       <AlertDialogContent className={dialogContent}>
@@ -36,7 +33,7 @@ export function RemovedFromReceiptDialog({
         <AlertDialogFooter
           className={cn(dialogFooter, inlineGapVariants({ size: "sm" }))}
         >
-          <AlertDialogAction onClick={onGoHome}>{t("goHome")}</AlertDialogAction>
+          <AlertDialogAction onClick={() => router.push('/')}>{t("goHome")}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

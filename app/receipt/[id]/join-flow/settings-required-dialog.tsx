@@ -10,11 +10,11 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useUser } from "@/context/AuthContext";
 import { useGoogleOneTapLogin } from "@react-oauth/google";
 import { handleSignIn } from "@/app/receipt/utils/auth";
-import { joinReceiptClient } from "@/app/receipt/[id]/join-flow/join-receipt-client";
 import { ParticipantDTO } from "@/model/receipt/model";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/app/receipt/components/ui/user-avatar";
 import { cn } from "@/utils/cn";
+import { apiClient } from "@/app/api-client";
 import {
   dialogContentWide,
   dialogHeaderTitle,
@@ -59,7 +59,9 @@ export function JoinFlowSettingsDialog({
     async (participantId: string) => {
       setIsClaimingId(participantId);
       try {
-        await joinReceiptClient(receiptId, { replaceParticipantId: participantId });
+        await apiClient.joinReceipt(receiptId, {
+          replaceParticipantId: participantId,
+        });
         setOpen(false);
       } finally {
         setIsClaimingId(null);
@@ -71,7 +73,7 @@ export function JoinFlowSettingsDialog({
   const handleSettingsSubmit = useCallback(
     async (values: SettingsFormValues) => {
       if (!values.displayName.trim()) return;
-      await joinReceiptClient(receiptId, {
+      await apiClient.joinReceipt(receiptId, {
         profile: {
           displayName: values.displayName.trim(),
           avatarUrl: values.avatarUrl,

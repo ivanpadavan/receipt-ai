@@ -28,8 +28,8 @@ import { t } from "@/app/i18n/translations";
 import { UserPlus, Trash2, MoreVertical } from "lucide-react";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { useUser } from "@/context/AuthContext";
-import { joinReceiptClient } from "@/app/receipt/[id]/join-flow/join-receipt-client";
 import { cn } from "@/utils/cn";
+import { apiClient } from "@/app/api-client";
 import {
   rowContentPaddingVariants,
   avatarSizeVariants,
@@ -132,7 +132,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
     );
 
   const handleClaimParticipant = async (participantId: string) => {
-    await joinReceiptClient(receiptId, { replaceParticipantId: participantId });
+    await apiClient.joinReceipt(receiptId, { replaceParticipantId: participantId });
   };
 
   const handleConfirmDelete = async () => {

@@ -3,6 +3,20 @@ import putValidator from "./receipt/put";
 import { ApiValidator } from "@/app/api-client/api-validator";
 import { t } from "@/app/i18n/translations";
 
+type JoinReceiptReplacePayload = {
+  replaceParticipantId: string;
+};
+
+type JoinReceiptProfilePayload = {
+  profile: {
+    displayName: string;
+    avatarUrl?: string;
+    avatarFile?: File;
+  };
+};
+
+type JoinReceiptPayload = JoinReceiptReplacePayload | JoinReceiptProfilePayload;
+
 async function requestWrapper<T extends ApiValidator>(
   apiPath: string,
   method: "POST" | "PUT",
@@ -59,5 +73,43 @@ export const apiClient = {
       putValidator,
       receipt,
     );
+  },
+
+  async joinReceipt(receiptId: string, payload?: JoinReceiptPayload) {
+    const apiPath = `/api/receipt/${receiptId}/participants/join`;
+    if (!payload) {
+      await fetch(apiPath, {
+        method: "POST",
+      });
+      return;
+    }
+
+    if ("replaceParticipantId" in payload) {
+      await fetch(apiPath, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ replaceParticipantId: payload.replaceParticipantId }),
+      });
+      return;
+    }
+
+    const { avatarFile, ...profile } = payload.profile;
+    if (avatarFile) {
+      const formData = new FormData();
+      formData.set("profile", JSON.stringify(profile));
+      formData.set("avatarFile", avatarFile);
+
+      await fetch(apiPath, {
+        method: "POST",
+        body: formData,
+      });
+      return;
+    }
+
+    await fetch(apiPath, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ profile }),
+    });
   },
 };

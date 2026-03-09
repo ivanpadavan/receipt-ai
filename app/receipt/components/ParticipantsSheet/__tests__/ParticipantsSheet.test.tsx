@@ -3,12 +3,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { ParticipantsSheet } from "@/app/receipt/components/ParticipantsSheet/ParticipantsSheet";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
+import { apiClient } from "@/app/api-client";
 
-const joinReceiptClientMock = vi.fn();
 const useUserMock = vi.fn();
 
-vi.mock("@/app/receipt/[id]/join-flow/join-receipt-client", () => ({
-  joinReceiptClient: (...args: unknown[]) => joinReceiptClientMock(...args),
+vi.mock("@/app/api-client", () => ({
+  apiClient: {
+    joinReceipt: vi.fn(),
+  },
 }));
 
 vi.mock("@/context/AuthContext", () => ({
@@ -140,13 +142,13 @@ describe("ParticipantsSheet", () => {
   });
 
   it("uses join flow replace endpoint when 'Это я' is clicked", async () => {
-    joinReceiptClientMock.mockResolvedValue({});
+    vi.mocked(apiClient.joinReceipt).mockResolvedValue(undefined);
 
     render(<ParticipantsSheet receiptId="receipt-1" />);
 
     fireEvent.click(screen.getAllByRole("button", { name: "Это я" })[0]);
 
-    expect(joinReceiptClientMock).toHaveBeenCalledWith("receipt-1", {
+    expect(apiClient.joinReceipt).toHaveBeenCalledWith("receipt-1", {
       replaceParticipantId: "real-anon-offline",
     });
   });

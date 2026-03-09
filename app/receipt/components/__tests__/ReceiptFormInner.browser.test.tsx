@@ -5,6 +5,7 @@ import { page } from "vitest/browser";
 import userEvent from "@testing-library/user-event";
 import { setLanguage, t, type Language } from "@/app/i18n/translations";
 import { Receipt, ReceiptWithParticipants } from "@/model/receipt/model";
+import { User } from "@supabase/supabase-js";
 import { cleanup, render, type RenderResult as BrowserRenderResult } from "vitest-browser-react";
 import {
   amountMaxSwitchReceipt,
@@ -35,7 +36,7 @@ import {
   VIEWPORT_WIDTH,
   waitForDocumentInteractivity,
 } from "./browser-test-helpers";
-import { AppLayoutMock } from "./AppLayout.mock";
+import { AppLayoutMock, defaultMockUser } from "./AppLayout.mock";
 
 let browserScreen: BrowserRenderResult | null = null;
 let activeLanguage: Language = "en";
@@ -55,6 +56,7 @@ vi.mock("@/app/api-client", () => ({
   apiClient: {
     createReceipt: vi.fn(),
     updateReceipt: (...args: unknown[]) => updateReceiptMock(...args),
+    joinReceipt: vi.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -69,15 +71,17 @@ vi.mock("nuqs", () => ({
 async function renderReceiptFormInner({
   receipt = validReceipt,
   participants = joinedParticipants,
+  user,
 }: {
   receipt?: Receipt;
   participants?: ReceiptWithParticipants["participants"];
+  user?: User;
 } = {}) {
   const translations = await import("@/app/i18n/translations");
   translations.setLanguage(activeLanguage);
   const { ReceiptFormInner } = await import("@/app/receipt/components/ReceiptForm");
   const ui = (
-    <AppLayoutMock participants={participants}>
+    <AppLayoutMock participants={participants} user={user}>
       <ReceiptFormInner
         receipt={receipt}
         participants={participants}
@@ -95,10 +99,12 @@ async function renderReceiptFormHarness({
   receipt = structuredClone(validReceipt),
   participants = structuredClone(joinedParticipants),
   echoReceiptUpdates = true,
+  user,
 }: {
   receipt?: Receipt;
   participants?: ReceiptWithParticipants["participants"];
   echoReceiptUpdates?: boolean;
+  user?: User;
 } = {}) {
   const translations = await import("@/app/i18n/translations");
   translations.setLanguage(activeLanguage);
@@ -120,7 +126,7 @@ async function renderReceiptFormHarness({
     }, []);
 
     return (
-      <AppLayoutMock participants={participants}>
+      <AppLayoutMock participants={participants} user={user}>
         <ReceiptFormInner
           receipt={currentReceipt}
           participants={participants}
