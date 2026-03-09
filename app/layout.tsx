@@ -16,6 +16,8 @@ export default async function RootLayout({
       <head>
         <title>Receipt Scanner App</title>
         <link rel="shortcut icon" href="/images/favicon.ico" />
+        <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
+        <link rel="manifest" href="/manifest.json" />
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
@@ -33,14 +35,16 @@ export default async function RootLayout({
           property="og:description"
           content="Mobile-friendly receipt scanner app that extracts and validates data from your receipts using AI."
         />
-        <meta property="og:image" content="/images/og-image.png" />
+        <meta property="og:image" content="/images/promo-social.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Receipt Scanner App" />
         <meta
           name="twitter:description"
           content="Mobile-friendly receipt scanner app that extracts and validates data from your receipts using AI."
         />
-        <meta name="twitter:image" content="/images/og-image.png" />
+        <meta name="twitter:image" content="/images/promo-social.png" />
       </head>
       <body className={publicSans.className}>
         <AppLayout user={user}>{children}</AppLayout>
