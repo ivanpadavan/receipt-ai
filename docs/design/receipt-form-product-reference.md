@@ -4,7 +4,7 @@
 >
 > Источники: текущее поведение `ReceiptForm`, `useReceiptFormState`, browser-тесты `ReceiptFormInner.browser.test.tsx`, screenshot-baseline из `__screenshots__`
 >
-> Область охвата: только сама форма чека. Внешние подсистемы вроде join flow, presence, SSE как самостоятельные домены здесь не документируются, кроме тех мест, где их сигнал непосредственно меняет поведение формы.
+> Область охвата: сама форма чека и встроенный `Join flow`-overlay, так как он напрямую меняет доступ к рабочим режимам формы. Внешние подсистемы `presence`/`SSE` как самостоятельные домены не документируются, кроме влияния на пользовательское поведение экрана.
 >
 > Правило показа визуалов в этом документе: ключевые состояния встроены inline, вторичные и диагностические визуалы вынесены в `<details>`. Если важного скриншота нет, это явно помечено в тексте.
 
@@ -275,6 +275,142 @@ action bar не просто панель кнопок, а главный пер
 ## 6. Каталог пользовательских сценариев
 
 Ниже сценарии сгруппированы по пользовательскому намерению. Это главная рабочая часть документа.
+
+---
+
+## 6A. Join flow: фактическое поведение
+
+### Роль join flow в продукте
+
+`Join flow` это вход в чек перед основной работой с экраном.
+
+Продуктовая роль:
+
+- не пускать в чек без имени и понятной роли;
+- позволять быстро вернуть себе уже созданное анонимное участие;
+- явно показывать, если пользователь потерял доступ к чеку.
+
+### Инварианты join flow
+
+- если пользователь уже присоединился к чеку, окно входа не открывается;
+- если пользователь еще не в чеке, но имя уже есть, система пытается присоединить его автоматически;
+- если пользователь еще не в чеке и имени нет, открывается окно настройки профиля;
+- в списке «Это я» показываются только офлайн анонимные участники;
+- после успешного входа окно настройки не должно появляться снова без новой причины;
+- если пользователя удалили из чека, экран должен показать отдельное состояние «вас удалили».
+
+### Сценарий: пользователь без имени попадает в Settings
+
+**Цель пользователя**  
+Войти в чек и продолжить работу в форме.
+
+**Что происходит**  
+Если у пользователя нет имени профиля, сразу открывается окно настройки с полем имени.
+
+**Продуктовый смысл**  
+Имя является обязательным входным атрибутом для участия в чеке.
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-settings-open-when-display-name-missing-chromium.png)
+![join-settings-open-when-display-name-missing](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-settings-open-when-display-name-missing-chromium.png)
+
+### Сценарий: есть offline anonymous кандидаты
+
+**Цель пользователя**  
+Забрать свою уже существующую “анонимную” запись без создания нового участника.
+
+**Что происходит**  
+В окне настройки появляется блок «уже участвовали» со списком людей, под чьим именем можно продолжить. Список прокручивается внутри блока.
+
+**Продуктовый смысл**  
+Это снижает дубли участников и упрощает identity resolution.
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-settings-shows-offline-anonymous-candidates-chromium.png)
+![join-settings-shows-offline-anonymous-candidates](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-settings-shows-offline-anonymous-candidates-chromium.png)
+
+### Сценарий: вход в чек по имени
+
+**Цель пользователя**  
+Присоединиться как новый участник с именем.
+
+**Что происходит**  
+После ввода имени становится доступна кнопка `Join`. При отправке лишние пробелы в начале и конце имени убираются.
+
+**Продуктовый смысл**  
+Система не допускает пустые/шумовые значения имени и унифицирует сохранение профиля.
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/can-join-when-name-is-typed-chromium.png)
+![can-join-when-name-is-typed](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/can-join-when-name-is-typed-chromium.png)
+
+### Сценарий: ожидание во время входа
+
+**Цель пользователя**  
+Понимать, что запрос выполняется, и не терять контекст.
+
+**Что происходит**  
+Пока запрос на вход не завершен, окно настройки остается открытым и не закрывается само.
+
+**Продуктовый смысл**  
+Пользователь не теряет контроль над состоянием входа.
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-settings-stays-open-while-request-pending-chromium.png)
+![join-settings-stays-open-while-request-pending](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-settings-stays-open-while-request-pending-chromium.png)
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-candidate-replace-pending-chromium.png)
+![join-candidate-replace-pending](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-candidate-replace-pending-chromium.png)
+
+### Сценарий: вход через существующего офлайн-анонима
+
+**Цель пользователя**  
+Войти “в свою” уже созданную offline-anonymous запись.
+
+**Что происходит**  
+Нажатие на кандидата означает «это я»: пользователь забирает эту запись и продолжает работу уже от нее.
+
+**Продуктовый смысл**  
+Это основной способ вернуться в чек после предыдущего анонимного участия.
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-candidate-action-replaces-offline-anon-real-chromium.png)
+![join-candidate-action-replaces-offline-anon-real](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-candidate-action-replaces-offline-anon-real-chromium.png)
+
+### Сценарий: удаление пользователя после join
+
+**Цель пользователя**  
+Получить явный сигнал, что доступ к чеку потерян.
+
+**Что происходит**  
+Если пользователь уже был в чеке, а затем исчез из списка участников, открывается состояние «вас удалили» с кнопкой `Go home`.
+
+**Продуктовый смысл**  
+Это защитная ветка доступа: форма не должна оставаться в рабочем режиме для удалённого участника.
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-removed-state-after-server-removal-chromium.png)
+![join-removed-state-after-server-removal](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-removed-state-after-server-removal-chromium.png)
+
+### Сценарий: загрузка аватара во время join
+
+**Цель пользователя**  
+Завершить вход с персонализированным профилем.
+
+**Что происходит**  
+В окне настройки можно загрузить фото, подвинуть и увеличить его в круглом кадрировании, применить результат и затем завершить вход.
+
+**Продуктовый смысл**  
+Пользователь завершает вход в чек и настройку профиля в одном потоке, без переходов по другим экранам.
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-avatar-upload-settings-open-chromium.png)
+![join-avatar-upload-settings-open](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-avatar-upload-settings-open-chromium.png)
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-avatar-upload-crop-open-chromium.png)
+![join-avatar-upload-crop-open](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-avatar-upload-crop-open-chromium.png)
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-avatar-upload-zoom-slider-used-chromium.png)
+![join-avatar-upload-zoom-slider-used](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-avatar-upload-zoom-slider-used-chromium.png)
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-avatar-upload-crop-applied-chromium.png)
+![join-avatar-upload-crop-applied](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-avatar-upload-crop-applied-chromium.png)
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-avatar-upload-submit-chromium.png)
+![join-avatar-upload-submit](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/join-avatar-upload-submit-chromium.png)
 
 ---
 

@@ -151,6 +151,7 @@ export function JoinFlowSettingsDialog({
             onSubmit={handleSettingsSubmit}
             submitLabel={t("join")}
             submitPendingLabel={t("joining")}
+            externalPending={isClaimingId !== null}
           />
         </div>
       </AlertDialogContent>
