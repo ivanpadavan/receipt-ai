@@ -13,9 +13,20 @@ vi.hoisted(() => {
 const useUserMock = vi.fn();
 export const pushMock = vi.fn();
 
+export const defaultMockUser = {
+  id: "user-1",
+  app_metadata: {},
+  user_metadata: {
+    displayName: "Ivan",
+  },
+  is_anonymous: true,
+  aud: "authenticated",
+  created_at: "2026-03-09T00:00:00.000Z",
+} as User;
+
 interface AppLayoutMockProps {
   children: React.ReactNode;
-  user: User;
+  user?: User;
   participants: ReceiptWithParticipants["participants"];
 }
 
@@ -53,7 +64,11 @@ vi.mock("@react-oauth/google", () => ({
   useGoogleOneTapLogin: () => undefined,
 }));
 
-export function AppLayoutMock({ children, user, participants }: AppLayoutMockProps) {
+export function AppLayoutMock({
+  children,
+  user = defaultMockUser,
+  participants,
+}: AppLayoutMockProps) {
   useUserMock.mockReturnValue({ user });
 
   return (

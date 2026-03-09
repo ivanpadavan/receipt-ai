@@ -6,7 +6,6 @@ import userEvent from "@testing-library/user-event";
 import { setLanguage, t, type Language } from "@/app/i18n/translations";
 import { Receipt, ReceiptWithParticipants } from "@/model/receipt/model";
 import { cleanup, render, type RenderResult as BrowserRenderResult } from "vitest-browser-react";
-import { User } from "@supabase/supabase-js";
 import {
   amountMaxSwitchReceipt,
   fullyDistributedReceipt,
@@ -65,31 +64,18 @@ vi.mock("nuqs", () => ({
   useQueryState: () => [summaryQueryValue, setSummaryQueryMock],
 }));
 
-const testUser = {
-  id: "user-1",
-  app_metadata: {},
-  user_metadata: {
-    displayName: "Ivan",
-  },
-  is_anonymous: true,
-  aud: "authenticated",
-  created_at: "2026-03-09T00:00:00.000Z",
-} as User;
-
 async function renderReceiptFormInner({
   receipt = validReceipt,
   participants = joinedParticipants,
-  user = testUser,
 }: {
   receipt?: Receipt;
   participants?: ReceiptWithParticipants["participants"];
-  user?: User;
 } = {}) {
   const translations = await import("@/app/i18n/translations");
   translations.setLanguage(activeLanguage);
   const { ReceiptFormInner } = await import("@/app/receipt/components/ReceiptForm");
   const ui = (
-    <AppLayoutMock user={user} participants={participants}>
+    <AppLayoutMock participants={participants}>
       <ReceiptFormInner
         receipt={receipt}
         participants={participants}
@@ -107,12 +93,10 @@ async function renderReceiptFormHarness({
   receipt = structuredClone(validReceipt),
   participants = structuredClone(joinedParticipants),
   echoReceiptUpdates = true,
-  user = testUser,
 }: {
   receipt?: Receipt;
   participants?: ReceiptWithParticipants["participants"];
   echoReceiptUpdates?: boolean;
-  user?: User;
 } = {}) {
   const translations = await import("@/app/i18n/translations");
   translations.setLanguage(activeLanguage);
@@ -134,7 +118,7 @@ async function renderReceiptFormHarness({
     }, []);
 
     return (
-      <AppLayoutMock user={user} participants={participants}>
+      <AppLayoutMock participants={participants}>
         <ReceiptFormInner
           receipt={currentReceipt}
           participants={participants}
