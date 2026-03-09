@@ -303,6 +303,15 @@ async function expectCurrentScreenshot(name?: string) {
     return;
   }
 
+  if (name.startsWith("validation-")) {
+    await waitFor(() => {
+      const reviewToast = document.querySelector("[data-sonner-toast]");
+      if (!reviewToast) {
+        throw new Error("validation review toast is not visible yet");
+      }
+    });
+  }
+
   await expect.element(page.elementLocator(document.body)).toMatchScreenshot(name);
 }
 
@@ -334,7 +343,6 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     document.body.style.pointerEvents = "";
     await page.viewport(VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
     vi.clearAllMocks();
-    vi.resetModules();
     summaryQueryValue = null;
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
     vi.stubEnv(

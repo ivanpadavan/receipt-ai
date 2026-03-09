@@ -4,10 +4,12 @@ import { User } from "@supabase/supabase-js";
 import { AppLayout } from "@/app/layout/AppLayout";
 import { ParticipantsStoreProvider } from "@/app/receipt/store/participants";
 import { ReceiptWithParticipants } from "@/model/receipt/model";
+import { MyToaster } from "@/app/MyToaster";
 
 vi.hoisted(() => {
   process.env.NEXT_PUBLIC_SUPABASE_URL ??= "https://example.supabase.co";
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ??= "public-anon-key";
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ??=
+    "public-anon-key";
 });
 
 const useUserMock = vi.fn();
@@ -74,6 +76,7 @@ export function AppLayoutMock({
   return (
     <AppLayout user={user}>
       <ParticipantsStoreProvider initialParticipants={participants}>
+        <MyToaster />
         {children}
       </ParticipantsStoreProvider>
     </AppLayout>
