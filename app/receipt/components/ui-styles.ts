@@ -1,6 +1,6 @@
 import { cva } from "class-variance-authority";
 
-export const tappableSurfaceFeedback = `select-none touch-manipulation [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] transition duration-150 active:scale-95`;
+export const tappableSurfaceFeedback = `select-none touch-manipulation [-webkit-tap-highlight-color:transparent] transition duration-150 active:scale-95`;
 
 // ── Tokens ──────────────────────────────────────────────
 export const radiusTokens = {
