@@ -67,7 +67,7 @@ export interface EditModalProps {
   fields: {
     key: string;
     label: TranslationKey;
-    type: "string" | "number";
+    type: "string" | "number" | "enum";
     disabled?: boolean;
   }[];
   validator: z.ZodTypeAny;
@@ -549,15 +549,25 @@ export function useReceiptFormState(
         const nextModal = buildModalWithClose({
           view: "editing",
           validator: metaSchema,
-          fields: [{ key: "title", label: "receiptName", type: "string" }],
+          fields: [
+            { key: "title", label: "receiptName", type: "string" },
+            {
+              key: "currencySymbol",
+              label: "currency",
+              type: "enum",
+            },
+          ],
           fieldType: "totals",
-          fieldPath: "meta.title",
+          fieldPath: "meta",
           initialValue: getValues("meta"),
           header: "editReceipt",
           onSave: (data) => {
-            const rawValue = (data as ReceiptMeta).title;
-            const trimmedValue = rawValue.trim();
-            setValue("meta.title", trimmedValue, {
+            const meta = data as ReceiptMeta;
+            const trimmedTitle = meta.title.trim();
+            setValue("meta", {
+              ...meta,
+              title: trimmedTitle,
+            }, {
               shouldValidate: true,
             });
           },

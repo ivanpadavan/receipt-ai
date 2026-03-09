@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { t } from "@/app/i18n/translations";
 
 export const receiptCurrencySymbolValues = [
   "$", // US Dollar and other dollar currencies
@@ -28,8 +29,20 @@ export const metaBaseSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(3)
-    .max(60)
+    .superRefine((value, context) => {
+      if (value.length < 3) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: t("validationReceiptNameMin"),
+        });
+      }
+      if (value.length > 60) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: t("validationReceiptNameMax"),
+        });
+      }
+    })
     .describe(
       "Short receipt name in the receipt language. Prefer venue name if identifiable; otherwise create a light, casual title based on receipt items/context, still in the receipt language.",
     ),

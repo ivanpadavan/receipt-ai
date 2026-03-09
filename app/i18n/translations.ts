@@ -1,6 +1,7 @@
 // Default language is Russian
 const ru = {
   // ReceiptForm column headers
+  title: "Название",
   name: "Наименование",
   price: "Цена",
   quantity: "Количество",
@@ -46,6 +47,7 @@ const ru = {
   splitEvenly: "Поделить поровну",
   addMore: "Добавить ещё",
   amount: "Сумма",
+  currency: "Валюта",
   pcs: "шт",
   participants: "Участники",
   splitBetween: "Разделить между",
@@ -153,6 +155,10 @@ const ru = {
   validationFinalGrandTotalMismatchPrefix:
     "Итог с учетом скидок и сборов",
   validationFinalGrandTotalMismatchSuffix: "не совпадает с расчетным значением",
+  validationReceiptNameMin:
+    "Название чека должно содержать минимум 3 символа",
+  validationReceiptNameMax:
+    "Название чека должно содержать максимум 60 символов",
 };
 
 export type TranslationKey = keyof typeof ru;
@@ -161,6 +167,7 @@ export type Translations = Record<TranslationKey, string>;
 // English translations
 const en: Translations = {
   // ReceiptForm column headers
+  title: "Title",
   name: "Name",
   price: "Price",
   quantity: "Quantity",
@@ -206,6 +213,7 @@ const en: Translations = {
   splitEvenly: "Split evenly",
   addMore: "Add more",
   amount: "Amount",
+  currency: "Currency",
   pcs: "pcs",
   participants: "Participants",
   splitBetween: "Share between",
@@ -313,6 +321,10 @@ const en: Translations = {
   validationFinalGrandTotalMismatchPrefix: "Final grand total",
   validationFinalGrandTotalMismatchSuffix:
     "doesn't match calculated value",
+  validationReceiptNameMin:
+    "Receipt name should contain at least 3 characters",
+  validationReceiptNameMax:
+    "Receipt name should contain at most 60 characters",
 };
 
 // Available languages

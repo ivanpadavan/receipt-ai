@@ -6,6 +6,13 @@ import { t, TranslationKey } from "@/app/i18n/translations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Receipt,
   ReceiptMeta,
   ReceiptModifier,
@@ -37,6 +44,7 @@ import {
 import { cn } from "@/utils/cn";
 import { multiplyMoney } from "@/app/receipt/utils/money";
 import { flushSync } from "react-dom";
+import { z } from "zod";
 
 type EditableValue =
   | ReceiptPosition
@@ -49,6 +57,41 @@ const isPosition = (v: EditableValue): v is ReceiptPosition =>
 
 type EditingDialogProps = EditModalProps & {
   onRequestClose: () => void;
+};
+
+const unwrapSchema = (schema: z.ZodTypeAny): z.ZodTypeAny => {
+  if (schema instanceof z.ZodOptional || schema instanceof z.ZodNullable) {
+    return unwrapSchema(schema.unwrap());
+  }
+  if (schema instanceof z.ZodDefault) {
+    return unwrapSchema(schema.removeDefault());
+  }
+  if (schema instanceof z.ZodEffects) {
+    return unwrapSchema(schema.innerType());
+  }
+  return schema;
+};
+
+const getEnumValuesFromValidator = (
+  validator: z.ZodTypeAny,
+  key: string,
+): readonly string[] => {
+  const unwrappedValidator = unwrapSchema(validator);
+  if (!(unwrappedValidator instanceof z.ZodObject)) {
+    return [];
+  }
+
+  const fieldSchema = unwrappedValidator.shape[key];
+  if (!fieldSchema) {
+    return [];
+  }
+
+  const unwrappedFieldSchema = unwrapSchema(fieldSchema);
+  if (unwrappedFieldSchema instanceof z.ZodEnum) {
+    return unwrappedFieldSchema.options;
+  }
+
+  return [];
 };
 
 export const EditingDialog: React.FC<EditingDialogProps> = ({
@@ -101,7 +144,7 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
   const handleChange = (
     key: string,
     rawValue: string,
-    valueType: "string" | "number",
+    valueType: "string" | "number" | "enum",
   ) => {
     setTouched((prev) => new Set(prev).add(key));
 
@@ -232,6 +275,11 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
               label={field.label}
               value={(localValue as Record<string, unknown>)[field.key]}
               type={field.type}
+              enumValues={
+                field.type === "enum"
+                  ? getEnumValuesFromValidator(validator, field.key)
+                  : undefined
+              }
               disabled={field.disabled}
               hasError={
                 errors[field.key] !== undefined &&
@@ -277,17 +325,62 @@ interface FormFieldProps {
   fieldId: string;
   label: TranslationKey;
   value: unknown;
-  type: "string" | "number";
+  type: "string" | "number" | "enum";
+  enumValues?: readonly string[];
   hasError: boolean;
   disabled?: boolean;
   onChange: (value: string) => void;
 }
+
+interface FormSelectFieldProps {
+  fieldId: string;
+  value: string;
+  values: readonly string[];
+  hasError: boolean;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+}
+
+const FormSelectField: React.FC<FormSelectFieldProps> = ({
+  fieldId,
+  value,
+  values,
+  hasError,
+  disabled,
+  onChange,
+}) => (
+  <Select value={value} onValueChange={onChange} disabled={disabled}>
+    <SelectTrigger
+      id={fieldId}
+      className={cn(
+        inputStateVariants({
+          state: hasError ? "error" : disabled ? "disabled" : "default",
+        }),
+      )}
+    >
+      <SelectValue />
+    </SelectTrigger>
+    <SelectContent
+      position="popper"
+      side="bottom"
+      align="start"
+      className="max-h-[min(10rem,var(--radix-select-content-available-height))] overflow-y-auto"
+    >
+      {values.map((enumValue) => (
+        <SelectItem key={enumValue} value={enumValue}>
+          {enumValue}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+);
 
 const FormField: React.FC<FormFieldProps> = ({
   fieldId,
   label,
   value,
   type,
+  enumValues,
   hasError,
   disabled,
   onChange,
@@ -300,20 +393,31 @@ const FormField: React.FC<FormFieldProps> = ({
   return (
     <Field>
       <Label htmlFor={fieldId}>{t(label)}</Label>
-      <Input
-        id={fieldId}
-        name={fieldId}
-        type={type === "number" ? "number" : "text"}
-        inputMode={type === "number" ? "decimal" : "text"}
-        value={displayValue}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-        className={cn(
-          inputStateVariants({
-            state: hasError ? "error" : disabled ? "disabled" : "default",
-          }),
-        )}
-      />
+      {type === "enum" ? (
+        <FormSelectField
+          fieldId={fieldId}
+          value={displayValue}
+          values={enumValues ?? []}
+          hasError={hasError}
+          disabled={disabled}
+          onChange={onChange}
+        />
+      ) : (
+        <Input
+          id={fieldId}
+          name={fieldId}
+          type={type === "number" ? "number" : "text"}
+          inputMode={type === "number" ? "decimal" : "text"}
+          value={displayValue}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+          className={cn(
+            inputStateVariants({
+              state: hasError ? "error" : disabled ? "disabled" : "default",
+            }),
+          )}
+        />
+      )}
     </Field>
   );
 };

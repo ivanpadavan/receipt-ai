@@ -7,7 +7,10 @@ import { join } from 'node:path'
 export default defineConfig({
   plugins: [tsconfigPaths(), react()],
   optimizeDeps: {
-    include: ['@testing-library/jest-dom/vitest'],
+    include: [
+      '@testing-library/jest-dom/vitest',
+      '@radix-ui/react-select',
+    ],
   },
   test: {
     name: 'browser',

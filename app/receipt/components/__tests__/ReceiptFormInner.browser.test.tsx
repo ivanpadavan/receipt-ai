@@ -1592,6 +1592,15 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     await openActionBarMenuItem(user, t("editReceipt"));
     const nameInput = await screen.findByRole("textbox");
     await user.clear(nameInput);
+    await user.type(nameInput, "ab");
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: t("save") })).toBeDisabled();
+    });
+    await user.click(screen.getByRole("combobox"));
+    await screen.findByRole("option", { name: "$" });
+    await expectCurrentScreenshot("receipt-name-editing-errors");
+    await user.keyboard("{Escape}");
+    await user.clear(nameInput);
     await user.type(nameInput, "Beer dinner");
     await expectCurrentScreenshot("receipt-name-editing");
     await user.click(screen.getByRole("button", { name: t("save") }));
