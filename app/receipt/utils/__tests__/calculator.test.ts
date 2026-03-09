@@ -31,7 +31,7 @@ describe("calculateBalances", () => {
 
     const receipt = {
       id: "r1",
-      receiptMeta: {
+      meta: {
         title: "Receipt",
         currencySymbol: "₽",
       },
@@ -51,7 +51,7 @@ describe("calculateBalances", () => {
   it("keeps finalAmount in two-decimal money precision", () => {
     const receipt = {
       id: "r1",
-      receiptMeta: {
+      meta: {
         title: "Receipt",
         currencySymbol: "₽",
       },

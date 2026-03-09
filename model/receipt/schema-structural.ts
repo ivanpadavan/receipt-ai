@@ -1,12 +1,12 @@
 import { t } from "@/app/i18n/translations";
 import { z, ZodObject, ZodRawShape, type ZodTypeAny } from "zod";
-import { receiptMetaBaseSchema } from "@/model/receipt/schema-meta";
+import { metaBaseSchema } from "@/model/receipt/schema-meta";
 
 const isPositiveFinite = (value: number) => Number.isFinite(value) && value > 0;
 
-export const receiptMetaAiSchema = receiptMetaBaseSchema.extend({
-  title: receiptMetaBaseSchema.shape.title.optional(),
-  currencySymbol: receiptMetaBaseSchema.shape.currencySymbol.optional(),
+export const metaAiSchema = metaBaseSchema.extend({
+  title: metaBaseSchema.shape.title.optional(),
+  currencySymbol: metaBaseSchema.shape.currencySymbol.optional(),
 });
 
 
@@ -87,7 +87,7 @@ const createReceiptBaseSchema = <TPositionSchema extends ZodTypeAny>(
   positionItemSchema: TPositionSchema,
 ) =>
   z.object({
-    receiptMeta: receiptMetaAiSchema.describe(
+    meta: metaAiSchema.describe(
       "Receipt metadata. Try to infer currencySymbol from the receipt when possible.",
     ),
     positions: z.array(positionItemSchema).describe("Array of items in the receipt"),

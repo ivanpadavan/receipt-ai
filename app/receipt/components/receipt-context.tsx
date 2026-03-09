@@ -19,7 +19,7 @@ export const useReceiptState = (): ReceiptState => {
 export const useMoneyFormatter = () => {
   const ctx = useContext(ReceiptFormContext);
   const currencySymbol =
-    ctx?.scenario.form.getValues("receiptMeta.currencySymbol") ||
+    ctx?.scenario.form.getValues("meta.currencySymbol") ||
     DEFAULT_CURRENCY_SYMBOL;
 
   return {

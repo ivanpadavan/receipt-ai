@@ -18,7 +18,7 @@ vi.mock("@/app/api-client", () => ({
 describe("useReceiptFormState", () => {
   // Sample receipt data for testing
   const validReceipt: Receipt = {
-    receiptMeta: {
+    meta: {
       title: "Receipt",
       currencySymbol: "₽",
     },
@@ -53,7 +53,7 @@ describe("useReceiptFormState", () => {
   };
 
   const invalidReceipt: Receipt = {
-    receiptMeta: {
+    meta: {
       title: "Receipt",
       currencySymbol: "₽",
     },
@@ -141,7 +141,7 @@ describe("useReceiptFormState", () => {
 
   it("keeps overall in cent-safe precision for decimal quantity", async () => {
     const receipt: Receipt = {
-      receiptMeta: {
+      meta: {
         title: "Receipt",
         currencySymbol: "₽",
       },

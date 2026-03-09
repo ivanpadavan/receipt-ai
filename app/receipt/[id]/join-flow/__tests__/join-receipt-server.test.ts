@@ -103,7 +103,7 @@ describe("joinReceiptServer", () => {
     dbMock.receiptUserParticipant.findFirst.mockResolvedValue(null);
 
     const receiptData: Receipt = {
-      receiptMeta: { title: "Receipt", currencySymbol: "₽" },
+      meta: { title: "Receipt", currencySymbol: "₽" },
       positions: [
         {
           id: "pos-1",
@@ -231,7 +231,7 @@ describe("joinReceiptServer", () => {
     dbMock.receiptUserParticipant.findFirst.mockResolvedValue(null);
 
     const receiptData: Receipt = {
-      receiptMeta: { title: "Receipt", currencySymbol: "₽" },
+      meta: { title: "Receipt", currencySymbol: "₽" },
       positions: [
         {
           id: "pos-1",
@@ -342,7 +342,7 @@ describe("joinReceiptServer", () => {
     dbMock.receiptUserParticipant.findFirst.mockResolvedValue(null);
 
     const receiptData: Receipt = {
-      receiptMeta: { title: "Receipt", currencySymbol: "₽" },
+      meta: { title: "Receipt", currencySymbol: "₽" },
       positions: [
         {
           id: "pos-1",
@@ -432,7 +432,7 @@ describe("joinReceiptServer", () => {
     });
 
     const receiptData: Receipt = {
-      receiptMeta: { title: "Receipt", currencySymbol: "₽" },
+      meta: { title: "Receipt", currencySymbol: "₽" },
       positions: [
         {
           id: "pos-1",
@@ -529,7 +529,7 @@ describe("joinReceiptServer", () => {
     });
 
     const receiptData: Receipt = {
-      receiptMeta: { title: "Receipt", currencySymbol: "₽" },
+      meta: { title: "Receipt", currencySymbol: "₽" },
       positions: [
         {
           id: "pos-1",

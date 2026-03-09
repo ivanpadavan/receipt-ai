@@ -41,7 +41,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z, SafeParseReturnType } from "zod";
 import { useQueryState } from "nuqs";
 import { createUuid } from "@/app/receipt/utils/uuid";
-import { receiptMetaSchema } from "@/model/receipt/schema-form";
+import { metaSchema } from "@/model/receipt/schema-form";
 
 // ============================================================================
 // Types
@@ -548,16 +548,16 @@ export function useReceiptFormState(
       } else if (args === "editReceipt") {
         const nextModal = buildModalWithClose({
           view: "editing",
-          validator: receiptMetaSchema,
+          validator: metaSchema,
           fields: [{ key: "title", label: "receiptName", type: "string" }],
           fieldType: "totals",
-          fieldPath: "receiptMeta.title",
-          initialValue: getValues("receiptMeta"),
+          fieldPath: "meta.title",
+          initialValue: getValues("meta"),
           header: "editReceipt",
           onSave: (data) => {
             const rawValue = (data as ReceiptMeta).title;
             const trimmedValue = rawValue.trim();
-            setValue("receiptMeta.title", trimmedValue, {
+            setValue("meta.title", trimmedValue, {
               shouldValidate: true,
             });
           },

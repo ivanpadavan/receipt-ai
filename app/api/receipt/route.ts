@@ -70,11 +70,11 @@ function appendIdsToArr<T>(v: T[]): (T & { id: string })[] {
 function toReceipt(receipt: ReceiptNoId): Receipt {
   return {
     ...receipt,
-    receiptMeta: {
-      ...receipt.receiptMeta,
+    meta: {
+      ...receipt.meta,
       // TODO use cookie for proper language
-      title: receipt.receiptMeta.title || t("receipt"),
-      currencySymbol: receipt.receiptMeta.currencySymbol || "₽",
+      title: receipt.meta.title || t("receipt"),
+      currencySymbol: receipt.meta.currencySymbol || "₽",
     },
     positions: appendIdsToArr(receipt.positions).map((v) => ({
       ...v,

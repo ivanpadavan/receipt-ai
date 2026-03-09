@@ -26,7 +26,7 @@ export const calculateBalances = (
   receipt: Receipt,
   participants: ParticipantDTO[],
 ): ParticipantBalance[] => {
-  const currencySymbol = receipt.receiptMeta.currencySymbol;
+  const currencySymbol = receipt.meta.currencySymbol;
   const balances = new Map<string, ParticipantBalance>();
 
   // Initialize for all participants

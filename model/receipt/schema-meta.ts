@@ -24,7 +24,7 @@ export const receiptCurrencySymbolValues = [
   "฿", // Thai Baht
 ] as const;
 
-export const receiptMetaBaseSchema = z.object({
+export const metaBaseSchema = z.object({
   title: z
     .string()
     .trim()

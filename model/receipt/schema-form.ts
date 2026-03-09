@@ -8,7 +8,7 @@ import {
   positionAiSchema,
   receiptAiSchema,
 } from "@/model/receipt/schema-structural";
-import { receiptMetaBaseSchema } from "@/model/receipt/schema-meta";
+import { metaBaseSchema } from "@/model/receipt/schema-meta";
 import {
   addPositionBusinessIssues,
   addReceiptBusinessIssues,
@@ -23,11 +23,11 @@ const claimSchema = z.object({
   value: z.number(),
 });
 
-export const receiptMetaSchema = receiptMetaBaseSchema;
+export const metaSchema = metaBaseSchema;
 
 export const receiptWithIdsSchema = receiptAiSchema
   .extend({
-    receiptMeta: receiptMetaSchema,
+    meta: metaSchema,
     positions: z.array(
       z.intersection(
         withId(positionAiSchema),
@@ -42,7 +42,7 @@ export const receiptSchema = receiptWithIdsSchema
   .superRefine((value, context) => {
     addReceiptBusinessIssues(
       {
-        receiptMeta: value.receiptMeta,
+        meta: value.meta,
         positions: value.positions.map(
           ({ claims: _claims, ...position }) => position,
         ),

@@ -37,7 +37,7 @@ describe("SummaryScreen", () => {
   ];
 
   const mockReceipt: Receipt = {
-    receiptMeta: {
+    meta: {
       title: "Receipt",
       currencySymbol: "₽",
     },

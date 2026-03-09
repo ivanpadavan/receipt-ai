@@ -26,7 +26,7 @@ import {
 } from "@/model/receipt/math";
 
 const structurallyValidButMathInvalid = {
-  receiptMeta: {},
+  meta: {},
   positions: [
     {
       name: "Beer",
@@ -44,7 +44,7 @@ const structurallyValidButMathInvalid = {
 };
 
 const businessValidReceipt = {
-  receiptMeta: {},
+  meta: {},
   positions: [
     {
       name: "Beer",
@@ -63,7 +63,7 @@ const businessValidReceipt = {
 
 const appValidReceipt: Receipt = {
   ...businessValidReceipt,
-  receiptMeta: {
+  meta: {
     title: "Receipt",
     currencySymbol: "₽",
   },
@@ -241,14 +241,14 @@ describe("receipt schemas integration", () => {
         {
           "message": "Required",
           "path": [
-            "receiptMeta",
+            "meta",
             "title",
           ],
         },
         {
           "message": "Required",
           "path": [
-            "receiptMeta",
+            "meta",
             "currencySymbol",
           ],
         },

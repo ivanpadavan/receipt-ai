@@ -1,7 +1,7 @@
 import { Receipt, ReceiptWithParticipants } from "@/model/receipt/model";
 
 export const validReceipt: Receipt = {
-  receiptMeta: {
+  meta: {
     title: "Receipt",
     currencySymbol: "₽",
   },
