@@ -1513,6 +1513,21 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     await expectCurrentScreenshot("search-over-participants-sheet");
   });
 
+  it("opens the action bar add menu", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner();
+
+    // Act
+    await user.click(getActionBarEditButton());
+
+    // Assert
+    expect(screen.getByRole("menuitem", { name: t("addPosition") })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: t("addDiscount") })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: t("addFee") })).toBeInTheDocument();
+    await expectCurrentScreenshot("action-bar-add-menu-open");
+  });
+
   it("opens add position editing from the action bar in validation mode with editable overall", async () => {
     // Arrange
     const user = userEvent.setup();
