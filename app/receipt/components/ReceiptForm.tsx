@@ -227,6 +227,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   );
 
   const currentReceipt = useWatch({ control: form.control }) as Receipt;
+  const receiptTitle = currentReceipt.receiptMeta.displayName;
   const { errors } = form.formState;
   const reviewToastId = `receipt-review-${receiptId}`;
   const primaryLabel: TranslationKey =
@@ -357,7 +358,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       style: "caps",
                     })}
                   >
-                    {t("receipt")}
+                    {receiptTitle}
                   </h2>
                 </div>
 
@@ -600,6 +601,11 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
             onOpenSearch={() => setIsSearchOpen(true)}
             onOpenParticipants={openParticipantsSheet}
             onPrimaryAction={proceed}
+            onEditReceiptName={
+              canEdit.positionForm
+                ? () => openEditModal("editReceipt")
+                : undefined
+            }
             onAddPosition={
               canEdit.positionForm
                 ? () => openEditModal("addPosition")

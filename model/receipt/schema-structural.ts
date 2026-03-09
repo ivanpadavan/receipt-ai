@@ -1,7 +1,13 @@
 import { t } from "@/app/i18n/translations";
 import { z, ZodObject, ZodRawShape, type ZodTypeAny } from "zod";
+import { receiptMetaBaseSchema } from "@/model/receipt/schema-meta";
 
 const isPositiveFinite = (value: number) => Number.isFinite(value) && value > 0;
+
+export const receiptMetaAiSchema = receiptMetaBaseSchema.extend({
+  displayName: receiptMetaBaseSchema.shape.displayName.optional(),
+});
+
 
 export const positionAiSchema = z.object({
   name: z.string().superRefine((value, context) => {
@@ -80,6 +86,7 @@ const createReceiptBaseSchema = <TPositionSchema extends ZodTypeAny>(
   positionItemSchema: TPositionSchema,
 ) =>
   z.object({
+    receiptMeta: receiptMetaAiSchema.describe("Receipt metadata"),
     positions: z.array(positionItemSchema).describe("Array of items in the receipt"),
     fees: z.array(modifierSchema).describe("Array of modifiers that increase the total amount (e.g., tips, VAT)"),
     discounts: z.array(modifierSchema).describe("Array of modifiers that decrease the total amount (e.g., discounts)"),

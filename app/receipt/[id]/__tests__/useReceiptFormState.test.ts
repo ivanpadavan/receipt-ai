@@ -18,6 +18,9 @@ vi.mock("@/app/api-client", () => ({
 describe("useReceiptFormState", () => {
   // Sample receipt data for testing
   const validReceipt: Receipt = {
+    receiptMeta: {
+      displayName: "Receipt",
+    },
     positions: [
       {
         id: "pos-1",
@@ -49,6 +52,9 @@ describe("useReceiptFormState", () => {
   };
 
   const invalidReceipt: Receipt = {
+    receiptMeta: {
+      displayName: "Receipt",
+    },
     positions: [
       {
         id: "pos-1",
@@ -133,6 +139,9 @@ describe("useReceiptFormState", () => {
 
   it("keeps overall in cent-safe precision for decimal quantity", async () => {
     const receipt: Receipt = {
+      receiptMeta: {
+        displayName: "Receipt",
+      },
       positions: [
         {
           id: "pos-1",

@@ -2,13 +2,18 @@ import { useEffect, useState } from "react";
 import { FieldPath, UseFormReturn } from "react-hook-form";
 import {
   Receipt,
+  ReceiptMeta,
   ReceiptPosition,
   ReceiptModifier,
 } from "@/model/receipt/model";
 import { isEqual } from "lodash-es";
 import { t } from "@/app/i18n/translations";
 
-type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
+type EditableValue =
+  | ReceiptPosition
+  | ReceiptModifier
+  | Receipt["totals"]
+  | ReceiptMeta;
 
 interface UseRowConflictProps<T extends EditableValue> {
   /** Current local value being edited */

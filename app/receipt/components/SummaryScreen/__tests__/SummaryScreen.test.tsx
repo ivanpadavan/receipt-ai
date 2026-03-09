@@ -37,6 +37,9 @@ describe("SummaryScreen", () => {
   ];
 
   const mockReceipt: Receipt = {
+    receiptMeta: {
+      displayName: "Receipt",
+    },
     positions: [
       {
         id: "p1",

@@ -7,7 +7,7 @@ import { db } from "@/app/db";
 import postValidator from "@/app/api-client/receipt/post";
 import { serverSupabase } from "@/utils/supabase/server";
 import { errorWrap } from "@/app/api/receipt/error-wrap";
-import { withLanguage } from "@/app/i18n/translations";
+import { t, withLanguage } from "@/app/i18n/translations";
 
 // Edge runtime is not compatible with Prisma, so we need to use the Node.js runtime
 export const runtime = "nodejs";
@@ -67,9 +67,14 @@ function appendIdsToArr<T>(v: T[]): (T & { id: string })[] {
   return v.map((v) => ({ ...v, id: crypto.randomUUID() }));
 }
 
-function appendIdsAndUser(receipt: ReceiptNoId): Receipt {
+function toReceipt(receipt: ReceiptNoId): Receipt {
   return {
     ...receipt,
+    receiptMeta: {
+      ...receipt.receiptMeta,
+      // TODO use cookie for proper language
+      displayName: receipt.receiptMeta.displayName || t("receipt")
+    },
     positions: appendIdsToArr(receipt.positions).map((v) => ({
       ...v,
       claims: [],
@@ -135,7 +140,7 @@ export async function POST(req: NextRequest) {
         data: {
           userId,
           imageUrl,
-          data: appendIdsAndUser(result), // Store the receipt data as JSON
+          data: toReceipt(result), // Store the receipt data as JSON
         },
       });
 

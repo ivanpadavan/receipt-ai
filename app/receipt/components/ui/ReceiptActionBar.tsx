@@ -56,6 +56,7 @@ interface ReceiptActionBarProps {
   onOpenSearch?: () => void;
   onOpenParticipants: () => void;
   onPrimaryAction: () => void;
+  onEditReceiptName?: () => void;
   onAddPosition?: () => void;
   onAddDiscount?: () => void;
   onAddFee?: () => void;
@@ -71,11 +72,12 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
   onOpenSearch,
   onOpenParticipants,
   onPrimaryAction,
+  onEditReceiptName,
   onAddPosition,
   onAddDiscount,
   onAddFee,
 }) => {
-  const canEditActions = !!(onAddPosition || onAddDiscount || onAddFee);
+  const canEditActions = !!(onEditReceiptName || onAddPosition || onAddDiscount || onAddFee);
   const handleOpenSearch = useCallback(() => {
     if (!onOpenSearch) return;
     flushSync(onOpenSearch);
@@ -145,6 +147,23 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
                         contentAlign="start"
                         contentSide="top"
                         items={[
+                          ...(onEditReceiptName
+                            ? [
+                              {
+                                id: "edit-receipt-name",
+                                label: t("editReceipt"),
+                                onSelect: onEditReceiptName,
+                                icon: (
+                                  <Pencil
+                                    className={cn(
+                                      iconLeadSpacingVariants(),
+                                      iconSizeVariants({ size: "sm" }),
+                                    )}
+                                  />
+                                ),
+                              },
+                            ]
+                            : []),
                           ...(onAddPosition
                             ? [
                               {

@@ -163,7 +163,7 @@ async function renderReceiptFormHarness({
 }
 
 function createMockUser(
-  overrides: Partial<User> & { user_metadata?: Record<string, unknown> } = {},
+  overrides: Partial<User> = {},
 ) {
   return {
     ...defaultMockUser,
@@ -1566,10 +1566,30 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     await user.click(getActionBarEditButton());
 
     // Assert
+    expect(screen.getByRole("menuitem", { name: t("editReceipt") })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: t("addPosition") })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: t("addDiscount") })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: t("addFee") })).toBeInTheDocument();
     await expectCurrentScreenshot("action-bar-add-menu-open");
+  });
+
+  it("edits receipt name through editing dialog and updates the header", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner();
+
+    // Act
+    await openActionBarMenuItem(user, t("editReceipt"));
+    const nameInput = await screen.findByRole("textbox");
+    await user.clear(nameInput);
+    await user.type(nameInput, "Beer dinner");
+    await expectCurrentScreenshot("receipt-name-editing");
+    await user.click(screen.getByRole("button", { name: t("save") }));
+
+    // Assert
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "Beer dinner" })).toBeInTheDocument();
+    });
   });
 
   it("opens add position editing from the action bar in validation mode with editable overall", async () => {

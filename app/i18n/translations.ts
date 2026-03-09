@@ -75,8 +75,10 @@ const ru = {
 
   // Navigation
   edit: "Редактировать",
+  editReceipt: "Изменить чек",
   addShare: "Добавить долю",
   receipt: "Чек",
+  receiptName: "Название чека",
   remaining: "Осталось",
   overpaid: "Переплата",
   copiedToClipboard: "Скопировано в буфер",
@@ -233,8 +235,10 @@ const en: Translations = {
 
   // Navigation
   edit: "Edit",
+  editReceipt: "Edit receipt",
   addShare: "Add share",
   receipt: "Receipt",
+  receiptName: "Receipt name",
   remaining: "Remaining",
   overpaid: "Overpaid",
   copiedToClipboard: "Copied to clipboard",

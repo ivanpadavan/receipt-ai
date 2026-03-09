@@ -103,6 +103,7 @@ describe("joinReceiptServer", () => {
     dbMock.receiptUserParticipant.findFirst.mockResolvedValue(null);
 
     const receiptData: Receipt = {
+      receiptMeta: { displayName: "Receipt" },
       positions: [
         {
           id: "pos-1",
@@ -230,6 +231,7 @@ describe("joinReceiptServer", () => {
     dbMock.receiptUserParticipant.findFirst.mockResolvedValue(null);
 
     const receiptData: Receipt = {
+      receiptMeta: { displayName: "Receipt" },
       positions: [
         {
           id: "pos-1",
@@ -340,6 +342,7 @@ describe("joinReceiptServer", () => {
     dbMock.receiptUserParticipant.findFirst.mockResolvedValue(null);
 
     const receiptData: Receipt = {
+      receiptMeta: { displayName: "Receipt" },
       positions: [
         {
           id: "pos-1",
@@ -429,6 +432,7 @@ describe("joinReceiptServer", () => {
     });
 
     const receiptData: Receipt = {
+      receiptMeta: { displayName: "Receipt" },
       positions: [
         {
           id: "pos-1",
@@ -525,6 +529,7 @@ describe("joinReceiptServer", () => {
     });
 
     const receiptData: Receipt = {
+      receiptMeta: { displayName: "Receipt" },
       positions: [
         {
           id: "pos-1",

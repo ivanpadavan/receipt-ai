@@ -8,6 +8,7 @@ import {
   positionAiSchema,
   receiptAiSchema,
 } from "@/model/receipt/schema-structural";
+import { receiptMetaBaseSchema } from "@/model/receipt/schema-meta";
 import {
   addPositionBusinessIssues,
   addReceiptBusinessIssues,
@@ -22,8 +23,11 @@ const claimSchema = z.object({
   value: z.number(),
 });
 
+export const receiptMetaSchema = receiptMetaBaseSchema;
+
 export const receiptWithIdsSchema = receiptAiSchema
   .extend({
+    receiptMeta: receiptMetaSchema,
     positions: z.array(
       z.intersection(
         withId(positionAiSchema),

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Receipt,
+  ReceiptMeta,
   ReceiptModifier,
   ReceiptPosition,
 } from "@/model/receipt/model";
@@ -37,7 +38,11 @@ import { cn } from "@/utils/cn";
 import { multiplyMoney } from "@/app/receipt/utils/money";
 import { flushSync } from "react-dom";
 
-type EditableValue = ReceiptPosition | ReceiptModifier | Receipt["totals"];
+type EditableValue =
+  | ReceiptPosition
+  | ReceiptModifier
+  | Receipt["totals"]
+  | ReceiptMeta;
 
 const isPosition = (v: EditableValue): v is ReceiptPosition =>
   "quantity" in v && "price" in v;

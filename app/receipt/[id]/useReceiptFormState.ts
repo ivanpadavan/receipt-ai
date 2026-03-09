@@ -24,6 +24,7 @@ import {
   calculateGrandTotal,
   calculateTotal,
   Receipt,
+  ReceiptMeta,
   ReceiptModifier,
   ReceiptPosition,
   ReceiptPositionClaim,
@@ -37,9 +38,10 @@ import {
   receiptValidationSchema,
 } from "@/app/receipt/[id]/receiptValidation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { z, SafeParseReturnType } from "zod";
 import { useQueryState } from "nuqs";
 import { createUuid } from "@/app/receipt/utils/uuid";
+import { receiptMetaSchema } from "@/model/receipt/schema-form";
 
 // ============================================================================
 // Types
@@ -76,11 +78,21 @@ export interface EditModalProps {
   // Field path for syncing edits into react-hook-form
   fieldPath?: FieldPath<Receipt>;
   // Копия данных для редактирования (не привязана к основной форме)
-  initialValue: ReceiptPosition | ReceiptModifier | Receipt["totals"];
+  initialValue:
+    | ReceiptPosition
+    | ReceiptModifier
+    | Receipt["totals"]
+    | ReceiptMeta;
   // Заголовок модального окна
   header: TranslationKey;
   // Callback при сохранении — получает отредактированные данные
-  onSave: (data: ReceiptPosition | ReceiptModifier | Receipt["totals"]) => void;
+  onSave: (
+    data?:
+      | ReceiptPosition
+      | ReceiptModifier
+      | Receipt["totals"]
+      | ReceiptMeta,
+  ) => void;
   // Callback при удалении (если доступен)
   onRemove?: () => void;
 }
@@ -104,7 +116,8 @@ type OpenEditModalArgs =
   | { type: "totals" }
   | "addPosition"
   | "addDiscount"
-  | "addFee";
+  | "addFee"
+  | "editReceipt";
 
 export interface ReceiptState {
   scenario: FormScenario;
@@ -529,6 +542,26 @@ export function useReceiptFormState(
           onSave: (data) => {
             discountsField.prepend(data as ReceiptModifier);
             trigger();
+          },
+        });
+        setEditModalProps((prev) => ({ ...prev, editing: nextModal }));
+      } else if (args === "editReceipt") {
+        const nextModal = buildModalWithClose({
+          view: "editing",
+          validator: receiptMetaSchema,
+          fields: [{ key: "displayName", label: "receiptName", type: "string" }],
+          fieldType: "totals",
+          fieldPath: "receiptMeta.displayName",
+          initialValue: {
+            displayName: getValues("receiptMeta.displayName"),
+          },
+          header: "editReceipt",
+          onSave: (data) => {
+            const rawValue = (data as ReceiptMeta).displayName;
+            const trimmedValue = rawValue.trim();
+            setValue("receiptMeta.displayName", trimmedValue, {
+              shouldValidate: true,
+            });
           },
         });
         setEditModalProps((prev) => ({ ...prev, editing: nextModal }));
