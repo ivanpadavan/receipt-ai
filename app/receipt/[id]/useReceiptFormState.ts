@@ -552,9 +552,7 @@ export function useReceiptFormState(
           fields: [{ key: "title", label: "receiptName", type: "string" }],
           fieldType: "totals",
           fieldPath: "receiptMeta.title",
-          initialValue: {
-            title: getValues("receiptMeta.title"),
-          },
+          initialValue: getValues("receiptMeta"),
           header: "editReceipt",
           onSave: (data) => {
             const rawValue = (data as ReceiptMeta).title;

@@ -16,6 +16,7 @@ import {
 } from "@/model/receipt/schema-form";
 import { receiptWithParticipantsSchema } from "@/model/receipt/schema-participants";
 import type { SafeParseReturnType } from "zod";
+import type { Receipt } from "@/model/receipt/model";
 import {
   calculateGrandTotal,
   calculateTotal,
@@ -60,10 +61,11 @@ const businessValidReceipt = {
   },
 };
 
-const appValidReceipt = {
+const appValidReceipt: Receipt = {
   ...businessValidReceipt,
   receiptMeta: {
     title: "Receipt",
+    currencySymbol: "₽",
   },
   positions: [
     {
@@ -241,6 +243,13 @@ describe("receipt schemas integration", () => {
           "path": [
             "receiptMeta",
             "title",
+          ],
+        },
+        {
+          "message": "Required",
+          "path": [
+            "receiptMeta",
+            "currencySymbol",
           ],
         },
         {

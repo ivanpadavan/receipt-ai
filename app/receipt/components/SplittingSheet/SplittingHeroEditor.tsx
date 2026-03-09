@@ -20,6 +20,7 @@ import { ParticipantDTO, ReceiptPositionClaim } from "@/model/receipt/model";
 import { cva } from "class-variance-authority";
 import { sumClaims } from "@/app/receipt/utils/claims";
 import { formatMoneyValue } from "@/app/receipt/utils/formatMoney";
+import { useMoneyFormatter } from "@/app/receipt/components/receipt-context";
 
 // ── SplittingHeroEditor-scoped styles ──────────────
 const typeSwitchWrapper =
@@ -104,6 +105,7 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
   onCancel,
   onSave,
 }) => {
+  const { currencySymbol } = useMoneyFormatter();
   const [rawValue, setRawValue] = useState(
     claim.value > 0
       ? claim.type === "amount"
@@ -261,7 +263,7 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
               aria-pressed={claim.type === "amount"}
               onClick={() => onUpdate({ ...claim, type: "amount" })}
             >
-              ₽
+              {currencySymbol}
             </button>
           </div>
         </div>

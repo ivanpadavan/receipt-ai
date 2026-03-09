@@ -39,6 +39,7 @@ describe("SummaryScreen", () => {
   const mockReceipt: Receipt = {
     receiptMeta: {
       title: "Receipt",
+      currencySymbol: "₽",
     },
     positions: [
       {
@@ -69,7 +70,7 @@ describe("SummaryScreen", () => {
   };
 
   it("displays discount with correct formatting (minus sign)", () => {
-    useParticipantsStore.setState({ participants, initialized: true });
+    useParticipantsStore.setState({ participants });
     render(<SummaryScreen receipt={mockReceipt} onBack={() => {}} />);
 
     // Alice claimed 100.
@@ -107,7 +108,7 @@ describe("SummaryScreen", () => {
   });
 
   it("displays fee with plus sign", () => {
-    useParticipantsStore.setState({ participants, initialized: true });
+    useParticipantsStore.setState({ participants });
     const feeReceipt = {
       ...mockReceipt,
       totals: {
@@ -134,7 +135,7 @@ describe("SummaryScreen", () => {
   });
 
   it("renders breakdown above the bold final amount", () => {
-    useParticipantsStore.setState({ participants, initialized: true });
+    useParticipantsStore.setState({ participants });
     render(<SummaryScreen receipt={mockReceipt} onBack={() => {}} />);
 
     const participantCard = screen.getAllByText("Alice").at(-1)?.closest("div");

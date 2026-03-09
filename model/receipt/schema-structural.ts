@@ -6,6 +6,7 @@ const isPositiveFinite = (value: number) => Number.isFinite(value) && value > 0;
 
 export const receiptMetaAiSchema = receiptMetaBaseSchema.extend({
   title: receiptMetaBaseSchema.shape.title.optional(),
+  currencySymbol: receiptMetaBaseSchema.shape.currencySymbol.optional(),
 });
 
 
@@ -86,7 +87,9 @@ const createReceiptBaseSchema = <TPositionSchema extends ZodTypeAny>(
   positionItemSchema: TPositionSchema,
 ) =>
   z.object({
-    receiptMeta: receiptMetaAiSchema.describe("Receipt metadata"),
+    receiptMeta: receiptMetaAiSchema.describe(
+      "Receipt metadata. Try to infer currencySymbol from the receipt when possible.",
+    ),
     positions: z.array(positionItemSchema).describe("Array of items in the receipt"),
     fees: z.array(modifierSchema).describe("Array of modifiers that increase the total amount (e.g., tips, VAT)"),
     discounts: z.array(modifierSchema).describe("Array of modifiers that decrease the total amount (e.g., discounts)"),

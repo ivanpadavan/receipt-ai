@@ -31,6 +31,10 @@ describe("calculateBalances", () => {
 
     const receipt = {
       id: "r1",
+      receiptMeta: {
+        title: "Receipt",
+        currencySymbol: "₽",
+      },
       positions: [position],
       totals: { total: 200, grandTotal: 200 },
       fees: [],
@@ -47,6 +51,10 @@ describe("calculateBalances", () => {
   it("keeps finalAmount in two-decimal money precision", () => {
     const receipt = {
       id: "r1",
+      receiptMeta: {
+        title: "Receipt",
+        currencySymbol: "₽",
+      },
       positions: [
         {
           id: "pos1",

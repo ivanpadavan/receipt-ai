@@ -10,6 +10,7 @@ import {
 } from "@/model/receipt/model";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { formatMoneyValue } from "@/app/receipt/utils/formatMoney";
+import { useMoneyFormatter } from "@/app/receipt/components/receipt-context";
 
 type DistributionData = ReceiptPositionClaim | ReceiptPosition | Receipt;
 
@@ -36,6 +37,7 @@ export const DistributionBar = ({
   tone,
   radius,
 }: DistributionBarProps) => {
+  const { formatMoney } = useMoneyFormatter();
   const participants = useParticipantsStore((s) => s.participants);
   const participantIdSet = new Set((participants || []).map((p) => p.id));
 
@@ -121,7 +123,7 @@ export const DistributionBar = ({
           <div
             key={bar.id}
             style={style}
-            title={`${bar.displayName}: ${formatMoneyValue(bar.amount)}`}
+            title={`${bar.displayName}: ${formatMoney(bar.amount)}`}
             className={cn(
               "h-full transition-all relative overflow-hidden",
               rowVariants({ align: "center", justify: "center", width: "full" }),

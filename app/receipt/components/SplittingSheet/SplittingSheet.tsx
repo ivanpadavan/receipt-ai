@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils/cn";
-import { useReceiptState } from "../ReceiptForm";
+import { useMoneyFormatter, useReceiptState } from "../receipt-context";
 import {
   ParticipantDTO,
   ReceiptPosition,
@@ -36,7 +36,6 @@ import {
   hasFormPathError,
 } from "@/app/receipt/utils/hasFormPathError";
 import { getClaimAmount, getClaimOverage } from "@/app/receipt/utils/claims";
-import { formatMoney, formatMoneyValue } from "@/app/receipt/utils/formatMoney";
 import {
   iconLeadSpacingVariants,
   iconSizeVariants,
@@ -88,6 +87,7 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const { currencySymbol, formatMoney } = useMoneyFormatter();
   const amount = getClaimAmount(claim, price);
   const selectedParticipants = participants.filter((participant) =>
     claim.participantIds.includes(participant.id),
@@ -127,15 +127,15 @@ const ClaimRow: React.FC<ClaimRowProps> = ({
             >
               <span className={textVariants({ weight: "semibold" })}>
                 {claim.type === "amount"
-                  ? formatMoneyValue(claim.value)
+                  ? formatMoney(claim.value, '')
                   : formatClaimValue(claim.value)}
               </span>
               <span className={textVariants({ size: "sm", tone: "muted" })}>
-                {claim.type === "amount" ? "₽" : t("pcs")}
+                {claim.type === "amount" ? currencySymbol : t("pcs")}
               </span>
               {claim.type === "quantity" && (
                 <span className={textVariants({ size: "sm", tone: "muted" })}>
-                  = {formatMoneyValue(amount)} ₽
+                  = {formatMoney(amount)}
                 </span>
               )}
             </div>
@@ -268,6 +268,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
     currentUser: user,
     participants: orderedParticipants,
   });
+  const { formatMoney } = useMoneyFormatter();
 
   const draftOverage = useMemo(() => {
     if (!activeDraftId || !draftClaim) {
@@ -321,7 +322,8 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
         )) || (
           <div className="flex justify-between items-center">
             <div>
-              {localPosition.quantity} {t("pcs")} × {formatMoney(localPosition.price)} ={" "}
+              {localPosition.quantity} {t("pcs")} ×{" "}
+              {formatMoney(localPosition.price)} ={" "}
               <span className={textVariants({ weight: "semibold" })}>
                 {formatMoney(localPosition.overall)}
               </span>
@@ -400,7 +402,7 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
               {t("distributed")}
             </span>
             <span className="font-medium">
-              {formatMoneyValue(totalClaimed)} / {formatMoney(localPosition.overall)}
+              {formatMoney(totalClaimed, '')} / {formatMoney(localPosition.overall)}
             </span>
           </div>
           <DistributionBar data={effectivePosition} className="h-3" />

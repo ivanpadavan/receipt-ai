@@ -13,8 +13,6 @@ import {
 } from "@/model/receipt/model";
 import React, {
   useCallback,
-  createContext,
-  useContext,
   useEffect,
   useMemo,
   useState,
@@ -68,21 +66,12 @@ import {
 } from "@/app/receipt/components/ui-styles";
 import { cn } from "@/utils/cn";
 import { searchPositionsForDisplay } from "@/app/receipt/utils/search-positions";
+import { ReceiptFormContext } from "@/app/receipt/components/receipt-context";
 
 interface EditableReceiptFormProps {
   initialData: ReceiptWithParticipants;
   receiptId: string;
 }
-
-const ReceiptFormContext = createContext<ReceiptState | null>(null);
-
-export const useReceiptState = (): ReceiptState => {
-  const ctx = useContext(ReceiptFormContext);
-  if (ctx === null) {
-    throw new Error("should be provided");
-  }
-  return ctx;
-};
 
 const useReceiptWithUpdates = (
   initialData: ReceiptWithParticipants,
@@ -335,7 +324,6 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
             {scenarioType === "summary" ? (
               <SummaryScreen
                 receipt={currentReceipt}
-                receiptId={receiptId}
                 onBack={proceed}
               />
             ) : (

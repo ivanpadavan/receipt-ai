@@ -11,7 +11,7 @@ vi.mock("../useRowConflict", () => ({
   useRowConflict: (...args: unknown[]) => mockUseRowConflict(...args),
 }));
 
-vi.mock("../../ReceiptForm", () => ({
+vi.mock("../../receipt-context", () => ({
   useReceiptState: () => ({
     scenario: {
       form: {

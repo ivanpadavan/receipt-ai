@@ -26,6 +26,7 @@ export const calculateBalances = (
   receipt: Receipt,
   participants: ParticipantDTO[],
 ): ParticipantBalance[] => {
+  const currencySymbol = receipt.receiptMeta.currencySymbol;
   const balances = new Map<string, ParticipantBalance>();
 
   // Initialize for all participants
@@ -75,7 +76,7 @@ export const calculateBalances = (
             const qtyStr = Number.isInteger(qty)
               ? qty.toString()
               : qty.toFixed(2).replace(/\.?0+$/, "");
-            desc = `${qtyStr} × ${pos.price} ₽`;
+            desc = `${qtyStr} × ${pos.price} ${currencySymbol}`;
           }
 
           balance.items.push({

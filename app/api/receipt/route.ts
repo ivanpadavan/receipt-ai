@@ -73,7 +73,8 @@ function toReceipt(receipt: ReceiptNoId): Receipt {
     receiptMeta: {
       ...receipt.receiptMeta,
       // TODO use cookie for proper language
-      title: receipt.receiptMeta.title || t("receipt")
+      title: receipt.receiptMeta.title || t("receipt"),
+      currencySymbol: receipt.receiptMeta.currencySymbol || "₽",
     },
     positions: appendIdsToArr(receipt.positions).map((v) => ({
       ...v,

@@ -10,4 +10,5 @@ export const formatMoneyValue = (value: number) => {
   return normalized.toFixed(2);
 };
 
-export const formatMoney = (value: number) => `${formatMoneyValue(value)} ₽`;
+export const formatMoney = (value: number, currencySymbol = "₽") =>
+  `${formatMoneyValue(value)}${currencySymbol ? ` ${currencySymbol}` : ''}`;

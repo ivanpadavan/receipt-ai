@@ -3,9 +3,8 @@
 import React from "react";
 import { t } from "@/app/i18n/translations";
 import { ReceiptModifier } from "@/model/receipt/model";
-import { useReceiptState } from "@/app/receipt/components/ReceiptForm";
+import { useMoneyFormatter, useReceiptState } from "@/app/receipt/components/receipt-context";
 import { useWatch } from "react-hook-form";
-import { formatMoney } from "@/app/receipt/utils/formatMoney";
 import { hasFormPathError } from "@/app/receipt/utils/hasFormPathError";
 import { cn } from "@/utils/cn";
 import { LabelValueRow } from "@/app/receipt/components/ui/LabelValueRow";
@@ -22,6 +21,7 @@ interface ModifiersProps {
 
 export const Modifiers: React.FC<ModifiersProps> = ({ type }) => {
   const { scenario, openEditModal } = useReceiptState();
+  const { formatMoney } = useMoneyFormatter();
   const { errors } = scenario.form.formState;
   const items =
     (useWatch({

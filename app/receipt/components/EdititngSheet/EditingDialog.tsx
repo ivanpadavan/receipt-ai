@@ -11,7 +11,7 @@ import {
   ReceiptModifier,
   ReceiptPosition,
 } from "@/model/receipt/model";
-import { useReceiptState } from "../ReceiptForm";
+import { useReceiptState } from "../receipt-context";
 import { useRowConflict } from "./useRowConflict";
 import {
   DialogDescription,

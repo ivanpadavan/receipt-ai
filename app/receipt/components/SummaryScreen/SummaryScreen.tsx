@@ -9,7 +9,8 @@ import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { DistributionStatus } from "@/app/receipt/components/ui/DistributionStatus";
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 import { cn } from "@/utils/cn";
-import { formatMoney, formatMoneyValue } from "@/app/receipt/utils/formatMoney";
+import { formatMoneyValue } from "@/app/receipt/utils/formatMoney";
+import { useMoneyFormatter } from "@/app/receipt/components/receipt-context";
 import {
   cardPaddingVariants,
   stackGapVariants,
@@ -29,11 +30,11 @@ const summaryAmount = "whitespace-nowrap";
 
 interface SummaryScreenProps {
   receipt: Receipt;
-  receiptId: string;
   onBack: () => void;
 }
 
 export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
+  const { currencySymbol, formatMoney } = useMoneyFormatter();
   const participants = useParticipantsStore((s) => s.participants);
   const balances = useMemo(() => {
     const all = calculateBalances(receipt, participants);
@@ -72,7 +73,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
         >
           {formatMoneyValue(realGrandTotal)}{" "}
           <span className={textVariants({ size: "2xl", weight: "normal", tone: "muted" })}>
-            ₽
+            {currencySymbol}
           </span>
         </div>
 

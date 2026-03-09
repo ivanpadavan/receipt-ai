@@ -20,6 +20,7 @@ describe("useReceiptFormState", () => {
   const validReceipt: Receipt = {
     receiptMeta: {
       title: "Receipt",
+      currencySymbol: "₽",
     },
     positions: [
       {
@@ -54,6 +55,7 @@ describe("useReceiptFormState", () => {
   const invalidReceipt: Receipt = {
     receiptMeta: {
       title: "Receipt",
+      currencySymbol: "₽",
     },
     positions: [
       {
@@ -141,6 +143,7 @@ describe("useReceiptFormState", () => {
     const receipt: Receipt = {
       receiptMeta: {
         title: "Receipt",
+        currencySymbol: "₽",
       },
       positions: [
         {

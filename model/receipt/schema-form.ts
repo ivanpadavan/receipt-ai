@@ -42,6 +42,7 @@ export const receiptSchema = receiptWithIdsSchema
   .superRefine((value, context) => {
     addReceiptBusinessIssues(
       {
+        receiptMeta: value.receiptMeta,
         positions: value.positions.map(
           ({ claims: _claims, ...position }) => position,
         ),
