@@ -3,7 +3,7 @@ import { Receipt, ReceiptWithParticipants } from "@/model/receipt/model";
 export const validReceipt: Receipt = {
   meta: {
     title: "Receipt",
-    currencySymbol: "₽",
+    currencySymbol: "$",
   },
   positions: [
     {

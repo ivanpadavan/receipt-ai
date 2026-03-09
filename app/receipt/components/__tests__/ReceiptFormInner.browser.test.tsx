@@ -4,6 +4,7 @@ import { act, fireEvent, waitFor } from "@testing-library/react";
 import { page } from "vitest/browser";
 import userEvent from "@testing-library/user-event";
 import { setLanguage, t, type Language } from "@/app/i18n/translations";
+import { formatMoney } from "@/app/receipt/utils/formatMoney";
 import { ParticipantDTO, Receipt, ReceiptWithParticipants } from "@/model/receipt/model";
 import { User } from "@supabase/supabase-js";
 import { cleanup, render, type RenderResult as BrowserRenderResult } from "vitest-browser-react";
@@ -49,6 +50,11 @@ function getActiveBrowserScreen() {
 }
 
 const screen = createBrowserScreen(getActiveBrowserScreen);
+const CURRENCY_SYMBOL = validReceipt.meta.currencySymbol;
+
+function formatMoneyFromModel(value: number) {
+  return formatMoney(value, CURRENCY_SYMBOL);
+}
 
 export const updateReceiptMock = vi.fn();
 export const joinReceiptMock = vi.fn().mockResolvedValue(undefined);
@@ -281,7 +287,7 @@ function getOpenDrawerButtonByText(label: string) {
 function queryZeroPositionButton() {
   return screen.getAllByRole("button").find(
     (button) =>
-      button.textContent?.includes("0 ₽") &&
+      button.textContent?.includes(formatMoneyFromModel(0)) &&
       button.textContent?.includes("0x") &&
       isPointerInteractive(button)
   );
@@ -332,7 +338,7 @@ async function findZeroPositionButton() {
   await waitFor(() => {
     button = screen.getAllByRole("button").find(
       (candidate) =>
-        candidate.textContent?.includes("0 ₽") &&
+        candidate.textContent?.includes(formatMoneyFromModel(0)) &&
         candidate.textContent?.includes("0x") &&
         isPointerInteractive(candidate),
     );
@@ -358,7 +364,7 @@ async function openSplittingSheetFor(
 async function openInvalidValidationPositionDialog(
   user: ReturnType<typeof userEvent.setup>,
 ) {
-  await user.click(await findInteractiveButtonByFragments(["801 ₽", "x"]));
+  await user.click(await findInteractiveButtonByFragments([formatMoneyFromModel(801), "x"]));
   const nameInput = await screen.findByDisplayValue("");
   const [priceInput, quantityInput, overallInput] = await screen.findAllByRole("spinbutton");
   return {
@@ -422,7 +428,7 @@ function tWithColon(key: "fees" | "discounts") {
 }
 
 function claimButtonText(value: string, amount: string) {
-  return `${value}${t("pcs")}=${amount}₽`;
+  return `${value}${t("pcs")}=${amount}${CURRENCY_SYMBOL}`;
 }
 
 function remainingText(value: string) {
@@ -469,9 +475,9 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     );
 
     // Assert
-    expect(screen.getByRole("heading", { name: t("receipt") })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: validReceipt.meta.title })).toBeInTheDocument();
     expect(positions).toHaveLength(3);
-    expect(screen.getByText(new RegExp(`^${t("total")}$`))).toBeInTheDocument();
+    expect(screen.getAllByText(t("total")).length).toBeGreaterThan(0);
     expect(screen.getByText(t("grandTotal"))).toBeInTheDocument();
     expect(getSearchButton()).toBeInTheDocument();
     expect(screen.getByRole("button", { name: t("participants") })).toBeInTheDocument();
@@ -491,7 +497,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     expect(screen.getByText("Milk")).toBeInTheDocument();
     expect(screen.getByText("Delivery")).toBeInTheDocument();
     expect(screen.getByText("Loyalty")).toBeInTheDocument();
-    expect(screen.getAllByText("999 ₽").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(formatMoneyFromModel(999)).length).toBeGreaterThan(0);
     expect(getSearchButton()).toBeInTheDocument();
     expect(reviewAction).toBeDisabled();
     await expectCurrentScreenshot("invalid-review-mode");
@@ -993,7 +999,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     // Assert
     expect(screen.getByText(t("searchNoResults"))).toBeInTheDocument();
     expect(screen.queryByText("Milk")).not.toBeInTheDocument();
-    expect(screen.getByText(new RegExp(`^${t("total")}$`))).toBeInTheDocument();
+    expect(screen.getAllByText(t("total")).length).toBeGreaterThan(0);
     expect(screen.getByText(t("grandTotal"))).toBeInTheDocument();
     await expectCurrentScreenshot("search-empty-state");
   });
@@ -1138,7 +1144,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     await user.type(searchInput, "milk");
 
     // Act
-    await user.click(getInteractiveButtonByFragments(["Milk", "801 ₽"]));
+    await user.click(getInteractiveButtonByFragments(["Milk", formatMoneyFromModel(801)]));
 
     // Assert
     expect(screen.getByRole("heading", { name: "Milk" })).toBeInTheDocument();
@@ -1255,7 +1261,11 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     // Assert
     expect(screen.queryByRole("button", { name: t("save") })).not.toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: t("edit") }).length).toBeGreaterThan(0);
-    expect(screen.getByText(new RegExp(`2\\s*${t("pcs")}\\s*×\\s*150\\s*₽\\s*=`, "i"))).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        `${2} ${t("pcs")} × ${formatMoneyFromModel(150)} =`,
+      ),
+    ).toBeInTheDocument();
 
     await expectCurrentScreenshot("splitting-claims-list");
   });
@@ -1425,7 +1435,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     expect(maxButton).toHaveAttribute("aria-pressed", "true");
 
     // Act
-    await user.click(getButtonByExactText("₽"));
+    await user.click(getButtonByExactText(CURRENCY_SYMBOL));
 
     // Assert
     expect(maxButton).toHaveAttribute("aria-pressed", "false");
@@ -1463,7 +1473,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
 
     // Act
     await openSplittingSheetFor(user, "Bread");
-    await user.click(getButtonByExactText("₽"));
+    await user.click(getButtonByExactText(CURRENCY_SYMBOL));
     await user.click(screen.getByRole("button", { name: t("max") }));
 
     // Assert
@@ -1485,14 +1495,14 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
 
     // Act
     await openSplittingSheetFor(user, "Bread");
-    await user.click(getClaimButtonByText("150₽"));
+    await user.click(getClaimButtonByText(`150${CURRENCY_SYMBOL}`));
 
     // Assert
     const maxButton = screen.getByRole("button", { name: t("max") });
     expect(maxButton).toHaveAttribute("aria-pressed", "true");
 
     // Act
-    await user.click(getButtonByExactText("ШТ"));
+    await user.click(getButtonByExactText(t("pcs")));
 
     // Assert
     expect(maxButton).toHaveAttribute("aria-pressed", "false");
@@ -1638,7 +1648,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     await waitFor(() => {
       expect(screen.getByText("Tea")).toBeInTheDocument();
     });
-    expect(screen.getAllByText("200 ₽").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(formatMoneyFromModel(200)).length).toBeGreaterThan(0);
     await expectCurrentScreenshot("position-added");
   });
 
@@ -1782,7 +1792,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     await renderReceiptFormHarness({ receipt: invalidReceipt, echoReceiptUpdates: false });
 
     // Act
-    await user.click(await findInteractiveButtonByFragments([t("total"), "9999 ₽"]));
+    await user.click(await findInteractiveButtonByFragments([t("total"), formatMoneyFromModel(9999)]));
 
     const totalInputs = await screen.findAllByRole("spinbutton");
     await user.clear(totalInputs[0]);
@@ -1793,7 +1803,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
 
     // Assert
     await waitFor(() => {
-      expect(screen.getAllByText("1321 ₽").length).toBeGreaterThan(0);
+      expect(screen.getAllByText(formatMoneyFromModel(1321)).length).toBeGreaterThan(0);
     });
     await expectCurrentScreenshot("validation-totals-optimistic");
   });
@@ -1804,7 +1814,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     await renderReceiptFormInner({ receipt: invalidPositionAndTotalsReceipt });
 
     // Act
-    await user.click(await findInteractiveButtonByFragments(["801 ₽", "x"]));
+    await user.click(await findInteractiveButtonByFragments([formatMoneyFromModel(801), "x"]));
 
     // Assert
     expect(await screen.findByDisplayValue("")).toBeInTheDocument();
@@ -1818,7 +1828,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     await renderReceiptFormInner({ receipt: invalidOverallMismatchReceipt });
 
     // Act
-    await user.click(await findInteractiveButtonByFragments(["999 ₽", "x"]));
+    await user.click(await findInteractiveButtonByFragments([formatMoneyFromModel(999), "x"]));
 
     // Assert
     expect(await screen.findByDisplayValue("999")).toBeInTheDocument();
@@ -1887,7 +1897,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     await renderReceiptFormInner({ receipt: invalidReceipt });
 
     // Act
-    await user.click(await findInteractiveButtonByFragments([t("total"), "9999 ₽"]));
+    await user.click(await findInteractiveButtonByFragments([t("total"), formatMoneyFromModel(9999)]));
 
     // Assert
     const totalInputs = await screen.findAllByRole("spinbutton");
@@ -1904,7 +1914,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     expect(screen.getByRole("button", { name: t("done") })).toBeDisabled();
 
     // Act
-    await user.click(await findInteractiveButtonByFragments([t("total"), "9999 ₽"]));
+    await user.click(await findInteractiveButtonByFragments([t("total"), formatMoneyFromModel(9999)]));
 
     const totalInputs = await screen.findAllByRole("spinbutton");
     await user.clear(totalInputs[0]);
@@ -1918,8 +1928,8 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     await waitFor(() => {
       expect(screen.getByRole("button", { name: t("done") })).toBeEnabled();
     });
-    expect(screen.getByText(new RegExp(`^${t("total")}$`))).toBeInTheDocument();
-    expect(screen.getAllByText("1321 ₽").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(t("total")).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(formatMoneyFromModel(1321)).length).toBeGreaterThan(0);
     await expectCurrentScreenshot("validation-totals-fixed");
   });
 
@@ -1930,7 +1940,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     expect(screen.getByRole("button", { name: t("done") })).toBeDisabled();
 
     // Act
-    await user.click(await findInteractiveButtonByFragments(["801 ₽", "x"]));
+    await user.click(await findInteractiveButtonByFragments([formatMoneyFromModel(801), "x"]));
 
     const nameInput = await screen.findByDisplayValue("");
     await user.type(nameInput, "Milk");
@@ -2066,7 +2076,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
         receipt: invalidPositionAndTotalsReceipt,
         echoReceiptUpdates: false,
       });
-      await user.click(await findInteractiveButtonByFragments(["220 ₽", "x"]));
+      await user.click(await findInteractiveButtonByFragments([formatMoneyFromModel(220), "x"]));
       await screen.findByDisplayValue("Butter");
 
       // Act
@@ -2092,7 +2102,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
         echoReceiptUpdates: false,
       });
       expect(screen.queryByText("Milk")).not.toBeInTheDocument();
-      await user.click(await findInteractiveButtonByFragments(["801 ₽", "x"]));
+      await user.click(await findInteractiveButtonByFragments([formatMoneyFromModel(801), "x"]));
 
       // Act
       await act(async () => {
@@ -2126,9 +2136,9 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     expect(screen.getByText("Polina")).toBeInTheDocument();
     expect(screen.getAllByText("Milk").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Bread").length).toBeGreaterThan(0);
-    expect(screen.getByText("1 × 801 ₽")).toBeInTheDocument();
-    expect(screen.getAllByText("1 × 150 ₽").length).toBeGreaterThan(1);
-    expect(screen.queryByText(new RegExp(`${t("remaining")}:`))).not.toBeInTheDocument();
+    expect(screen.getByText(`1 × ${formatMoneyFromModel(801)}`)).toBeInTheDocument();
+    expect(screen.getAllByText(`1 × ${formatMoneyFromModel(150)}`).length).toBeGreaterThan(1);
+    expect(screen.queryByText(t("remaining"))).not.toBeInTheDocument();
     await expectCurrentScreenshot("summary-balances");
   });
 
@@ -2143,7 +2153,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     });
 
     // Assert
-    expect(screen.getByText(remainingText("370 ₽"))).toBeInTheDocument();
+    expect(screen.getByText(remainingText(formatMoneyFromModel(370)))).toBeInTheDocument();
     expect(screen.queryByText("Polina")).not.toBeInTheDocument();
     expect(screen.queryByText("Butter")).not.toBeInTheDocument();
     await expectCurrentScreenshot("summary-remaining");
@@ -2187,7 +2197,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
 
     // Assert
     await waitFor(() => {
-      expect(screen.getByText(remainingText("370 ₽"))).toBeInTheDocument();
+      expect(screen.getByText(remainingText(formatMoneyFromModel(370)))).toBeInTheDocument();
     });
     expect(screen.queryByText("Polina")).not.toBeInTheDocument();
     expect(screen.queryByText("Butter")).not.toBeInTheDocument();

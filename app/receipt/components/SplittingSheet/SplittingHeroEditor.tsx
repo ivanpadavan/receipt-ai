@@ -250,7 +250,7 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
               aria-pressed={claim.type === "quantity"}
               onClick={() => onUpdate({ ...claim, type: "quantity" })}
             >
-              ШТ
+              {t("pcs")}
             </button>
             <button
               type="button"

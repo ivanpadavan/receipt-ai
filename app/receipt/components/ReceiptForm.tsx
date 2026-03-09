@@ -217,6 +217,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
 
   const currentReceipt = useWatch({ control: form.control }) as Receipt;
   const receiptTitle = currentReceipt.meta.title;
+  const currencySymbol = currentReceipt.meta.currencySymbol;
   const { errors } = form.formState;
   const reviewToastId = `receipt-review-${receiptId}`;
   const primaryLabel: TranslationKey =
@@ -449,7 +450,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                                         : "default",
                                     })}
                                   >
-                                    {formatMoney(field.price)}
+                                    {formatMoney(field.price, currencySymbol)}
                                   </span>{" "}
                                   x{" "}
                                   <span
@@ -481,7 +482,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                                   tone: hasOverallError ? "danger" : "default",
                                 })}
                               >
-                                {formatMoney(field.overall)}
+                                {formatMoney(field.overall, currencySymbol)}
                               </span>
                             </div>
                             <DistributionBar
@@ -535,7 +536,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       >
                         <LabelValueRow
                           label={t("total")}
-                          value={formatMoney(currentReceipt.totals.total)}
+                          value={formatMoney(currentReceipt.totals.total, currencySymbol)}
                           labelClassName={textVariants({
                             size: "sm",
                             tone: "muted",
@@ -563,7 +564,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       >
                         <LabelValueRow
                           label={t("grandTotal")}
-                          value={formatMoney(currentReceipt.totals.grandTotal)}
+                          value={formatMoney(currentReceipt.totals.grandTotal, currencySymbol)}
                           labelClassName={textVariants({ weight: "semibold" })}
                           valueClassName={dangerToneVariants({
                             base: "2xlBold",
