@@ -23,6 +23,8 @@ const historyCta =
 
 export interface HistoryReceiptCardModel {
   id: string;
+  title: string;
+  currencySymbol: string;
   createdAt: string;
   itemCount: number;
   totalAmount: number;
@@ -105,7 +107,7 @@ export function HistoryPageClient({
                           tone: "brandStrong",
                         })}
                       >
-                        {t("receipt")} #{receipt.id.slice(-6)}
+                        {receipt.title || `${t("receipt")} #${receipt.id.slice(-6)}`}
                       </h2>
                       <span className={textVariants({ size: "sm", tone: "brand" })}>
                         {createdAtLabel}
@@ -128,7 +130,7 @@ export function HistoryPageClient({
                           tone: "brandStrong",
                         })}
                       >
-                        {formatMoney(receipt.totalAmount)}
+                        {formatMoney(receipt.totalAmount, receipt.currencySymbol)}
                       </span>
                     </div>
                   </Link>

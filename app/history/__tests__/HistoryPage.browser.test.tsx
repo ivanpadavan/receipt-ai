@@ -80,7 +80,7 @@ describe.each<Language>(["ru", "en"])("History page (%s)", (language) => {
     await renderHistoryPage(singleHistoryReceipt);
 
     expect(screen.getByRole("heading", { name: t("receiptHistory") })).toBeInTheDocument();
-    expect(screen.getByText(`${t("receipt")} #73gne1`)).toBeInTheDocument();
+    expect(screen.getByText("BBQ Saturday")).toBeInTheDocument();
     expect(screen.getByText(`11 ${t("itemPlural")}`)).toBeInTheDocument();
     await expectCurrentScreenshot("history-single-receipt");
   });
@@ -89,9 +89,9 @@ describe.each<Language>(["ru", "en"])("History page (%s)", (language) => {
     await renderHistoryPage(multipleHistoryReceipts);
 
     expect(screen.getByRole("heading", { name: t("receiptHistory") })).toBeInTheDocument();
-    expect(screen.getByText(`${t("receipt")} #73gne1`)).toBeInTheDocument();
-    expect(screen.getByText(`${t("receipt")} #q7q9r6`)).toBeInTheDocument();
-    expect(screen.getByText(`${t("receipt")} #ydjt27`)).toBeInTheDocument();
+    expect(screen.getByText("BBQ Saturday")).toBeInTheDocument();
+    expect(screen.getByText("Coffee with team")).toBeInTheDocument();
+    expect(screen.getByText("Taxi")).toBeInTheDocument();
     expect(screen.getByText(new RegExp(`^1\\s${t("itemSingle")}$`))).toBeInTheDocument();
     await expectCurrentScreenshot("history-multiple-receipts");
   });

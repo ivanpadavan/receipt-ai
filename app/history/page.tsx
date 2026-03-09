@@ -35,6 +35,8 @@ export default async function HistoryPage() {
 
     return {
       id: receipt.id,
+      title: receiptData.meta?.title || "",
+      currencySymbol: receiptData.meta?.currencySymbol || "₽",
       createdAt: receipt.createdAt instanceof Date
         ? receipt.createdAt.toISOString()
         : String(receipt.createdAt),
