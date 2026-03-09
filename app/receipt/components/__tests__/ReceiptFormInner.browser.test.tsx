@@ -3,14 +3,38 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, waitFor } from "@testing-library/react";
 import { page } from "vitest/browser";
 import userEvent from "@testing-library/user-event";
-import { ParticipantsStoreProvider } from "@/app/receipt/store/participants";
 import { setLanguage, t, type Language } from "@/app/i18n/translations";
 import { Receipt, ReceiptWithParticipants } from "@/model/receipt/model";
 import { cleanup, render, type RenderResult as BrowserRenderResult } from "vitest-browser-react";
 import { User } from "@supabase/supabase-js";
-
-const VIEWPORT_WIDTH = 390;
-const VIEWPORT_HEIGHT = 844;
+import {
+  amountMaxSwitchReceipt,
+  fullyDistributedReceipt,
+  invalidNameReceipt,
+  invalidOverallMismatchReceipt,
+  invalidPositionAndTotalsReceipt,
+  invalidReceipt,
+  invalidReviewReceipt,
+  invalidZeroPositionReceipt,
+  joinedParticipants,
+  overClaimedReceipt,
+  partiallyDistributedReceipt,
+  quantityMaxSwitchReceipt,
+  receiptWithModifiers,
+  splittingParticipants,
+  summaryBalancedReceipt,
+  summaryRemainingReceipt,
+  validReceipt,
+} from "./ReceiptFormInner.browser.fixtures";
+import {
+  createBrowserScreen,
+  isPointerInteractive,
+  requireElement,
+  VIEWPORT_HEIGHT,
+  VIEWPORT_WIDTH,
+  waitForDocumentInteractivity,
+} from "./browser-test-helpers";
+import { AppLayoutMock } from "./AppLayout.mock";
 
 let browserScreen: BrowserRenderResult | null = null;
 let activeLanguage: Language = "en";
@@ -22,115 +46,9 @@ function getActiveBrowserScreen() {
   return browserScreen;
 }
 
-function queryBrowserDisplayValue(value: string) {
-  const root = getActiveBrowserScreen().baseElement;
-  return Array.from(
-    root.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
-      "input, textarea, select",
-    ),
-  ).find((element) => element.value === value) ?? null;
-}
+const screen = createBrowserScreen(getActiveBrowserScreen);
 
-function requireElement<T>(value: T | null | undefined, message: string): T {
-  if (value == null) {
-    throw new Error(message);
-  }
-
-  return value;
-}
-
-function isPointerInteractive(element: HTMLElement) {
-  return getComputedStyle(element).pointerEvents !== "none";
-}
-
-async function waitForDocumentInteractivity() {
-  await waitFor(() => {
-    expect(isPointerInteractive(document.body)).toBe(true);
-  });
-}
-
-const screen = {
-  getByText(text: string | RegExp) {
-    return getActiveBrowserScreen().getByText(text).element() as HTMLElement;
-  },
-  queryByText(text: string | RegExp) {
-    return getActiveBrowserScreen().getByText(text).query() as HTMLElement | null;
-  },
-  getAllByText(text: string | RegExp) {
-    return getActiveBrowserScreen()
-      .getByText(text)
-      .all()
-      .map((locator) => locator.element() as HTMLElement);
-  },
-  async findAllByText(text: string | RegExp) {
-    const locator = getActiveBrowserScreen().getByText(text);
-    await expect.poll(() => locator.length).toBeGreaterThan(0);
-    return locator.all().map((item) => item.element() as HTMLElement);
-  },
-  getByRole(role: string, options?: Record<string, unknown>) {
-    return getActiveBrowserScreen().getByRole(role, options).element() as HTMLElement;
-  },
-  queryByRole(role: string, options?: Record<string, unknown>) {
-    return getActiveBrowserScreen().getByRole(role, options).query() as HTMLElement | null;
-  },
-  async findByRole(role: string, options?: Record<string, unknown>) {
-    const locator = getActiveBrowserScreen().getByRole(role, options);
-    await expect.element(locator).toBeInTheDocument();
-    return locator.element() as HTMLElement;
-  },
-  getAllByRole(role: string, options?: Record<string, unknown>) {
-    return getActiveBrowserScreen()
-      .getByRole(role, options)
-      .all()
-      .map((locator) => locator.element() as HTMLElement);
-  },
-  async findAllByRole(role: string, options?: Record<string, unknown>) {
-    const locator = getActiveBrowserScreen().getByRole(role, options);
-    await expect.poll(() => locator.length).toBeGreaterThan(0);
-    return locator.all().map((item) => item.element() as HTMLElement);
-  },
-  getByDisplayValue(value: string) {
-    const element = queryBrowserDisplayValue(value);
-    if (!element) throw new Error(`Unable to find display value "${value}"`);
-    return element;
-  },
-  async findByDisplayValue(value: string) {
-    await expect.poll(() => queryBrowserDisplayValue(value)).not.toBeNull();
-    return requireElement(
-      queryBrowserDisplayValue(value),
-      `Unable to find display value "${value}"`,
-    );
-  },
-};
-
-const useUserMock = vi.fn();
-const pushMock = vi.fn();
-const setSummaryQueryMock = vi.fn();
-const updateReceiptMock = vi.fn();
-let summaryQueryValue: string | null = null;
-
-vi.mock("@/context/AuthContext", () => ({
-  useUser: () => useUserMock(),
-}));
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    push: pushMock,
-  }),
-  usePathname: () => "/receipt/receipt-1",
-}));
-
-vi.mock("nuqs", () => ({
-  useQueryState: () => [summaryQueryValue, setSummaryQueryMock],
-}));
-
-vi.mock("sonner", () => ({
-  toast: Object.assign(vi.fn(), {
-    error: vi.fn(),
-    success: vi.fn(),
-    dismiss: vi.fn(),
-  }),
-}));
+export const updateReceiptMock = vi.fn();
 
 vi.mock("@/app/api-client", () => ({
   apiClient: {
@@ -139,370 +57,13 @@ vi.mock("@/app/api-client", () => ({
   },
 }));
 
-vi.mock("@/app/providers", () => ({
-  Providers: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+export const setSummaryQueryMock = vi.fn();
+
+let summaryQueryValue: string | null = null;
+
+vi.mock("nuqs", () => ({
+  useQueryState: () => [summaryQueryValue, setSummaryQueryMock],
 }));
-
-vi.mock("@react-oauth/google", () => ({
-  GoogleOAuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  GoogleLogin: ({ containerProps, type }: { containerProps?: { className?: string }; type?: string }) => (
-    <div className={containerProps?.className} data-google-login={type ?? "default"} />
-  ),
-  useGoogleOneTapLogin: () => undefined,
-}));
-
-const validReceipt: Receipt = {
-  positions: [
-    {
-      id: "pos-milk",
-      name: "Milk",
-      quantity: 1,
-      price: 801,
-      overall: 801,
-      claims: [],
-    },
-    {
-      id: "pos-bread",
-      name: "Bread",
-      quantity: 2,
-      price: 150,
-      overall: 300,
-      claims: [],
-    },
-    {
-      id: "pos-butter",
-      name: "Butter",
-      quantity: 1,
-      price: 220,
-      overall: 220,
-      claims: [],
-    },
-  ],
-  totals: {
-    total: 1321,
-    grandTotal: 1321,
-  },
-  fees: [],
-  discounts: [],
-};
-
-const joinedParticipants: ReceiptWithParticipants["participants"] = [
-  {
-    id: "user-1",
-    displayName: "Ivan",
-    color: "#111111",
-    kind: "REAL",
-    isAnonymous: false,
-    isOnline: true,
-  },
-];
-
-const invalidReceipt: Receipt = {
-  ...validReceipt,
-  totals: {
-    total: 9999,
-    grandTotal: 9999,
-  },
-};
-
-const invalidNameReceipt: Receipt = {
-  ...validReceipt,
-  positions: [
-    {
-      ...validReceipt.positions[0],
-      name: "",
-    },
-    ...validReceipt.positions.slice(1),
-  ],
-};
-
-const invalidPositionAndTotalsReceipt: Receipt = {
-  ...invalidReceipt,
-  positions: [
-    {
-      ...validReceipt.positions[0],
-      name: "",
-      price: -801,
-      quantity: -1,
-      overall: -1,
-    },
-    ...validReceipt.positions.slice(1),
-  ],
-};
-
-const invalidOverallMismatchReceipt: Receipt = {
-  ...validReceipt,
-  positions: [
-    {
-      ...validReceipt.positions[0],
-      overall: 999,
-    },
-    ...validReceipt.positions.slice(1),
-  ],
-};
-
-const invalidZeroPositionReceipt: Receipt = {
-  ...validReceipt,
-  positions: [
-    {
-      id: "pos-zero",
-      name: "",
-      quantity: 0,
-      price: 0,
-      overall: 0,
-      claims: [],
-    },
-    ...validReceipt.positions,
-  ],
-};
-
-const overClaimedReceipt: Receipt = {
-  ...validReceipt,
-  positions: [
-    {
-      ...validReceipt.positions[1],
-      claims: [
-        {
-          id: "claim-1",
-          participantIds: ["user-1"],
-          type: "quantity",
-          value: 2,
-        },
-      ],
-    },
-    validReceipt.positions[0],
-    validReceipt.positions[2],
-  ],
-};
-
-const splittingParticipants: ReceiptWithParticipants["participants"] = [
-  {
-    id: "user-2",
-    displayName: "Anton",
-    color: "#f59e0b",
-    kind: "REAL",
-    isAnonymous: false,
-    isOnline: true,
-  },
-  {
-    id: "user-1",
-    displayName: "Ivan",
-    color: "#111111",
-    kind: "REAL",
-    isAnonymous: false,
-    isOnline: true,
-  },
-  {
-    id: "user-3",
-    displayName: "Polina",
-    color: "#22c55e",
-    kind: "REAL",
-    isAnonymous: false,
-    isOnline: true,
-  },
-];
-
-const partiallyDistributedReceipt: Receipt = {
-  ...validReceipt,
-  positions: [
-    validReceipt.positions[0],
-    {
-      ...validReceipt.positions[1],
-      claims: [
-        {
-          id: "claim-existing",
-          type: "amount",
-          value: 150,
-          participantIds: ["user-2"],
-        },
-      ],
-    },
-    validReceipt.positions[2],
-  ],
-};
-
-const fullyDistributedReceipt: Receipt = {
-  ...validReceipt,
-  positions: [
-    validReceipt.positions[0],
-    {
-      ...validReceipt.positions[1],
-      claims: [
-        {
-          id: "claim-fully-distributed",
-          type: "amount",
-          value: 300,
-          participantIds: ["user-2"],
-        },
-      ],
-    },
-    validReceipt.positions[2],
-  ],
-};
-
-const quantityMaxSwitchReceipt: Receipt = {
-  ...validReceipt,
-  positions: [
-    validReceipt.positions[0],
-    {
-      ...validReceipt.positions[1],
-      claims: [
-        {
-          id: "claim-edit-quantity",
-          type: "quantity",
-          value: 1,
-          participantIds: ["user-1"],
-        },
-        {
-          id: "claim-other-amount",
-          type: "amount",
-          value: 150,
-          participantIds: ["user-2"],
-        },
-      ],
-    },
-    validReceipt.positions[2],
-  ],
-};
-
-const amountMaxSwitchReceipt: Receipt = {
-  ...validReceipt,
-  positions: [
-    validReceipt.positions[0],
-    {
-      ...validReceipt.positions[1],
-      claims: [
-        {
-          id: "claim-edit-amount",
-          type: "amount",
-          value: 150,
-          participantIds: ["user-1"],
-        },
-        {
-          id: "claim-other-amount",
-          type: "amount",
-          value: 150,
-          participantIds: ["user-2"],
-        },
-      ],
-    },
-    validReceipt.positions[2],
-  ],
-};
-
-const summaryBalancedReceipt: Receipt = {
-  ...validReceipt,
-  positions: [
-    {
-      ...validReceipt.positions[0],
-      claims: [
-        {
-          id: "summary-claim-milk",
-          type: "quantity",
-          value: 1,
-          participantIds: ["user-1"],
-        },
-      ],
-    },
-    {
-      ...validReceipt.positions[1],
-      claims: [
-        {
-          id: "summary-claim-bread-anton",
-          type: "quantity",
-          value: 1,
-          participantIds: ["user-2"],
-        },
-        {
-          id: "summary-claim-bread-polina",
-          type: "quantity",
-          value: 1,
-          participantIds: ["user-3"],
-        },
-      ],
-    },
-    {
-      ...validReceipt.positions[2],
-      claims: [
-        {
-          id: "summary-claim-butter",
-          type: "quantity",
-          value: 1,
-          participantIds: ["user-1"],
-        },
-      ],
-    },
-  ],
-};
-
-const summaryRemainingReceipt: Receipt = {
-  ...validReceipt,
-  positions: [
-    {
-      ...validReceipt.positions[0],
-      claims: [
-        {
-          id: "summary-claim-milk",
-          type: "quantity",
-          value: 1,
-          participantIds: ["user-1"],
-        },
-      ],
-    },
-    {
-      ...validReceipt.positions[1],
-      claims: [
-        {
-          id: "summary-claim-bread-anton",
-          type: "quantity",
-          value: 1,
-          participantIds: ["user-2"],
-        },
-      ],
-    },
-    {
-      ...validReceipt.positions[2],
-      claims: [],
-    },
-  ],
-};
-
-const receiptWithModifiers: Receipt = {
-  ...validReceipt,
-  fees: [
-    {
-      id: "fee-delivery",
-      name: "Delivery",
-      value: 100,
-    },
-  ],
-  discounts: [
-    {
-      id: "discount-loyalty",
-      name: "Loyalty",
-      value: 50,
-    },
-  ],
-  totals: {
-    total: 1321,
-    grandTotal: 1371,
-  },
-};
-
-const invalidReviewReceipt: Receipt = {
-  ...receiptWithModifiers,
-  positions: [
-    {
-      ...validReceipt.positions[0],
-      overall: 999,
-    },
-    ...validReceipt.positions.slice(1),
-  ],
-  totals: {
-    total: 9999,
-    grandTotal: 9999,
-  },
-};
 
 const testUser = {
   id: "user-1",
@@ -518,24 +79,23 @@ const testUser = {
 async function renderReceiptFormInner({
   receipt = validReceipt,
   participants = joinedParticipants,
+  user = testUser,
 }: {
   receipt?: Receipt;
   participants?: ReceiptWithParticipants["participants"];
+  user?: User;
 } = {}) {
   const translations = await import("@/app/i18n/translations");
   translations.setLanguage(activeLanguage);
   const { ReceiptFormInner } = await import("@/app/receipt/components/ReceiptForm");
-  const { AppLayout } = await import("@/app/layout/AppLayout");
   const ui = (
-    <AppLayout user={testUser}>
-      <ParticipantsStoreProvider initialParticipants={participants}>
-        <ReceiptFormInner
-          receipt={receipt}
-          participants={participants}
-          receiptId="receipt-1"
-        />
-      </ParticipantsStoreProvider>
-    </AppLayout>
+    <AppLayoutMock user={user} participants={participants}>
+      <ReceiptFormInner
+        receipt={receipt}
+        participants={participants}
+        receiptId="receipt-1"
+      />
+    </AppLayoutMock>
   );
 
   browserScreen = await render(ui);
@@ -547,15 +107,16 @@ async function renderReceiptFormHarness({
   receipt = structuredClone(validReceipt),
   participants = structuredClone(joinedParticipants),
   echoReceiptUpdates = true,
+  user = testUser,
 }: {
   receipt?: Receipt;
   participants?: ReceiptWithParticipants["participants"];
   echoReceiptUpdates?: boolean;
+  user?: User;
 } = {}) {
   const translations = await import("@/app/i18n/translations");
   translations.setLanguage(activeLanguage);
   const { ReceiptFormInner } = await import("@/app/receipt/components/ReceiptForm");
-  const { AppLayout } = await import("@/app/layout/AppLayout");
   const controls: { pushReceipt?: (nextReceipt: Receipt) => void } = {};
 
   const ReceiptFormHarness: React.FC = () => {
@@ -573,15 +134,13 @@ async function renderReceiptFormHarness({
     }, []);
 
     return (
-      <AppLayout user={testUser}>
-        <ParticipantsStoreProvider initialParticipants={participants}>
-          <ReceiptFormInner
-            receipt={currentReceipt}
-            participants={participants}
-            receiptId="receipt-1"
-          />
-        </ParticipantsStoreProvider>
-      </AppLayout>
+      <AppLayoutMock user={user} participants={participants}>
+        <ReceiptFormInner
+          receipt={currentReceipt}
+          participants={participants}
+          receiptId="receipt-1"
+        />
+      </AppLayoutMock>
     );
   };
 
@@ -801,15 +360,6 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY =
       "test-publishable-key";
-    useUserMock.mockReturnValue({
-      user: {
-        id: "user-1",
-        is_anonymous: true,
-        user_metadata: {
-          displayName: "Ivan",
-        },
-      },
-    });
     updateReceiptMock.mockResolvedValue(validReceipt);
     await waitForDocumentInteractivity();
   });
