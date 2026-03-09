@@ -354,14 +354,15 @@ export const SplittingSheet: React.FC<EditModalProps> = ({
           </div>
         )}
         {hasClaimsError && claimsErrorMessage && (
-          <div
-            className={cn(
-              'mt-2',
-              textVariants({ align: 'center' }),
-              pillVariants({ tone: "danger", radius: "full" }),
-            )}
-          >
-            {claimsErrorMessage}
+          <div className="mt-2 flex justify-center">
+            <div
+              className={cn(
+                textVariants({ align: "center" }),
+                pillVariants({ tone: "danger", radius: "full" }),
+              )}
+            >
+              {claimsErrorMessage}
+            </div>
           </div>
         )}
       </div>
