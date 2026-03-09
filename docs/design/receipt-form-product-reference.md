@@ -1014,6 +1014,65 @@ UI должен немедленно отразить редактировани
 
 ---
 
+## 16A. Сценарии: row conflict при server updates
+
+### 16A.1. `modified conflict` + `Use server`
+
+**Сценарий**
+
+- пользователь редактирует позицию;
+- приходит server update для той же строки;
+- показывается warning про внешнее изменение;
+- пользователь выбирает `Use server`.
+
+**Инвариант**
+Локальный draft должен быть заменён серверным значением без потери управляемости формы.
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/server-update-conflict-use-server-chromium.png)
+![server-update-conflict-use-server](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/server-update-conflict-use-server-chromium.png)
+
+### 16A.2. `modified conflict` + `Keep mine`
+
+**Сценарий**
+
+- пользователь редактирует позицию;
+- приходит конкурирующий server update;
+- пользователь выбирает `Keep mine`.
+
+**Инвариант**
+Локальный draft сохраняется, conflict state очищается, `Save` остаётся доступным при валидном draft.
+
+⚠️ Скриншот отсутствует в baseline: `server-update-conflict-keep-mine`.
+
+### 16A.3. `deleted conflict` для редактируемой строки
+
+**Сценарий**
+
+- позиция открыта в редактировании;
+- server update удаляет эту строку;
+- показывается `deleted conflict`.
+
+**Инвариант**
+`Save` блокируется, чтобы не сохранить изменения в уже удалённую сущность.
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/server-update-conflict-deleted-chromium.png)
+![server-update-conflict-deleted](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/server-update-conflict-deleted-chromium.png)
+
+### 16A.4. `pristine auto-replace`
+
+**Сценарий**
+
+- форма/диалог в `pristine` состоянии;
+- приходит server update;
+- серверное значение применяется автоматически без показа conflict warning.
+
+**Инвариант**
+Если пользователь ещё не сделал локальных правок, приоритет у server state.
+
+Визуально отдельным screenshot-baseline это состояние не выделяется; в reference оно фиксируется текстовым сценарием и инвариантом.
+
+---
+
 ## 17. Сценарии: claim error после уменьшения позиции
 
 ### 17.1. Уменьшить позицию ниже уже распределённого количества
