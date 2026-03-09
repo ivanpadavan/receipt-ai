@@ -322,7 +322,9 @@ async function setPositionDraft(
     await openInvalidValidationPositionDialog(user);
 
   await user.clear(nameInput);
-  await user.type(nameInput, next.name);
+  if (next.name !== "") {
+    await user.type(nameInput, next.name);
+  }
 
   await user.clear(priceInput);
   await user.type(priceInput, next.price);
@@ -1497,11 +1499,12 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
         echoReceiptUpdates: false,
       });
       await setPositionDraft(user, {
-        name: "Milk draft",
-        price: "900",
-        quantity: "1",
-        overall: "900",
+        name: "",
+        price: "-900",
+        quantity: "-2",
+        overall: "-1800",
       });
+      expect(screen.getByRole("button", { name: t("save") })).toBeDisabled();
 
       // Act
       await act(async () => {

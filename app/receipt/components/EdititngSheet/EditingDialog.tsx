@@ -165,10 +165,15 @@ export const EditingDialog: React.FC<EditingDialogProps> = ({
       </DialogHeader>
       <div className={cn(dialogBodySpacing, stackGapVariants({ size: "lg" }))}>
         {conflict && (
-          <div className={noticeVariants({ tone: "warning" })}>
+          <div className={cn(noticeVariants({ tone: "warning" }), "text-center")}>
             <p>{conflict.message}</p>
             {conflict.type === "modified" && (
-              <div className={cn("mt-2 flex", inlineGapVariants({ size: "sm" }))}>
+              <div
+                className={cn(
+                  "mt-2 flex flex-wrap items-center justify-center",
+                  inlineGapVariants({ size: "sm" }),
+                )}
+              >
                 <Button
                   type="button"
                   variant="secondary"
