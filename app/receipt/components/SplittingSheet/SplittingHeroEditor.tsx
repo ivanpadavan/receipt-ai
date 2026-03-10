@@ -21,6 +21,7 @@ import { cva } from "class-variance-authority";
 import { sumClaims } from "@/app/receipt/utils/claims";
 import { formatMoneyValue } from "@/app/receipt/utils/formatMoney";
 import { useMoneyFormatter } from "@/app/receipt/components/receipt-context";
+import { useIOSDoneOnBlur } from "@/app/receipt/utils/useIOSDoneOnBlur";
 
 // ── SplittingHeroEditor-scoped styles ──────────────
 const typeSwitchWrapper =
@@ -159,17 +160,10 @@ export const SplittingHeroEditor: React.FC<SplittingHeroEditorProps> = ({
     setTimeout(() => (ev.target.style.opacity = "1"));
   };
 
-  const handleIOsDone = (
-    ev: React.FocusEvent<HTMLInputElement, HTMLElement>,
-  ) => {
-    if (ev.relatedTarget === null) {
-      if (saveDisabled) {
-        return;
-      }
-
-      onSave();
-    }
-  };
+  const handleIOsDone = useIOSDoneOnBlur(
+    onSave,
+    () => !saveDisabled,
+  );
 
   const editorCard = (
     <ReceiptCard

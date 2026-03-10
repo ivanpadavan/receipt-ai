@@ -30,6 +30,7 @@ import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { useUser } from "@/context/AuthContext";
 import { cn } from "@/utils/cn";
 import { apiClient } from "@/app/api-client";
+import { useIOSDoneOnBlur } from "@/app/receipt/utils/useIOSDoneOnBlur";
 import {
   rowContentPaddingVariants,
   avatarSizeVariants,
@@ -113,6 +114,13 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
       setIsAdding(false);
     }
   };
+
+  const handleNewParticipantBlur = useIOSDoneOnBlur(
+    () => {
+      void handleAddParticipant();
+    },
+    () => Boolean(trimmedNewName) && !hasNameConflict,
+  );
 
   const handleDeleteClick = (participant: ParticipantDTO) => {
     setDeleteConfirm({
@@ -293,6 +301,7 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
                   value={newParticipantName}
                   onChange={(e) => setNewParticipantName(e.target.value)}
                   onKeyDown={handleKeyDown}
+                  onBlur={handleNewParticipantBlur}
                   placeholder={t("newParticipantNamePlaceholder")}
                   className={cn("flex-1", addInput)}
                 />
