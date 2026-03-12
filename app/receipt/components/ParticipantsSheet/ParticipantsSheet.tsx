@@ -197,7 +197,6 @@ export const ParticipantsSheet: React.FC<ParticipantsSheetProps> = ({
             return (
               <ReceiptCard
                 key={participant.id}
-                interactive
                 shadow="md"
                 radius="xl"
                 className="mb-2"
