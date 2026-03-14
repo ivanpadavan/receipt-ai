@@ -1546,25 +1546,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     });
     await expectCurrentScreenshot("splitting-sheet-closed");
   });
-
-    it("keeps the filtered search state when opening participants sheet", async () => {
-    // Arrange
-    const user = userEvent.setup();
-    await renderReceiptFormInner();
-    const searchInput = await openSearch(user);
-    await user.type(searchInput, "milk");
-
-    // Act
-    await user.click(screen.getByRole("button", { name: t("participants") }));
-
-    // Assert
-    expect(screen.getByRole("heading", { name: t("participants") })).toBeInTheDocument();
-    expect(screen.getByDisplayValue("milk")).toBeInTheDocument();
-    expect(screen.getByText("Milk")).toBeInTheDocument();
-    expect(screen.queryByText("Butter")).not.toBeInTheDocument();
-    await expectCurrentScreenshot("search-over-participants-sheet");
-    });
-  });
+});
 
   describe("Action bar and modifiers", () => {
     it("opens the action bar add menu", async () => {

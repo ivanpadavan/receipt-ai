@@ -10,6 +10,7 @@ export default defineConfig({
     include: [
       '@testing-library/jest-dom/vitest',
       '@radix-ui/react-select',
+      '@ngneat/elf',
     ],
   },
   test: {

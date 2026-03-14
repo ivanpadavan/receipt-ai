@@ -52,15 +52,19 @@ async function requestWrapper<T extends ApiValidator>(
  */
 export const apiClient = {
   /**
-   * Process an image and send it to the receipt API
-   * @param imageBase64 - Base64 encoded image data
+   * Process images and send them to the receipt API
+   * @param imagesBase64 - Base64 encoded image data array
    * @returns Promise with the receipt data including ID
    */
-  async createReceipt(imageBase64: string) {
-    const image = await import("@/utils/imageProcessing").then(
-      ({ processImage }) => processImage(imageBase64),
+  async createReceipt(imagesBase64: string[]) {
+    const images = await Promise.all(
+      imagesBase64.map((imageBase64) =>
+        import("@/utils/imageProcessing").then(
+          ({ processImage }) => processImage(imageBase64),
+        ),
+      ),
     );
-    return requestWrapper("/api/receipt", "POST", postValidator, { image });
+    return requestWrapper("/api/receipt", "POST", postValidator, { images });
   },
 
   async updateReceipt(

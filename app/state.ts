@@ -10,20 +10,31 @@ import {
 import { createStore, emitOnce, withProps } from "@ngneat/elf";
 import { catchError, EMPTY, finalize, from, merge, switchMap } from "rxjs";
 
+export interface UploadedReceiptImage {
+  originalImageBase64: string;
+  croppedImageBase64: string;
+  crop: { x: number; y: number };
+  zoom: number;
+  aspect: number;
+}
+
 type PictureState =
   | {
       status: "idle";
-      appendPicture: (imageBase64: string) => void;
+      appendPicture: (image: UploadedReceiptImage) => void;
     }
   | {
       status: "picture-in";
-      imageBase64: string;
+      images: UploadedReceiptImage[];
+      appendPicture: (image: UploadedReceiptImage) => void;
+      removePicture: (index: number) => void;
+      updatePicture: (index: number, image: UploadedReceiptImage) => void;
       clear: () => void;
       proceed: () => void;
     }
   | {
       status: "loading";
-      imageBase64: string;
+      images: UploadedReceiptImage[];
     };
 
 interface ErrorState {
@@ -39,22 +50,39 @@ export interface PageState {
 
 const parseReceipt = createAction(
   "parseReceipt",
-  props<{ imageBase64: string }>(),
+  props<{ images: UploadedReceiptImage[] }>(),
 );
 
 export const pageState$ = () => {
-  const proceed = (imageBase64: string) => {
-    dispatch(parseReceipt({ imageBase64 }));
-    updatePicture({ status: "loading", imageBase64 });
+  const proceed = (images: UploadedReceiptImage[]) => {
+    dispatch(parseReceipt({ images }));
+    updatePicture({ status: "loading", images });
   };
 
-  const appendPicture = (imageBase64: string) =>
-    updatePicture({
+  const createPictureInState = (images: UploadedReceiptImage[]): PictureState => ({
       status: "picture-in",
-      imageBase64,
+      images,
+      appendPicture: (image) => updatePicture(createPictureInState([...images, image])),
+      removePicture: (index) => {
+        const nextImages = images.filter((_, imageIndex) => imageIndex !== index);
+        if (nextImages.length === 0) {
+          updatePicture(initialPictureState);
+          return;
+        }
+        updatePicture(createPictureInState(nextImages));
+      },
+      updatePicture: (index, image) =>
+        updatePicture(createPictureInState(
+          images.map((currentImage, imageIndex) =>
+            imageIndex === index ? image : currentImage,
+          ),
+        )),
       clear: () => updatePicture(initialPictureState),
-      proceed: () => proceed(imageBase64),
+      proceed: () => proceed(images),
     });
+
+  const appendPicture = (image: UploadedReceiptImage) =>
+    updatePicture(createPictureInState([image]));
 
   const initialPictureState: PictureState = {
     status: "idle",
@@ -83,8 +111,8 @@ export const pageState$ = () => {
 
   const parseReceipt$ = actions.pipe(
     ofType(parseReceipt),
-    switchMap(({ imageBase64 }) => {
-      return from(apiClient.createReceipt(imageBase64)).pipe(
+    switchMap(({ images }) => {
+      return from(apiClient.createReceipt(images.map((image) => image.croppedImageBase64))).pipe(
         switchMap((data) => {
           store.update((state) => ({
             ...state,
@@ -94,7 +122,7 @@ export const pageState$ = () => {
         }),
         catchError((err) => {
           emitOnce(() => {
-            appendPicture(imageBase64);
+            updatePicture(createPictureInState(images));
             setError(
               err instanceof Error
                 ? err.message
