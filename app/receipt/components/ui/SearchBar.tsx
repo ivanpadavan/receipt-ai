@@ -60,9 +60,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                   type="text"
                   value={searchQuery}
                   autoFocus
-                  onChange={(event) =>
-                    onSearchQueryChange?.(event.target.value)
-                  }
+                  onChange={(event) => {
+                    const nextQuery = event.target.value;
+                    if (!searchQuery.trim() && nextQuery.trim()) {
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }
+                    onSearchQueryChange?.(nextQuery);
+                  }}
                   onBlur={(event) => {
                     if (event.target.value.trim()) return;
                     onRequestClose?.();

@@ -18,6 +18,14 @@ import {
   createSecondReceiptFixtureFile,
 } from "@/app/__tests__/HomePage.browser.fixtures";
 
+const createReceiptMock = vi.fn();
+
+vi.mock("@/app/api-client", () => ({
+  apiClient: {
+    createReceipt: (...args: unknown[]) => createReceiptMock(...args),
+  },
+}));
+
 let browserScreen: BrowserRenderResult | null = null;
 let activeLanguage: Language = "en";
 
@@ -75,11 +83,23 @@ async function uploadReceiptImage(
   });
 }
 
+function createDeferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+
+  return { promise, resolve, reject };
+}
+
 describe.each<Language>(["en"])("Home page (%s)", (language) => {
   beforeEach(async () => {
     activeLanguage = language;
     setLanguage(activeLanguage);
     vi.clearAllMocks();
+    createReceiptMock.mockResolvedValue({ id: "receipt-1" });
     await page.viewport(VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
     await waitForDocumentInteractivity();
   });
@@ -118,6 +138,26 @@ describe.each<Language>(["en"])("Home page (%s)", (language) => {
     await expectCurrentScreenshot("home-single-image-overlay");
   });
 
+  it("shows loading state after tapping done", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const deferred = createDeferred<{ id: string }>();
+    createReceiptMock.mockReturnValueOnce(deferred.promise);
+    await renderHomePage();
+    await uploadReceiptImage(user, await createFirstReceiptFixtureFile(), 1);
+
+    // Act
+    await user.click(screen.getByRole("button", { name: t("done") }));
+
+    // Assert
+    await waitFor(() => {
+      expect(screen.getByText(t("processingReceipt"))).toBeInTheDocument();
+    });
+    await expectCurrentScreenshot("home-loading-after-done");
+
+    deferred.resolve({ id: "receipt-1" });
+  });
+
   it("adds a second image and shows the multi-image overlay", async () => {
     // Arrange
     const user = userEvent.setup();
@@ -148,6 +188,7 @@ describe.each<Language>(["en"])("Home page (%s)", (language) => {
 
     // Assert
     expect(await screen.findByRole("heading", { name: t("cropReceiptImage") })).toBeInTheDocument();
+    await new Promise((resolve) => window.setTimeout(resolve, 350));
     await expectCurrentScreenshot("home-edit-existing-image");
   });
 
@@ -171,7 +212,7 @@ describe.each<Language>(["en"])("Home page (%s)", (language) => {
     await expectCurrentScreenshot("home-after-remove-single-image");
 
     // Act
-    await user.click(screen.getByRole("button", { name: t("clearImage") }));
+    await user.click(screen.getByRole("button", { name: t("removeImage") }));
 
     // Assert
     expect(screen.queryByRole("img", { name: `${t("receiptImageAlt")} 1` })).not.toBeInTheDocument();

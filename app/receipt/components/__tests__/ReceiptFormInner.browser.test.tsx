@@ -970,6 +970,21 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
   });
 
   describe("Search", () => {
+    it("smoothly scrolls to the top when the user starts typing in search", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const scrollToSpy = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    await renderReceiptFormInner();
+
+    // Act
+    const searchInput = await openSearch(user);
+    await user.type(searchInput, "m");
+
+    // Assert
+    expect(scrollToSpy).toHaveBeenCalledTimes(1);
+    expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: "smooth" });
+  });
+
     it("filters positions through search", async () => {
     // Arrange
     const user = userEvent.setup();
