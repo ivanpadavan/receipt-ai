@@ -31,17 +31,17 @@ export const ActionBar: React.FC<ActionBarProps> = ({
     <div
       className={cn(
         className,
-        "z-10 mx-auto mb-3 w-full max-w-3xl transition-transform duration-300 ease-out",
-        visible
-          ? "translate-y-0"
-          : "pointer-events-none translate-y-[calc(100%+1rem)]",
+        " pb-3 z-10 mx-auto w-full max-w-3xl overflow-hidden",
       )}
     >
       <div className="w-full px-5">
         <div
           className={cn(
-            "flex items-center justify-between p-2 backdrop-blur-2xl",
+            "flex items-center justify-between p-2 backdrop-blur-2xl transition-transform duration-300 ease-out",
             actionBar,
+            visible
+              ? "translate-y-0"
+              : "pointer-events-none translate-y-[calc(100%+1rem)]",
           )}
         >
           <IconActionGroup

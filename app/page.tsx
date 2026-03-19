@@ -4,23 +4,19 @@ import type { ImageUploadCropperResult } from "@/app/components/image-upload-cro
 import { pageState$ } from "@/app/state";
 import { forceSync, useObservable } from "@/hooks/rx/useObservable";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-import { Pencil, Plus, Trash2, X } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { t } from "@/app/i18n/translations";
 import { cn } from "@/utils/cn";
 import {
   cardPaddingVariants,
   errorBox,
   loadingSpinner,
-  screenShell,
   iconSizeVariants,
-  inlineGapVariants,
   textVariants,
   previewImage,
   uploadPanel,
-  btnShadow,
 } from "@/app/receipt/components/ui-styles";
 import { ImageUploadCropper } from "@/app/components/image-upload-cropper";
 import { ActionBar } from "@/app/receipt/components/ui/ActionBar";
@@ -53,11 +49,9 @@ function ReceiptUploadPanel({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "flex w-full flex-col items-center justify-center text-center disabled:cursor-not-allowed disabled:opacity-60",
+        "flex flex-col items-center justify-center text-center disabled:cursor-not-allowed disabled:opacity-60",
         uploadPanel,
-        compact
-          ? "h-full min-h-0 w-full gap-0 bg-amber-50/70 px-6 py-4"
-          : "h-full gap-4 px-6 py-8",
+        compact ? "gap-0 bg-amber-50/70" : "h-full w-full gap-4 p-4",
         className,
       )}
     >
@@ -81,9 +75,8 @@ function ReceiptUploadPanel({
             />
           </svg>
           <p
-            className={cn(
-              textVariants({ size: "base", weight: "semibold" }),
-            )}
+            className={cn(textVariants({ size: "base", weight: "semibold" }))}
+            style={{ lineHeight: "0" }}
           >
             {t("addReceiptImage")}
           </p>
@@ -108,21 +101,13 @@ function ReceiptUploadPanel({
               d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
             />
           </svg>
-          <p
-            className={cn(
-              textVariants({ size: "lg", weight: "semibold" }),
-            )}
-          >
+          <p className={cn(textVariants({ size: "lg", weight: "semibold" }))}>
             {t("uploadReceiptImage")}
           </p>
         </>
       )}
       {!compact ? (
-        <p
-          className={cn(
-            textVariants({ size: "sm", tone: "muted" }),
-          )}
-        >
+        <p className={cn(textVariants({ size: "sm", tone: "muted" }))}>
           {t("tapToSelectOrPaste")}
         </p>
       ) : null}
@@ -188,7 +173,10 @@ export default function ImagePastePage() {
   }, [editingIndex, images.length, loading]);
 
   // scroll to new length
-  useEffect(() => setActiveImageIndex(images.length - 1), [images.length]);
+  useEffect(
+    () => {images.length > 0 ? setActiveImageIndex(images.length - 1) : setActiveImageIndex(null)},
+    [images.length],
+  );
   // scroll on tap
   useEffect(() => {
     imageButtonRefs.current[activeImageIndex ?? -1]?.scrollIntoView({
@@ -222,7 +210,7 @@ export default function ImagePastePage() {
       {({ captureSupported, openCameraPicker, openFilePicker }) => (
         <div className={cn("relative flex h-full flex-1 flex-col px-4 pt-4")}>
           <div className="flex flex-1 flex-col items-center justify-center gap-4">
-            <div className="w-full max-w-md mx-auto">
+            <div className="w-full max-w-md mx-auto pb-4">
               <h1
                 className={cn(
                   "mb-6 text-center",
@@ -253,10 +241,10 @@ export default function ImagePastePage() {
                     )}
                   />
                   {images.length > 0 && (
-                    <div className="absolute inset-0 bg-white">
+                    <div className="absolute inset-0 flex h-full flex-col bg-white">
                       <div
                         className={cn(
-                          "flex h-full gap-3 overflow-x-auto overflow-y-hidden p-4",
+                          "flex min-h-0 flex-1 gap-3 overflow-x-auto overflow-y-hidden p-4",
                           images.length === 1
                             ? "justify-center"
                             : "justify-start",
@@ -278,101 +266,70 @@ export default function ImagePastePage() {
                             role="button"
                             tabIndex={0}
                             className={cn(
-                              "relative h-full w-auto shrink-0 overflow-hidden rounded-xl transition-shadow",
+                              "relative h-full w-auto shrink-0 overflow-hidden rounded-xl transition-shadow border",
                               activeImageIndex === index &&
                                 "shadow-[0_0_0_3px_rgba(245,158,11,0.45)]",
                             )}
                           >
-                            {activeImageIndex === index ? (
-                              <div className="absolute right-3 bottom-3 z-10">
-                                <IconActionGroup
-                                  size="compact"
-                                  className="border-0"
-                                  actions={[
-                                    {
-                                      id: `edit-image-${index}`,
-                                      label: t("editImage"),
-                                      onClick: () => setEditingIndex(index),
-                                      icon: (
-                                        <Pencil
-                                          className={iconSizeVariants({
-                                            size: "sm",
-                                          })}
-                                        />
-                                      ),
-                                    },
-                                    ...("removePicture" in picture
-                                      ? [
-                                          {
-                                            id: `remove-image-${index}`,
-                                            label: t("removeImage"),
-                                            tone: "danger" as const,
-                                            onClick: () =>
-                                              picture.removePicture(index),
-                                            icon: (
-                                              <Trash2
-                                                className={iconSizeVariants({
-                                                  size: "sm",
-                                                })}
-                                              />
-                                            ),
-                                          },
-                                        ]
-                                      : []),
-                                  ]}
-                                />
-                              </div>
-                            ) : null}
                             <img
                               src={image.croppedImageBase64}
                               alt={`${t("receiptImageAlt")} ${index + 1}`}
-                              className={cn(
-                                "h-full w-auto max-w-none object-contain rounded-xl",
-                                previewImage,
-                              )}
+                              className={cn(previewImage)}
                             />
                           </div>
                         ))}
                       </div>
+                      <div className="shrink-0 p-4 flex gap-1">
+                        <ReceiptUploadPanel
+                          onClick={openFilePicker}
+                          compact={true}
+                          className="shrink-0 flex-1 rounded-full"
+                        />
+                        <IconActionGroup
+                          size="compact"
+                          className={
+                            activeImageIndex === null || loading
+                              ? "opacity-0"
+                              : "opacity-100"
+                          }
+                          actions={[
+                            {
+                              id: `edit-image-${activeImageIndex}`,
+                              label: t("editImage"),
+                              onClick: () => setEditingIndex(activeImageIndex),
+                              icon: (
+                                <Pencil
+                                  className={iconSizeVariants({
+                                    size: "sm",
+                                  })}
+                                />
+                              ),
+                            },
+                            ...("removePicture" in picture &&
+                            activeImageIndex !== null
+                              ? [
+                                  {
+                                    id: `remove-image-${activeImageIndex}`,
+                                    label: t("removeImage"),
+                                    tone: "danger" as const,
+                                    onClick: () =>
+                                      picture.removePicture(activeImageIndex),
+                                    icon: (
+                                      <Trash2
+                                        className={iconSizeVariants({
+                                          size: "sm",
+                                        })}
+                                      />
+                                    ),
+                                  },
+                                ]
+                              : []),
+                          ]}
+                        />
+                      </div>
                     </div>
                   )}
                 </Card>
-                <div className="flex h-full items-center justify-center">
-                  {captureSupported && (
-                    <Button
-                      type="button"
-                      onClick={openCameraPicker}
-                      disabled={loading}
-                      className={cn(
-                        "flex items-center",
-                        inlineGapVariants({ size: "sm" }),
-                        btnShadow,
-                      )}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className={iconSizeVariants({ size: "md" })}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
-                      {t("takePhoto")}
-                    </Button>
-                  )}
-                </div>
               </div>
               {editingIndex !== null && picture.status === "picture-in" ? (
                 <ImageUploadCropper
@@ -423,17 +380,40 @@ export default function ImagePastePage() {
             </div>
           </div>
           <ActionBar
-            className="sticky bottom-3"
-            visible={images.length > 0}
+            visible={true}
             leadingActions={[
-              {
-                id: "clear-images",
-                label: t("clearImage"),
-                tone: "danger",
-                disabled: !("clear" in picture) || loading,
-                onClick: "clear" in picture ? picture.clear : undefined,
-                icon: <X className={iconSizeVariants({ size: "sm" })} />,
-              },
+              ...(captureSupported
+                ? [
+                    {
+                      id: "take-photo",
+                      label: t("takePhoto"),
+                      disabled: loading,
+                      onClick: openCameraPicker,
+                      icon: (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className={iconSizeVariants({ size: "sm" })}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                        </svg>
+                      ),
+                    },
+                  ]
+                : []),
               {
                 id: "add-image",
                 label: t("addReceiptImage"),

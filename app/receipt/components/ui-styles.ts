@@ -458,7 +458,7 @@ export const dialogFooter = "sm:flex-row sm:items-stretch";
 export const dialogContent = "max-w-md";
 export const dialogContentWide = "max-w-lg";
 export const dialogBodySpacing = "mt-4";
-export const previewImage = `object-contain ${radiusTokens.sm}`;
+export const previewImage = `h-full w-auto max-w-none object-contain`;
 export const btnShadow = shadowTokens.md;
 export const uploadPanel =
   `${radiusTokens.xl} border-2 border-dashed border-amber-200 bg-amber-50/40 hover:bg-amber-50 transition-colors`;

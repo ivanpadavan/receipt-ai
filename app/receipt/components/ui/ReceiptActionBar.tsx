@@ -215,7 +215,7 @@ export const ReceiptActionBar: React.FC<ReceiptActionBarProps> = ({
 
   return (
     <ActionBar
-      className="sticky bottom-3"
+      className="sticky bottom-0"
       visible={!isSearchOpen}
       leadingActions={leadingActions}
       onPrimaryAction={onPrimaryAction}
