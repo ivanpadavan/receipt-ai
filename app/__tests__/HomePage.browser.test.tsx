@@ -158,6 +158,24 @@ describe.each<Language>(["en"])("Home page (%s)", (language) => {
     deferred.resolve({ id: "receipt-1" });
   });
 
+  it("shows an error state when receipt processing fails", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const errorMessage = "Failed to process receipt";
+    createReceiptMock.mockRejectedValueOnce(new Error(errorMessage));
+    await renderHomePage();
+    await uploadReceiptImage(user, await createFirstReceiptFixtureFile(), 1);
+
+    // Act
+    await user.click(screen.getByRole("button", { name: t("done") }));
+
+    // Assert
+    await waitFor(() => {
+      expect(screen.getByText(errorMessage)).toBeInTheDocument();
+    });
+    await expectCurrentScreenshot("home-processing-error");
+  });
+
   it("adds a second image and shows the multi-image overlay", async () => {
     // Arrange
     const user = userEvent.setup();
