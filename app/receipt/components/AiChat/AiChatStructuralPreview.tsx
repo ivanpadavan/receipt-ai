@@ -1,8 +1,11 @@
 "use client";
 
 import React from "react";
+import { AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
-import { useMoneyFormatter } from "@/app/receipt/components/receipt-context";
+import { useMoneyFormatter, useReceiptState } from "@/app/receipt/components/receipt-context";
+import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { cn } from "@/utils/cn";
 import {
   textVariants,
@@ -10,6 +13,7 @@ import {
   stackGapVariants,
 } from "@/app/receipt/components/ui-styles";
 import { t } from "@/app/i18n/translations";
+import type { ParticipantDTO, Receipt } from "@/model/receipt/model";
 import type { ReceiptChatResponse } from "@/model/receipt/schema-chat";
 
 type StructuralReceipt = Extract<
@@ -17,16 +21,356 @@ type StructuralReceipt = Extract<
   { type: "structural_preview" }
 >["receipt"];
 
+type DiffStatus = "unchanged" | "added" | "removed" | "changed";
+
+export type StructuralLossWarning = {
+  id: string;
+  text: string;
+};
+
+type DiffEntry<T> = {
+  index: number;
+  status: DiffStatus;
+  current?: T;
+  next?: T;
+};
+
 interface AiChatStructuralPreviewProps {
   receipt: StructuralReceipt;
+  onApply?: () => void;
+}
+
+const diffStatusStyles: Record<DiffStatus, string> = {
+  unchanged: "border-border/40 bg-background/70",
+  added: "border-emerald-300/70 bg-emerald-50/70",
+  removed: "border-rose-300/70 bg-rose-50/70",
+  changed: "border-amber-300/80 bg-amber-50/70",
+};
+
+function buildSequentialDiffs<T>(
+  currentItems: T[],
+  nextItems: T[],
+  areEqual: (currentItem: T, nextItem: T) => boolean,
+) {
+  const maxLength = Math.max(currentItems.length, nextItems.length);
+
+  return Array.from({ length: maxLength }, (_, index): DiffEntry<T> => {
+    const current = currentItems[index];
+    const next = nextItems[index];
+
+    if (current && next) {
+      return areEqual(current, next)
+        ? { index, status: "unchanged", current, next }
+        : { index, status: "changed", current, next };
+    }
+
+    if (next) {
+      return { index, status: "added", next };
+    }
+
+    if (current) {
+      return { index, status: "removed", current };
+    }
+
+    return { index, status: "unchanged" };
+  });
+}
+
+function formatPositionSummary(
+  position: StructuralReceipt["positions"][number],
+  currencySymbol: string,
+  formatMoney: (value: number, currencySymbolOverride?: string) => string,
+) {
+  return `${position.quantity} × ${formatMoney(position.price, currencySymbol)} = ${formatMoney(position.overall, currencySymbol)}`;
+}
+
+function formatModifierSummary(
+  modifier: StructuralReceipt["fees"][number] | StructuralReceipt["discounts"][number],
+  currencySymbol: string,
+  formatMoney: (value: number, currencySymbolOverride?: string) => string,
+) {
+  return formatMoney(modifier.value, currencySymbol);
+}
+
+function formatTotalsSummary(
+  value: number,
+  currencySymbol: string,
+  formatMoney: (value: number, currencySymbolOverride?: string) => string,
+) {
+  return formatMoney(value, currencySymbol);
+}
+
+function arePositionsEqual(
+  left: StructuralReceipt["positions"][number],
+  right: StructuralReceipt["positions"][number],
+) {
+  return (
+    left.name === right.name &&
+    left.price === right.price &&
+    left.quantity === right.quantity &&
+    left.overall === right.overall
+  );
+}
+
+function areModifiersEqual(
+  left: StructuralReceipt["fees"][number] | StructuralReceipt["discounts"][number],
+  right: StructuralReceipt["fees"][number] | StructuralReceipt["discounts"][number],
+) {
+  return left.name === right.name && left.value === right.value;
+}
+
+function areTotalsEqual(
+  left: StructuralReceipt["totals"],
+  right: StructuralReceipt["totals"],
+) {
+  return left.total === right.total && left.grandTotal === right.grandTotal;
+}
+
+function getParticipantNames(
+  participantIds: string[],
+  participants: ParticipantDTO[],
+) {
+  return participantIds
+    .map((participantId) => {
+      const participant = participants.find((item) => item.id === participantId);
+      return participant?.displayName ?? participantId;
+    })
+    .join(", ");
+}
+
+export function buildStructuralLossWarnings(
+  currentReceipt: Receipt,
+  previewReceipt: StructuralReceipt,
+  participants: ParticipantDTO[],
+  currencySymbol: string,
+  formatMoney: (value: number, currencySymbolOverride?: string) => string,
+) {
+  const warnings: StructuralLossWarning[] = [];
+
+  currentReceipt.positions.forEach((position, positionIndex) => {
+    const previewMatch = previewReceipt.positions[positionIndex];
+    const hasExactMatch = Boolean(previewMatch && arePositionsEqual(position, previewMatch));
+
+    if (hasExactMatch || position.claims.length === 0) {
+      return;
+    }
+
+    position.claims.forEach((claim, claimIndex) => {
+      const participantLabel = getParticipantNames(claim.participantIds, participants);
+      const claimLabel =
+        claim.type === "quantity"
+          ? `${claim.value} ${t("pcs")}`
+          : formatMoney(claim.value, currencySymbol);
+
+      warnings.push({
+        id: `${position.id}-${claim.id}-${claimIndex}`,
+        text: `${participantLabel} — ${position.name} ${claimLabel}`,
+      });
+    });
+  });
+
+  return warnings;
+}
+
+function DiffSection<T>({
+  title,
+  diffs,
+  renderLabel,
+  renderSummary,
+  renderValue,
+}: {
+  title: string;
+  diffs: Array<DiffEntry<T>>;
+  renderLabel: (entry: DiffEntry<T>) => string;
+  renderSummary: (entry: DiffEntry<T>) => { current?: string; next?: string };
+  renderValue: (entry: DiffEntry<T>) => { current?: string; next?: string };
+}) {
+  if (diffs.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className={stackGapVariants({ size: "xs" })}>
+      <div className={textVariants({ size: "sm", weight: "medium", tone: "muted" })}>
+        {title}
+      </div>
+      {diffs.map((entry) => {
+        const label = renderLabel(entry);
+        const summary = renderSummary(entry);
+        const value = renderValue(entry);
+        const isChanged = entry.status !== "unchanged";
+
+        return (
+          <div
+            key={`${title}-${entry.index}`}
+            className={cn(
+              "rounded-2xl border px-3 py-2",
+              diffStatusStyles[entry.status],
+            )}
+          >
+            <div className={cn(rowVariants({ align: "center", justify: "between", width: "full" }), "gap-3")}>
+              <div className="min-w-0 flex-1 space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className={textVariants({ size: "sm", weight: "semibold" })}>
+                    {label}
+                  </div>
+                  {entry.status !== "unchanged" && (
+                    <span
+                      className={cn(
+                        "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]",
+                        entry.status === "added" &&
+                          "bg-emerald-200/80 text-emerald-900",
+                        entry.status === "removed" &&
+                          "bg-rose-200/80 text-rose-900",
+                        entry.status === "changed" &&
+                          "bg-amber-200/80 text-amber-950",
+                      )}
+                    >
+                      {entry.status === "added"
+                        ? t("aiChatStructuralPreviewAdded")
+                        : entry.status === "removed"
+                          ? t("aiChatStructuralPreviewRemoved")
+                          : t("aiChatStructuralPreviewChanged")}
+                    </span>
+                  )}
+                </div>
+                {(summary.current || summary.next) && (
+                  <div className={textVariants({ size: "xs", tone: "muted" })}>
+                    {entry.status === "changed" ? (
+                      <>
+                        {summary.current && (
+                          <span className="line-through opacity-70">
+                            {summary.current}
+                          </span>
+                        )}
+                        {summary.next && (
+                          <span className="ml-2 font-medium text-foreground">
+                            {summary.next}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span
+                        className={cn(
+                          entry.status === "removed" && "line-through opacity-70",
+                          entry.status === "added" && "font-medium text-foreground",
+                        )}
+                      >
+                        {summary.next ?? summary.current}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+              {(value.current || value.next) && (
+                <div className={cn("shrink-0 text-right", textVariants({ size: "sm", weight: "semibold" }))}>
+                  {entry.status === "changed" ? (
+                    <div className="space-y-0.5">
+                      {value.current && (
+                        <div className="text-xs font-normal text-muted-foreground line-through">
+                          {value.current}
+                        </div>
+                      )}
+                      {value.next && <div>{value.next}</div>}
+                    </div>
+                  ) : (
+                    <div
+                      className={cn(
+                        entry.status === "removed" && "line-through opacity-70",
+                        entry.status === "added" && "text-foreground",
+                      )}
+                    >
+                      {value.next ?? value.current}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export function AiChatLossWarningBlock({
+  title,
+  description,
+  warnings,
+}: {
+  title: string;
+  description: string;
+  warnings: StructuralLossWarning[];
+}) {
+  if (warnings.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-2xl border border-amber-300/80 bg-amber-50/80 px-4 py-3">
+      <div className="flex items-start gap-3">
+        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className={textVariants({ size: "sm", weight: "semibold" })}>
+            {title}
+          </div>
+          <div className={textVariants({ size: "xs", tone: "muted" })}>
+            {description}
+          </div>
+          <ul className="space-y-1">
+            {warnings.map((warning) => (
+              <li
+                key={warning.id}
+                className={cn(
+                  "rounded-xl bg-white/70 px-3 py-2",
+                  textVariants({ size: "sm" }),
+                )}
+              >
+                {warning.text}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export const AiChatStructuralPreview: React.FC<AiChatStructuralPreviewProps> = ({
   receipt,
+  onApply,
 }) => {
   const { currencySymbol, formatMoney } = useMoneyFormatter();
+  const { scenario } = useReceiptState();
+  const participants = useParticipantsStore((state) => state.participants);
+  const currentReceipt = scenario.form.getValues() as Receipt;
   const receiptCurrency = receipt.meta.currencySymbol ?? currencySymbol;
   const title = receipt.meta.title ?? t("receipt");
+  const currentTitle = currentReceipt.meta.title ?? t("receipt");
+
+  const positionDiffs = buildSequentialDiffs(
+    currentReceipt.positions,
+    receipt.positions,
+    arePositionsEqual,
+  );
+  const feeDiffs = buildSequentialDiffs(currentReceipt.fees, receipt.fees, areModifiersEqual);
+  const discountDiffs = buildSequentialDiffs(
+    currentReceipt.discounts,
+    receipt.discounts,
+    areModifiersEqual,
+  );
+  const totalDiffs = buildSequentialDiffs(
+    [currentReceipt.totals],
+    [receipt.totals],
+    areTotalsEqual,
+  );
+  const warnings = buildStructuralLossWarnings(
+    currentReceipt,
+    receipt,
+    participants,
+    receiptCurrency,
+    formatMoney,
+  );
 
   return (
     <ReceiptCard shadow="sm" radius="xl" tone="soft" className="overflow-hidden">
@@ -36,104 +380,133 @@ export const AiChatStructuralPreview: React.FC<AiChatStructuralPreviewProps> = (
             {t("aiChatStructuralPreview")}
           </div>
           <div className={textVariants({ size: "lg", weight: "semibold" })}>
-            {title}
+            {currentTitle === title ? (
+              title
+            ) : (
+              <>
+                <span className="line-through opacity-70">{currentTitle}</span>
+                <span className="ml-2">{title}</span>
+              </>
+            )}
           </div>
         </div>
 
         <div className={stackGapVariants({ size: "sm" })}>
-          {receipt.positions.length > 0 && (
-            <div className={stackGapVariants({ size: "xs" })}>
-              <div className={textVariants({ size: "sm", weight: "medium", tone: "muted" })}>
-                {t("positions")}
-              </div>
-              {receipt.positions.map((position, index) => (
-                <div
-                  key={`${position.name}-${index}`}
-                  className={cn(
-                    rowVariants({ align: "center", justify: "between", width: "full" }),
-                    "rounded-xl bg-background/70 px-3 py-2",
-                  )}
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className={textVariants({ size: "sm", weight: "semibold" })}>
-                      {position.name}
-                    </div>
-                    <div className={textVariants({ size: "xs", tone: "muted" })}>
-                      {position.quantity} x {formatMoney(position.price, receiptCurrency)}
-                    </div>
-                  </div>
-                  <div className={textVariants({ size: "sm", weight: "semibold" })}>
-                    {formatMoney(position.overall, receiptCurrency)}
-                  </div>
-                </div>
-              ))}
-            </div>
+          <DiffSection
+            title={t("positions")}
+            diffs={positionDiffs}
+            renderLabel={(entry) =>
+              (entry.next ?? entry.current)?.name ?? t("positions")
+            }
+            renderSummary={(entry) => {
+              const current = entry.current
+                ? formatPositionSummary(entry.current, receiptCurrency, formatMoney)
+                : undefined;
+              const next = entry.next
+                ? formatPositionSummary(entry.next, receiptCurrency, formatMoney)
+                : undefined;
+              return { current, next };
+            }}
+            renderValue={(entry) => {
+              const current = entry.current
+                ? formatMoney(entry.current.overall, receiptCurrency)
+                : undefined;
+              const next = entry.next
+                ? formatMoney(entry.next.overall, receiptCurrency)
+                : undefined;
+              return { current, next };
+            }}
+          />
+
+          <DiffSection
+            title={t("fees")}
+            diffs={feeDiffs}
+            renderLabel={(entry) =>
+              (entry.next ?? entry.current)?.name ?? t("fees")
+            }
+            renderSummary={(entry) => ({
+              current: entry.current
+                ? formatModifierSummary(entry.current, receiptCurrency, formatMoney)
+                : undefined,
+              next: entry.next
+                ? formatModifierSummary(entry.next, receiptCurrency, formatMoney)
+                : undefined,
+            })}
+            renderValue={(entry) => ({
+              current: entry.current
+                ? formatModifierSummary(entry.current, receiptCurrency, formatMoney)
+                : undefined,
+              next: entry.next
+                ? formatModifierSummary(entry.next, receiptCurrency, formatMoney)
+                : undefined,
+            })}
+          />
+
+          <DiffSection
+            title={t("discounts")}
+            diffs={discountDiffs}
+            renderLabel={(entry) =>
+              (entry.next ?? entry.current)?.name ?? t("discounts")
+            }
+            renderSummary={(entry) => ({
+              current: entry.current
+                ? formatModifierSummary(entry.current, receiptCurrency, formatMoney)
+                : undefined,
+              next: entry.next
+                ? formatModifierSummary(entry.next, receiptCurrency, formatMoney)
+                : undefined,
+            })}
+            renderValue={(entry) => ({
+              current: entry.current
+                ? formatModifierSummary(entry.current, receiptCurrency, formatMoney)
+                : undefined,
+              next: entry.next
+                ? formatModifierSummary(entry.next, receiptCurrency, formatMoney)
+                : undefined,
+            })}
+          />
+
+          <DiffSection
+            title={t("total")}
+            diffs={totalDiffs}
+            renderLabel={() => t("total")}
+            renderSummary={(entry) => ({
+              current: entry.current
+                ? formatTotalsSummary(entry.current.total, receiptCurrency, formatMoney)
+                : undefined,
+              next: entry.next
+                ? formatTotalsSummary(entry.next.total, receiptCurrency, formatMoney)
+                : undefined,
+            })}
+            renderValue={(entry) => ({
+              current: entry.current
+                ? formatTotalsSummary(entry.current.grandTotal, receiptCurrency, formatMoney)
+                : undefined,
+              next: entry.next
+                ? formatTotalsSummary(entry.next.grandTotal, receiptCurrency, formatMoney)
+                : undefined,
+            })}
+          />
+
+          {warnings.length > 0 && (
+            <AiChatLossWarningBlock
+              title={t("aiChatStructuralPreviewLossesTitle")}
+              description={t("aiChatStructuralPreviewLossesText")}
+              warnings={warnings}
+            />
           )}
 
-          {receipt.fees.length > 0 && (
-            <div className={stackGapVariants({ size: "xs" })}>
-              <div className={textVariants({ size: "sm", weight: "medium", tone: "muted" })}>
-                {t("fees")}
-              </div>
-              {receipt.fees.map((fee, index) => (
-                <div
-                  key={`${fee.name}-${index}`}
-                  className={cn(
-                    rowVariants({ align: "center", justify: "between", width: "full" }),
-                    "rounded-xl bg-background/70 px-3 py-2",
-                  )}
-                >
-                  <div className={textVariants({ size: "sm", weight: "semibold" })}>
-                    {fee.name}
-                  </div>
-                  <div className={textVariants({ size: "sm", weight: "semibold" })}>
-                    {formatMoney(fee.value, receiptCurrency)}
-                  </div>
-                </div>
-              ))}
+          {onApply && (
+            <div className="pt-1">
+              <Button
+                type="button"
+                onClick={onApply}
+                className="w-full rounded-full sm:w-auto"
+              >
+                {t("aiChatStructuralPreviewReviewChanges")}
+              </Button>
             </div>
           )}
-
-          {receipt.discounts.length > 0 && (
-            <div className={stackGapVariants({ size: "xs" })}>
-              <div className={textVariants({ size: "sm", weight: "medium", tone: "muted" })}>
-                {t("discounts")}
-              </div>
-              {receipt.discounts.map((discount, index) => (
-                <div
-                  key={`${discount.name}-${index}`}
-                  className={cn(
-                    rowVariants({ align: "center", justify: "between", width: "full" }),
-                    "rounded-xl bg-background/70 px-3 py-2",
-                  )}
-                >
-                  <div className={textVariants({ size: "sm", weight: "semibold" })}>
-                    {discount.name}
-                  </div>
-                  <div className={textVariants({ size: "sm", weight: "semibold" })}>
-                    {formatMoney(discount.value, receiptCurrency)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className={cn("rounded-xl bg-white/80 px-3 py-2", rowVariants({ align: "center", justify: "between", width: "full" }))}>
-            <div className={textVariants({ size: "sm", tone: "muted" })}>
-              {t("total")}
-            </div>
-            <div className={textVariants({ size: "sm", weight: "semibold" })}>
-              {formatMoney(receipt.totals.total, receiptCurrency)}
-            </div>
-          </div>
-          <div className={cn("rounded-xl bg-white/90 px-3 py-2", rowVariants({ align: "center", justify: "between", width: "full" }))}>
-            <div className={textVariants({ size: "sm", tone: "muted" })}>
-              {t("grandTotal")}
-            </div>
-            <div className={textVariants({ size: "sm", weight: "semibold" })}>
-              {formatMoney(receipt.totals.grandTotal, receiptCurrency)}
-            </div>
-          </div>
         </div>
       </div>
     </ReceiptCard>

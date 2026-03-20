@@ -1,6 +1,6 @@
 import React from "react";
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi, beforeEach } from "vitest";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AiChatDialog } from "../AiChatDialog";
 import { ReceiptFormContext } from "@/app/receipt/components/receipt-context";
@@ -52,7 +52,54 @@ function createReceipt(overrides: Partial<Receipt> = {}): Receipt {
   };
 }
 
-function renderWithContext(ui: React.ReactElement) {
+function createStructuralWarningReceipt(): Receipt {
+  return {
+    meta: {
+      title: "Receipt",
+      currencySymbol: "₽",
+    },
+    positions: [
+      {
+        id: "pos-1",
+        name: "Burger",
+        price: 100,
+        quantity: 1,
+        overall: 100,
+        claims: [
+          {
+            id: "claim-1",
+            type: "quantity",
+            value: 1,
+            participantIds: ["participant-1"],
+          },
+        ],
+      },
+      {
+        id: "pos-2",
+        name: "Soda",
+        price: 50,
+        quantity: 1,
+        overall: 50,
+        claims: [
+          {
+            id: "claim-2",
+            type: "quantity",
+            value: 1,
+            participantIds: ["participant-1"],
+          },
+        ],
+      },
+    ],
+    fees: [],
+    discounts: [],
+    totals: {
+      total: 150,
+      grandTotal: 150,
+    },
+  };
+}
+
+function renderWithContext(ui: React.ReactElement, receipt: Receipt = createReceipt()) {
   const formState = {
     scenario: {
       type: "summary",
@@ -63,7 +110,8 @@ function renderWithContext(ui: React.ReactElement) {
       },
       form: {
         getValues: (path?: string) => {
-          if (path === "meta.currencySymbol") return "₽";
+          if (!path) return receipt;
+          if (path === "meta.currencySymbol") return receipt.meta.currencySymbol;
           return undefined;
         },
       },
@@ -101,8 +149,81 @@ beforeEach(() => {
   });
 });
 
+afterEach(() => {
+  cleanup();
+});
+
 describe("AiChatDialog", () => {
-  it("renders question, structural preview, and claims preview responses", async () => {
+  it("renders structural diff rows and opens the confirm modal before apply", async () => {
+    sendReceiptChatMessageMock
+      .mockResolvedValueOnce({
+        type: "structural_preview",
+        receipt: {
+          meta: {
+            title: "Lunch draft",
+            currencySymbol: "₽",
+          },
+          positions: [
+            {
+              name: "Burger Deluxe",
+              price: 120,
+              quantity: 1,
+              overall: 120,
+            },
+            {
+              name: "Fries",
+              price: 50,
+              quantity: 1,
+              overall: 50,
+            },
+          ],
+          fees: [],
+          discounts: [],
+          totals: {
+            total: 170,
+            grandTotal: 170,
+          },
+        },
+        events: [],
+      })
+      .mockResolvedValueOnce({
+        type: "question",
+        message: "What should I change?\nKeep it short.",
+        events: [],
+      });
+
+    const user = userEvent.setup();
+
+    renderWithContext(
+      <AiChatDialog receiptId="receipt-1" receiptTitle="Receipt" />,
+      createReceipt(),
+    );
+
+    await user.click(screen.getByRole("button", { name: /ai/i }));
+    await user.type(
+      screen.getByPlaceholderText(/ask/i),
+      "Show a draft",
+    );
+    await user.click(screen.getByRole("button", { name: /send/i }));
+
+    expect(await screen.findByText("Burger Deluxe")).toBeInTheDocument();
+    expect(screen.getByText("Fries")).toBeInTheDocument();
+    expect(screen.getAllByText("Changed").length).toBeGreaterThan(1);
+    expect(screen.getByText("Added")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /review changes/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /review changes/i }));
+
+    const modal = await screen.findByRole("alertdialog");
+    expect(modal).toBeInTheDocument();
+    expect(within(modal).getByText(/apply structural changes\?/i)).toBeInTheDocument();
+    expect(within(modal).getByText(/claims that may be lost/i)).toBeInTheDocument();
+    expect(within(modal).getByText("Alice — Burger 100 ₽")).toBeInTheDocument();
+    expect(within(modal).getByRole("button", { name: /cancel/i })).toBeInTheDocument();
+    expect(within(modal).getByRole("button", { name: /apply/i })).toBeInTheDocument();
+  });
+
+  it("renders question, structural preview, and distributions preview responses", async () => {
     sendReceiptChatMessageMock
       .mockResolvedValueOnce({
         type: "question",
@@ -118,17 +239,17 @@ describe("AiChatDialog", () => {
           },
           positions: [
             {
-              name: "Burger",
-              price: 100,
+              name: "Burger Deluxe",
+              price: 120,
               quantity: 1,
-              overall: 100,
+              overall: 120,
             },
           ],
           fees: [],
           discounts: [],
           totals: {
-            total: 100,
-            grandTotal: 100,
+            total: 120,
+            grandTotal: 120,
           },
         },
         events: [],
@@ -146,7 +267,10 @@ describe("AiChatDialog", () => {
 
     const user = userEvent.setup();
 
-    renderWithContext(<AiChatDialog receiptId="receipt-1" receiptTitle="Receipt" />);
+    renderWithContext(
+      <AiChatDialog receiptId="receipt-1" receiptTitle="Receipt" />,
+      createStructuralWarningReceipt(),
+    );
 
     await user.click(screen.getByRole("button", { name: /ai/i }));
     await user.type(
@@ -179,14 +303,13 @@ describe("AiChatDialog", () => {
     await user.click(screen.getByRole("button", { name: /send/i }));
 
     expect(await screen.findByText("Lunch draft")).toBeInTheDocument();
-    expect(screen.getByText("Burger")).toBeInTheDocument();
+    expect(screen.getByText("Burger Deluxe")).toBeInTheDocument();
+    expect(screen.getByText("Removed")).toBeInTheDocument();
 
-    await user.type(screen.getByPlaceholderText(/ask/i), "Show claims preview");
+    await user.type(screen.getByPlaceholderText(/ask/i), "Show distributions preview");
     await user.click(screen.getByRole("button", { name: /send/i }));
 
-    expect(
-      await screen.findByText(/AI requested the original receipt photos/i),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/AI requested the original receipt photos/i)).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText("Alice")).toBeInTheDocument();

@@ -1,6 +1,6 @@
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, waitFor } from "@testing-library/react";
+import { act, fireEvent, waitFor, within } from "@testing-library/react";
 import { page } from "vitest/browser";
 import userEvent from "@testing-library/user-event";
 import { setLanguage, t, type Language } from "@/app/i18n/translations";
@@ -10,7 +10,6 @@ import { User } from "@supabase/supabase-js";
 import { cleanup, render, type RenderResult as BrowserRenderResult } from "vitest-browser-react";
 import {
   aiChatClaimsPreviewResponse,
-  aiChatStructuralPreviewResponse,
   amountMaxSwitchReceipt,
   fullyDistributedReceipt,
   invalidNameReceipt,
@@ -2158,7 +2157,48 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
   describe("AI chat", () => {
     it("renders a structural preview response in the chat dialog", async () => {
       const user = userEvent.setup();
-      sendReceiptChatMessageMock.mockResolvedValueOnce(aiChatStructuralPreviewResponse);
+      sendReceiptChatMessageMock.mockResolvedValueOnce({
+        type: "structural_preview",
+        receipt: {
+          meta: {
+            title: "AI draft",
+            currencySymbol: "$",
+          },
+          positions: [
+            {
+              name: "Milk",
+              price: 801,
+              quantity: 1,
+              overall: 801,
+            },
+            {
+              name: "Bread Deluxe",
+              price: 175,
+              quantity: 2,
+              overall: 350,
+            },
+            {
+              name: "Butter",
+              price: 220,
+              quantity: 1,
+              overall: 220,
+            },
+            {
+              name: "Juice",
+              price: 99,
+              quantity: 1,
+              overall: 99,
+            },
+          ],
+          fees: [],
+          discounts: [],
+          totals: {
+            total: 1470,
+            grandTotal: 1470,
+          },
+        },
+        events: [],
+      });
       await renderReceiptFormInner();
 
       await user.click(getAiChatButton());
@@ -2169,13 +2209,63 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       await waitFor(() => {
         expect(screen.getByText("AI draft")).toBeInTheDocument();
       });
-      expect(screen.getByText("Burger")).toBeInTheDocument();
-      expect(screen.getByText("Service")).toBeInTheDocument();
-      expect(screen.getByText("Promo")).toBeInTheDocument();
+      expect(screen.getByText("Bread Deluxe")).toBeInTheDocument();
+      expect(screen.getByText("Juice")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: t("aiChatStructuralPreviewReviewChanges") })).toBeInTheDocument();
       await expectCurrentScreenshot("ai-chat-structural-preview");
     });
 
-    it("renders a claims preview response in the chat dialog", async () => {
+    it("opens a structural confirm modal and shows lost claim warnings", async () => {
+      const user = userEvent.setup();
+      sendReceiptChatMessageMock.mockResolvedValueOnce({
+        type: "structural_preview",
+        receipt: {
+          meta: {
+            title: "AI draft",
+            currencySymbol: "$",
+          },
+          positions: [
+            {
+              name: "Milk",
+              price: 801,
+              quantity: 1,
+              overall: 801,
+            },
+          ],
+          fees: [],
+          discounts: [],
+          totals: {
+            total: 801,
+            grandTotal: 801,
+          },
+        },
+        events: [],
+      });
+      await renderReceiptFormInner({
+        participants: splittingParticipants,
+        receipt: summaryBalancedReceipt,
+      });
+
+      await user.click(getAiChatButton());
+      const prompt = screen.getByRole("textbox");
+      await user.type(prompt, "Show structural preview");
+      await user.click(screen.getByRole("button", { name: t("aiChatSend") }));
+
+      await waitFor(() => {
+        expect(screen.getByText("AI draft")).toBeInTheDocument();
+      });
+      expect(screen.getAllByText(t("aiChatStructuralPreviewRemoved")).length).toBeGreaterThan(0);
+      await user.click(screen.getByRole("button", { name: t("aiChatStructuralPreviewReviewChanges") }));
+
+      const modal = await screen.findByRole("alertdialog");
+      expect(modal).toBeInTheDocument();
+      expect(within(modal).getByText(`Anton — Bread 1 ${t("pcs")}`)).toBeInTheDocument();
+      expect(within(modal).getByText(`Polina — Bread 1 ${t("pcs")}`)).toBeInTheDocument();
+      expect(within(modal).getByText(`Ivan — Butter 1 ${t("pcs")}`)).toBeInTheDocument();
+      await expectCurrentScreenshot("ai-chat-structural-confirm-warning");
+    });
+
+    it("renders a distributions preview response in the chat dialog", async () => {
       const user = userEvent.setup();
       sendReceiptChatMessageMock.mockResolvedValueOnce(aiChatClaimsPreviewResponse);
       await renderReceiptFormInner({
@@ -2185,7 +2275,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
 
       await user.click(getAiChatButton());
       const prompt = screen.getByRole("textbox");
-      await user.type(prompt, "Show claims preview");
+      await user.type(prompt, "Show distributions preview");
       await user.click(screen.getByRole("button", { name: t("aiChatSend") }));
 
       await waitFor(() => {

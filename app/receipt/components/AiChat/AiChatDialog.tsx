@@ -2,6 +2,16 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { Bot, Send, Sparkles } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,12 +20,19 @@ import { cn } from "@/utils/cn";
 import { textVariants, rowVariants, stackGapVariants } from "@/app/receipt/components/ui-styles";
 import { t } from "@/app/i18n/translations";
 import { apiClient } from "@/app/api-client";
+import { useMoneyFormatter, useReceiptState } from "@/app/receipt/components/receipt-context";
+import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { SummaryScreen } from "@/app/receipt/components/SummaryScreen/SummaryScreen";
-import { AiChatStructuralPreview } from "@/app/receipt/components/AiChat/AiChatStructuralPreview";
+import {
+  AiChatLossWarningBlock,
+  AiChatStructuralPreview,
+  buildStructuralLossWarnings,
+} from "@/app/receipt/components/AiChat/AiChatStructuralPreview";
 import type {
   ReceiptChatResponse,
   ReceiptChatToolEvent,
 } from "@/model/receipt/schema-chat";
+import type { Receipt } from "@/model/receipt/model";
 
 type TranscriptEntry = {
   id: string;
@@ -37,6 +54,11 @@ interface AiChatDialogProps {
   receiptTitle?: string;
 }
 
+type StructuralPreviewResponse = Extract<
+  ReceiptChatResponse,
+  { type: "structural_preview" }
+>;
+
 const createId = () => crypto.randomUUID();
 
 function getAssistantTranscriptContent(response: ReceiptChatResponse) {
@@ -52,7 +74,10 @@ function getAssistantTranscriptContent(response: ReceiptChatResponse) {
     : `${t("aiChatClaimsPreview")}: ${title} (${positionCount} ${t("positions")})`;
 }
 
-function renderAssistantResponse(response: ReceiptChatResponse) {
+function renderAssistantResponse(
+  response: ReceiptChatResponse,
+  onRequestStructuralApply: (response: StructuralPreviewResponse) => void,
+) {
   if (response.type === "question") {
     return (
       <ReceiptCard shadow="sm" radius="xl" className="overflow-hidden">
@@ -69,7 +94,12 @@ function renderAssistantResponse(response: ReceiptChatResponse) {
   }
 
   if (response.type === "structural_preview") {
-    return <AiChatStructuralPreview receipt={response.receipt} />;
+    return (
+      <AiChatStructuralPreview
+        receipt={response.receipt}
+        onApply={() => onRequestStructuralApply(response)}
+      />
+    );
   }
 
   return <SummaryScreen receipt={response.receipt} onBack={() => {}} />;
@@ -79,14 +109,30 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   receiptId,
   receiptTitle,
 }) => {
+  const { scenario } = useReceiptState();
+  const participants = useParticipantsStore((state) => state.participants);
+  const { currencySymbol, formatMoney } = useMoneyFormatter();
   const [messages, setMessages] = useState<TranscriptEntry[]>([]);
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [pendingStructuralPreview, setPendingStructuralPreview] =
+    useState<StructuralPreviewResponse | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
+  const currentReceipt = scenario.form.getValues() as Receipt;
 
   useEffect(() => {
     endRef.current?.scrollIntoView?.({ block: "end" });
   }, [messages, isSending]);
+
+  const structuralWarnings = pendingStructuralPreview
+    ? buildStructuralLossWarnings(
+        currentReceipt,
+        pendingStructuralPreview.receipt,
+        participants,
+        pendingStructuralPreview.receipt.meta.currencySymbol ?? currencySymbol,
+        formatMoney,
+      )
+    : [];
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -118,7 +164,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
       });
 
       setMessages((current) => {
-        const toolEvents = response.events.map((event: ReceiptChatToolEvent) => ({
+        const toolEvents = (response.events ?? []).map((event: ReceiptChatToolEvent) => ({
           id: createId(),
           role: "system" as const,
           content: getToolEventContent(event),
@@ -200,7 +246,9 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                 >
                   {entry.response ? (
                     <div className="max-w-full sm:max-w-[90%]">
-                      {renderAssistantResponse(entry.response)}
+                      {renderAssistantResponse(entry.response, (response) => {
+                        setPendingStructuralPreview(response);
+                      })}
                     </div>
                   ) : entry.role === "system" ? (
                     <div className="w-full text-center">
@@ -272,6 +320,41 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
           </form>
         </div>
       </DialogContent>
+
+      <AlertDialog
+        open={pendingStructuralPreview !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingStructuralPreview(null);
+          }
+        }}
+      >
+        <AlertDialogContent className="sm:max-w-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("aiChatStructuralPreviewConfirmTitle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("aiChatStructuralPreviewConfirmText")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AiChatLossWarningBlock
+            title={t("aiChatStructuralPreviewLossesTitle")}
+            description={t("aiChatStructuralPreviewLossesText")}
+            warnings={structuralWarnings}
+          />
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingStructuralPreview(null)}>
+              {t("cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => setPendingStructuralPreview(null)}>
+              {t("apply")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 };
