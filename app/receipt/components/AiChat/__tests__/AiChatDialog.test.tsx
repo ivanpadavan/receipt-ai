@@ -147,6 +147,19 @@ describe("AiChatDialog", () => {
     );
     await user.click(screen.getByRole("button", { name: /send/i }));
 
+    expect(sendReceiptChatMessageMock).toHaveBeenNthCalledWith(
+      1,
+      "receipt-1",
+      expect.objectContaining({
+        history: [
+          expect.objectContaining({
+            role: "user",
+            content: "Split burger with Alice",
+          }),
+        ],
+      }),
+    );
+
     expect(
       await screen.findByText("What should I change?"),
     ).toBeInTheDocument();
@@ -167,5 +180,17 @@ describe("AiChatDialog", () => {
       expect(screen.getByText("Alice")).toBeInTheDocument();
     });
     expect(screen.getAllByText("100 ₽").length).toBeGreaterThan(0);
+    expect(sendReceiptChatMessageMock).toHaveBeenNthCalledWith(
+      3,
+      "receipt-1",
+      expect.objectContaining({
+        history: expect.arrayContaining([
+          expect.objectContaining({
+            role: "assistant",
+            content: expect.stringContaining("Structural preview"),
+          }),
+        ]),
+      }),
+    );
   });
 });

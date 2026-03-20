@@ -28,6 +28,19 @@ interface AiChatDialogProps {
 
 const createId = () => crypto.randomUUID();
 
+function getAssistantTranscriptContent(response: ReceiptChatResponse) {
+  if (response.type === "question") {
+    return response.message;
+  }
+
+  const title = response.receipt.meta.title ?? t("receipt");
+  const positionCount = response.receipt.positions.length;
+
+  return response.type === "structural_preview"
+    ? `${t("aiChatStructuralPreview")}: ${title} (${positionCount} ${t("positions")})`
+    : `${t("aiChatClaimsPreview")}: ${title} (${positionCount} ${t("positions")})`;
+}
+
 function renderAssistantResponse(response: ReceiptChatResponse) {
   if (response.type === "question") {
     return (
@@ -72,15 +85,16 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
       role: "user",
       content: trimmed,
     };
+    const nextTranscript = [...messages, nextUserMessage];
 
-    setMessages((current) => [...current, nextUserMessage]);
+    setMessages(nextTranscript);
     setMessage("");
     setIsSending(true);
 
     try {
       const response = await apiClient.sendReceiptChatMessage(receiptId, {
         message: trimmed,
-        history: messages.map(({ role, content }) => ({ role, content })),
+        history: nextTranscript.map(({ role, content }) => ({ role, content })),
       });
 
       setMessages((current) => [
@@ -88,7 +102,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
         {
           id: createId(),
           role: "assistant",
-          content: response.type === "question" ? response.message : response.type,
+          content: getAssistantTranscriptContent(response),
           response,
         },
       ]);
