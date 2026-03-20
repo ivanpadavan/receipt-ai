@@ -12,14 +12,25 @@ import { t } from "@/app/i18n/translations";
 import { apiClient } from "@/app/api-client";
 import { SummaryScreen } from "@/app/receipt/components/SummaryScreen/SummaryScreen";
 import { AiChatStructuralPreview } from "@/app/receipt/components/AiChat/AiChatStructuralPreview";
-import type { ReceiptChatResponse } from "@/model/receipt/schema-chat";
+import type {
+  ReceiptChatResponse,
+  ReceiptChatToolEvent,
+} from "@/model/receipt/schema-chat";
 
 type TranscriptEntry = {
   id: string;
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system";
   content: string;
   response?: ReceiptChatResponse;
 };
+
+function getToolEventContent(event: ReceiptChatToolEvent) {
+  if (event.type === "requested_receipt_images") {
+    return t("aiChatRequestedReceiptImages");
+  }
+
+  return "";
+}
 
 interface AiChatDialogProps {
   receiptId: string;
@@ -94,18 +105,34 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
     try {
       const response = await apiClient.sendReceiptChatMessage(receiptId, {
         message: trimmed,
-        history: nextTranscript.map(({ role, content }) => ({ role, content })),
+        history: nextTranscript
+          .filter(
+            (
+              entry,
+            ): entry is Extract<TranscriptEntry, { role: "user" | "assistant" }> =>
+              entry.role === "user" || entry.role === "assistant",
+          )
+          .map(({ role, content }) => ({ role, content })),
       });
 
-      setMessages((current) => [
-        ...current,
-        {
+      setMessages((current) => {
+        const toolEvents = response.events.map((event: ReceiptChatToolEvent) => ({
           id: createId(),
-          role: "assistant",
-          content: getAssistantTranscriptContent(response),
-          response,
-        },
-      ]);
+          role: "system" as const,
+          content: getToolEventContent(event),
+        }));
+
+        return [
+          ...current,
+          ...toolEvents,
+          {
+            id: createId(),
+            role: "assistant" as const,
+            content: getAssistantTranscriptContent(response),
+            response,
+          },
+        ];
+      });
     } finally {
       setIsSending(false);
     }
@@ -172,6 +199,17 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                   {entry.response ? (
                     <div className="max-w-full sm:max-w-[90%]">
                       {renderAssistantResponse(entry.response)}
+                    </div>
+                  ) : entry.role === "system" ? (
+                    <div className="w-full text-center">
+                      <div
+                        className={textVariants({
+                          size: "xs",
+                          tone: "muted",
+                        })}
+                      >
+                        {entry.content}
+                      </div>
                     </div>
                   ) : (
                     <ReceiptCard

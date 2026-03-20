@@ -2,19 +2,34 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import type { Receipt } from "@/model/receipt/model";
 
-const invokeMock = vi.fn();
-const withStructuredOutputMock = vi.fn(() => ({
-  invoke: invokeMock,
+const agentInvokeMock = vi.fn();
+const createAgentMock = vi.fn(() => ({
+  invoke: agentInvokeMock,
 }));
+const toolMock = vi.fn(
+  (
+    fn: (input: Record<string, never>) => unknown,
+    options: { name: string; description: string },
+  ) => ({
+    invoke: fn,
+    ...options,
+  }),
+);
 const findUniqueMock = vi.fn();
 const errorWrapMock = vi.fn();
 const buildParticipantsMock = vi.fn();
+const createSignedUrlsMock = vi.fn();
+const consoleInfoMock = vi.spyOn(console, "info").mockImplementation(() => {});
+
+vi.mock("langchain", () => ({
+  createAgent: createAgentMock,
+  tool: toolMock,
+  toolStrategy: (schema: unknown) => schema,
+}));
 
 vi.mock("@langchain/openrouter", () => ({
   ChatOpenRouter: vi.fn(function ChatOpenRouter() {
-    return {
-      withStructuredOutput: withStructuredOutputMock,
-    };
+    return {};
   }),
 }));
 
@@ -28,6 +43,16 @@ vi.mock("@/app/db", () => ({
 
 vi.mock("@/app/db-utils/build-participants", () => ({
   buildParticipants: (...args: unknown[]) => buildParticipantsMock(...args),
+}));
+
+vi.mock("@/utils/supabase/server", () => ({
+  serverSupabase: async () => ({
+    storage: {
+      from: () => ({
+        createSignedUrls: (...args: unknown[]) => createSignedUrlsMock(...args),
+      }),
+    },
+  }),
 }));
 
 vi.mock("@/app/api/receipt/error-wrap", () => ({
@@ -64,11 +89,15 @@ const currentReceipt: Receipt = {
 
 describe("POST /api/receipt/[id]/chat", () => {
   beforeEach(() => {
-    invokeMock.mockReset();
-    withStructuredOutputMock.mockClear();
+    vi.resetModules();
+    agentInvokeMock.mockReset();
+    createAgentMock.mockClear();
+    toolMock.mockClear();
     findUniqueMock.mockReset();
     errorWrapMock.mockReset();
     buildParticipantsMock.mockReset();
+    createSignedUrlsMock.mockReset();
+    consoleInfoMock.mockClear();
     buildParticipantsMock.mockResolvedValue([
       {
         id: "participant-1",
@@ -102,13 +131,17 @@ describe("POST /api/receipt/[id]/chat", () => {
           grandTotal: 100,
         },
       },
+      events: [],
     };
 
     findUniqueMock.mockResolvedValue({
       id: "receipt-1",
       data: currentReceipt,
+      imageUrls: [],
     });
-    invokeMock.mockResolvedValue(expectedResponse);
+    agentInvokeMock.mockResolvedValue({
+      structuredResponse: expectedResponse,
+    });
     errorWrapMock.mockImplementation(
       async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
         callback({
@@ -142,10 +175,10 @@ describe("POST /api/receipt/[id]/chat", () => {
 
     expect(findUniqueMock).toHaveBeenCalledWith({
       where: { id: "receipt-1" },
-      select: { data: true },
+      select: { data: true, imageUrls: true },
     });
-    expect(withStructuredOutputMock).toHaveBeenCalled();
-    expect(invokeMock).toHaveBeenCalledTimes(1);
+    expect(createAgentMock).toHaveBeenCalled();
+    expect(agentInvokeMock).toHaveBeenCalledTimes(1);
     await expect(response.json()).resolves.toEqual(expectedResponse);
   });
 
@@ -153,22 +186,26 @@ describe("POST /api/receipt/[id]/chat", () => {
     findUniqueMock.mockResolvedValue({
       id: "receipt-1",
       data: currentReceipt,
+      imageUrls: [],
     });
-    invokeMock.mockResolvedValue({
-      type: "claims_preview",
-      positions: [
-        {
-          id: "position-1",
-          claims: [
-            {
-              id: "claim-1",
-              participantIds: ["participant-1"],
-              type: "quantity",
-              value: 1,
-            },
-          ],
-        },
-      ],
+    agentInvokeMock.mockResolvedValue({
+      structuredResponse: {
+        type: "claims_preview",
+        positions: [
+          {
+            id: "position-1",
+            claims: [
+              {
+                id: "claim-1",
+                participantIds: ["participant-1"],
+                type: "quantity",
+                value: 1,
+              },
+            ],
+          },
+        ],
+        events: [],
+      },
     });
     errorWrapMock.mockImplementation(
       async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
@@ -214,6 +251,86 @@ describe("POST /api/receipt/[id]/chat", () => {
           },
         ],
       },
+      events: [],
+    });
+  });
+
+  it("logs and exposes an event when the agent requests original receipt images", async () => {
+    findUniqueMock.mockResolvedValue({
+      id: "receipt-1",
+      data: currentReceipt,
+      imageUrls: ["user-1/receipt-1.png", "user-1/receipt-2.png"],
+    });
+    createSignedUrlsMock.mockResolvedValue({
+      data: [
+        { signedUrl: "https://cdn.example.com/receipt-1.png" },
+        { signedUrl: "https://cdn.example.com/receipt-2.png" },
+      ],
+      error: null,
+    });
+    agentInvokeMock.mockImplementation(async () => {
+      const [{ tools }] = (createAgentMock.mock.calls.at(-1) ?? []) as unknown as [
+        {
+          tools: Array<{
+            name: string;
+            invoke: (input: Record<string, never>) => Promise<unknown>;
+          }>;
+        },
+      ];
+      await tools[0].invoke({});
+
+      return {
+        structuredResponse: {
+          type: "question",
+          message: "I checked the original photos. Who had the borscht?",
+          events: [],
+        },
+      };
+    });
+    errorWrapMock.mockImplementation(
+      async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
+        callback({
+          session: { user: { id: "user-1" } },
+          body: {
+            message: "Use the original photos if needed",
+            history: [],
+          },
+        }),
+    );
+
+    const { POST } = await import("../route");
+
+    const response = await POST(
+      new NextRequest("http://localhost/api/receipt/receipt-1/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          message: "Use the original photos if needed",
+          history: [],
+        }),
+      }),
+      {
+        params: Promise.resolve({ id: "receipt-1" }),
+      },
+    );
+
+    await expect(response.json()).resolves.toEqual({
+      type: "question",
+      message: "I checked the original photos. Who had the borscht?",
+      events: [
+        {
+          type: "requested_receipt_images",
+          imageCount: 2,
+        },
+      ],
+    });
+    expect(createSignedUrlsMock).toHaveBeenCalledWith(
+      ["user-1/receipt-1.png", "user-1/receipt-2.png"],
+      600,
+    );
+    expect(consoleInfoMock).toHaveBeenCalledWith("receipt_chat_tool_call", {
+      receiptId: "receipt-1",
+      toolName: "get_receipt_images",
+      imageCount: 2,
     });
   });
 });

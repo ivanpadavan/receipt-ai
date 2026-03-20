@@ -107,6 +107,7 @@ describe("AiChatDialog", () => {
       .mockResolvedValueOnce({
         type: "question",
         message: "What should I change?",
+        events: [],
       })
       .mockResolvedValueOnce({
         type: "structural_preview",
@@ -130,10 +131,17 @@ describe("AiChatDialog", () => {
             grandTotal: 100,
           },
         },
+        events: [],
       })
       .mockResolvedValueOnce({
         type: "claims_preview",
         receipt: createReceipt(),
+        events: [
+          {
+            type: "requested_receipt_images",
+            imageCount: 2,
+          },
+        ],
       });
 
     const user = userEvent.setup();
@@ -175,6 +183,10 @@ describe("AiChatDialog", () => {
 
     await user.type(screen.getByPlaceholderText(/ask/i), "Show claims preview");
     await user.click(screen.getByRole("button", { name: /send/i }));
+
+    expect(
+      await screen.findByText(/AI requested the original receipt photos/i),
+    ).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText("Alice")).toBeInTheDocument();

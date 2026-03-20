@@ -12,17 +12,26 @@ export const receiptChatRequestSchema = z.object({
   history: z.array(receiptChatMessageSchema).default([]),
 });
 
-export const receiptChatQuestionResponseSchema = z.object({
+export const receiptChatToolEventSchema = z.object({
+  type: z.literal("requested_receipt_images"),
+  imageCount: z.number().int().nonnegative(),
+});
+
+const receiptChatResponseMetadataSchema = z.object({
+  events: z.array(receiptChatToolEventSchema).default([]),
+});
+
+export const receiptChatQuestionResponseSchema = receiptChatResponseMetadataSchema.extend({
   type: z.literal("question"),
   message: z.string().min(1),
 });
 
-export const receiptChatStructuralPreviewResponseSchema = z.object({
+export const receiptChatStructuralPreviewResponseSchema = receiptChatResponseMetadataSchema.extend({
   type: z.literal("structural_preview"),
   receipt: receiptStructuralPreviewSchema,
 });
 
-export const receiptChatClaimsPreviewResponseSchema = z.object({
+export const receiptChatClaimsPreviewResponseSchema = receiptChatResponseMetadataSchema.extend({
   type: z.literal("claims_preview"),
   receipt: receiptSchema,
 });
@@ -48,13 +57,18 @@ export const receiptChatClaimsPreviewModelResponseSchema = z.object({
       claims: z.array(receiptChatClaimSchema),
     }),
   ),
+  events: z.array(receiptChatToolEventSchema).default([]),
 });
 
 export const receiptChatModelResponseSchema = z.discriminatedUnion("type", [
   receiptChatQuestionResponseSchema,
-  receiptChatStructuralPreviewResponseSchema,
+  receiptChatResponseMetadataSchema.extend({
+    type: z.literal("structural_preview"),
+    receipt: receiptStructuralPreviewSchema,
+  }),
   receiptChatClaimsPreviewModelResponseSchema,
 ]);
 
 export type ReceiptChatRequest = z.infer<typeof receiptChatRequestSchema>;
 export type ReceiptChatResponse = z.infer<typeof receiptChatResponseSchema>;
+export type ReceiptChatToolEvent = z.infer<typeof receiptChatToolEventSchema>;
