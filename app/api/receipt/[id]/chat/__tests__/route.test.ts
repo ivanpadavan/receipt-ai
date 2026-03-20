@@ -8,6 +8,7 @@ const withStructuredOutputMock = vi.fn(() => ({
 }));
 const findUniqueMock = vi.fn();
 const errorWrapMock = vi.fn();
+const buildParticipantsMock = vi.fn();
 
 vi.mock("@langchain/openrouter", () => ({
   ChatOpenRouter: vi.fn(function ChatOpenRouter() {
@@ -23,6 +24,10 @@ vi.mock("@/app/db", () => ({
       findUnique: (...args: unknown[]) => findUniqueMock(...args),
     },
   },
+}));
+
+vi.mock("@/app/db-utils/build-participants", () => ({
+  buildParticipants: (...args: unknown[]) => buildParticipantsMock(...args),
 }));
 
 vi.mock("@/app/api/receipt/error-wrap", () => ({
@@ -63,6 +68,15 @@ describe("POST /api/receipt/[id]/chat", () => {
     withStructuredOutputMock.mockClear();
     findUniqueMock.mockReset();
     errorWrapMock.mockReset();
+    buildParticipantsMock.mockReset();
+    buildParticipantsMock.mockResolvedValue([
+      {
+        id: "participant-1",
+        displayName: "Ivan",
+        color: "#111111",
+        kind: "REAL",
+      },
+    ]);
   });
 
   it("loads the receipt context and returns the model preview response", async () => {
@@ -133,5 +147,73 @@ describe("POST /api/receipt/[id]/chat", () => {
     expect(withStructuredOutputMock).toHaveBeenCalled();
     expect(invokeMock).toHaveBeenCalledTimes(1);
     await expect(response.json()).resolves.toEqual(expectedResponse);
+  });
+
+  it("maps claims-only model output into a full receipt preview", async () => {
+    findUniqueMock.mockResolvedValue({
+      id: "receipt-1",
+      data: currentReceipt,
+    });
+    invokeMock.mockResolvedValue({
+      type: "claims_preview",
+      positions: [
+        {
+          id: "position-1",
+          claims: [
+            {
+              id: "claim-1",
+              participantIds: ["participant-1"],
+              type: "quantity",
+              value: 1,
+            },
+          ],
+        },
+      ],
+    });
+    errorWrapMock.mockImplementation(
+      async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
+        callback({
+          session: { user: { id: "user-1" } },
+          body: {
+            message: "Ivan drank the milk",
+            history: [],
+          },
+        }),
+    );
+
+    const { POST } = await import("../route");
+
+    const response = await POST(
+      new NextRequest("http://localhost/api/receipt/receipt-1/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          message: "Ivan drank the milk",
+          history: [],
+        }),
+      }),
+      {
+        params: Promise.resolve({ id: "receipt-1" }),
+      },
+    );
+
+    await expect(response.json()).resolves.toEqual({
+      type: "claims_preview",
+      receipt: {
+        ...currentReceipt,
+        positions: [
+          {
+            ...currentReceipt.positions[0],
+            claims: [
+              {
+                id: "claim-1",
+                participantIds: ["participant-1"],
+                type: "quantity",
+                value: 1,
+              },
+            ],
+          },
+        ],
+      },
+    });
   });
 });

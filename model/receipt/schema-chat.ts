@@ -33,5 +33,28 @@ export const receiptChatResponseSchema = z.discriminatedUnion("type", [
   receiptChatClaimsPreviewResponseSchema,
 ]);
 
+const receiptChatClaimSchema = z.object({
+  id: z.string(),
+  participantIds: z.array(z.string()),
+  type: z.enum(["quantity", "amount"]),
+  value: z.number(),
+});
+
+export const receiptChatClaimsPreviewModelResponseSchema = z.object({
+  type: z.literal("claims_preview"),
+  positions: z.array(
+    z.object({
+      id: z.string(),
+      claims: z.array(receiptChatClaimSchema),
+    }),
+  ),
+});
+
+export const receiptChatModelResponseSchema = z.discriminatedUnion("type", [
+  receiptChatQuestionResponseSchema,
+  receiptChatStructuralPreviewResponseSchema,
+  receiptChatClaimsPreviewModelResponseSchema,
+]);
+
 export type ReceiptChatRequest = z.infer<typeof receiptChatRequestSchema>;
 export type ReceiptChatResponse = z.infer<typeof receiptChatResponseSchema>;
