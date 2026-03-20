@@ -122,6 +122,20 @@ describe.each<Language>(["en"])("Home page (%s)", (language) => {
     await expectCurrentScreenshot("home-empty-upload-state");
   });
 
+  it("opens the fullscreen mobile menu", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderHomePage();
+
+    // Act
+    await user.click(screen.getByRole("button", { name: t("menu") }));
+
+    // Assert
+    expect(screen.getByRole("link", { name: t("scanNew") })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: t("history") })).toBeInTheDocument();
+    await expectCurrentScreenshot("home-mobile-menu-open");
+  });
+
   it("uploads the first image and shows crop and single-image states", async () => {
     // Arrange
     const user = userEvent.setup();
