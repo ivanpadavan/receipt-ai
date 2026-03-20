@@ -26,65 +26,47 @@ export type StructuralLossWarning = {
 
 type ModifierPreview = StructuralPreviewReceipt["fees"][number];
 
-function buildAlignedDiffs<TCurrent, TNext = TCurrent>(
+function findNextMatchIndex<TCurrent extends { id: string }, TNext extends { id?: string }>(
+  currentId: string,
+  nextItems: TNext[],
+  startIndex: number,
+) {
+  return nextItems.findIndex(
+    (item, index) => index >= startIndex && item.id === currentId,
+  );
+}
+
+function buildIdFirstDiffs<TCurrent extends { id: string }, TNext extends { id?: string }>(
   currentItems: TCurrent[],
   nextItems: TNext[],
   areEqual: (currentItem: TCurrent, nextItem: TNext) => boolean,
-  getFingerprint: (item: TCurrent | TNext) => string,
-  isLikelyChange: (currentItem: TCurrent, nextItem: TNext) => boolean,
 ) {
   const diffs: Array<DiffEntry<TCurrent, TNext>> = [];
-  let currentIndex = 0;
   let nextIndex = 0;
 
-  while (currentIndex < currentItems.length || nextIndex < nextItems.length) {
-    const current = currentItems[currentIndex];
-    const next = nextItems[nextIndex];
+  for (const current of currentItems) {
+    const matchedNextIndex = findNextMatchIndex(current.id, nextItems, nextIndex);
 
-    if (current && next) {
-      if (areEqual(current, next)) {
-        diffs.push({ index: diffs.length, status: "unchanged", current, next });
-        currentIndex += 1;
-        nextIndex += 1;
-        continue;
-      }
-
-      const nextCurrent = currentItems[currentIndex + 1];
-      if (nextCurrent && getFingerprint(nextCurrent) === getFingerprint(next)) {
-        diffs.push({ index: diffs.length, status: "removed", current });
-        currentIndex += 1;
-        continue;
-      }
-
-      const nextPreview = nextItems[nextIndex + 1];
-      if (nextPreview && getFingerprint(current) === getFingerprint(nextPreview)) {
-        diffs.push({ index: diffs.length, status: "added", next });
-        nextIndex += 1;
-        continue;
-      }
-
-      if (isLikelyChange(current, next)) {
-        diffs.push({ index: diffs.length, status: "changed", current, next });
-      } else {
-        diffs.push({ index: diffs.length, status: "removed", current });
-        diffs.push({ index: diffs.length, status: "added", next });
-      }
-      currentIndex += 1;
-      nextIndex += 1;
-      continue;
-    }
-
-    if (current) {
+    if (matchedNextIndex === -1) {
       diffs.push({ index: diffs.length, status: "removed", current });
-      currentIndex += 1;
       continue;
     }
 
-    if (next) {
-      diffs.push({ index: diffs.length, status: "added", next });
-      nextIndex += 1;
-      continue;
+    for (let i = nextIndex; i < matchedNextIndex; i += 1) {
+      diffs.push({ index: diffs.length, status: "added", next: nextItems[i] });
     }
+
+    const next = nextItems[matchedNextIndex];
+    diffs.push(
+      areEqual(current, next)
+        ? { index: diffs.length, status: "unchanged", current, next }
+        : { index: diffs.length, status: "changed", current, next },
+    );
+    nextIndex = matchedNextIndex + 1;
+  }
+
+  for (let i = nextIndex; i < nextItems.length; i += 1) {
+    diffs.push({ index: diffs.length, status: "added", next: nextItems[i] });
   }
 
   return diffs;
@@ -99,37 +81,12 @@ function arePositionsEqual(left: ReceiptPosition, right: StructuralPreviewReceip
   );
 }
 
-function arePositionsLikelyChanged(
-  left: ReceiptPosition,
-  right: StructuralPreviewReceipt["positions"][number],
-) {
-  return (
-    left.name === right.name ||
-    (left.quantity === right.quantity && left.price === right.price) ||
-    left.overall === right.overall
-  );
-}
-
 function areModifiersEqual(left: ReceiptModifier, right: ModifierPreview) {
   return left.name === right.name && left.value === right.value;
 }
 
-function areModifiersLikelyChanged(left: ReceiptModifier, right: ModifierPreview) {
-  return left.name === right.name;
-}
-
 function areTotalsEqual(left: Receipt["totals"], right: StructuralPreviewReceipt["totals"]) {
   return left.total === right.total && left.grandTotal === right.grandTotal;
-}
-
-function getPositionFingerprint(
-  item: ReceiptPosition | StructuralPreviewReceipt["positions"][number],
-) {
-  return `${item.name}\u0000${item.price}\u0000${item.quantity}\u0000${item.overall}`;
-}
-
-function getModifierFingerprint(item: ReceiptModifier | ModifierPreview) {
-  return `${item.name}\u0000${item.value}`;
 }
 
 function getParticipantNames(participantIds: string[], participants: ParticipantDTO[]) {
@@ -145,39 +102,35 @@ export function buildStructuralPositionDiffs(
   currentItems: ReceiptPosition[],
   nextItems: StructuralPreviewReceipt["positions"],
 ) {
-  return buildAlignedDiffs(
-    currentItems,
-    nextItems,
-    arePositionsEqual,
-    getPositionFingerprint,
-    arePositionsLikelyChanged,
-  );
+  return buildIdFirstDiffs(currentItems, nextItems, arePositionsEqual);
 }
 
 export function buildStructuralModifierDiffs(
   currentItems: ReceiptModifier[],
   nextItems: StructuralPreviewReceipt["fees"] | StructuralPreviewReceipt["discounts"],
 ) {
-  return buildAlignedDiffs(
-    currentItems,
-    nextItems,
-    areModifiersEqual,
-    getModifierFingerprint,
-    areModifiersLikelyChanged,
-  );
+  return buildIdFirstDiffs(currentItems, nextItems, areModifiersEqual);
 }
 
 export function buildStructuralTotalsDiffs(
   currentTotals: Receipt["totals"],
   nextTotals: StructuralPreviewReceipt["totals"],
 ) {
-  return buildAlignedDiffs(
-    [currentTotals],
-    [nextTotals],
-    areTotalsEqual,
-    () => "totals",
-    () => true,
-  );
+  return [
+    areTotalsEqual(currentTotals, nextTotals)
+      ? {
+          index: 0,
+          status: "unchanged" as const,
+          current: currentTotals,
+          next: nextTotals,
+        }
+      : {
+          index: 0,
+          status: "changed" as const,
+          current: currentTotals,
+          next: nextTotals,
+        },
+  ];
 }
 
 export function buildStructuralLossWarnings(
@@ -188,9 +141,14 @@ export function buildStructuralLossWarnings(
   formatMoney: (value: number, currencySymbolOverride?: string) => string,
 ) {
   return buildStructuralPositionDiffs(currentReceipt.positions, previewReceipt.positions)
-    .filter((entry) => entry.status === "removed" && entry.current && entry.current.claims.length > 0)
+    .filter(
+      (entry) =>
+        entry.status === "removed" &&
+        entry.current !== undefined &&
+        entry.current.claims.length > 0,
+    )
     .flatMap((entry) =>
-      entry.current!.claims.map((claim, claimIndex) => {
+      entry.current.claims.map((claim, claimIndex) => {
         const participantLabel = getParticipantNames(claim.participantIds, participants);
         const claimLabel =
           claim.type === "quantity"
@@ -198,8 +156,8 @@ export function buildStructuralLossWarnings(
             : formatMoney(claim.value, currencySymbol);
 
         return {
-          id: `${entry.current!.id}-${claim.id}-${claimIndex}`,
-          text: `${participantLabel} — ${entry.current!.name} ${claimLabel}`,
+          id: `${entry.current.id}-${claim.id}-${claimIndex}`,
+          text: `${participantLabel} — ${entry.current.name} ${claimLabel}`,
         };
       }),
     );

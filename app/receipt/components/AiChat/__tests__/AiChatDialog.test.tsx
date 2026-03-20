@@ -180,6 +180,7 @@ describe("AiChatDialog", () => {
           },
           positions: [
             {
+              id: "pos-1",
               name: "Burger",
               price: 120,
               quantity: 1,
@@ -230,7 +231,7 @@ describe("AiChatDialog", () => {
     expect(await screen.findByText("Burger")).toBeInTheDocument();
     expect(screen.getByText("Fries")).toBeInTheDocument();
     expect(screen.getAllByText("Changed").length).toBeGreaterThan(1);
-    expect(screen.getByText("Added")).toBeInTheDocument();
+    expect(screen.getAllByText("Added").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: /review changes/i })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /review changes/i }));
@@ -263,6 +264,7 @@ describe("AiChatDialog", () => {
           },
           positions: [
             {
+              id: "pos-1",
               name: "Burger",
               price: 120,
               quantity: 1,

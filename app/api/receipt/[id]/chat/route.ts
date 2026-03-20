@@ -106,7 +106,7 @@ async function generateReceiptChatResponse({
     "Return exactly one structured response.\n" +
     "Allowed response types:\n" +
     '- `question`: when clarification is required before making a preview. `message` must be plain text only.\n' +
-    '- `structural_preview`: when you are proposing a changed receipt structure. Return the full structural preview without ids or claims.\n' +
+    '- `structural_preview`: when you are proposing a changed receipt structure. Return the full structural preview without claims. Existing rows and modifiers must carry their current `id`; new rows and modifiers omit `id`.\n' +
     '- `claims_preview`: when you are proposing how claims should be filled. Return claims only as `positionClaims: Record<string, claim[]>` keyed by existing `positionId`.\n' +
     "You may call `get_receipt_images` if the original photos are needed.\n" +
     "For `question`, use only plain text with optional newline characters.\n" +

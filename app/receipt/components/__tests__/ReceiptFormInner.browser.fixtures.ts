@@ -298,12 +298,14 @@ export const aiChatStructuralPreviewResponse: ReceiptChatResponse = {
     },
     positions: [
       {
+        id: validReceipt.positions[0].id,
         name: "Burger",
         price: 100,
         quantity: 1,
         overall: 100,
       },
       {
+        id: validReceipt.positions[1].id,
         name: "Fries",
         price: 50,
         quantity: 2,
@@ -333,9 +335,9 @@ export const aiChatClaimsPreviewResponse: ReceiptChatResponse = {
   type: "claims_preview",
   receipt: summaryBalancedReceipt,
   positionClaims: {
-    "position-1": summaryBalancedReceipt.positions[0].claims,
-    "position-2": summaryBalancedReceipt.positions[1].claims,
-    "position-3": summaryBalancedReceipt.positions[2].claims,
+    [summaryBalancedReceipt.positions[0].id]: summaryBalancedReceipt.positions[0].claims,
+    [summaryBalancedReceipt.positions[1].id]: summaryBalancedReceipt.positions[1].claims,
+    [summaryBalancedReceipt.positions[2].id]: summaryBalancedReceipt.positions[2].claims,
   },
 };
 

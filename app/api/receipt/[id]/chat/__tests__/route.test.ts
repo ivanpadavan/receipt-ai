@@ -107,17 +107,36 @@ describe("POST /api/receipt/[id]/chat", () => {
         },
         positions: [
           {
+            id: "position-1",
             name: "Milk",
             price: 100,
             quantity: 1,
             overall: 100,
           },
+          {
+            name: "Juice",
+            price: 25,
+            quantity: 1,
+            overall: 25,
+          },
         ],
-        fees: [],
-        discounts: [],
+        fees: [
+          {
+            id: "fee-1",
+            name: "Service",
+            value: 15,
+          },
+        ],
+        discounts: [
+          {
+            id: "discount-1",
+            name: "Promo",
+            value: 10,
+          },
+        ],
         totals: {
-          total: 100,
-          grandTotal: 100,
+          total: 125,
+          grandTotal: 130,
         },
       },
       events: [],
@@ -173,7 +192,7 @@ describe("POST /api/receipt/[id]/chat", () => {
     expect(createAgentMock).toHaveBeenCalled();
     expect(agentInvokeMock).toHaveBeenCalledTimes(1);
     expect(prompt).toContain("positionClaims: Record<string, claim[]>");
-    expect(prompt).not.toContain("positionId, claims");
+    expect(prompt).toContain("Existing rows and modifiers must carry their current `id`");
     expect(prompt).toContain('"currentUserParticipantId": "participant-1"');
     expect(prompt).toContain('"currentUserDisplayName": "Ivan"');
     await expect(response.json()).resolves.toEqual(expectedResponse);

@@ -2166,12 +2166,14 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
           },
           positions: [
             {
+              id: validReceipt.positions[0].id,
               name: "Milk",
               price: 801,
               quantity: 1,
               overall: 801,
             },
             {
+              id: validReceipt.positions[1].id,
               name: "Bread",
               price: 175,
               quantity: 2,
@@ -2259,6 +2261,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
           },
           positions: [
             {
+              id: summaryBalancedReceipt.positions[0].id,
               name: "Milk",
               price: 801,
               quantity: 1,

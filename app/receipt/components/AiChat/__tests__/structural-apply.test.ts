@@ -44,6 +44,7 @@ describe("structural-apply", () => {
       meta: { title: "Receipt draft", currencySymbol: "₽" },
       positions: [
         {
+          id: "pos-1",
           name: "Burger",
           price: 120,
           quantity: 1,
@@ -107,6 +108,7 @@ describe("structural-apply", () => {
         meta: { title: "Receipt", currencySymbol: "₽" },
         positions: [
           {
+            id: "pos-1",
             name: "Burger",
             price: 110,
             quantity: 1,

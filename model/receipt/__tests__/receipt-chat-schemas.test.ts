@@ -24,14 +24,27 @@ describe("receipt chat schemas", () => {
           },
           positions: [
             {
+              id: "position-1",
               name: "Burger",
               price: 100,
               quantity: 1,
               overall: 100,
             },
           ],
-          fees: [],
-          discounts: [],
+          fees: [
+            {
+              id: "fee-1",
+              name: "Service",
+              value: 10,
+            },
+          ],
+          discounts: [
+            {
+              id: "discount-1",
+              name: "Promo",
+              value: 5,
+            },
+          ],
           totals: {
             total: 100,
             grandTotal: 100,
