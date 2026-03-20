@@ -4,9 +4,12 @@ import {
   receiptChatResponseSchema,
 } from "@/model/receipt/schema-chat";
 
-const validator = {
+const validator: ApiValidator<
+  typeof receiptChatRequestSchema,
+  typeof receiptChatResponseSchema
+> = {
   request: receiptChatRequestSchema,
   response: receiptChatResponseSchema,
-} satisfies ApiValidator;
+};
 
 export default validator;

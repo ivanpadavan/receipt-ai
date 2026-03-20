@@ -58,6 +58,8 @@ async function generateReceiptChatResponse({
   receipt,
   imageUrls,
   participants,
+  currentUserParticipantId,
+  currentUserDisplayName,
   history,
   message,
 }: {
@@ -65,6 +67,8 @@ async function generateReceiptChatResponse({
   receipt: Receipt;
   imageUrls: string[];
   participants: Array<{ id: string; displayName: string }>;
+  currentUserParticipantId: string | null;
+  currentUserDisplayName: string | null;
   history: Array<{ role: "user" | "assistant"; content: string }>;
   message: string;
 }) {
@@ -113,6 +117,14 @@ async function generateReceiptChatResponse({
     "For claims preview, do not return full positions, fees, discounts, totals, or metadata.\n" +
     "For claims preview, reference existing positions by `id` and participants by `id`.\n" +
     "Use the provided participants list with display names when resolving who the user means.\n\n" +
+    `Current user context:\n${JSON.stringify(
+      {
+        currentUserParticipantId,
+        currentUserDisplayName,
+      },
+      null,
+      2,
+    )}\n\n` +
     `Current receipt JSON:\n${JSON.stringify(receipt, null, 2)}\n\n` +
     `Participants JSON:\n${JSON.stringify(participants, null, 2)}\n\n` +
     `Chat history:\n${formatHistory(history)}\n\n` +
@@ -165,7 +177,12 @@ function toApiResponse(
   }
 
   const claimsByPositionId = new Map(
-    response.positions.map((position) => [position.id, position.claims]),
+    response.positionClaims
+      ? Object.entries(response.positionClaims)
+      : response.positions?.map((position) => [
+          position.positionId,
+          position.claims,
+        ]) ?? [],
   );
 
   return receiptChatResponseSchema.parse({
@@ -188,7 +205,7 @@ export async function POST(
   const { id: receiptId } = await params;
 
   return withLanguage("en", () =>
-    errorWrap(req, validator, async ({ body }) => {
+    errorWrap(req, validator, async ({ session, body }) => {
       const receipt = await db.receipt.findUnique({
         where: { id: receiptId },
         select: { data: true, imageUrls: true },
@@ -199,6 +216,14 @@ export async function POST(
       }
 
       const participants = await buildParticipants(receiptId);
+      const currentUserParticipant = participants.find(
+        (participant) => participant.id === session.user.id,
+      );
+      const currentUserDisplayName =
+        currentUserParticipant?.displayName ??
+        (typeof session.user.user_metadata?.displayName === "string"
+          ? session.user.user_metadata.displayName
+          : null);
       const response = await generateReceiptChatResponse({
         receiptId,
         receipt: receipt.data as Receipt,
@@ -207,6 +232,8 @@ export async function POST(
           id: participant.id,
           displayName: participant.displayName,
         })),
+        currentUserParticipantId: currentUserParticipant?.id ?? null,
+        currentUserDisplayName,
         history: body.history,
         message: body.message,
       });

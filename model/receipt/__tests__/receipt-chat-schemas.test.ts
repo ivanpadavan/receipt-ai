@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  receiptChatClaimsPreviewModelResponseSchema,
   receiptChatRequestSchema,
   receiptChatResponseSchema,
 } from "@/model/receipt/schema-chat";
@@ -40,35 +41,22 @@ describe("receipt chat schemas", () => {
     ).toBe(true);
 
     expect(
-      receiptChatResponseSchema.safeParse({
+      receiptChatClaimsPreviewModelResponseSchema.safeParse({
         type: "claims_preview",
-        receipt: {
-          meta: {
-            title: "Lunch",
-            currencySymbol: "₽",
-          },
-          positions: [
+        positionClaims: {
+          "position-1": [
             {
-              id: "position-1",
-              name: "Burger",
-              price: 100,
-              quantity: 1,
-              overall: 100,
-              claims: [],
+              id: "claim-1",
+              participantIds: ["participant-1"],
+              type: "quantity",
+              value: 1,
             },
           ],
-          fees: [],
-          discounts: [],
-          totals: {
-            total: 100,
-            grandTotal: 100,
-          },
         },
+        events: [],
       }).success,
     ).toBe(true);
-  });
 
-  it("rejects malformed claims preview responses", () => {
     expect(
       receiptChatResponseSchema.safeParse({
         type: "claims_preview",
@@ -84,6 +72,14 @@ describe("receipt chat schemas", () => {
               price: 100,
               quantity: 1,
               overall: 100,
+              claims: [
+                {
+                  id: "claim-1",
+                  participantIds: ["participant-1"],
+                  type: "quantity",
+                  value: 1,
+                },
+              ],
             },
           ],
           fees: [],
@@ -93,6 +89,15 @@ describe("receipt chat schemas", () => {
             grandTotal: 100,
           },
         },
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects malformed claims preview responses", () => {
+    expect(
+      receiptChatClaimsPreviewModelResponseSchema.safeParse({
+        type: "claims_preview",
+        receipt: {},
       }).success,
     ).toBe(false);
   });

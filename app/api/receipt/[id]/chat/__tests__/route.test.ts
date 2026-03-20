@@ -134,7 +134,7 @@ describe("POST /api/receipt/[id]/chat", () => {
     errorWrapMock.mockImplementation(
       async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
         callback({
-          session: { user: { id: "user-1" } },
+          session: { user: { id: "participant-1", user_metadata: { displayName: "Ivan" } } },
           body: {
             message: "Show a structural preview",
             history: [
@@ -162,12 +162,18 @@ describe("POST /api/receipt/[id]/chat", () => {
       },
     );
 
+    const prompt = String(
+      (agentInvokeMock.mock.calls.at(0) ?? [])[0]?.messages?.[0]?.content ?? "",
+    );
+
     expect(findUniqueMock).toHaveBeenCalledWith({
       where: { id: "receipt-1" },
       select: { data: true, imageUrls: true },
     });
     expect(createAgentMock).toHaveBeenCalled();
     expect(agentInvokeMock).toHaveBeenCalledTimes(1);
+    expect(prompt).toContain('"currentUserParticipantId": "participant-1"');
+    expect(prompt).toContain('"currentUserDisplayName": "Ivan"');
     await expect(response.json()).resolves.toEqual(expectedResponse);
   });
 
@@ -180,26 +186,23 @@ describe("POST /api/receipt/[id]/chat", () => {
     agentInvokeMock.mockResolvedValue({
       structuredResponse: {
         type: "claims_preview",
-        positions: [
-          {
-            id: "position-1",
-            claims: [
-              {
-                id: "claim-1",
-                participantIds: ["participant-1"],
-                type: "quantity",
-                value: 1,
-              },
-            ],
-          },
-        ],
+        positionClaims: {
+          "position-1": [
+            {
+              id: "claim-1",
+              participantIds: ["participant-1"],
+              type: "quantity",
+              value: 1,
+            },
+          ],
+        },
         events: [],
       },
     });
     errorWrapMock.mockImplementation(
       async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
         callback({
-          session: { user: { id: "user-1" } },
+          session: { user: { id: "participant-1", user_metadata: { displayName: "Ivan" } } },
           body: {
             message: "Ivan drank the milk",
             history: [],
@@ -275,7 +278,7 @@ describe("POST /api/receipt/[id]/chat", () => {
     errorWrapMock.mockImplementation(
       async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
         callback({
-          session: { user: { id: "user-1" } },
+          session: { user: { id: "participant-1", user_metadata: { displayName: "Ivan" } } },
           body: {
             message: "Use the original photos if needed",
             history: [],

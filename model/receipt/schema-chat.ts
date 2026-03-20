@@ -49,16 +49,18 @@ const receiptChatClaimSchema = z.object({
   value: z.number(),
 });
 
-export const receiptChatClaimsPreviewModelResponseSchema = z.object({
-  type: z.literal("claims_preview"),
-  positions: z.array(
-    z.object({
-      id: z.string(),
-      claims: z.array(receiptChatClaimSchema),
-    }),
-  ),
-  events: z.array(receiptChatToolEventSchema).default([]),
+const receiptChatClaimsPreviewPositionSchema = z.object({
+  positionId: z.string(),
+  claims: z.array(receiptChatClaimSchema),
 });
+
+export const receiptChatClaimsPreviewModelResponseSchema = z
+  .object({
+    type: z.literal("claims_preview"),
+    positionClaims: z.record(z.array(receiptChatClaimSchema)),
+    positions: z.array(receiptChatClaimsPreviewPositionSchema).optional(),
+    events: z.array(receiptChatToolEventSchema).default([]),
+  });
 
 export const receiptChatModelResponseSchema = z.discriminatedUnion("type", [
   receiptChatQuestionResponseSchema,
