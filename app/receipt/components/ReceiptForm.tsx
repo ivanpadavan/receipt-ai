@@ -21,6 +21,7 @@ import { EditingDialog } from "@/app/receipt/components/EdititngSheet/EditingDia
 import { SplittingSheet } from "@/app/receipt/components/SplittingSheet/SplittingSheet";
 import { ParticipantsSheet } from "@/app/receipt/components/ParticipantsSheet";
 import { SummaryScreen } from "@/app/receipt/components/SummaryScreen/SummaryScreen";
+import { AiChatDialog } from "@/app/receipt/components/AiChat";
 import {
   distinctUntilChanged,
   finalize,
@@ -349,6 +350,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                   >
                     {receiptTitle}
                   </h2>
+                  <AiChatDialog receiptId={receiptId} receiptTitle={receiptTitle} />
                 </div>
 
                 <div className={stackGapVariants({ size: "sm" })}>
