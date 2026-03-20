@@ -31,9 +31,13 @@ const summaryAmount = "whitespace-nowrap";
 interface SummaryScreenProps {
   receipt: Receipt;
   onBack: () => void;
+  hideHeader?: boolean;
 }
 
-export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
+export const SummaryScreen: React.FC<SummaryScreenProps> = ({
+  receipt,
+  hideHeader = false,
+}) => {
   const { currencySymbol, formatMoney } = useMoneyFormatter();
   const participants = useParticipantsStore((s) => s.participants);
   const balances = useMemo(() => {
@@ -52,41 +56,41 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({ receipt }) => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header / Hero */}
-      <div
-        className={cn(
-          "relative",
-          summaryHeader,
-          cardPaddingVariants({ size: "lg" }),
-        )}
-      >
-        <h2
+      {!hideHeader && (
+        <div
           className={cn(
-            "mb-1",
-            textVariants({ size: "sm", weight: "medium", tone: "muted", style: "caps" }),
+            "relative",
+            summaryHeader,
+            cardPaddingVariants({ size: "lg" }),
           )}
         >
-          {t("total")}
-        </h2>
-        <div
-          className={textVariants({ size: "4xl", weight: "bold" })}
-        >
-          {formatMoneyValue(realGrandTotal)}{" "}
-          <span className={textVariants({ size: "2xl", weight: "normal", tone: "muted" })}>
-            {currencySymbol}
-          </span>
-        </div>
-
-        {/* Remaining Indicator */}
-        {Math.abs(remaining) > 1 && (
-          <div className="mt-4 flex justify-center">
-            <DistributionStatus
-              distributed={distributedTotal}
-              total={realGrandTotal}
-            />
+          <h2
+            className={cn(
+              "mb-1",
+              textVariants({ size: "sm", weight: "medium", tone: "muted", style: "caps" }),
+            )}
+          >
+            {t("total")}
+          </h2>
+          <div
+            className={textVariants({ size: "4xl", weight: "bold" })}
+          >
+            {formatMoneyValue(realGrandTotal)}{" "}
+            <span className={textVariants({ size: "2xl", weight: "normal", tone: "muted" })}>
+              {currencySymbol}
+            </span>
           </div>
-        )}
-      </div>
+
+          {Math.abs(remaining) > 1 && (
+            <div className="mt-4 flex justify-center">
+              <DistributionStatus
+                distributed={distributedTotal}
+                total={realGrandTotal}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* List */}
       <div

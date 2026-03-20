@@ -185,6 +185,7 @@ function toApiResponse(
         claims: response.positionClaims[position.id] ?? position.claims,
       })),
     },
+    positionClaims: response.positionClaims,
     events: response.events,
   });
 }

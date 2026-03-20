@@ -125,6 +125,7 @@ export interface ReceiptState {
   proceed: () => void;
   canProceed: boolean;
   editModalProps: EditModalPropsByView;
+  replaceReceiptInForm: (nextReceipt: Receipt) => void;
 }
 
 // ============================================================================
@@ -611,6 +612,28 @@ export function useReceiptFormState(
     }
   }, [formState.isValid, type, setSummaryInUrl]);
 
+  const replaceReceiptInForm = useCallback(
+    (nextReceipt: Receipt) => {
+      setValue(
+        "meta",
+        {
+          ...nextReceipt.meta,
+          title: nextReceipt.meta.title.trim(),
+        },
+        { shouldDirty: true, shouldValidate: true },
+      );
+      positionsField.replace(nextReceipt.positions);
+      feesField.replace(nextReceipt.fees);
+      discountsField.replace(nextReceipt.discounts);
+      setValue("totals", nextReceipt.totals, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      trigger();
+    },
+    [discountsField, feesField, positionsField, setValue, trigger],
+  );
+
   // -------------------------------------------------------------------------
   // 8. Return state
   // -------------------------------------------------------------------------
@@ -624,5 +647,6 @@ export function useReceiptFormState(
     proceed,
     openEditModal,
     editModalProps,
+    replaceReceiptInForm,
   };
 }

@@ -96,6 +96,18 @@ const ru = {
   aiChatStructuralPreviewRemoved: "Удалено",
   aiChatStructuralPreviewChanged: "Изменено",
   aiChatClaimsPreview: "Предпросмотр распределений",
+  aiChatClaimsPreviewReviewChanges: "Проверить распределения",
+  aiChatClaimsPreviewConfirmTitle: "Применить распределения?",
+  aiChatClaimsPreviewConfirmText:
+    "Выберите, как применить предложенные AI распределения к текущему чеку.",
+  aiChatClaimsPreviewAdd: "Добавить",
+  aiChatClaimsPreviewReplaceAll: "Заменить все",
+  aiChatClaimsPreviewLossesTitle: "Распределения, которые могут потеряться",
+  aiChatClaimsPreviewLossesText:
+    "При полной замене будут удалены существующие распределения, которых нет в ответе AI.",
+  aiChatClaimsPreviewExpiredTitle: "Предпросмотр устарел",
+  aiChatClaimsPreviewExpiredText:
+    "Чек изменился, и это распределение больше нельзя применить. Запросите новый предпросмотр.",
   aiChatRequestedReceiptImages: "AI запросил исходные фото чека",
   aiChatEmpty: "Задайте вопрос или запросите предпросмотр.",
   positions: "Позиции",
@@ -288,6 +300,18 @@ const en: Translations = {
   aiChatStructuralPreviewRemoved: "Removed",
   aiChatStructuralPreviewChanged: "Changed",
   aiChatClaimsPreview: "Claims preview",
+  aiChatClaimsPreviewReviewChanges: "Review distributions",
+  aiChatClaimsPreviewConfirmTitle: "Apply claim distributions?",
+  aiChatClaimsPreviewConfirmText:
+    "Choose how to apply the AI-suggested claim distributions to the current receipt.",
+  aiChatClaimsPreviewAdd: "Add",
+  aiChatClaimsPreviewReplaceAll: "Replace all",
+  aiChatClaimsPreviewLossesTitle: "Claims that may be lost",
+  aiChatClaimsPreviewLossesText:
+    "Full replacement will remove existing allocations that are not present in the AI response.",
+  aiChatClaimsPreviewExpiredTitle: "Preview expired",
+  aiChatClaimsPreviewExpiredText:
+    "The receipt changed, so this distribution preview can no longer be applied. Request a new preview.",
   aiChatRequestedReceiptImages: "AI requested the original receipt photos",
   aiChatEmpty: "Ask a question or request a preview.",
   positions: "Positions",

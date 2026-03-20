@@ -15,103 +15,31 @@ import {
 import { t } from "@/app/i18n/translations";
 import type { ParticipantDTO, Receipt } from "@/model/receipt/model";
 import type { ReceiptChatResponse } from "@/model/receipt/schema-chat";
+import {
+  buildStructuralLossWarnings,
+  buildStructuralModifierDiffs,
+  buildStructuralPositionDiffs,
+  buildStructuralTotalsDiffs,
+  type DiffEntry,
+  type StructuralLossWarning,
+} from "@/app/receipt/components/AiChat/structural-apply";
 
 type StructuralReceipt = Extract<
   ReceiptChatResponse,
   { type: "structural_preview" }
 >["receipt"];
 
-type DiffStatus = "unchanged" | "added" | "removed" | "changed";
-
-export type StructuralLossWarning = {
-  id: string;
-  text: string;
-};
-
-type DiffEntry<T> = {
-  index: number;
-  status: DiffStatus;
-  current?: T;
-  next?: T;
-};
-
 interface AiChatStructuralPreviewProps {
   receipt: StructuralReceipt;
   onApply?: () => void;
 }
 
-const diffStatusStyles: Record<DiffStatus, string> = {
+const diffStatusStyles = {
   unchanged: "border-border/40 bg-background/70",
   added: "border-emerald-300/70 bg-emerald-50/70",
   removed: "border-rose-300/70 bg-rose-50/70",
   changed: "border-amber-300/80 bg-amber-50/70",
 };
-
-function buildAlignedDiffs<T>(
-  currentItems: T[],
-  nextItems: T[],
-  areEqual: (currentItem: T, nextItem: T) => boolean,
-  getKey: (item: T) => string,
-) {
-  const diffs: Array<DiffEntry<T>> = [];
-  let currentIndex = 0;
-  let nextIndex = 0;
-
-  while (currentIndex < currentItems.length || nextIndex < nextItems.length) {
-    const current = currentItems[currentIndex];
-    const next = nextItems[nextIndex];
-
-    if (current && next) {
-      if (areEqual(current, next)) {
-        diffs.push({ index: diffs.length, status: "unchanged", current, next });
-        currentIndex += 1;
-        nextIndex += 1;
-        continue;
-      }
-
-      if (getKey(current) === getKey(next)) {
-        diffs.push({ index: diffs.length, status: "changed", current, next });
-        currentIndex += 1;
-        nextIndex += 1;
-        continue;
-      }
-
-      const nextCurrent = currentItems[currentIndex + 1];
-      if (nextCurrent && getKey(nextCurrent) === getKey(next)) {
-        diffs.push({ index: diffs.length, status: "removed", current });
-        currentIndex += 1;
-        continue;
-      }
-
-      const nextPreview = nextItems[nextIndex + 1];
-      if (nextPreview && getKey(current) === getKey(nextPreview)) {
-        diffs.push({ index: diffs.length, status: "added", next });
-        nextIndex += 1;
-        continue;
-      }
-
-      diffs.push({ index: diffs.length, status: "removed", current });
-      diffs.push({ index: diffs.length, status: "added", next });
-      currentIndex += 1;
-      nextIndex += 1;
-      continue;
-    }
-
-    if (current) {
-      diffs.push({ index: diffs.length, status: "removed", current });
-      currentIndex += 1;
-      continue;
-    }
-
-    if (next) {
-      diffs.push({ index: diffs.length, status: "added", next });
-      nextIndex += 1;
-      continue;
-    }
-  }
-
-  return diffs;
-}
 
 function formatPositionSummary(
   position: StructuralReceipt["positions"][number],
@@ -135,78 +63,6 @@ function formatTotalsSummary(
   formatMoney: (value: number, currencySymbolOverride?: string) => string,
 ) {
   return formatMoney(value, currencySymbol);
-}
-
-function arePositionsEqual(
-  left: StructuralReceipt["positions"][number],
-  right: StructuralReceipt["positions"][number],
-) {
-  return (
-    left.name === right.name &&
-    left.price === right.price &&
-    left.quantity === right.quantity &&
-    left.overall === right.overall
-  );
-}
-
-function areModifiersEqual(
-  left: StructuralReceipt["fees"][number] | StructuralReceipt["discounts"][number],
-  right: StructuralReceipt["fees"][number] | StructuralReceipt["discounts"][number],
-) {
-  return left.name === right.name && left.value === right.value;
-}
-
-function areTotalsEqual(
-  left: StructuralReceipt["totals"],
-  right: StructuralReceipt["totals"],
-) {
-  return left.total === right.total && left.grandTotal === right.grandTotal;
-}
-
-function getParticipantNames(
-  participantIds: string[],
-  participants: ParticipantDTO[],
-) {
-  return participantIds
-    .map((participantId) => {
-      const participant = participants.find((item) => item.id === participantId);
-      return participant?.displayName ?? participantId;
-    })
-    .join(", ");
-}
-
-export function buildStructuralLossWarnings(
-  currentReceipt: Receipt,
-  previewReceipt: StructuralReceipt,
-  participants: ParticipantDTO[],
-  currencySymbol: string,
-  formatMoney: (value: number, currencySymbolOverride?: string) => string,
-) {
-  const warnings: StructuralLossWarning[] = [];
-
-  currentReceipt.positions.forEach((position, positionIndex) => {
-    const previewMatch = previewReceipt.positions[positionIndex];
-    const hasExactMatch = Boolean(previewMatch && arePositionsEqual(position, previewMatch));
-
-    if (hasExactMatch || position.claims.length === 0) {
-      return;
-    }
-
-    position.claims.forEach((claim, claimIndex) => {
-      const participantLabel = getParticipantNames(claim.participantIds, participants);
-      const claimLabel =
-        claim.type === "quantity"
-          ? `${claim.value} ${t("pcs")}`
-          : formatMoney(claim.value, currencySymbol);
-
-      warnings.push({
-        id: `${position.id}-${claim.id}-${claimIndex}`,
-        text: `${participantLabel} — ${position.name} ${claimLabel}`,
-      });
-    });
-  });
-
-  return warnings;
 }
 
 function DiffSection<T>({
@@ -385,30 +241,10 @@ export const AiChatStructuralPreview: React.FC<AiChatStructuralPreviewProps> = (
   const title = receipt.meta.title ?? t("receipt");
   const currentTitle = currentReceipt.meta.title ?? t("receipt");
 
-  const positionDiffs = buildAlignedDiffs(
-    currentReceipt.positions,
-    receipt.positions,
-    arePositionsEqual,
-    (item) => item.name,
-  );
-  const feeDiffs = buildAlignedDiffs(
-    currentReceipt.fees,
-    receipt.fees,
-    areModifiersEqual,
-    (item) => item.name,
-  );
-  const discountDiffs = buildAlignedDiffs(
-    currentReceipt.discounts,
-    receipt.discounts,
-    areModifiersEqual,
-    (item) => item.name,
-  );
-  const totalDiffs = buildAlignedDiffs(
-    [currentReceipt.totals],
-    [receipt.totals],
-    areTotalsEqual,
-    () => "totals",
-  );
+  const positionDiffs = buildStructuralPositionDiffs(currentReceipt.positions, receipt.positions);
+  const feeDiffs = buildStructuralModifierDiffs(currentReceipt.fees, receipt.fees);
+  const discountDiffs = buildStructuralModifierDiffs(currentReceipt.discounts, receipt.discounts);
+  const totalDiffs = buildStructuralTotalsDiffs(currentReceipt.totals, receipt.totals);
   const warnings = buildStructuralLossWarnings(
     currentReceipt,
     receipt,

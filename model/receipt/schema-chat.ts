@@ -31,9 +31,17 @@ export const receiptChatStructuralPreviewResponseSchema = receiptChatResponseMet
   receipt: receiptStructuralPreviewSchema,
 });
 
+const receiptChatClaimSchema = z.object({
+  id: z.string(),
+  participantIds: z.array(z.string()),
+  type: z.enum(["quantity", "amount"]),
+  value: z.number(),
+});
+
 export const receiptChatClaimsPreviewResponseSchema = receiptChatResponseMetadataSchema.extend({
   type: z.literal("claims_preview"),
   receipt: receiptSchema,
+  positionClaims: z.record(z.array(receiptChatClaimSchema)),
 });
 
 export const receiptChatResponseSchema = z.discriminatedUnion("type", [
@@ -41,13 +49,6 @@ export const receiptChatResponseSchema = z.discriminatedUnion("type", [
   receiptChatStructuralPreviewResponseSchema,
   receiptChatClaimsPreviewResponseSchema,
 ]);
-
-const receiptChatClaimSchema = z.object({
-  id: z.string(),
-  participantIds: z.array(z.string()),
-  type: z.enum(["quantity", "amount"]),
-  value: z.number(),
-});
 
 export const receiptChatClaimsPreviewModelResponseSchema = z
   .object({

@@ -332,6 +332,11 @@ export const aiChatStructuralPreviewResponse: ReceiptChatResponse = {
 export const aiChatClaimsPreviewResponse: ReceiptChatResponse = {
   type: "claims_preview",
   receipt: summaryBalancedReceipt,
+  positionClaims: {
+    "position-1": summaryBalancedReceipt.positions[0].claims,
+    "position-2": summaryBalancedReceipt.positions[1].claims,
+    "position-3": summaryBalancedReceipt.positions[2].claims,
+  },
 };
 
 export const summaryRemainingReceipt: Receipt = {

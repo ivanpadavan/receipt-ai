@@ -22,12 +22,23 @@ import { t } from "@/app/i18n/translations";
 import { apiClient } from "@/app/api-client";
 import { useMoneyFormatter, useReceiptState } from "@/app/receipt/components/receipt-context";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
-import { SummaryScreen } from "@/app/receipt/components/SummaryScreen/SummaryScreen";
+import { AiChatClaimsPreview } from "@/app/receipt/components/AiChat/AiChatClaimsPreview";
 import {
   AiChatLossWarningBlock,
   AiChatStructuralPreview,
-  buildStructuralLossWarnings,
 } from "@/app/receipt/components/AiChat/AiChatStructuralPreview";
+import {
+  applyStructuralPreview,
+  buildStructuralLossWarnings,
+} from "@/app/receipt/components/AiChat/structural-apply";
+import {
+  applyClaimsPreviewAdd,
+  applyClaimsPreviewReplace,
+  buildClaimsReplaceWarnings,
+  canReplaceClaimsPreview,
+  hasClaimsPreviewData,
+  isClaimsPreviewExpired,
+} from "@/app/receipt/components/AiChat/claims-apply";
 import type {
   ReceiptChatResponse,
   ReceiptChatToolEvent,
@@ -58,6 +69,10 @@ type StructuralPreviewResponse = Extract<
   ReceiptChatResponse,
   { type: "structural_preview" }
 >;
+type ClaimsPreviewResponse = Extract<
+  ReceiptChatResponse,
+  { type: "claims_preview" }
+>;
 
 const createId = () => crypto.randomUUID();
 
@@ -77,6 +92,7 @@ function getAssistantTranscriptContent(response: ReceiptChatResponse) {
 function renderAssistantResponse(
   response: ReceiptChatResponse,
   onRequestStructuralApply: (response: StructuralPreviewResponse) => void,
+  onRequestClaimsApply: (response: ClaimsPreviewResponse) => void,
 ) {
   if (response.type === "question") {
     return (
@@ -102,14 +118,19 @@ function renderAssistantResponse(
     );
   }
 
-  return <SummaryScreen receipt={response.receipt} onBack={() => {}} />;
+  return (
+    <AiChatClaimsPreview
+      response={response}
+      onApply={() => onRequestClaimsApply(response)}
+    />
+  );
 }
 
 export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   receiptId,
   receiptTitle,
 }) => {
-  const { scenario } = useReceiptState();
+  const { scenario, replaceReceiptInForm } = useReceiptState();
   const participants = useParticipantsStore((state) => state.participants);
   const { currencySymbol, formatMoney } = useMoneyFormatter();
   const [messages, setMessages] = useState<TranscriptEntry[]>([]);
@@ -117,6 +138,8 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   const [isSending, setIsSending] = useState(false);
   const [pendingStructuralPreview, setPendingStructuralPreview] =
     useState<StructuralPreviewResponse | null>(null);
+  const [pendingClaimsPreview, setPendingClaimsPreview] =
+    useState<ClaimsPreviewResponse | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
   const currentReceipt = scenario.form.getValues() as Receipt;
 
@@ -133,6 +156,24 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
         formatMoney,
       )
     : [];
+  const claimsReplaceWarnings = pendingClaimsPreview
+    ? buildClaimsReplaceWarnings(
+        currentReceipt,
+        pendingClaimsPreview.positionClaims,
+        participants,
+        currentReceipt.meta.currencySymbol ?? currencySymbol,
+        formatMoney,
+      )
+    : [];
+  const claimsPreviewExpired = pendingClaimsPreview
+    ? isClaimsPreviewExpired(currentReceipt, pendingClaimsPreview.positionClaims)
+    : false;
+  const canReplaceClaims = pendingClaimsPreview
+    ? canReplaceClaimsPreview(currentReceipt, pendingClaimsPreview.positionClaims)
+    : false;
+  const hasClaimsData = pendingClaimsPreview
+    ? hasClaimsPreviewData(pendingClaimsPreview.positionClaims)
+    : false;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -248,6 +289,8 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                     <div className="max-w-full sm:max-w-[90%]">
                       {renderAssistantResponse(entry.response, (response) => {
                         setPendingStructuralPreview(response);
+                      }, (response) => {
+                        setPendingClaimsPreview(response);
                       })}
                     </div>
                   ) : entry.role === "system" ? (
@@ -349,9 +392,88 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
             <AlertDialogCancel onClick={() => setPendingStructuralPreview(null)}>
               {t("cancel")}
             </AlertDialogCancel>
-            <AlertDialogAction onClick={() => setPendingStructuralPreview(null)}>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingStructuralPreview) {
+                  replaceReceiptInForm(
+                    applyStructuralPreview(currentReceipt, pendingStructuralPreview.receipt),
+                  );
+                }
+                setPendingStructuralPreview(null);
+              }}
+            >
               {t("apply")}
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={pendingClaimsPreview !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingClaimsPreview(null);
+          }
+        }}
+      >
+        <AlertDialogContent className="sm:max-w-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {claimsPreviewExpired
+                ? t("aiChatClaimsPreviewExpiredTitle")
+                : t("aiChatClaimsPreviewConfirmTitle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {claimsPreviewExpired
+                ? t("aiChatClaimsPreviewExpiredText")
+                : t("aiChatClaimsPreviewConfirmText")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {!claimsPreviewExpired && canReplaceClaims && (
+            <AiChatLossWarningBlock
+              title={t("aiChatClaimsPreviewLossesTitle")}
+              description={t("aiChatClaimsPreviewLossesText")}
+              warnings={claimsReplaceWarnings}
+            />
+          )}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingClaimsPreview(null)}>
+              {claimsPreviewExpired ? t("close") : t("cancel")}
+            </AlertDialogCancel>
+            {!claimsPreviewExpired && pendingClaimsPreview && (
+              <>
+                <AlertDialogAction
+                  onClick={() => {
+                    replaceReceiptInForm(
+                      applyClaimsPreviewAdd(
+                        scenario.form.getValues() as Receipt,
+                        pendingClaimsPreview.positionClaims,
+                      ),
+                    );
+                    setPendingClaimsPreview(null);
+                  }}
+                >
+                  {t("aiChatClaimsPreviewAdd")}
+                </AlertDialogAction>
+                {canReplaceClaims && hasClaimsData && (
+                  <AlertDialogAction
+                    onClick={() => {
+                      replaceReceiptInForm(
+                        applyClaimsPreviewReplace(
+                          scenario.form.getValues() as Receipt,
+                          pendingClaimsPreview.positionClaims,
+                        ),
+                      );
+                      setPendingClaimsPreview(null);
+                    }}
+                  >
+                    {t("aiChatClaimsPreviewReplaceAll")}
+                  </AlertDialogAction>
+                )}
+              </>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

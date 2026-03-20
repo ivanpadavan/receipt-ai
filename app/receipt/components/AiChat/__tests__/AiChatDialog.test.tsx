@@ -6,7 +6,7 @@ import { AiChatDialog } from "../AiChatDialog";
 import { ReceiptFormContext } from "@/app/receipt/components/receipt-context";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { Receipt } from "@/model/receipt/model";
-import { setLanguage } from "@/app/i18n/translations";
+import { setLanguage, t } from "@/app/i18n/translations";
 import type { ReceiptState } from "@/app/receipt/[id]/useReceiptFormState";
 
 const sendReceiptChatMessageMock = vi.fn();
@@ -89,17 +89,26 @@ function createStructuralWarningReceipt(): Receipt {
           },
         ],
       },
+      {
+        id: "pos-3",
+        name: "Cake",
+        price: 75,
+        quantity: 1,
+        overall: 75,
+        claims: [],
+      },
     ],
     fees: [],
     discounts: [],
     totals: {
-      total: 150,
-      grandTotal: 150,
+      total: 225,
+      grandTotal: 225,
     },
   };
 }
 
 function renderWithContext(ui: React.ReactElement, receipt: Receipt = createReceipt()) {
+  const replaceReceiptInForm = vi.fn();
   const formState = {
     scenario: {
       type: "summary",
@@ -123,13 +132,19 @@ function renderWithContext(ui: React.ReactElement, receipt: Receipt = createRece
       splitting: null,
       editing: null,
     },
+    replaceReceiptInForm,
   } as unknown as ReceiptState;
 
-  return render(
+  const renderResult = render(
     <ReceiptFormContext.Provider value={formState}>
       {ui}
     </ReceiptFormContext.Provider>,
   );
+
+  return {
+    ...renderResult,
+    replaceReceiptInForm,
+  };
 }
 
 beforeEach(() => {
@@ -171,6 +186,12 @@ describe("AiChatDialog", () => {
               overall: 120,
             },
             {
+              name: "Cake",
+              price: 75,
+              quantity: 1,
+              overall: 75,
+            },
+            {
               name: "Fries",
               price: 50,
               quantity: 1,
@@ -180,8 +201,8 @@ describe("AiChatDialog", () => {
           fees: [],
           discounts: [],
           totals: {
-            total: 170,
-            grandTotal: 170,
+            total: 245,
+            grandTotal: 245,
           },
         },
         events: [],
@@ -194,9 +215,9 @@ describe("AiChatDialog", () => {
 
     const user = userEvent.setup();
 
-    renderWithContext(
+    const { replaceReceiptInForm } = renderWithContext(
       <AiChatDialog receiptId="receipt-1" receiptTitle="Receipt" />,
-      createReceipt(),
+      createStructuralWarningReceipt(),
     );
 
     await user.click(screen.getByRole("button", { name: /ai/i }));
@@ -218,9 +239,12 @@ describe("AiChatDialog", () => {
     expect(modal).toBeInTheDocument();
     expect(within(modal).getByText(/apply structural changes\?/i)).toBeInTheDocument();
     expect(within(modal).getByText(/claims that may be lost/i)).toBeInTheDocument();
-    expect(within(modal).getByText("Alice — Burger 100 ₽")).toBeInTheDocument();
+    expect(within(modal).getByText(`Alice — Soda 1 ${t("pcs")}`)).toBeInTheDocument();
     expect(within(modal).getByRole("button", { name: /cancel/i })).toBeInTheDocument();
     expect(within(modal).getByRole("button", { name: /apply/i })).toBeInTheDocument();
+
+    await user.click(within(modal).getByRole("button", { name: /apply/i }));
+    expect(replaceReceiptInForm).toHaveBeenCalledTimes(1);
   });
 
   it("renders question, structural preview, and distributions preview responses", async () => {
@@ -257,6 +281,16 @@ describe("AiChatDialog", () => {
       .mockResolvedValueOnce({
         type: "claims_preview",
         receipt: createReceipt(),
+        positionClaims: {
+          "pos-1": [
+            {
+              id: "claim-2",
+              type: "amount",
+              value: 100,
+              participantIds: ["participant-1"],
+            },
+          ],
+        },
         events: [
           {
             type: "requested_receipt_images",

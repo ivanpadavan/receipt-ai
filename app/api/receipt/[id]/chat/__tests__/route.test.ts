@@ -229,6 +229,16 @@ describe("POST /api/receipt/[id]/chat", () => {
 
     await expect(response.json()).resolves.toEqual({
       type: "claims_preview",
+      positionClaims: {
+        "position-1": [
+          {
+            id: "claim-1",
+            participantIds: ["participant-1"],
+            type: "quantity",
+            value: 1,
+          },
+        ],
+      },
       receipt: {
         ...currentReceipt,
         positions: [

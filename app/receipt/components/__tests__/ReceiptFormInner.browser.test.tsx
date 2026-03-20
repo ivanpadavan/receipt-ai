@@ -2213,9 +2213,10 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       await waitFor(() => {
         expect(screen.getByText("AI draft")).toBeInTheDocument();
       });
+      const chatDialog = screen.getByRole("dialog");
       expect(screen.getAllByText("Bread").length).toBeGreaterThan(1);
       expect(screen.getByText("Juice")).toBeInTheDocument();
-      expect(screen.getAllByText("Butter").length).toBeGreaterThan(1);
+      expect(within(chatDialog).getAllByText("Butter").length).toBeGreaterThan(0);
       expect(screen.getByText(t("fees"))).toBeInTheDocument();
       expect(screen.getByText(t("discounts"))).toBeInTheDocument();
       expect(screen.getByText("Service")).toBeInTheDocument();
@@ -2313,8 +2314,11 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       await waitFor(() => {
         expect(screen.getByText("Ivan")).toBeInTheDocument();
       });
+      const chatDialog = screen.getByRole("dialog");
       expect(screen.getByText("Anton")).toBeInTheDocument();
       expect(screen.getByText("Polina")).toBeInTheDocument();
+      expect(within(chatDialog).queryByText(t("total"))).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: t("aiChatClaimsPreviewReviewChanges") })).toBeInTheDocument();
       await expectCurrentScreenshot("ai-chat-claims-preview");
     });
   });
