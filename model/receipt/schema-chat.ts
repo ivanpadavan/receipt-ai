@@ -49,16 +49,10 @@ const receiptChatClaimSchema = z.object({
   value: z.number(),
 });
 
-const receiptChatClaimsPreviewPositionSchema = z.object({
-  positionId: z.string(),
-  claims: z.array(receiptChatClaimSchema),
-});
-
 export const receiptChatClaimsPreviewModelResponseSchema = z
   .object({
     type: z.literal("claims_preview"),
     positionClaims: z.record(z.array(receiptChatClaimSchema)),
-    positions: z.array(receiptChatClaimsPreviewPositionSchema).optional(),
     events: z.array(receiptChatToolEventSchema).default([]),
   });
 

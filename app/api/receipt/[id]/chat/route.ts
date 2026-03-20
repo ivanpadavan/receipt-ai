@@ -107,7 +107,7 @@ async function generateReceiptChatResponse({
     "Allowed response types:\n" +
     '- `question`: when clarification is required before making a preview. `message` must be plain text only.\n' +
     '- `structural_preview`: when you are proposing a changed receipt structure. Return the full structural preview without ids or claims.\n' +
-    '- `claims_preview`: when you are proposing how claims should be filled. Return claims only as `positionClaims: Record<string, claim[]>` keyed by existing `positionId` or equivalently as `[{ positionId, claims }]`.\n' +
+    '- `claims_preview`: when you are proposing how claims should be filled. Return claims only as `positionClaims: Record<string, claim[]>` keyed by existing `positionId`.\n' +
     "You may call `get_receipt_images` if the original photos are needed.\n" +
     "For `question`, use only plain text with optional newline characters.\n" +
     "For `question`, do not use markdown, bullet lists, numbered lists, or JSON.\n" +
@@ -176,22 +176,13 @@ function toApiResponse(
     return receiptChatResponseSchema.parse(response);
   }
 
-  const claimsByPositionId = new Map(
-    response.positionClaims
-      ? Object.entries(response.positionClaims)
-      : response.positions?.map((position) => [
-          position.positionId,
-          position.claims,
-        ]) ?? [],
-  );
-
   return receiptChatResponseSchema.parse({
     type: "claims_preview",
     receipt: {
       ...receipt,
       positions: receipt.positions.map((position) => ({
         ...position,
-        claims: claimsByPositionId.get(position.id) ?? position.claims,
+        claims: response.positionClaims[position.id] ?? position.claims,
       })),
     },
     events: response.events,
