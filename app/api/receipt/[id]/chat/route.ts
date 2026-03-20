@@ -4,7 +4,6 @@ import { HumanMessage } from "@langchain/core/messages";
 import { createAgent, tool } from "langchain";
 import { z } from "zod";
 import { inspect } from "node:util";
-import type { ApiValidator } from "@/app/api-client/api-validator";
 import { errorWrap } from "@/app/api/receipt/error-wrap";
 import validator from "@/app/api/receipt/[id]/chat/validator";
 import { db } from "@/app/db";
@@ -189,7 +188,7 @@ export async function POST(
   const { id: receiptId } = await params;
 
   return withLanguage("en", () =>
-    errorWrap(req, validator as unknown as ApiValidator, async ({ body }) => {
+    errorWrap(req, validator, async ({ body }) => {
       const receipt = await db.receipt.findUnique({
         where: { id: receiptId },
         select: { data: true, imageUrls: true },

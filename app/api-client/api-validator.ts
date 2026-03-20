@@ -1,6 +1,9 @@
-import { ZodType } from "zod";
+import { ZodTypeAny } from "zod";
 
-export interface ApiValidator {
-  request: ZodType;
-  response: ZodType;
+export interface ApiValidator<
+  TRequest extends ZodTypeAny = ZodTypeAny,
+  TResponse extends ZodTypeAny = ZodTypeAny,
+> {
+  request: TRequest;
+  response: TResponse;
 }

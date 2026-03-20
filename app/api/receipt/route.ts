@@ -3,7 +3,6 @@ import { Receipt, ReceiptNoId } from "@/model/receipt/model";
 import { NextRequest, NextResponse } from "next/server";
 import { ChatOpenRouter } from "@langchain/openrouter";
 import { PromptTemplate } from "@langchain/core/prompts";
-import type { ApiValidator } from "@/app/api-client/api-validator";
 import { db } from "@/app/db";
 import postValidator from "@/app/api-client/receipt/post";
 import { serverSupabase } from "@/utils/supabase/server";
@@ -116,7 +115,7 @@ async function analyzeImages(images: string[]) {
  */
 export async function POST(req: NextRequest) {
   return withLanguage("en", () =>
-    errorWrap(req, postValidator as unknown as ApiValidator, async ({ session, body }) => {
+    errorWrap(req, postValidator, async ({ session, body }) => {
       const userId = session.user.id;
 
       const imageUrls = await Promise.all(
