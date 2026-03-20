@@ -77,7 +77,10 @@ describe("POST /api/receipt", () => {
     };
 
     uploadMock.mockResolvedValue({
-      data: { fullPath: "user-1/receipt-1.png" },
+      data: {
+        path: "user-1/receipt-1.png",
+        fullPath: "receipts/user-1/receipt-1.png",
+      },
       error: null,
     });
     invokeMock.mockResolvedValue(receiptData);
@@ -108,7 +111,7 @@ describe("POST /api/receipt", () => {
     expect(createMock).toHaveBeenCalledWith({
       data: {
         userId: "user-1",
-        imageUrls: ["user-1/receipt-1.png"],
+        imageUrls: ["receipts/user-1/receipt-1.png"],
         data: {
           meta: {
             title: "Receipt",

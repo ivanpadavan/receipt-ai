@@ -18,7 +18,6 @@ const toolMock = vi.fn(
 const findUniqueMock = vi.fn();
 const errorWrapMock = vi.fn();
 const buildParticipantsMock = vi.fn();
-const createSignedUrlsMock = vi.fn();
 const consoleInfoMock = vi.spyOn(console, "info").mockImplementation(() => {});
 
 vi.mock("langchain", () => ({
@@ -43,16 +42,6 @@ vi.mock("@/app/db", () => ({
 
 vi.mock("@/app/db-utils/build-participants", () => ({
   buildParticipants: (...args: unknown[]) => buildParticipantsMock(...args),
-}));
-
-vi.mock("@/utils/supabase/server", () => ({
-  serverSupabase: async () => ({
-    storage: {
-      from: () => ({
-        createSignedUrls: (...args: unknown[]) => createSignedUrlsMock(...args),
-      }),
-    },
-  }),
 }));
 
 vi.mock("@/app/api/receipt/error-wrap", () => ({
@@ -96,8 +85,8 @@ describe("POST /api/receipt/[id]/chat", () => {
     findUniqueMock.mockReset();
     errorWrapMock.mockReset();
     buildParticipantsMock.mockReset();
-    createSignedUrlsMock.mockReset();
     consoleInfoMock.mockClear();
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
     buildParticipantsMock.mockResolvedValue([
       {
         id: "participant-1",
@@ -259,14 +248,10 @@ describe("POST /api/receipt/[id]/chat", () => {
     findUniqueMock.mockResolvedValue({
       id: "receipt-1",
       data: currentReceipt,
-      imageUrls: ["user-1/receipt-1.png", "user-1/receipt-2.png"],
-    });
-    createSignedUrlsMock.mockResolvedValue({
-      data: [
-        { signedUrl: "https://cdn.example.com/receipt-1.png" },
-        { signedUrl: "https://cdn.example.com/receipt-2.png" },
+      imageUrls: [
+        "receipts/user-1/receipt-1.png",
+        "receipts/user-1/receipt-2.png",
       ],
-      error: null,
     });
     agentInvokeMock.mockImplementation(async () => {
       const [{ tools }] = (createAgentMock.mock.calls.at(-1) ?? []) as unknown as [
@@ -323,10 +308,6 @@ describe("POST /api/receipt/[id]/chat", () => {
         },
       ],
     });
-    expect(createSignedUrlsMock).toHaveBeenCalledWith(
-      ["user-1/receipt-1.png", "user-1/receipt-2.png"],
-      600,
-    );
     expect(consoleInfoMock).toHaveBeenCalledWith("receipt_chat_tool_call", {
       receiptId: "receipt-1",
       toolName: "get_receipt_images",

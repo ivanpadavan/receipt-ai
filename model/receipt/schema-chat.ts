@@ -69,6 +69,15 @@ export const receiptChatModelResponseSchema = z.discriminatedUnion("type", [
   receiptChatClaimsPreviewModelResponseSchema,
 ]);
 
+export const receiptChatModelResponseSchemas = [
+  receiptChatQuestionResponseSchema,
+  receiptChatResponseMetadataSchema.extend({
+    type: z.literal("structural_preview"),
+    receipt: receiptStructuralPreviewSchema,
+  }),
+  receiptChatClaimsPreviewModelResponseSchema,
+] as const;
+
 export type ReceiptChatRequest = z.infer<typeof receiptChatRequestSchema>;
 export type ReceiptChatResponse = z.infer<typeof receiptChatResponseSchema>;
 export type ReceiptChatToolEvent = z.infer<typeof receiptChatToolEventSchema>;

@@ -60,7 +60,9 @@ function renderAssistantResponse(response: ReceiptChatResponse) {
           <div className={textVariants({ size: "sm", tone: "muted", style: "caps" })}>
             AI
           </div>
-          <div className={textVariants({ size: "sm" })}>{response.message}</div>
+          <div className={cn(textVariants({ size: "sm" }), "whitespace-pre-wrap")}>
+            {response.message}
+          </div>
         </div>
       </ReceiptCard>
     );
@@ -222,7 +224,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                         <div className={textVariants({ size: "sm", tone: "muted", style: "caps" })}>
                           {entry.role === "user" ? "You" : "AI"}
                         </div>
-                        <div className={textVariants({ size: "sm" })}>
+                        <div className={cn(textVariants({ size: "sm" }), "whitespace-pre-wrap")}>
                           {entry.content}
                         </div>
                       </div>

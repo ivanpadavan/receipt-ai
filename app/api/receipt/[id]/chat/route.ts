@@ -1,21 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ChatOpenRouter } from "@langchain/openrouter";
 import { HumanMessage } from "@langchain/core/messages";
-import { createAgent, tool, toolStrategy } from "langchain";
+import { createAgent, tool } from "langchain";
 import { z } from "zod";
+import { inspect } from "node:util";
 import type { ApiValidator } from "@/app/api-client/api-validator";
 import { errorWrap } from "@/app/api/receipt/error-wrap";
 import validator from "@/app/api/receipt/[id]/chat/validator";
 import { db } from "@/app/db";
 import {
   receiptChatModelResponseSchema,
+  receiptChatModelResponseSchemas,
   receiptChatResponseSchema,
   type ReceiptChatResponse,
   type ReceiptChatToolEvent,
 } from "@/model/receipt/schema-chat";
 import { withLanguage } from "@/app/i18n/translations";
 import { buildParticipants } from "@/app/db-utils/build-participants";
-import { serverSupabase } from "@/utils/supabase/server";
 import type { Receipt } from "@/model/receipt/model";
 
 export const runtime = "nodejs";
@@ -43,18 +44,14 @@ async function createReceiptImageUrls(imageUrls: string[]) {
     return [];
   }
 
-  const supabase = await serverSupabase();
-  const { data, error } = await supabase.storage
-    .from("receipts")
-    .createSignedUrls(imageUrls, 600);
-
-  if (error) {
-    throw new Error(`Supabase storage signed URL error: ${error.message}`);
+  const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!baseUrl) {
+    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
   }
 
-  return data
-    .map((item) => item.signedUrl)
-    .filter((url): url is string => typeof url === "string" && url.length > 0);
+  return imageUrls.map(
+    (path) => `${baseUrl}/storage/v1/object/public/${path}`,
+  );
 }
 
 async function generateReceiptChatResponse({
@@ -96,7 +93,7 @@ async function generateReceiptChatResponse({
     {
       name: "get_receipt_images",
       description:
-        "Get original receipt photos as signed URLs when the text context is not enough.",
+        "Get original receipt photos as public URLs when the text context is not enough.",
       schema: z.object({}),
     },
   );
@@ -105,10 +102,14 @@ async function generateReceiptChatResponse({
     "You are helping the user edit a receipt through chat.\n" +
     "Return exactly one structured response.\n" +
     "Allowed response types:\n" +
-    '- `question`: when clarification is required before making a preview.\n' +
+    '- `question`: when clarification is required before making a preview. `message` must be plain text only.\n' +
     '- `structural_preview`: when you are proposing a changed receipt structure. Return the full structural preview without ids or claims.\n' +
     '- `claims_preview`: when you are proposing how claims should be filled. Return only changed positions as `{ id, claims }`.\n' +
     "You may call `get_receipt_images` if the original photos are needed.\n" +
+    "For `question`, use only plain text with optional newline characters.\n" +
+    "For `question`, do not use markdown, bullet lists, numbered lists, or JSON.\n" +
+    "For `question`, keep the answer short and direct.\n" +
+    "If the user asks for a count or a single fact, answer with that fact in the first sentence.\n" +
     "Keep unchanged fields from the current receipt when generating previews.\n" +
     "For claims preview, do not return full positions, fees, discounts, totals, or metadata.\n" +
     "For claims preview, reference existing positions by `id` and participants by `id`.\n" +
@@ -118,17 +119,33 @@ async function generateReceiptChatResponse({
     `Chat history:\n${formatHistory(history)}\n\n` +
     `Latest user message:\n${message}`;
 
-  const agent = createAgent({
-    model,
-    tools: [getReceiptImages],
-    responseFormat: toolStrategy(receiptChatModelResponseSchema),
-    systemPrompt:
-      "Help the user edit the receipt. Use tools when needed, then produce the final structured response.",
-  });
+  let result;
+  try {
+    const agent = createAgent({
+      model,
+      tools: [getReceiptImages],
+      responseFormat: receiptChatModelResponseSchemas,
+      systemPrompt:
+        "Help the user edit the receipt. Use tools when needed, then produce the final structured response.",
+    });
 
-  const result = await agent.invoke({
-    messages: [new HumanMessage(prompt)],
-  });
+    result = await agent.invoke({
+      messages: [new HumanMessage(prompt)],
+    });
+  } catch (error) {
+    console.error(
+      "receipt_chat_agent_error",
+      inspect(
+        {
+          receiptId,
+          responseFormats: ["question", "structural_preview", "claims_preview"],
+          error,
+        },
+        { depth: 6, breakLength: 120 },
+      ),
+    );
+    throw error;
+  }
 
   const structuredResponse = receiptChatModelResponseSchema.parse(
     result.structuredResponse,

@@ -106,7 +106,7 @@ describe("AiChatDialog", () => {
     sendReceiptChatMessageMock
       .mockResolvedValueOnce({
         type: "question",
-        message: "What should I change?",
+        message: "What should I change?\nKeep it short.",
         events: [],
       })
       .mockResolvedValueOnce({
@@ -168,9 +168,9 @@ describe("AiChatDialog", () => {
       }),
     );
 
-    expect(
-      await screen.findByText("What should I change?"),
-    ).toBeInTheDocument();
+    const questionText = await screen.findByText(/What should I change\?/i);
+    expect(questionText).toBeInTheDocument();
+    expect(questionText).toHaveClass("whitespace-pre-wrap");
 
     await user.type(
       screen.getByPlaceholderText(/ask/i),
