@@ -3,12 +3,13 @@ import { NextRequest } from "next/server";
 import type { Receipt } from "@/model/receipt/model";
 
 const agentInvokeMock = vi.fn();
+const structuredInvokeMock = vi.fn();
 const createAgentMock = vi.fn(() => ({
   invoke: agentInvokeMock,
 }));
 const toolMock = vi.fn(
   (
-    fn: (input: Record<string, never>) => unknown,
+    fn: (input: Record<string, never> | Record<string, number>) => unknown,
     options: { name: string; description: string },
   ) => ({
     invoke: fn,
@@ -19,6 +20,7 @@ const findUniqueMock = vi.fn();
 const errorWrapMock = vi.fn();
 const buildParticipantsMock = vi.fn();
 const consoleInfoMock = vi.spyOn(console, "info").mockImplementation(() => {});
+const randomUuidMock = vi.spyOn(globalThis.crypto, "randomUUID");
 
 vi.mock("langchain", () => ({
   createAgent: createAgentMock,
@@ -28,7 +30,11 @@ vi.mock("langchain", () => ({
 
 vi.mock("@langchain/openrouter", () => ({
   ChatOpenRouter: vi.fn(function ChatOpenRouter() {
-    return {};
+    return {
+      withStructuredOutput: vi.fn(() => ({
+        invoke: structuredInvokeMock,
+      })),
+    };
   }),
 }));
 
@@ -82,10 +88,12 @@ describe("POST /api/receipt/[id]/chat", () => {
     agentInvokeMock.mockReset();
     createAgentMock.mockClear();
     toolMock.mockClear();
+    structuredInvokeMock.mockReset();
     findUniqueMock.mockReset();
     errorWrapMock.mockReset();
     buildParticipantsMock.mockReset();
     consoleInfoMock.mockClear();
+    randomUuidMock.mockReset();
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
     buildParticipantsMock.mockResolvedValue([
       {
@@ -98,7 +106,12 @@ describe("POST /api/receipt/[id]/chat", () => {
   });
 
   it("loads the receipt context and returns the model preview response", async () => {
-    const expectedResponse = {
+    randomUuidMock
+      .mockReturnValueOnce("generated-position-id")
+      .mockReturnValueOnce("generated-fee-id")
+      .mockReturnValueOnce("generated-discount-id");
+
+    const llmResponse = {
       type: "structural_preview" as const,
       receipt: {
         meta: {
@@ -122,14 +135,12 @@ describe("POST /api/receipt/[id]/chat", () => {
         ],
         fees: [
           {
-            id: "fee-1",
             name: "Service",
             value: 15,
           },
         ],
         discounts: [
           {
-            id: "discount-1",
             name: "Promo",
             value: 10,
           },
@@ -141,6 +152,31 @@ describe("POST /api/receipt/[id]/chat", () => {
       },
       events: [],
     };
+    const expectedResponse = {
+      ...llmResponse,
+      receipt: {
+        ...llmResponse.receipt,
+        positions: [
+          llmResponse.receipt.positions[0],
+          {
+            id: "generated-position-id",
+            ...llmResponse.receipt.positions[1],
+          },
+        ],
+        fees: [
+          {
+            id: "generated-fee-id",
+            ...llmResponse.receipt.fees[0],
+          },
+        ],
+        discounts: [
+          {
+            id: "generated-discount-id",
+            ...llmResponse.receipt.discounts[0],
+          },
+        ],
+      },
+    };
 
     findUniqueMock.mockResolvedValue({
       id: "receipt-1",
@@ -148,7 +184,7 @@ describe("POST /api/receipt/[id]/chat", () => {
       imageUrls: [],
     });
     agentInvokeMock.mockResolvedValue({
-      structuredResponse: expectedResponse,
+      structuredResponse: llmResponse,
     });
     errorWrapMock.mockImplementation(
       async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
@@ -191,6 +227,7 @@ describe("POST /api/receipt/[id]/chat", () => {
     });
     expect(createAgentMock).toHaveBeenCalled();
     expect(agentInvokeMock).toHaveBeenCalledTimes(1);
+    expect(randomUuidMock).toHaveBeenCalledTimes(3);
     expect(prompt).toContain("positionClaims: Record<string, claim[]>");
     expect(prompt).toContain("Existing rows and modifiers must carry their current `id`");
     expect(prompt).toContain('"currentUserParticipantId": "participant-1"');
@@ -301,10 +338,15 @@ describe("POST /api/receipt/[id]/chat", () => {
       return {
         structuredResponse: {
           type: "question",
-          message: "I checked the original photos. Who had the borscht?",
+          message: "Intermediate answer should be replaced by the multimodal pass.",
           events: [],
         },
       };
+    });
+    structuredInvokeMock.mockResolvedValue({
+      type: "question",
+      message: "I checked the original photos. Who had the borscht?",
+      events: [],
     });
     errorWrapMock.mockImplementation(
       async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
@@ -347,5 +389,18 @@ describe("POST /api/receipt/[id]/chat", () => {
       toolName: "get_receipt_images",
       imageCount: 2,
     });
+    expect(structuredInvokeMock).toHaveBeenCalledTimes(1);
+    const multimodalCall = structuredInvokeMock.mock.calls[0]?.[0];
+    const content = multimodalCall?.[0]?.content;
+    expect(Array.isArray(content)).toBe(true);
+    expect(content[0]?.type).toBe("text");
+    expect(content[1]?.type).toBe("image_url");
+    expect(content[1]?.image_url).toBe(
+      "https://example.supabase.co/storage/v1/object/public/receipts/user-1/receipt-1.png",
+    );
+    expect(content[2]?.image_url).toBe(
+      "https://example.supabase.co/storage/v1/object/public/receipts/user-1/receipt-2.png",
+    );
   });
+
 });

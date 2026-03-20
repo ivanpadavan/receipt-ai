@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { receiptSchema } from "@/model/receipt/schema-form";
-import { receiptStructuralPreviewSchema } from "@/model/receipt/schema-structural";
+import {
+  receiptStructuralPreviewSchema,
+  receiptWithIdsSchema,
+} from "@/model/receipt/schema-structural";
 
 export const receiptChatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
@@ -28,7 +31,7 @@ export const receiptChatQuestionResponseSchema = receiptChatResponseMetadataSche
 
 export const receiptChatStructuralPreviewResponseSchema = receiptChatResponseMetadataSchema.extend({
   type: z.literal("structural_preview"),
-  receipt: receiptStructuralPreviewSchema,
+  receipt: receiptWithIdsSchema,
 });
 
 const receiptChatClaimSchema = z.object({

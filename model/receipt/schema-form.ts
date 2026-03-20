@@ -2,11 +2,12 @@ import { t } from "@/app/i18n/translations";
 import { addMoney } from "@/app/receipt/utils/money";
 import { type Receipt } from "@/model/receipt/model";
 import {
-  receiptTotalsSchema,
-  withId,
+  createReceiptBaseSchema,
   modifierSchema,
   positionAiSchema,
-  receiptAiSchema,
+  receiptTotalsSchema,
+  modifierWithIdSchema,
+  positionWithIdSchema,
 } from "@/model/receipt/schema-structural";
 import { metaBaseSchema } from "@/model/receipt/schema-meta";
 import {
@@ -24,21 +25,19 @@ const claimSchema = z.object({
 });
 
 export const metaSchema = metaBaseSchema;
+export const positionWithIdAndClaimsSchema = z.intersection(
+  positionWithIdSchema,
+  z.object({ claims: z.array(claimSchema) }),
+);
 
-export const receiptWithIdsSchema = receiptAiSchema
-  .extend({
-    meta: metaSchema,
-    positions: z.array(
-      z.intersection(
-        withId(positionAiSchema),
-        z.object({ claims: z.array(claimSchema) }),
-      ),
-    ),
-    fees: z.array(withId(modifierSchema)),
-    discounts: z.array(withId(modifierSchema)),
-  });
+export const receiptWithIdsAndClaimsSchema = createReceiptBaseSchema(
+  positionWithIdAndClaimsSchema,
+  modifierWithIdSchema,
+).extend({
+  meta: metaSchema,
+});
 
-export const receiptSchema = receiptWithIdsSchema
+export const receiptSchema = receiptWithIdsAndClaimsSchema
   .superRefine((value, context) => {
     addReceiptBusinessIssues(
       {

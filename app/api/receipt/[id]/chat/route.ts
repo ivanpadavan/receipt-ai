@@ -26,8 +26,15 @@ const model = new ChatOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
 });
 
+const structuredChatResponseModel = model.withStructuredOutput(
+  receiptChatModelResponseSchema,
+  {
+    name: "receipt_chat_response",
+  },
+);
+
 function formatHistory(
-  history: Array<{ role: "user" | "assistant"; content: string }>,
+  history: { role: "user" | "assistant"; content: string }[],
 ) {
   if (history.length === 0) {
     return "No previous chat history.";
@@ -53,55 +60,22 @@ async function createReceiptImageUrls(imageUrls: string[]) {
   );
 }
 
-async function generateReceiptChatResponse({
-  receiptId,
+function buildReceiptChatPrompt({
   receipt,
-  imageUrls,
   participants,
   currentUserParticipantId,
   currentUserDisplayName,
   history,
   message,
 }: {
-  receiptId: string;
   receipt: Receipt;
-  imageUrls: string[];
-  participants: Array<{ id: string; displayName: string }>;
+  participants: { id: string; displayName: string }[];
   currentUserParticipantId: string | null;
   currentUserDisplayName: string | null;
-  history: Array<{ role: "user" | "assistant"; content: string }>;
+  history: { role: "user" | "assistant"; content: string }[];
   message: string;
 }) {
-  const events: ReceiptChatToolEvent[] = [];
-
-  const getReceiptImages = tool(
-    async () => {
-      const signedImageUrls = await createReceiptImageUrls(imageUrls);
-      const event: ReceiptChatToolEvent = {
-        type: "requested_receipt_images",
-        imageCount: signedImageUrls.length,
-      };
-
-      events.push(event);
-      console.info("receipt_chat_tool_call", {
-        receiptId,
-        toolName: "get_receipt_images",
-        imageCount: signedImageUrls.length,
-      });
-
-      return {
-        imageUrls: signedImageUrls,
-      };
-    },
-    {
-      name: "get_receipt_images",
-      description:
-        "Get original receipt photos as public URLs when the text context is not enough.",
-      schema: z.object({}),
-    },
-  );
-
-  const prompt =
+  return (
     "You are helping the user edit a receipt through chat.\n" +
     "Return exactly one structured response.\n" +
     "Allowed response types:\n" +
@@ -128,7 +102,79 @@ async function generateReceiptChatResponse({
     `Current receipt JSON:\n${JSON.stringify(receipt, null, 2)}\n\n` +
     `Participants JSON:\n${JSON.stringify(participants, null, 2)}\n\n` +
     `Chat history:\n${formatHistory(history)}\n\n` +
-    `Latest user message:\n${message}`;
+    `Latest user message:\n${message}`
+  );
+}
+
+function assignMissingIds<T extends { id?: string }>(items: T[]) {
+  return items.map((item) =>
+    item.id
+      ? item
+      : {
+          ...item,
+          id: crypto.randomUUID(),
+        },
+  );
+}
+
+async function generateReceiptChatResponse({
+  receiptId,
+  receipt,
+  imageUrls,
+  participants,
+  currentUserParticipantId,
+  currentUserDisplayName,
+  history,
+  message,
+}: {
+  receiptId: string;
+  receipt: Receipt;
+  imageUrls: string[];
+  participants: { id: string; displayName: string }[];
+  currentUserParticipantId: string | null;
+  currentUserDisplayName: string | null;
+  history: { role: "user" | "assistant"; content: string }[];
+  message: string;
+}) {
+  const events: ReceiptChatToolEvent[] = [];
+  let requestedReceiptImages: string[] = [];
+
+  const getReceiptImages = tool(
+    async () => {
+      const signedImageUrls = await createReceiptImageUrls(imageUrls);
+      const event: ReceiptChatToolEvent = {
+        type: "requested_receipt_images",
+        imageCount: signedImageUrls.length,
+      };
+
+      events.push(event);
+      requestedReceiptImages = signedImageUrls;
+      console.info("receipt_chat_tool_call", {
+        receiptId,
+        toolName: "get_receipt_images",
+        imageCount: signedImageUrls.length,
+      });
+
+      return {
+        imageUrls: signedImageUrls,
+      };
+    },
+    {
+      name: "get_receipt_images",
+      description:
+        "Get original receipt photos as public URLs when the text context is not enough.",
+      schema: z.object({}),
+    },
+  );
+
+  const prompt = buildReceiptChatPrompt({
+    receipt,
+    participants,
+    currentUserParticipantId,
+    currentUserDisplayName,
+    history,
+    message,
+  });
 
   let result;
   try {
@@ -143,6 +189,27 @@ async function generateReceiptChatResponse({
     result = await agent.invoke({
       messages: [new HumanMessage(prompt)],
     });
+
+    if (requestedReceiptImages.length > 0) {
+      result = {
+        structuredResponse: await structuredChatResponseModel.invoke([
+          new HumanMessage({
+            content: [
+              {
+                type: "text",
+                text:
+                  `${prompt}\n\n` +
+                  "The original receipt photos requested by the model are attached below. Use them to answer precisely.",
+              },
+              ...requestedReceiptImages.map((imageUrl) => ({
+                type: "image_url" as const,
+                image_url: imageUrl,
+              })),
+            ],
+          }),
+        ]),
+      };
+    }
   } catch (error) {
     console.error(
       "receipt_chat_agent_error",
@@ -162,9 +229,22 @@ async function generateReceiptChatResponse({
     result.structuredResponse,
   );
 
+  const normalizedResponse =
+    structuredResponse.type === "structural_preview"
+      ? {
+          ...structuredResponse,
+          receipt: {
+            ...structuredResponse.receipt,
+            positions: assignMissingIds(structuredResponse.receipt.positions),
+            fees: assignMissingIds(structuredResponse.receipt.fees),
+            discounts: assignMissingIds(structuredResponse.receipt.discounts),
+          },
+        }
+      : structuredResponse;
+
   return {
-    ...structuredResponse,
-    events: [...events, ...structuredResponse.events],
+    ...normalizedResponse,
+    events: [...events, ...normalizedResponse.events],
   };
 }
 
@@ -175,6 +255,8 @@ function toApiResponse(
   if (response.type !== "claims_preview") {
     return receiptChatResponseSchema.parse(response);
   }
+
+  console.log(response);
 
   return receiptChatResponseSchema.parse({
     type: "claims_preview",

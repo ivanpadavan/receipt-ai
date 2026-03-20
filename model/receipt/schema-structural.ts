@@ -63,14 +63,6 @@ export const modifierSchema = z.object({
   }).describe("The value of the modifier (positive)"),
 });
 
-export const structuralPreviewPositionSchema = positionAiSchema.extend({
-  id: z.string().optional(),
-});
-
-export const structuralPreviewModifierSchema = modifierSchema.extend({
-  id: z.string().optional(),
-});
-
 export const receiptTotalsSchema = z.object({
   total: z.number().superRefine((value, context) => {
     if (!isPositiveFinite(value)) {
@@ -90,26 +82,38 @@ export const receiptTotalsSchema = z.object({
   }).describe("The final total amount after all fees and discounts"),
 });
 
-const createReceiptBaseSchema = <
+export const createReceiptBaseSchema = <
   TPositionSchema extends ZodTypeAny,
   TModifierSchema extends ZodTypeAny = typeof modifierSchema,
 >(
   positionItemSchema: TPositionSchema,
-  modifierItemSchema: TModifierSchema = modifierSchema as TModifierSchema,
+  modifierItemSchema?: TModifierSchema,
 ) =>
   z.object({
     meta: metaAiSchema.describe(
       "Receipt metadata. Try to infer currencySymbol from the receipt when possible.",
     ),
     positions: z.array(positionItemSchema).describe("Array of items in the receipt"),
-    fees: z.array(modifierItemSchema).describe("Array of modifiers that increase the total amount (e.g., tips, VAT)"),
-    discounts: z.array(modifierItemSchema).describe("Array of modifiers that decrease the total amount (e.g., discounts)"),
+    fees: z.array(modifierItemSchema ?? modifierSchema).describe("Array of modifiers that increase the total amount (e.g., tips, VAT)"),
+    discounts: z.array(modifierItemSchema ?? modifierSchema).describe("Array of modifiers that decrease the total amount (e.g., discounts)"),
     totals: receiptTotalsSchema.describe("Total information including discounts and tips"),
   });
 
 export const receiptAiSchema = createReceiptBaseSchema(positionAiSchema).describe(
   "Structured data extracted from the receipt",
 );
+
+export const withId = <T extends ZodObject<ZodRawShape>>(initial: T) =>
+  z.intersection(initial, z.object({ id: z.string() }));
+
+export const positionWithIdSchema = withId(positionAiSchema);
+export const modifierWithIdSchema = withId(modifierSchema);
+export const structuralPreviewPositionSchema = positionAiSchema.extend({
+  id: z.string().optional(),
+});
+export const structuralPreviewModifierSchema = modifierSchema.extend({
+  id: z.string().optional(),
+});
 
 export const receiptStructuralPreviewSchema = createReceiptBaseSchema(
   structuralPreviewPositionSchema,
@@ -118,5 +122,9 @@ export const receiptStructuralPreviewSchema = createReceiptBaseSchema(
   "Structural receipt preview returned by AI chat",
 );
 
-export const withId = <T extends ZodObject<ZodRawShape>>(initial: T) =>
-  z.intersection(initial, z.object({ id: z.string() }));
+export const receiptWithIdsSchema = createReceiptBaseSchema(
+  positionWithIdSchema,
+  modifierWithIdSchema,
+).describe(
+  "Receipt structure with ids",
+);
