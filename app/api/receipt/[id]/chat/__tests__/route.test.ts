@@ -172,6 +172,7 @@ describe("POST /api/receipt/[id]/chat", () => {
     });
     expect(createAgentMock).toHaveBeenCalled();
     expect(agentInvokeMock).toHaveBeenCalledTimes(1);
+    expect(prompt).toContain("positionClaims: Record<string, claim[]>");
     expect(prompt).toContain('"currentUserParticipantId": "participant-1"');
     expect(prompt).toContain('"currentUserDisplayName": "Ivan"');
     await expect(response.json()).resolves.toEqual(expectedResponse);
