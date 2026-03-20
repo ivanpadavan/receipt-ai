@@ -9,6 +9,8 @@ import { ParticipantDTO, Receipt, ReceiptWithParticipants } from "@/model/receip
 import { User } from "@supabase/supabase-js";
 import { cleanup, render, type RenderResult as BrowserRenderResult } from "vitest-browser-react";
 import {
+  aiChatClaimsPreviewResponse,
+  aiChatStructuralPreviewResponse,
   amountMaxSwitchReceipt,
   fullyDistributedReceipt,
   invalidNameReceipt,
@@ -58,12 +60,15 @@ function formatMoneyFromModel(value: number) {
 
 export const updateReceiptMock = vi.fn();
 export const joinReceiptMock = vi.fn().mockResolvedValue(undefined);
+export const sendReceiptChatMessageMock = vi.fn();
 
 vi.mock("@/app/api-client", () => ({
   apiClient: {
     createReceipt: vi.fn(),
     updateReceipt: (...args: unknown[]) => updateReceiptMock(...args),
     joinReceipt: (...args: unknown[]) => joinReceiptMock(...args),
+    sendReceiptChatMessage: (...args: unknown[]) =>
+      sendReceiptChatMessageMock(...args),
   },
 }));
 
@@ -269,6 +274,16 @@ function getActionBarEditButton() {
   );
 }
 
+function getAiChatButton() {
+  return requireElement(
+    screen.getAllByRole("button").find((button) =>
+      button.getAttribute("aria-label") === t("aiChat") &&
+      isPointerInteractive(button),
+    ),
+    "AI chat button should be present",
+  );
+}
+
 function getOpenDrawerButtonByText(label: string) {
   const openDrawer = document.querySelector<HTMLElement>("[data-vaul-drawer][data-state='open']");
 
@@ -453,6 +468,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       "test-publishable-key";
     updateReceiptMock.mockResolvedValue(validReceipt);
     joinReceiptMock.mockResolvedValue(undefined);
+    sendReceiptChatMessageMock.mockReset();
   });
 
   afterEach(async () => {
@@ -484,6 +500,20 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     expect(screen.getByRole("button", { name: t("done") })).toBeInTheDocument();
     expect(screen.queryByText(t("settings"))).not.toBeInTheDocument();
     await expectCurrentScreenshot("receipt-overview");
+  });
+
+  it("shows the AI chat entrypoint and opens the dialog", async () => {
+    const user = userEvent.setup();
+    await renderReceiptFormInner();
+
+    expect(getAiChatButton()).toBeInTheDocument();
+    await expectCurrentScreenshot("ai-chat-entrypoint");
+
+    await user.click(getAiChatButton());
+
+    expect(screen.getByRole("heading", { name: t("aiChat") })).toBeInTheDocument();
+    expect(screen.getByText(t("aiChatEmpty"))).toBeInTheDocument();
+    await expectCurrentScreenshot("ai-chat-dialog-open");
   });
 
   it("starts invalid receipts in review mode with disabled proceed", async () => {
@@ -2122,6 +2152,48 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       expect(
         screen.queryByText(t("conflictItemModified")),
       ).not.toBeInTheDocument();
+    });
+  });
+
+  describe("AI chat", () => {
+    it("renders a structural preview response in the chat dialog", async () => {
+      const user = userEvent.setup();
+      sendReceiptChatMessageMock.mockResolvedValueOnce(aiChatStructuralPreviewResponse);
+      await renderReceiptFormInner();
+
+      await user.click(getAiChatButton());
+      const prompt = screen.getByRole("textbox");
+      await user.type(prompt, "Show me a draft");
+      await user.click(screen.getByRole("button", { name: t("aiChatSend") }));
+
+      await waitFor(() => {
+        expect(screen.getByText("AI draft")).toBeInTheDocument();
+      });
+      expect(screen.getByText("Burger")).toBeInTheDocument();
+      expect(screen.getByText("Service")).toBeInTheDocument();
+      expect(screen.getByText("Promo")).toBeInTheDocument();
+      await expectCurrentScreenshot("ai-chat-structural-preview");
+    });
+
+    it("renders a claims preview response in the chat dialog", async () => {
+      const user = userEvent.setup();
+      sendReceiptChatMessageMock.mockResolvedValueOnce(aiChatClaimsPreviewResponse);
+      await renderReceiptFormInner({
+        participants: splittingParticipants,
+        receipt: summaryBalancedReceipt,
+      });
+
+      await user.click(getAiChatButton());
+      const prompt = screen.getByRole("textbox");
+      await user.type(prompt, "Show claims preview");
+      await user.click(screen.getByRole("button", { name: t("aiChatSend") }));
+
+      await waitFor(() => {
+        expect(screen.getByText("Ivan")).toBeInTheDocument();
+      });
+      expect(screen.getByText("Anton")).toBeInTheDocument();
+      expect(screen.getByText("Polina")).toBeInTheDocument();
+      await expectCurrentScreenshot("ai-chat-claims-preview");
     });
   });
 

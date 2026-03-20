@@ -1,4 +1,5 @@
 import { Receipt, ReceiptWithParticipants } from "@/model/receipt/model";
+import type { ReceiptChatResponse } from "@/model/receipt/schema-chat";
 
 export const validReceipt: Receipt = {
   meta: {
@@ -286,6 +287,51 @@ export const summaryBalancedReceipt: Receipt = {
       ],
     },
   ],
+};
+
+export const aiChatStructuralPreviewResponse: ReceiptChatResponse = {
+  type: "structural_preview",
+  receipt: {
+    meta: {
+      title: "AI draft",
+      currencySymbol: "$",
+    },
+    positions: [
+      {
+        name: "Burger",
+        price: 100,
+        quantity: 1,
+        overall: 100,
+      },
+      {
+        name: "Fries",
+        price: 50,
+        quantity: 2,
+        overall: 100,
+      },
+    ],
+    fees: [
+      {
+        name: "Service",
+        value: 15,
+      },
+    ],
+    discounts: [
+      {
+        name: "Promo",
+        value: 10,
+      },
+    ],
+    totals: {
+      total: 200,
+      grandTotal: 205,
+    },
+  },
+};
+
+export const aiChatClaimsPreviewResponse: ReceiptChatResponse = {
+  type: "claims_preview",
+  receipt: summaryBalancedReceipt,
 };
 
 export const summaryRemainingReceipt: Receipt = {
