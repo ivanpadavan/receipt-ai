@@ -2177,24 +2177,12 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
               quantity: 2,
               overall: 350,
             },
-            {
-              name: "Butter",
-              price: 220,
-              quantity: 1,
-              overall: 220,
-            },
-            {
-              name: "Juice",
-              price: 99,
-              quantity: 1,
-              overall: 99,
-            },
           ],
           fees: [],
           discounts: [],
           totals: {
-            total: 1470,
-            grandTotal: 1470,
+            total: 1151,
+            grandTotal: 1151,
           },
         },
         events: [],
@@ -2210,7 +2198,8 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
         expect(screen.getByText("AI draft")).toBeInTheDocument();
       });
       expect(screen.getByText("Bread Deluxe")).toBeInTheDocument();
-      expect(screen.getByText("Juice")).toBeInTheDocument();
+      expect(screen.getAllByText("Butter").length).toBeGreaterThan(1);
+      expect(screen.getByText(t("aiChatStructuralPreviewRemoved"))).toBeInTheDocument();
       expect(screen.getByRole("button", { name: t("aiChatStructuralPreviewReviewChanges") })).toBeInTheDocument();
       await expectCurrentScreenshot("ai-chat-structural-preview");
     });
