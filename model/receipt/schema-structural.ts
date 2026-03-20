@@ -9,7 +9,6 @@ export const metaAiSchema = metaBaseSchema.extend({
   currencySymbol: metaBaseSchema.shape.currencySymbol.optional(),
 });
 
-
 export const positionAiSchema = z.object({
   name: z.string().superRefine((value, context) => {
     if (value.trim().length === 0) {
@@ -98,6 +97,10 @@ const createReceiptBaseSchema = <TPositionSchema extends ZodTypeAny>(
 
 export const receiptAiSchema = createReceiptBaseSchema(positionAiSchema).describe(
   "Structured data extracted from the receipt",
+);
+
+export const receiptStructuralPreviewSchema = receiptAiSchema.describe(
+  "Structural receipt preview returned by AI chat",
 );
 
 export const withId = <T extends ZodObject<ZodRawShape>>(initial: T) =>

@@ -2,6 +2,15 @@ import postValidator from "./receipt/post";
 import putValidator from "./receipt/put";
 import { ApiValidator } from "@/app/api-client/api-validator";
 import { t } from "@/app/i18n/translations";
+import {
+  receiptChatRequestSchema,
+  receiptChatResponseSchema,
+} from "@/model/receipt/schema-chat";
+
+const receiptChatValidator = {
+  request: receiptChatRequestSchema,
+  response: receiptChatResponseSchema,
+} satisfies ApiValidator;
 
 type JoinReceiptReplacePayload = {
   replaceParticipantId: string;
@@ -76,6 +85,18 @@ export const apiClient = {
       "PUT",
       putValidator,
       receipt,
+    );
+  },
+
+  async sendReceiptChatMessage(
+    receiptId: string,
+    body: ReturnType<(typeof receiptChatValidator)["request"]["parse"]>,
+  ) {
+    return requestWrapper(
+      `/api/receipt/${receiptId}/chat`,
+      "POST",
+      receiptChatValidator,
+      body,
     );
   },
 
