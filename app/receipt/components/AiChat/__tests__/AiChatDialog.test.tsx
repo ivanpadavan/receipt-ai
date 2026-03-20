@@ -165,7 +165,7 @@ describe("AiChatDialog", () => {
           },
           positions: [
             {
-              name: "Burger Deluxe",
+              name: "Burger",
               price: 120,
               quantity: 1,
               overall: 120,
@@ -206,7 +206,7 @@ describe("AiChatDialog", () => {
     );
     await user.click(screen.getByRole("button", { name: /send/i }));
 
-    expect(await screen.findByText("Burger Deluxe")).toBeInTheDocument();
+    expect(await screen.findByText("Burger")).toBeInTheDocument();
     expect(screen.getByText("Fries")).toBeInTheDocument();
     expect(screen.getAllByText("Changed").length).toBeGreaterThan(1);
     expect(screen.getByText("Added")).toBeInTheDocument();
@@ -239,7 +239,7 @@ describe("AiChatDialog", () => {
           },
           positions: [
             {
-              name: "Burger Deluxe",
+              name: "Burger",
               price: 120,
               quantity: 1,
               overall: 120,
@@ -303,8 +303,8 @@ describe("AiChatDialog", () => {
     await user.click(screen.getByRole("button", { name: /send/i }));
 
     expect(await screen.findByText("Lunch draft")).toBeInTheDocument();
-    expect(screen.getByText("Burger Deluxe")).toBeInTheDocument();
-    expect(screen.getByText("Removed")).toBeInTheDocument();
+    expect(screen.getByText("Burger")).toBeInTheDocument();
+    expect(screen.getAllByText("Removed").length).toBeGreaterThan(0);
 
     await user.type(screen.getByPlaceholderText(/ask/i), "Show distributions preview");
     await user.click(screen.getByRole("button", { name: /send/i }));

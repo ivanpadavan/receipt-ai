@@ -47,33 +47,70 @@ const diffStatusStyles: Record<DiffStatus, string> = {
   changed: "border-amber-300/80 bg-amber-50/70",
 };
 
-function buildSequentialDiffs<T>(
+function buildAlignedDiffs<T>(
   currentItems: T[],
   nextItems: T[],
   areEqual: (currentItem: T, nextItem: T) => boolean,
+  getKey: (item: T) => string,
 ) {
-  const maxLength = Math.max(currentItems.length, nextItems.length);
+  const diffs: Array<DiffEntry<T>> = [];
+  let currentIndex = 0;
+  let nextIndex = 0;
 
-  return Array.from({ length: maxLength }, (_, index): DiffEntry<T> => {
-    const current = currentItems[index];
-    const next = nextItems[index];
+  while (currentIndex < currentItems.length || nextIndex < nextItems.length) {
+    const current = currentItems[currentIndex];
+    const next = nextItems[nextIndex];
 
     if (current && next) {
-      return areEqual(current, next)
-        ? { index, status: "unchanged", current, next }
-        : { index, status: "changed", current, next };
-    }
+      if (areEqual(current, next)) {
+        diffs.push({ index: diffs.length, status: "unchanged", current, next });
+        currentIndex += 1;
+        nextIndex += 1;
+        continue;
+      }
 
-    if (next) {
-      return { index, status: "added", next };
+      if (getKey(current) === getKey(next)) {
+        diffs.push({ index: diffs.length, status: "changed", current, next });
+        currentIndex += 1;
+        nextIndex += 1;
+        continue;
+      }
+
+      const nextCurrent = currentItems[currentIndex + 1];
+      if (nextCurrent && getKey(nextCurrent) === getKey(next)) {
+        diffs.push({ index: diffs.length, status: "removed", current });
+        currentIndex += 1;
+        continue;
+      }
+
+      const nextPreview = nextItems[nextIndex + 1];
+      if (nextPreview && getKey(current) === getKey(nextPreview)) {
+        diffs.push({ index: diffs.length, status: "added", next });
+        nextIndex += 1;
+        continue;
+      }
+
+      diffs.push({ index: diffs.length, status: "removed", current });
+      diffs.push({ index: diffs.length, status: "added", next });
+      currentIndex += 1;
+      nextIndex += 1;
+      continue;
     }
 
     if (current) {
-      return { index, status: "removed", current };
+      diffs.push({ index: diffs.length, status: "removed", current });
+      currentIndex += 1;
+      continue;
     }
 
-    return { index, status: "unchanged" };
-  });
+    if (next) {
+      diffs.push({ index: diffs.length, status: "added", next });
+      nextIndex += 1;
+      continue;
+    }
+  }
+
+  return diffs;
 }
 
 function formatPositionSummary(
@@ -348,21 +385,29 @@ export const AiChatStructuralPreview: React.FC<AiChatStructuralPreviewProps> = (
   const title = receipt.meta.title ?? t("receipt");
   const currentTitle = currentReceipt.meta.title ?? t("receipt");
 
-  const positionDiffs = buildSequentialDiffs(
+  const positionDiffs = buildAlignedDiffs(
     currentReceipt.positions,
     receipt.positions,
     arePositionsEqual,
+    (item) => item.name,
   );
-  const feeDiffs = buildSequentialDiffs(currentReceipt.fees, receipt.fees, areModifiersEqual);
-  const discountDiffs = buildSequentialDiffs(
+  const feeDiffs = buildAlignedDiffs(
+    currentReceipt.fees,
+    receipt.fees,
+    areModifiersEqual,
+    (item) => item.name,
+  );
+  const discountDiffs = buildAlignedDiffs(
     currentReceipt.discounts,
     receipt.discounts,
     areModifiersEqual,
+    (item) => item.name,
   );
-  const totalDiffs = buildSequentialDiffs(
+  const totalDiffs = buildAlignedDiffs(
     [currentReceipt.totals],
     [receipt.totals],
     areTotalsEqual,
+    () => "totals",
   );
   const warnings = buildStructuralLossWarnings(
     currentReceipt,

@@ -2172,17 +2172,33 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
               overall: 801,
             },
             {
-              name: "Bread Deluxe",
+              name: "Bread",
               price: 175,
               quantity: 2,
               overall: 350,
             },
+            {
+              name: "Juice",
+              price: 99,
+              quantity: 1,
+              overall: 99,
+            },
           ],
-          fees: [],
-          discounts: [],
+          fees: [
+            {
+              name: "Service",
+              value: 15,
+            },
+          ],
+          discounts: [
+            {
+              name: "Promo",
+              value: 10,
+            },
+          ],
           totals: {
-            total: 1151,
-            grandTotal: 1151,
+            total: 1250,
+            grandTotal: 1255,
           },
         },
         events: [],
@@ -2197,15 +2213,42 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       await waitFor(() => {
         expect(screen.getByText("AI draft")).toBeInTheDocument();
       });
-      expect(screen.getByText("Bread Deluxe")).toBeInTheDocument();
+      expect(screen.getAllByText("Bread").length).toBeGreaterThan(1);
+      expect(screen.getByText("Juice")).toBeInTheDocument();
       expect(screen.getAllByText("Butter").length).toBeGreaterThan(1);
-      expect(screen.getByText(t("aiChatStructuralPreviewRemoved"))).toBeInTheDocument();
+      expect(screen.getByText(t("fees"))).toBeInTheDocument();
+      expect(screen.getByText(t("discounts"))).toBeInTheDocument();
+      expect(screen.getByText("Service")).toBeInTheDocument();
+      expect(screen.getByText("Promo")).toBeInTheDocument();
+      expect(screen.getAllByText(t("aiChatStructuralPreviewAdded")).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(t("aiChatStructuralPreviewRemoved")).length).toBeGreaterThan(0);
       expect(screen.getByRole("button", { name: t("aiChatStructuralPreviewReviewChanges") })).toBeInTheDocument();
       await expectCurrentScreenshot("ai-chat-structural-preview");
+
+      screen.getByText(t("fees")).scrollIntoView({ block: "start" });
+      await expectCurrentScreenshot("ai-chat-structural-preview-modifiers");
     });
 
     it("opens a structural confirm modal and shows lost claim warnings", async () => {
       const user = userEvent.setup();
+      const currentReceipt = {
+        ...summaryBalancedReceipt,
+        positions: [
+          summaryBalancedReceipt.positions[0],
+          summaryBalancedReceipt.positions[1],
+          {
+            ...summaryBalancedReceipt.positions[2],
+            claims: [
+              {
+                id: "summary-claim-butter",
+                type: "amount",
+                value: 220,
+                participantIds: ["user-1"],
+              },
+            ],
+          },
+        ],
+      };
       sendReceiptChatMessageMock.mockResolvedValueOnce({
         type: "structural_preview",
         receipt: {
@@ -2232,7 +2275,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       });
       await renderReceiptFormInner({
         participants: splittingParticipants,
-        receipt: summaryBalancedReceipt,
+        receipt: currentReceipt,
       });
 
       await user.click(getAiChatButton());
@@ -2250,7 +2293,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       expect(modal).toBeInTheDocument();
       expect(within(modal).getByText(`Anton — Bread 1 ${t("pcs")}`)).toBeInTheDocument();
       expect(within(modal).getByText(`Polina — Bread 1 ${t("pcs")}`)).toBeInTheDocument();
-      expect(within(modal).getByText(`Ivan — Butter 1 ${t("pcs")}`)).toBeInTheDocument();
+      expect(within(modal).getByText(`Ivan — Butter 220 $`)).toBeInTheDocument();
       await expectCurrentScreenshot("ai-chat-structural-confirm-warning");
     });
 
