@@ -16,7 +16,7 @@ model Receipt {
   version   Int      @default(1)
   userId    String   @db.Uuid
   user      users    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  imageUrl  String
+  imageUrls String[]
   data      Json
   realParticipants ReceiptUserParticipant[]
   mockParticipants ReceiptMockParticipant[]

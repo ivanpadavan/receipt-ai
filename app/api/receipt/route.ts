@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
       const receipt = await db.receipt.create({
         data: {
           userId,
-          imageUrl: JSON.stringify(imageUrls),
+          imageUrls,
           data: toReceipt(result), // Store the receipt data as JSON
         },
       });
