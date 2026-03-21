@@ -13,7 +13,7 @@ import {
   stackGapVariants,
 } from "@/app/receipt/components/ui-styles";
 import { t } from "@/app/i18n/translations";
-import type { ParticipantDTO, Receipt } from "@/model/receipt/model";
+import type { Receipt } from "@/model/receipt/model";
 import type { ReceiptChatResponse } from "@/model/receipt/schema-chat";
 import {
   buildStructuralLossWarnings,
@@ -449,14 +449,6 @@ export const AiChatStructuralPreview: React.FC<AiChatStructuralPreviewProps> = (
                 : undefined,
             })}
           />
-
-          {warnings.length > 0 && (
-            <AiChatLossWarningBlock
-              title={t("aiChatStructuralPreviewLossesTitle")}
-              description={t("aiChatStructuralPreviewLossesText")}
-              warnings={warnings}
-            />
-          )}
 
           {onApply && hasStructuralChanges && (
             <Button type="button" onClick={onApply} className="w-full">

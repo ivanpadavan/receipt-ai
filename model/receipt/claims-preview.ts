@@ -43,7 +43,7 @@ export function buildClaimsPreviewReceipt(
     positions: receipt.positions.map((position) => {
       const nextClaims = positionClaims[position.id];
       if (nextClaims === undefined) {
-        return position;
+        return { ...position, claims: [] };
       }
 
       return {
@@ -57,8 +57,8 @@ export function buildClaimsPreviewReceipt(
 }
 
 function comparePositionClaims(
-  currentClaims: Array<ReceiptPositionClaim | Omit<ReceiptPositionClaim, "id">>,
-  nextClaims: Array<ReceiptPositionClaim | Omit<ReceiptPositionClaim, "id">>,
+  currentClaims: (ReceiptPositionClaim | Omit<ReceiptPositionClaim, "id">)[],
+  nextClaims: (ReceiptPositionClaim | Omit<ReceiptPositionClaim, "id">)[],
 ) {
   if (currentClaims.length !== nextClaims.length) {
     return false;

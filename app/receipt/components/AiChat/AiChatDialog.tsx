@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Bot, LoaderCircle, Send, Sparkles } from "lucide-react";
+import { Send, Sparkles } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -109,7 +109,6 @@ function getAssistantTranscriptContent(
 
 function renderAssistantResponse(
   response: ReceiptChatResponse,
-  receiptSnapshot: Receipt,
   onRequestStructuralApply: (response: StructuralPreviewResponse) => void,
   onRequestClaimsApply: (response: ClaimsPreviewResponse) => void,
 ) {
@@ -180,14 +179,12 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
         currentReceipt,
         pendingClaimsPreview.positionClaims,
         participants,
-        currentReceipt.meta.currencySymbol ?? currencySymbol,
         formatMoney,
       )
     : [];
   const claimsPreviewStatus = pendingClaimsPreview
     ? getClaimsPreviewStatus(
         currentReceipt,
-        pendingClaimsPreview.receiptSnapshot,
         pendingClaimsPreview.positionClaims,
       )
     : "pending";
@@ -313,7 +310,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                 >
                       {entry.response ? (
                         <div className="max-w-full sm:max-w-[90%]">
-                      {renderAssistantResponse(entry.response, entry.receiptSnapshot ?? currentReceipt, (response) => {
+                      {renderAssistantResponse(entry.response, (response) => {
                         setPendingStructuralPreview(response);
                       }, (response) => {
                         setPendingClaimsPreview(response);

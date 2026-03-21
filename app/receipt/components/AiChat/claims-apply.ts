@@ -5,7 +5,6 @@ import { t } from "@/app/i18n/translations";
 import type { ParticipantDTO, Receipt, ReceiptPositionClaim } from "@/model/receipt/model";
 import type { ReceiptChatResponse } from "@/model/receipt/schema-chat";
 import type { StructuralLossWarning } from "@/app/receipt/components/AiChat/structural-apply";
-import { buildClaimsPreviewReceipt } from "@/model/receipt/claims-preview";
 
 type ClaimsPreviewResponse = Extract<ReceiptChatResponse, { type: "claims_preview" }>;
 
@@ -22,21 +21,9 @@ function getParticipantNames(participantIds: string[], participants: Participant
     .join(", ");
 }
 
-function claimIdentityKey(claim: Pick<ReceiptPositionClaim, "participantIds" | "type" | "value">) {
+function claimIdentityKey(claim: Pick<ReceiptPositionClaim, "participantIds" | "type" | "value">, positionId?: string) {
   const participantIds = [...claim.participantIds].sort().join(",");
-  return `${participantIds}\u0000${claim.type}\u0000${claim.value}`;
-}
-
-function arePositionFieldsEqual(
-  left: Receipt["positions"][number],
-  right: Receipt["positions"][number],
-) {
-  return (
-    left.name === right.name &&
-    left.price === right.price &&
-    left.quantity === right.quantity &&
-    left.overall === right.overall
-  );
+  return `${positionId}\u0000${participantIds}\u0000${claim.type}\u0000${claim.value}`;
 }
 
 function normalizeIncomingClaim(claim: IncomingClaim): ReceiptPositionClaim {
@@ -59,29 +46,16 @@ function claimTouchesParticipants(claim: ReceiptPositionClaim, participantIds: S
   return claim.participantIds.some((participantId) => participantIds.has(participantId));
 }
 
-function comparePositionClaims(
-  currentClaims: Array<ReceiptPositionClaim | Omit<ReceiptPositionClaim, "id">>,
-  nextClaims: Array<ReceiptPositionClaim | Omit<ReceiptPositionClaim, "id">>,
-) {
-  if (currentClaims.length !== nextClaims.length) {
-    return false;
-  }
-
-  const currentKeys = currentClaims.map(claimIdentityKey).sort();
-  const nextKeys = nextClaims.map(claimIdentityKey).sort();
-
-  return currentKeys.every((key, index) => key === nextKeys[index]);
-}
-
 export function hasClaimsPreviewData(positionClaims: PositionClaimsMap) {
   return Object.values(positionClaims).some((claims) => claims.length > 0);
 }
 
 export function isClaimsPreviewExpired(
   currentReceipt: Receipt,
-  receiptSnapshot: Receipt,
+  positionClaims: PositionClaimsMap,
 ) {
-  return buildClaimsPreviewRemovedPositions(currentReceipt, receiptSnapshot).length > 0;
+  const positionIds = new Set(currentReceipt.positions.map((p) => p.id));
+  return Object.keys(positionClaims).some((id) => !positionIds.has(id));
 }
 
 export function buildClaimsPreviewRemovedPositions(
@@ -99,38 +73,26 @@ export function buildClaimsPreviewRemovedPositions(
 
 export function isClaimsPreviewApplied(
   currentReceipt: Receipt,
-  receiptSnapshot: Receipt,
   positionClaims: PositionClaimsMap,
 ) {
-  const previewReceipt = buildClaimsPreviewReceipt(receiptSnapshot, positionClaims);
-
-  if (currentReceipt.positions.length !== previewReceipt.positions.length) {
-    return false;
-  }
-
-  return previewReceipt.positions.every((previewPosition, index) => {
-    const currentPosition = currentReceipt.positions[index];
-    if (!currentPosition || currentPosition.id !== previewPosition.id) {
-      return false;
-    }
-
-    return (
-      arePositionFieldsEqual(currentPosition, previewPosition) &&
-      comparePositionClaims(currentPosition.claims, previewPosition.claims)
-    );
-  });
+  const serializedPreviewClaims = Object.entries(positionClaims).flatMap(([k, v]) =>
+    v.map((c) => claimIdentityKey(c, k)),
+  );
+  const serializedReceiptClaims = new Set(currentReceipt.positions.flatMap((p) =>
+    p.claims.map((c) => claimIdentityKey(c, p.id)))
+  );
+  return serializedPreviewClaims.every((s) => serializedReceiptClaims.has(s));
 }
 
 export function getClaimsPreviewStatus(
   currentReceipt: Receipt,
-  receiptSnapshot: Receipt,
   positionClaims: PositionClaimsMap,
 ): ClaimsPreviewStatus {
-  if (isClaimsPreviewExpired(currentReceipt, receiptSnapshot)) {
+  if (isClaimsPreviewExpired(currentReceipt, positionClaims)) {
     return "expired";
   }
 
-  if (isClaimsPreviewApplied(currentReceipt, receiptSnapshot, positionClaims)) {
+  if (isClaimsPreviewApplied(currentReceipt, positionClaims)) {
     return "applied";
   }
 
@@ -155,7 +117,6 @@ export function buildClaimsReplaceWarnings(
   currentReceipt: Receipt,
   positionClaims: PositionClaimsMap,
   participants: ParticipantDTO[],
-  currencySymbol: string,
   formatMoney: (value: number, currencySymbolOverride?: string) => string,
 ) {
   const aiParticipantIds = getAiParticipantIds(positionClaims);
@@ -165,7 +126,7 @@ export function buildClaimsReplaceWarnings(
 
   return currentReceipt.positions.flatMap((position) => {
     const nextClaims = positionClaims[position.id] ?? [];
-    const nextClaimKeys = new Set(nextClaims.map(claimIdentityKey));
+    const nextClaimKeys = new Set(nextClaims.map((value) => claimIdentityKey(value)));
 
     return position.claims.flatMap((claim, claimIndex) => {
       if (!claimTouchesParticipants(claim, aiParticipantIds)) {
@@ -180,7 +141,7 @@ export function buildClaimsReplaceWarnings(
       const claimLabel =
         claim.type === "quantity"
           ? `${claim.value} ${t("pcs")}`
-          : formatMoney(claim.value, currencySymbol);
+          : formatMoney(claim.value);
 
       return [
         {
@@ -204,7 +165,9 @@ export function applyClaimsPreviewAdd(
         return position;
       }
 
-      const existingClaimKeys = new Set(position.claims.map(claimIdentityKey));
+      const existingClaimKeys = new Set(
+        position.claims.map((value) => claimIdentityKey(value)),
+      );
       const nextClaims = incomingClaims
         .filter((claim) => !existingClaimKeys.has(claimIdentityKey(claim)))
         .map(normalizeIncomingClaim);
