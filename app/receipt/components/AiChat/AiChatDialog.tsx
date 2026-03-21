@@ -60,6 +60,7 @@ import type {
   ReceiptChatToolEvent,
 } from "@/model/receipt/schema-chat";
 import { receiptChatPersistedSchema } from "@/model/receipt/schema-chat";
+import { useOptimisticChatHistory } from "@/app/receipt/components/AiChat/useOptimisticChatHistory";
 
 interface AiChatDialogProps {
   receiptId: string;
@@ -75,10 +76,10 @@ type ClaimsPreviewResponse = Extract<
   { type: "claims_preview" }
 >;
 
-type RequestHistoryEntry = {
+interface RequestHistoryEntry {
   role: "user" | "assistant";
   content: string;
-};
+}
 
 const EMPTY_CHAT: ReceiptChatPersisted = {
   history: [],
@@ -211,10 +212,16 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
     schema: receiptChatPersistedSchema,
     connectionToastId: `receipt-chat-sse-${receiptId}`,
   });
+  const {
+    chat: optimisticChat,
+    setOptimisticMessage,
+  } = useOptimisticChatHistory(chat);
+  const displayHistory = optimisticChat.history;
+  const chatPending = optimisticChat.pending;
 
   useEffect(() => {
     endRef.current?.scrollIntoView?.({ block: "end" });
-  }, [chat.history, chat.pending, pendingStructuralPreview, pendingClaimsPreview]);
+  }, [displayHistory, chatPending, pendingStructuralPreview, pendingClaimsPreview]);
 
   const structuralWarnings = pendingStructuralPreview
     ? buildStructuralLossWarnings(
@@ -262,9 +269,10 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
     event.preventDefault();
 
     const trimmed = message.trim();
-    if (!trimmed || isSending || chat.pending) return;
+    if (!trimmed || isSending || chatPending) return;
 
     setMessage("");
+    setOptimisticMessage(trimmed);
     setIsSending(true);
 
     try {
@@ -279,13 +287,15 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
         ],
       });
     } catch {
+      setOptimisticMessage(null);
       setMessage(trimmed);
     } finally {
       setIsSending(false);
     }
   };
 
-  const hasMessages = chat.history.length > 0;
+  const hasMessages = displayHistory.length > 0;
+  const isChatPending = isSending || chatPending;
 
   return (
     <Dialog>
@@ -317,7 +327,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
 
           <div className="flex-1 overflow-y-auto px-4 py-4">
             <div className={stackGapVariants({ size: "sm" })}>
-              {!hasMessages && !chat.pending && (
+              {!hasMessages && !isChatPending && (
                 <div className="rounded-2xl border border-dashed border-border/70 bg-muted/20 px-4 py-8 text-center">
                   <div className={textVariants({ size: "sm", tone: "muted" })}>
                     {t("aiChatEmpty")}
@@ -325,7 +335,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                 </div>
               )}
 
-              {chat.history.flatMap((entry) => {
+              {displayHistory.flatMap((entry) => {
                 if (entry.role === "user") {
                   return [
                     <div key={entry.id} className="flex w-full justify-end">
@@ -391,7 +401,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                 ];
               })}
 
-              {chat.pending && (
+              {isChatPending && (
                 <div className="flex justify-start">
                   <GradientRing
                     animate
@@ -432,7 +442,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                 disabled={isSending}
               />
               <InputGroupAddon className="pr-0" align="inline-end">
-                <Button type="submit" disabled={isSending || chat.pending || !message.trim()}>
+                <Button type="submit" disabled={isSending || chatPending || !message.trim()}>
                   <Send className="h-4 w-4" />
                   {t("aiChatSend")}
                 </Button>

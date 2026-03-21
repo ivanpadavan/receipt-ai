@@ -15,12 +15,17 @@ import type {
 } from "@/model/receipt/schema-chat";
 
 const sendReceiptChatMessageMock = vi.fn();
+const useUserMock = vi.fn();
 
 vi.mock("@/app/api-client", () => ({
   apiClient: {
     sendReceiptChatMessage: (...args: unknown[]) =>
       sendReceiptChatMessageMock(...args),
   },
+}));
+
+vi.mock("@/context/AuthContext", () => ({
+  useUser: () => useUserMock(),
 }));
 
 class MockEventSource {
@@ -250,6 +255,12 @@ function renderWithContext(
 beforeEach(() => {
   setLanguage("en");
   sendReceiptChatMessageMock.mockReset();
+  useUserMock.mockReset();
+  useUserMock.mockReturnValue({
+    user: {
+      id: "participant-1",
+    },
+  });
   MockEventSource.instances = [];
   useParticipantsStore.setState({
     participants: [
@@ -440,6 +451,74 @@ describe("AiChatDialog", () => {
     await waitFor(() => {
       expect(screen.getByDisplayValue("Retry me")).toBeInTheDocument();
     });
+  });
+
+  it("renders optimistic user message immediately after submit", async () => {
+    sendReceiptChatMessageMock.mockImplementationOnce(
+      () => new Promise<void>((resolve) => { setTimeout(resolve, 60_000); }),
+    );
+
+    const user = userEvent.setup();
+    renderWithContext(<AiChatDialog receiptId="receipt-1" receiptTitle="Receipt" />);
+
+    await user.click(screen.getByRole("button", { name: /ai/i }));
+    await user.type(screen.getByPlaceholderText(/ask/i), "Fast message");
+    await user.click(screen.getByRole("button", { name: /send/i }));
+
+    expect(await screen.findByText("Fast message")).toBeInTheDocument();
+    expect(screen.getByText("Alice")).toBeInTheDocument();
+    expect(screen.getByText(t("aiChatThinking"))).toBeInTheDocument();
+  });
+
+  it("keeps optimistic message on unrelated SSE updates", async () => {
+    sendReceiptChatMessageMock.mockImplementationOnce(
+      () => new Promise<void>((resolve) => { setTimeout(resolve, 60_000); }),
+    );
+
+    const user = userEvent.setup();
+    renderWithContext(<AiChatDialog receiptId="receipt-1" receiptTitle="Receipt" />);
+
+    await user.click(screen.getByRole("button", { name: /ai/i }));
+
+    emitChatState({
+      history: [createUserHistoryEntry("existing-1", "Old message")],
+      pending: false,
+    });
+
+    await user.type(screen.getByPlaceholderText(/ask/i), "Fresh message");
+    await user.click(screen.getByRole("button", { name: /send/i }));
+
+    expect(await screen.findByText("Fresh message")).toBeInTheDocument();
+    expect(screen.getAllByText("Alice").length).toBeGreaterThan(0);
+
+    emitChatState({
+      history: [
+        createUserHistoryEntry("existing-1", "Old message"),
+        createAssistantHistoryEntry("assistant-1", {
+          type: "question",
+          message: "Something else",
+          events: [],
+        }),
+      ],
+      pending: false,
+    });
+
+    expect(screen.getByText("Fresh message")).toBeInTheDocument();
+
+    emitChatState({
+      history: [
+        createUserHistoryEntry("existing-1", "Old message"),
+        createAssistantHistoryEntry("assistant-1", {
+          type: "question",
+          message: "Something else",
+          events: [],
+        }),
+        createUserHistoryEntry("new-2", "Fresh message"),
+      ],
+      pending: true,
+    });
+
+    expect(screen.getByText("Fresh message")).toBeInTheDocument();
   });
 
   it("renders claims preview responses from the stream and keeps apply flows working", async () => {
