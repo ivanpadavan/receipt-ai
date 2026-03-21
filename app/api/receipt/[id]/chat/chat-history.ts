@@ -1,8 +1,4 @@
 import { t } from "@/app/i18n/translations";
-import {
-  formatReceiptBusinessValidationIssues,
-  getReceiptBusinessValidationIssues,
-} from "@/model/receipt/business-validation";
 import type {
   ReceiptChatHistoryEntry,
   ReceiptChatResponse,
@@ -37,25 +33,23 @@ export function createAssistantChatEntry(
   };
 }
 
-function getAssistantChatContent(response: ReceiptChatResponse) {
+function convertChatHistoryToLLM(response: ReceiptChatResponse) {
   if (response.type === "question") {
     return response.message;
   }
 
-  if (response.type === "structural_preview") {
-    const title = response.receipt.meta.title ?? t("receipt");
-    const positionCount = response.receipt.positions.length;
-    const issues = getReceiptBusinessValidationIssues(response.receipt);
-    const formattedIssues = formatReceiptBusinessValidationIssues(issues);
+  const title =
+    response.type === "structural_preview"
+      ? response.receipt.meta.title
+      : response.receiptSnapshot.meta.title;
+  const positionCount =
+    response.type === "structural_preview"
+      ? response.receipt.positions.length
+      : response.receiptSnapshot.positions.length;
 
-    return formattedIssues.length === 0
-      ? `${t("aiChatStructuralPreview")}: ${title} (${positionCount} ${t("positions")})`
-      : `${t("aiChatStructuralPreview")}: ${title} (${positionCount} ${t("positions")})\nBusiness validation issues:\n${formattedIssues}`;
-  }
-
-  const title = response.receiptSnapshot.meta.title ?? t("receipt");
-  const positionCount = response.receiptSnapshot.positions.length;
-  return `${t("aiChatClaimsPreview")}: ${title} (${positionCount} ${t("positions")})`;
+  return response.type === "structural_preview"
+    ? `${t("aiChatStructuralPreview")}: ${title} (${positionCount} ${t("positions")})`
+    : `${t("aiChatClaimsPreview")}: ${title} (${positionCount} ${t("positions")})`;
 }
 
 export function buildPromptHistory(
@@ -71,7 +65,7 @@ export function buildPromptHistory(
 
     return {
       role: "assistant",
-      content: getAssistantChatContent(entry.response),
+      content: convertChatHistoryToLLM(entry.response),
     };
   });
 }

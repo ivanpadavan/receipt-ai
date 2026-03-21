@@ -93,7 +93,7 @@ export async function repairWithBusinessValidation<
     });
 
     const raw = await outputModel.invoke(repairPromptText);
-    receipt = receiptAiSchema.parse(schema.parse(raw));
+    receipt = schema.parse(raw);
     attempts++;
   }
 
