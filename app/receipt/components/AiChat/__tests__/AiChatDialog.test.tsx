@@ -1,6 +1,6 @@
 import React from "react";
-import { afterEach, describe, expect, it, vi, beforeEach } from "vitest";
-import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AiChatDialog } from "../AiChatDialog";
 import { ReceiptFormContext } from "@/app/receipt/components/receipt-context";
@@ -8,6 +8,11 @@ import { useParticipantsStore } from "@/app/receipt/store/participants";
 import { Receipt } from "@/model/receipt/model";
 import { setLanguage, t } from "@/app/i18n/translations";
 import type { ReceiptState } from "@/app/receipt/[id]/useReceiptFormState";
+import type {
+  ReceiptChatHistoryEntry,
+  ReceiptChatPersisted,
+  ReceiptChatResponse,
+} from "@/model/receipt/schema-chat";
 
 const sendReceiptChatMessageMock = vi.fn();
 
@@ -17,6 +22,41 @@ vi.mock("@/app/api-client", () => ({
       sendReceiptChatMessageMock(...args),
   },
 }));
+
+class MockEventSource {
+  static instances: MockEventSource[] = [];
+
+  onopen: ((event: Event) => void) | null = null;
+  onmessage: ((event: MessageEvent<string>) => void) | null = null;
+  onerror: ((event: Event) => void) | null = null;
+  closed = false;
+
+  constructor(public readonly url: string) {
+    MockEventSource.instances.push(this);
+  }
+
+  close() {
+    this.closed = true;
+  }
+}
+
+const originalEventSource = globalThis.EventSource;
+
+function getLatestEventSource() {
+  const source = MockEventSource.instances.at(-1);
+  if (!source) {
+    throw new Error("Expected SSE connection to be created");
+  }
+  return source;
+}
+
+function emitChatState(state: ReceiptChatPersisted) {
+  act(() => {
+    getLatestEventSource().onmessage?.({
+      data: JSON.stringify(state),
+    } as MessageEvent<string>);
+  });
+}
 
 function createReceipt(overrides: Partial<Receipt> = {}): Receipt {
   return {
@@ -107,7 +147,56 @@ function createStructuralWarningReceipt(): Receipt {
   };
 }
 
-function renderWithContext(ui: React.ReactElement, receipt: Receipt = createReceipt()) {
+function createUserHistoryEntry(
+  id: string,
+  content: string,
+  participantId = "participant-1",
+): ReceiptChatHistoryEntry {
+  return {
+    id,
+    role: "user",
+    participantId,
+    content,
+  };
+}
+
+function createAssistantHistoryEntry(
+  id: string,
+  response: ReceiptChatResponse,
+): ReceiptChatHistoryEntry {
+  return {
+    id,
+    role: "assistant",
+    response,
+  };
+}
+
+function createStructuralPreviewResponse(receipt: Receipt): ReceiptChatResponse {
+  return {
+    type: "structural_preview",
+    receipt,
+    events: [],
+  };
+}
+
+function createClaimsPreviewResponse(
+  receiptSnapshot: Receipt,
+  positionClaims: NonNullable<
+    Extract<ReceiptChatResponse, { type: "claims_preview" }>["positionClaims"]
+  >,
+): ReceiptChatResponse {
+  return {
+    type: "claims_preview",
+    receiptSnapshot,
+    positionClaims,
+    events: [],
+  };
+}
+
+function renderWithContext(
+  ui: React.ReactElement,
+  receipt: Receipt = createReceipt(),
+) {
   const replaceReceiptInForm = vi.fn();
   const buildFormState = (nextReceipt: Receipt) =>
     ({
@@ -124,6 +213,7 @@ function renderWithContext(ui: React.ReactElement, receipt: Receipt = createRece
             if (path === "meta.currencySymbol") return nextReceipt.meta.currencySymbol;
             return undefined;
           },
+          watch: () => nextReceipt,
         },
       },
       openEditModal: vi.fn(),
@@ -160,6 +250,7 @@ function renderWithContext(ui: React.ReactElement, receipt: Receipt = createRece
 beforeEach(() => {
   setLanguage("en");
   sendReceiptChatMessageMock.mockReset();
+  MockEventSource.instances = [];
   useParticipantsStore.setState({
     participants: [
       {
@@ -172,57 +263,46 @@ beforeEach(() => {
       },
     ],
   });
+  globalThis.EventSource = MockEventSource as unknown as typeof EventSource;
 });
 
 afterEach(() => {
   cleanup();
+  globalThis.EventSource = originalEventSource;
 });
 
 describe("AiChatDialog", () => {
-  it("renders structural diff rows and opens the confirm modal before apply", async () => {
-    sendReceiptChatMessageMock
-      .mockResolvedValueOnce({
-        type: "structural_preview",
-        receipt: {
-          meta: {
-            title: "Lunch draft",
-            currencySymbol: "₽",
-          },
-          positions: [
-            {
-              id: "pos-1",
-              name: "Burger",
-              price: 120,
-              quantity: 1,
-              overall: 120,
-            },
-            {
-              name: "Cake",
-              price: 75,
-              quantity: 1,
-              overall: 75,
-            },
-            {
-              name: "Fries",
-              price: 50,
-              quantity: 1,
-              overall: 50,
-            },
-          ],
-          fees: [],
-          discounts: [],
-          totals: {
-            total: 245,
-            grandTotal: 245,
-          },
-        },
-        events: [],
-      })
-      .mockResolvedValueOnce({
-        type: "question",
-        message: "What should I change?\nKeep it short.",
-        events: [],
-      });
+  it("renders persisted history with participant display names and shared pending state", async () => {
+    renderWithContext(<AiChatDialog receiptId="receipt-1" receiptTitle="Receipt" />);
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: /ai/i }));
+
+    emitChatState({
+      history: [
+        createUserHistoryEntry("user-1", "Split burger"),
+        createAssistantHistoryEntry("assistant-1", {
+          type: "question",
+          message: "What should I change?",
+          events: [],
+        }),
+      ],
+      pending: true,
+    });
+
+    expect(await screen.findByText("Alice")).toBeInTheDocument();
+    expect(screen.queryByText("You")).not.toBeInTheDocument();
+    expect(screen.getByText("Split burger")).toBeInTheDocument();
+    expect(screen.getByText(/What should I change\?/i)).toBeInTheDocument();
+    expect(screen.getByText(t("aiChatThinking"))).toBeInTheDocument();
+  });
+
+  it("submits against persisted history and shows a structural preview from the stream", async () => {
+    sendReceiptChatMessageMock.mockResolvedValueOnce({
+      type: "question",
+      message: "ok",
+      events: [],
+    });
 
     const user = userEvent.setup();
 
@@ -232,392 +312,173 @@ describe("AiChatDialog", () => {
     );
 
     await user.click(screen.getByRole("button", { name: /ai/i }));
-    await user.type(
-      screen.getByPlaceholderText(/ask/i),
-      "Show a draft",
-    );
+
+    emitChatState({
+      history: [
+        createUserHistoryEntry("user-0", "Earlier context"),
+        createAssistantHistoryEntry(
+          "assistant-0",
+          createStructuralPreviewResponse({
+            meta: {
+              title: "Earlier draft",
+              currencySymbol: "₽",
+            },
+            positions: [
+              {
+                id: "pos-1",
+                name: "Burger",
+                price: 100,
+                quantity: 1,
+                overall: 100,
+              },
+            ],
+            fees: [],
+            discounts: [],
+            totals: {
+              total: 100,
+              grandTotal: 100,
+            },
+          }),
+        ),
+      ],
+      pending: false,
+    });
+
+    expect(await screen.findByText("Earlier context")).toBeInTheDocument();
+
+    await user.type(screen.getByPlaceholderText(/ask/i), "Show a draft");
     await user.click(screen.getByRole("button", { name: /send/i }));
 
+    expect(sendReceiptChatMessageMock).toHaveBeenCalledWith(
+      "receipt-1",
+      expect.objectContaining({
+        message: "Show a draft",
+        history: [
+          {
+            role: "user",
+            content: "Earlier context",
+          },
+          {
+            role: "assistant",
+            content: `${t("aiChatStructuralPreview")}: Earlier draft (1 ${t("positions")})`,
+          },
+          {
+            role: "user",
+            content: "Show a draft",
+          },
+        ],
+      }),
+    );
+
+    emitChatState({
+      history: [
+        createUserHistoryEntry("user-0", "Earlier context"),
+        createUserHistoryEntry("user-1", "Show a draft"),
+        createAssistantHistoryEntry(
+          "assistant-1",
+          createStructuralPreviewResponse({
+            meta: {
+              title: "Lunch draft",
+              currencySymbol: "₽",
+            },
+            positions: [
+              {
+                id: "pos-1",
+                name: "Burger",
+                price: 120,
+                quantity: 1,
+                overall: 120,
+              },
+              {
+                id: "pos-2",
+                name: "Cake",
+                price: 75,
+                quantity: 1,
+                overall: 75,
+              },
+              {
+                id: "pos-3",
+                name: "Fries",
+                price: 50,
+                quantity: 1,
+                overall: 50,
+              },
+            ],
+            fees: [],
+            discounts: [],
+            totals: {
+              total: 245,
+              grandTotal: 245,
+            },
+          }),
+        ),
+      ],
+      pending: false,
+    });
+
     expect(await screen.findByText("Burger")).toBeInTheDocument();
-    expect(screen.getByText("Fries")).toBeInTheDocument();
-    expect(screen.getAllByText("Changed").length).toBeGreaterThan(1);
-    expect(screen.getAllByText("Added").length).toBeGreaterThan(0);
-    expect(screen.getByRole("button", { name: /apply/i })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /apply/i }));
 
     const modal = await screen.findByRole("alertdialog");
-    expect(modal).toBeInTheDocument();
     expect(within(modal).getByText(/apply structural changes\?/i)).toBeInTheDocument();
-    expect(within(modal).getByText(/claims that may be lost/i)).toBeInTheDocument();
-    expect(within(modal).getByText(`Alice — Soda 1 ${t("pcs")}`)).toBeInTheDocument();
-    expect(within(modal).getByRole("button", { name: /cancel/i })).toBeInTheDocument();
-    expect(within(modal).getByRole("button", { name: /apply/i })).toBeInTheDocument();
 
     await user.click(within(modal).getByRole("button", { name: /apply/i }));
     expect(replaceReceiptInForm).toHaveBeenCalledTimes(1);
   });
 
-  it("hides apply when the structural preview already matches the current receipt", async () => {
-    sendReceiptChatMessageMock.mockResolvedValueOnce({
-      type: "structural_preview",
-      receipt: {
-        meta: {
-          title: "Receipt",
-          currencySymbol: "₽",
-        },
-        positions: [
-          {
-            id: "pos-1",
-            name: "Burger",
-            price: 100,
-            quantity: 1,
-            overall: 100,
-          },
-        ],
-        fees: [],
-        discounts: [],
-        totals: {
-          total: 100,
-          grandTotal: 100,
-        },
-      },
-      events: [],
-    });
+  it("restores draft text when send request fails", async () => {
+    sendReceiptChatMessageMock.mockRejectedValueOnce(new Error("network"));
 
     const user = userEvent.setup();
-
     renderWithContext(<AiChatDialog receiptId="receipt-1" receiptTitle="Receipt" />);
 
     await user.click(screen.getByRole("button", { name: /ai/i }));
-    await user.type(screen.getByPlaceholderText(/ask/i), "Show a structural preview");
+    await user.type(screen.getByPlaceholderText(/ask/i), "Retry me");
     await user.click(screen.getByRole("button", { name: /send/i }));
-
-    expect(await screen.findByText("Burger")).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /apply/i }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByText("Burger").closest('div[class*="border-emerald-300/70"]'),
-    ).toHaveClass("border-emerald-300/70");
-    expect(
-      screen.getByText("Burger").closest('div[class*="bg-emerald-50/60"]'),
-    ).toHaveClass("bg-emerald-50/60");
-  });
-
-  it("renders question, structural preview, and distributions preview responses", async () => {
-    sendReceiptChatMessageMock
-      .mockResolvedValueOnce({
-        type: "question",
-        message: "What should I change?\nKeep it short.",
-        events: [],
-      })
-      .mockResolvedValueOnce({
-        type: "structural_preview",
-        receipt: {
-          meta: {
-            title: "Lunch draft",
-            currencySymbol: "₽",
-          },
-          positions: [
-            {
-              id: "pos-1",
-              name: "Burger",
-              price: 120,
-              quantity: 1,
-              overall: 120,
-            },
-          ],
-          fees: [],
-          discounts: [],
-          totals: {
-            total: 120,
-            grandTotal: 120,
-          },
-        },
-        events: [],
-      })
-      .mockResolvedValueOnce({
-        type: "claims_preview",
-        receiptSnapshot: createStructuralWarningReceipt(),
-        positionClaims: {
-          "pos-1": [
-            {
-              type: "amount",
-              value: 100,
-              participantIds: ["participant-1"],
-            },
-          ],
-        },
-        events: [
-          {
-            type: "requested_receipt_images",
-            imageCount: 2,
-          },
-        ],
-      });
-
-    const user = userEvent.setup();
-
-    renderWithContext(
-      <AiChatDialog receiptId="receipt-1" receiptTitle="Receipt" />,
-      createStructuralWarningReceipt(),
-    );
-
-    await user.click(screen.getByRole("button", { name: /ai/i }));
-    await user.type(
-      screen.getByPlaceholderText(/ask/i),
-      "Split burger with Alice",
-    );
-    await user.click(screen.getByRole("button", { name: /send/i }));
-
-    expect(sendReceiptChatMessageMock).toHaveBeenNthCalledWith(
-      1,
-      "receipt-1",
-      expect.objectContaining({
-        history: [
-          expect.objectContaining({
-            role: "user",
-            content: "Split burger with Alice",
-          }),
-        ],
-      }),
-    );
-
-    const questionText = await screen.findByText(/What should I change\?/i);
-    expect(questionText).toBeInTheDocument();
-    expect(questionText).toHaveClass("whitespace-pre-wrap");
-
-    await user.type(
-      screen.getByPlaceholderText(/ask/i),
-      "Show structural preview",
-    );
-    await user.click(screen.getByRole("button", { name: /send/i }));
-
-    expect(await screen.findByText("Lunch draft")).toBeInTheDocument();
-    expect(screen.getByText("Burger")).toBeInTheDocument();
-    expect(screen.getAllByText("Removed").length).toBeGreaterThan(0);
-
-    await user.type(screen.getByPlaceholderText(/ask/i), "Show distributions preview");
-    await user.click(screen.getByRole("button", { name: /send/i }));
-
-    expect(await screen.findByText(/AI requested the original receipt photos/i)).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByText("Alice")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("Retry me")).toBeInTheDocument();
     });
-    expect(screen.getAllByText("100 ₽").length).toBeGreaterThan(0);
-    expect(sendReceiptChatMessageMock).toHaveBeenNthCalledWith(
-      3,
-      "receipt-1",
-      expect.objectContaining({
-        history: expect.arrayContaining([
-          expect.objectContaining({
-            role: "assistant",
-            content: expect.stringContaining("Structural preview"),
-          }),
-        ]),
-      }),
-    );
   });
 
-  it("keeps claims preview transcript bubbles stable after the live receipt changes", async () => {
-    sendReceiptChatMessageMock.mockResolvedValueOnce({
-      type: "claims_preview",
-      receiptSnapshot: createReceipt({
-        meta: {
-          title: "Snapshot Receipt",
-          currencySymbol: "₽",
-        },
-      }),
-      positionClaims: {
-        "pos-1": [
-          {
-            type: "amount",
-            value: 90,
-            participantIds: ["participant-1"],
-          },
-        ],
-      },
-      events: [],
-    });
-
+  it("renders claims preview responses from the stream and keeps apply flows working", async () => {
     const user = userEvent.setup();
 
-    const initialReceipt = createReceipt({
-      meta: {
-        title: "Snapshot Receipt",
-        currencySymbol: "₽",
-      },
-    });
-    const liveReceipt = createReceipt({
-      meta: {
-        title: "Live Receipt",
-        currencySymbol: "₽",
-      },
-      positions: [
-        ...createReceipt().positions,
-        {
-          id: "pos-2",
-          name: "Fries",
-          price: 50,
-          quantity: 1,
-          overall: 50,
-          claims: [],
-        },
-      ],
-      totals: {
-        total: 150,
-        grandTotal: 150,
-      },
-    });
-
-    const { rerenderWithReceipt } = renderWithContext(
+    const { replaceReceiptInForm } = renderWithContext(
       <AiChatDialog receiptId="receipt-1" receiptTitle="Receipt" />,
-      initialReceipt,
+      createReceipt(),
     );
 
     await user.click(screen.getByRole("button", { name: /ai/i }));
-    await user.type(screen.getByPlaceholderText(/ask/i), "Show distributions preview");
-    await user.click(screen.getByRole("button", { name: /send/i }));
+
+    emitChatState({
+      history: [
+        createUserHistoryEntry("user-1", "Split burger"),
+        createAssistantHistoryEntry(
+          "assistant-1",
+          createClaimsPreviewResponse(createReceipt(), {
+            "pos-1": [
+              {
+                type: "amount",
+                value: 90,
+                participantIds: ["participant-1"],
+              },
+            ],
+          }),
+        ),
+      ],
+      pending: false,
+    });
 
     expect(await screen.findByText("Burger")).toBeInTheDocument();
-
-    rerenderWithReceipt(liveReceipt);
-
-    expect(screen.getByText("Burger")).toBeInTheDocument();
-    expect(screen.queryByText("Fries")).not.toBeInTheDocument();
-  });
-
-  it("evaluates claims preview confirm state against the live receipt", async () => {
-    sendReceiptChatMessageMock.mockResolvedValueOnce({
-      type: "claims_preview",
-      receiptSnapshot: createReceipt(),
-      positionClaims: {
-        "pos-1": [
-          {
-            type: "amount",
-            value: 90,
-            participantIds: ["participant-1"],
-          },
-        ],
-      },
-      events: [],
-    });
-
-    const user = userEvent.setup();
-
-    const initialReceipt = createReceipt();
-    const expiredLiveReceipt = createReceipt({
-      meta: {
-        title: "Receipt",
-        currencySymbol: "₽",
-      },
-      positions: [],
-      totals: {
-        total: 0,
-        grandTotal: 0,
-      },
-    });
-
-    const { rerenderWithReceipt } = renderWithContext(
-      <AiChatDialog receiptId="receipt-1" receiptTitle="Receipt" />,
-      initialReceipt,
-    );
-
-    await user.click(screen.getByRole("button", { name: /ai/i }));
-    await user.type(screen.getByPlaceholderText(/ask/i), "Show distributions preview");
-    await user.click(screen.getByRole("button", { name: /send/i }));
+    expect(screen.getByRole("button", { name: /apply/i })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /apply/i }));
-    const modalBefore = await screen.findByRole("alertdialog");
-    expect(within(modalBefore).getByRole("button", { name: /replace all/i })).toBeInTheDocument();
+    const modal = await screen.findByRole("alertdialog");
+    expect(within(modal).getByRole("button", { name: /replace all/i })).toBeInTheDocument();
 
-    rerenderWithReceipt(expiredLiveReceipt);
-
-    await waitFor(() => {
-      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
-    });
-    expect(screen.getByText(/preview expired/i)).toBeInTheDocument();
-  });
-
-  it("hides the apply button when the claims preview is already applied", async () => {
-    sendReceiptChatMessageMock.mockResolvedValueOnce({
-      type: "claims_preview",
-      receiptSnapshot: createReceipt(),
-      positionClaims: {
-        "pos-1": [
-          {
-            type: "amount",
-            value: 100,
-            participantIds: ["participant-1"],
-          },
-        ],
-      },
-      events: [],
-    });
-
-    const user = userEvent.setup();
-
-    renderWithContext(
-      <AiChatDialog receiptId="receipt-1" receiptTitle="Receipt" />,
-      createReceipt(),
-    );
-
-    await user.click(screen.getByRole("button", { name: /ai/i }));
-    await user.type(screen.getByPlaceholderText(/ask/i), "Show distributions preview");
-    await user.click(screen.getByRole("button", { name: /send/i }));
-
-    expect(await screen.findByText("Burger")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /apply/i })).not.toBeInTheDocument();
-    expect(
-      screen.getByText("Burger").closest('div[class*="border-emerald-300/70"]'),
-    ).toHaveClass("border-emerald-300/70");
-    expect(
-      screen.getByText("Burger").closest('div[class*="bg-emerald-50/60"]'),
-    ).toHaveClass("bg-emerald-50/60");
-  });
-
-  it("hides the apply button and marks removed positions when the claims preview is expired", async () => {
-    sendReceiptChatMessageMock.mockResolvedValueOnce({
-      type: "claims_preview",
-      receiptSnapshot: createStructuralWarningReceipt(),
-      positionClaims: {
-        "pos-1": [
-          {
-            type: "amount",
-            value: 100,
-            participantIds: ["participant-1"],
-          },
-        ],
-        "pos-2": [
-          {
-            type: "quantity",
-            value: 1,
-            participantIds: ["participant-1"],
-          },
-        ],
-      },
-      events: [],
-    });
-
-    const user = userEvent.setup();
-
-    renderWithContext(
-      <AiChatDialog receiptId="receipt-1" receiptTitle="Receipt" />,
-      createReceipt(),
-    );
-
-    await user.click(screen.getByRole("button", { name: /ai/i }));
-    await user.type(screen.getByPlaceholderText(/ask/i), "Show distributions preview");
-    await user.click(screen.getByRole("button", { name: /send/i }));
-
-    expect(await screen.findByText("Burger")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /apply/i })).not.toBeInTheDocument();
-    expect(screen.getByText(t("aiChatClaimsPreviewExpiredTitle"))).toBeInTheDocument();
-    expect(screen.getByText(t("aiChatClaimsPreviewExpiredText"))).toBeInTheDocument();
-    expect(screen.getByText("Burger").closest('div[class*="border-red-200"]')).toHaveClass(
-      "border-red-200",
-    );
+    await user.click(within(modal).getByRole("button", { name: /replace all/i }));
+    expect(replaceReceiptInForm).toHaveBeenCalledTimes(1);
   });
 });

@@ -4,10 +4,12 @@ import { HumanMessage } from "@langchain/core/messages";
 import { createAgent, tool } from "langchain";
 import { z } from "zod";
 import { inspect } from "node:util";
+import { isEqual } from "lodash-es";
 import { errorWrap } from "@/app/api/receipt/error-wrap";
 import validator from "@/app/api/receipt/[id]/chat/validator";
 import { db } from "@/app/db";
 import {
+  receiptChatPersistedSchema,
   receiptChatModelResponseSchema,
   receiptChatModelResponseSchemas,
   receiptChatResponseSchema,
@@ -20,6 +22,14 @@ import type { Receipt } from "@/model/receipt/model";
 import {
   reduceClaimsPreviewReceipt,
 } from "@/model/receipt/claims-preview";
+import {
+  buildPromptHistory,
+  createAssistantChatEntry,
+  createUserChatEntry,
+} from "@/app/api/receipt/[id]/chat/chat-history";
+import { createSseResponse } from "@/app/api/receipt/sse";
+import { getUser, serverSupabase } from "@/utils/supabase/server";
+import { BehaviorSubject, distinctUntilChanged, finalize, tap } from "rxjs";
 
 export const runtime = "nodejs";
 
@@ -117,8 +127,24 @@ function assignMissingIds<T extends { id?: string }>(items: T[]) {
       : {
           ...item,
           id: crypto.randomUUID(),
-        },
+    },
   );
+}
+
+async function lockReceiptChatRow<T>(
+  receiptId: string,
+  callback: (tx: any) => Promise<T>,
+) {
+  return db.$transaction(async (tx: any) => {
+    await tx.$queryRaw`
+      SELECT 1
+      FROM public."Receipt"
+      WHERE id = ${receiptId}
+      FOR UPDATE
+    `;
+
+    return callback(tx);
+  });
 }
 
 async function generateReceiptChatResponse({
@@ -272,6 +298,28 @@ function toApiResponse(
   });
 }
 
+function validateClaimsPreviewParticipantIds(
+  response: ReceiptChatResponse,
+  participants: { id: string }[],
+) {
+  if (response.type !== "claims_preview") return;
+
+  const participantIds = new Set(participants.map((participant) => participant.id));
+
+  for (const claims of Object.values(response.positionClaims)) {
+    for (const claim of claims) {
+      for (const participantId of claim.participantIds) {
+        if (!participantIds.has(participantId)) {
+          throw Object.assign(
+            new Error("AI produced malformed request"),
+            { status: 422 },
+          );
+        }
+      }
+    }
+  }
+}
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -293,28 +341,205 @@ export async function POST(
       const currentUserParticipant = participants.find(
         (participant) => participant.id === session.user.id,
       );
+      if (!currentUserParticipant) {
+        throw Object.assign(
+          new Error("User is not a receipt participant"),
+          { status: 403 },
+        );
+      }
       const currentUserDisplayName =
-        currentUserParticipant?.displayName ??
+        currentUserParticipant.displayName ??
         (typeof session.user.user_metadata?.displayName === "string"
           ? session.user.user_metadata.displayName
           : null);
-      const response = await generateReceiptChatResponse({
-        receiptId,
-        receipt: receipt.data as Receipt,
-        imageUrls: receipt.imageUrls,
-        participants: participants.map((participant) => ({
-          id: participant.id,
-          displayName: participant.displayName,
-        })),
-        currentUserParticipantId: currentUserParticipant?.id ?? null,
-        currentUserDisplayName,
-        history: body.history,
-        message: body.message,
+      const userEntry = createUserChatEntry(
+        crypto.randomUUID(),
+        currentUserParticipant.id,
+        body.message,
+      );
+
+      const promptHistory = await lockReceiptChatRow(receiptId, async (tx) => {
+        const currentChat = receiptChatPersistedSchema.parse(
+          (await tx.receiptChat.findUnique({
+            where: { receiptId },
+            select: { history: true, pending: true },
+          })) ?? {},
+        );
+        if (currentChat.pending) {
+          throw Object.assign(
+            new Error("Another chat turn is already in flight"),
+            { status: 409 },
+          );
+        }
+        const nextHistory = [...currentChat.history, userEntry];
+
+        await tx.receiptChat.upsert({
+          where: { receiptId },
+          create: {
+            receiptId,
+            history: nextHistory,
+            pending: true,
+          },
+          update: {
+            history: nextHistory,
+            pending: true,
+          },
+        });
+
+        return buildPromptHistory(nextHistory);
       });
 
-      return NextResponse.json(
-        validator.response.parse(toApiResponse(receipt.data as Receipt, response)),
-      );
+      try {
+        const response = await generateReceiptChatResponse({
+          receiptId,
+          receipt: receipt.data as Receipt,
+          imageUrls: receipt.imageUrls,
+          participants: participants.map((participant) => ({
+            id: participant.id,
+            displayName: participant.displayName,
+          })),
+          currentUserParticipantId: currentUserParticipant.id,
+          currentUserDisplayName,
+          history: promptHistory,
+          message: body.message,
+        });
+
+        const responseJson = validator.response.parse(
+          toApiResponse(receipt.data as Receipt, response),
+        );
+        validateClaimsPreviewParticipantIds(responseJson, participants);
+        const assistantEntry = createAssistantChatEntry(
+          crypto.randomUUID(),
+          responseJson,
+        );
+
+        await lockReceiptChatRow(receiptId, async (tx) => {
+          const currentChat = receiptChatPersistedSchema.parse(
+            (await tx.receiptChat.findUnique({
+              where: { receiptId },
+              select: { history: true, pending: true },
+            })) ?? {},
+          );
+          const nextHistory = [...currentChat.history, assistantEntry];
+
+          await tx.receiptChat.update({
+            where: { receiptId },
+            data: {
+              history: nextHistory,
+              pending: false,
+            },
+          });
+        });
+
+        return NextResponse.json(responseJson);
+      } catch (error) {
+        await lockReceiptChatRow(receiptId, async (tx) => {
+          const currentChat = receiptChatPersistedSchema.parse(
+            (await tx.receiptChat.findUnique({
+              where: { receiptId },
+              select: { history: true, pending: true },
+            })) ?? {},
+          );
+          const nextHistory = currentChat.history.filter(
+            (entry) => entry.id !== userEntry.id,
+          );
+
+          await tx.receiptChat.upsert({
+            where: { receiptId },
+            create: {
+              receiptId,
+              history: nextHistory,
+              pending: false,
+            },
+            update: {
+              history: nextHistory,
+              pending: false,
+            },
+          });
+        });
+        throw error;
+      }
     }),
   );
+}
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id: receiptId } = await params;
+  const user = await getUser().catch(() => null);
+  if (!user) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  const receipt = await db.receipt.findUnique({
+    where: { id: receiptId },
+    select: { id: true },
+  });
+
+  if (!receipt) {
+    return new Response("Receipt not found", { status: 404 });
+  }
+  const participants = await buildParticipants(receiptId);
+  if (!participants.some((participant) => participant.id === user.id)) {
+    return new Response("Forbidden", { status: 403 });
+  }
+
+  const initialChat = receiptChatPersistedSchema.parse(
+    (await db.receiptChat.findUnique({
+      where: { receiptId },
+      select: { history: true, pending: true },
+    })) ?? {},
+  );
+  const supabase = await serverSupabase();
+
+  return createSseResponse(req, (stream) => {
+    const payload$ = new BehaviorSubject(initialChat);
+    const channelName = `topic:${receiptId}:chat`;
+    const channel = supabase.channel(channelName);
+    let syncSeq = 0;
+
+    const syncChatFromDb = async () => {
+      const seq = ++syncSeq;
+      const nextChat = receiptChatPersistedSchema.parse(
+        (await db.receiptChat.findUnique({
+          where: { receiptId },
+          select: { history: true, pending: true },
+        })) ?? {},
+      );
+
+      if (seq !== syncSeq) return;
+      payload$.next(nextChat);
+    };
+
+    channel
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "ReceiptChat",
+          filter: `receiptId=eq.${receiptId}`,
+        },
+        async () => {
+          await syncChatFromDb();
+        },
+      )
+      .subscribe((status: string) => {
+        if (status === "SUBSCRIBED") {
+          void syncChatFromDb();
+        }
+      });
+
+    return payload$.pipe(
+      distinctUntilChanged(isEqual),
+      tap((payload) => {
+        stream.sendData(payload);
+      }),
+      finalize(() => {
+        void channel.unsubscribe();
+      }),
+    );
+  });
 }

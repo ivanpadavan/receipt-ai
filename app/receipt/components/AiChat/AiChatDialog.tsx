@@ -12,7 +12,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   InputGroup,
@@ -22,14 +29,12 @@ import {
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 import { GradientRing } from "@/app/receipt/components/ui/GradientRing";
 import { cn } from "@/utils/cn";
-import {
-  textVariants,
-  stackGapVariants,
-} from "@/app/receipt/components/ui-styles";
+import { textVariants, stackGapVariants } from "@/app/receipt/components/ui-styles";
 import { t } from "@/app/i18n/translations";
 import { apiClient } from "@/app/api-client";
 import { useMoneyFormatter, useReceiptState } from "@/app/receipt/components/receipt-context";
 import { useParticipantsStore } from "@/app/receipt/store/participants";
+import { useSseResource } from "@/app/receipt/components/useSseResource";
 import { AiChatClaimsPreview } from "@/app/receipt/components/AiChat/AiChatClaimsPreview";
 import {
   AiChatLossWarningBlock,
@@ -47,27 +52,14 @@ import {
   hasClaimsPreviewData,
   getClaimsPreviewStatus,
 } from "@/app/receipt/components/AiChat/claims-apply";
+import type { Receipt, ParticipantDTO } from "@/model/receipt/model";
 import type {
+  ReceiptChatHistoryEntry,
+  ReceiptChatPersisted,
   ReceiptChatResponse,
   ReceiptChatToolEvent,
 } from "@/model/receipt/schema-chat";
-import type { Receipt } from "@/model/receipt/model";
-
-interface TranscriptEntry {
-  id: string;
-  role: "user" | "assistant" | "system";
-  content: string;
-  response?: ReceiptChatResponse;
-  receiptSnapshot?: Receipt;
-}
-
-function getToolEventContent(event: ReceiptChatToolEvent) {
-  if (event.type === "requested_receipt_images") {
-    return t("aiChatRequestedReceiptImages");
-  }
-
-  return "";
-}
+import { receiptChatPersistedSchema } from "@/model/receipt/schema-chat";
 
 interface AiChatDialogProps {
   receiptId: string;
@@ -83,11 +75,27 @@ type ClaimsPreviewResponse = Extract<
   { type: "claims_preview" }
 >;
 
-const createId = () => crypto.randomUUID();
+type RequestHistoryEntry = {
+  role: "user" | "assistant";
+  content: string;
+};
+
+const EMPTY_CHAT: ReceiptChatPersisted = {
+  history: [],
+  pending: false,
+};
+
+function getToolEventContent(event: ReceiptChatToolEvent) {
+  if (event.type === "requested_receipt_images") {
+    return t("aiChatRequestedReceiptImages");
+  }
+
+  return "";
+}
 
 function getAssistantTranscriptContent(
   response: ReceiptChatResponse,
-  receiptSnapshot: Receipt,
+  receiptSnapshot?: Receipt,
 ) {
   if (response.type === "question") {
     return response.message;
@@ -96,15 +104,52 @@ function getAssistantTranscriptContent(
   const title =
     response.type === "structural_preview"
       ? response.receipt.meta.title ?? t("receipt")
-      : receiptSnapshot.meta.title ?? t("receipt");
+      : receiptSnapshot?.meta.title ?? t("receipt");
   const positionCount =
     response.type === "structural_preview"
       ? response.receipt.positions.length
-      : receiptSnapshot.positions.length;
+      : receiptSnapshot?.positions.length ?? 0;
 
   return response.type === "structural_preview"
     ? `${t("aiChatStructuralPreview")}: ${title} (${positionCount} ${t("positions")})`
     : `${t("aiChatClaimsPreview")}: ${title} (${positionCount} ${t("positions")})`;
+}
+
+function getParticipantDisplayName(
+  participantId: string,
+  participants: ParticipantDTO[],
+) {
+  return (
+    participants.find((participant) => participant.id === participantId)
+      ?.displayName ?? participantId
+  );
+}
+
+function serializeChatHistory(history: ReceiptChatHistoryEntry[]): RequestHistoryEntry[] {
+  return history.flatMap((entry) => {
+    if (entry.role === "user") {
+      return [
+        {
+          role: "user" as const,
+          content: entry.content,
+        },
+      ];
+    }
+
+    const receiptSnapshot =
+      entry.response.type === "claims_preview"
+        ? entry.response.receiptSnapshot
+        : entry.response.type === "structural_preview"
+          ? entry.response.receipt
+          : undefined;
+
+    return [
+      {
+        role: "assistant" as const,
+        content: getAssistantTranscriptContent(entry.response, receiptSnapshot),
+      },
+    ];
+  });
 }
 
 function renderAssistantResponse(
@@ -151,7 +196,6 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   const { scenario, replaceReceiptInForm } = useReceiptState();
   const participants = useParticipantsStore((state) => state.participants);
   const { currencySymbol, formatMoney } = useMoneyFormatter();
-  const [messages, setMessages] = useState<TranscriptEntry[]>([]);
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [pendingStructuralPreview, setPendingStructuralPreview] =
@@ -159,15 +203,22 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   const [pendingClaimsPreview, setPendingClaimsPreview] =
     useState<ClaimsPreviewResponse | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
-  const currentReceipt = scenario.form.getValues() as Receipt;
+  const liveReceipt = scenario.form.watch() as Receipt;
+
+  const chat = useSseResource({
+    initialData: EMPTY_CHAT,
+    url: `/api/receipt/${receiptId}/chat`,
+    schema: receiptChatPersistedSchema,
+    connectionToastId: `receipt-chat-sse-${receiptId}`,
+  });
 
   useEffect(() => {
     endRef.current?.scrollIntoView?.({ block: "end" });
-  }, [messages, isSending]);
+  }, [chat.history, chat.pending, pendingStructuralPreview, pendingClaimsPreview]);
 
   const structuralWarnings = pendingStructuralPreview
     ? buildStructuralLossWarnings(
-        currentReceipt,
+        liveReceipt,
         pendingStructuralPreview.receipt,
         participants,
         pendingStructuralPreview.receipt.meta.currencySymbol ?? currencySymbol,
@@ -176,7 +227,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
     : [];
   const claimsReplaceWarnings = pendingClaimsPreview
     ? buildClaimsReplaceWarnings(
-        currentReceipt,
+        liveReceipt,
         pendingClaimsPreview.positionClaims,
         participants,
         formatMoney,
@@ -184,20 +235,22 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
     : [];
   const claimsPreviewStatus = pendingClaimsPreview
     ? getClaimsPreviewStatus(
-        currentReceipt,
+        liveReceipt,
         pendingClaimsPreview.positionClaims,
       )
     : "pending";
-  const canReplaceClaims = pendingClaimsPreview && claimsPreviewStatus === "pending"
-    ? canReplaceClaimsPreview(
-        currentReceipt,
-        pendingClaimsPreview.positionClaims,
-      )
-    : false;
+  const canReplaceClaims =
+    pendingClaimsPreview && claimsPreviewStatus === "pending"
+      ? canReplaceClaimsPreview(
+          liveReceipt,
+          pendingClaimsPreview.positionClaims,
+        )
+      : false;
   const hasClaimsData = pendingClaimsPreview
     ? hasClaimsPreviewData(pendingClaimsPreview.positionClaims)
     : false;
-  const claimsConfirmOpen = pendingClaimsPreview !== null && claimsPreviewStatus === "pending";
+  const claimsConfirmOpen =
+    pendingClaimsPreview !== null && claimsPreviewStatus === "pending";
 
   useEffect(() => {
     if (pendingClaimsPreview && claimsPreviewStatus !== "pending") {
@@ -207,60 +260,32 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
     const trimmed = message.trim();
-    if (!trimmed || isSending) return;
+    if (!trimmed || isSending || chat.pending) return;
 
-    const nextUserMessage: TranscriptEntry = {
-      id: createId(),
-      role: "user",
-      content: trimmed,
-    };
-    const nextTranscript = [...messages, nextUserMessage];
-
-    setMessages(nextTranscript);
     setMessage("");
     setIsSending(true);
 
     try {
-      const response = await apiClient.sendReceiptChatMessage(receiptId, {
+      await apiClient.sendReceiptChatMessage(receiptId, {
         message: trimmed,
-        history: nextTranscript
-          .filter(
-            (
-              entry,
-            ): entry is Extract<TranscriptEntry, { role: "user" | "assistant" }> =>
-              entry.role === "user" || entry.role === "assistant",
-          )
-          .map(({ role, content }) => ({ role, content })),
-      });
-      const receiptSnapshot =
-        response.type === "claims_preview"
-          ? response.receiptSnapshot
-          : (scenario.form.getValues() as Receipt);
-
-      setMessages((current) => {
-        const toolEvents = (response.events ?? []).map((event: ReceiptChatToolEvent) => ({
-          id: createId(),
-          role: "system" as const,
-          content: getToolEventContent(event),
-        }));
-
-        return [
-          ...current,
-          ...toolEvents,
+        history: [
+          ...serializeChatHistory(chat.history),
           {
-            id: createId(),
-            role: "assistant" as const,
-            content: getAssistantTranscriptContent(response, receiptSnapshot),
-            response,
-            receiptSnapshot,
+            role: "user",
+            content: trimmed,
           },
-        ];
+        ],
       });
+    } catch {
+      setMessage(trimmed);
     } finally {
       setIsSending(false);
     }
   };
+
+  const hasMessages = chat.history.length > 0;
 
   return (
     <Dialog>
@@ -278,7 +303,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
         </GradientRing>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-2xl p-0 overflow-hidden">
+      <DialogContent className="overflow-hidden p-0 sm:max-w-2xl">
         <div className="flex max-h-[80vh] min-h-[32rem] flex-col">
           <DialogHeader className="border-b border-border/40 px-6 py-5 text-left">
             <DialogTitle className={textVariants({ size: "lg", weight: "semibold" })}>
@@ -292,7 +317,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
 
           <div className="flex-1 overflow-y-auto px-4 py-4">
             <div className={stackGapVariants({ size: "sm" })}>
-              {messages.length === 0 && (
+              {!hasMessages && !chat.pending && (
                 <div className="rounded-2xl border border-dashed border-border/70 bg-muted/20 px-4 py-8 text-center">
                   <div className={textVariants({ size: "sm", tone: "muted" })}>
                     {t("aiChatEmpty")}
@@ -300,73 +325,91 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                 </div>
               )}
 
-              {messages.map((entry) => (
-                <div
-                  key={entry.id}
-                  className={cn(
-                    "flex w-full",
-                    entry.role === "user" ? "justify-end" : "justify-start",
-                  )}
-                >
-                      {entry.response ? (
-                        <div className="max-w-full sm:max-w-[90%]">
-                      {renderAssistantResponse(entry.response, (response) => {
-                        setPendingStructuralPreview(response);
-                      }, (response) => {
-                        setPendingClaimsPreview(response);
-                      })}
+              {chat.history.flatMap((entry) => {
+                if (entry.role === "user") {
+                  return [
+                    <div key={entry.id} className="flex w-full justify-end">
+                      <ReceiptCard
+                        shadow="sm"
+                        radius="xl"
+                        tone="warm"
+                        className="max-w-[90%] overflow-hidden"
+                      >
+                        <div className="p-3">
+                          <div
+                            className={textVariants({
+                              size: "sm",
+                              tone: "muted",
+                              style: "caps",
+                            })}
+                          >
+                            {getParticipantDisplayName(entry.participantId, participants)}
+                          </div>
+                          <div
+                            className={cn(
+                              textVariants({ size: "sm" }),
+                              "whitespace-pre-wrap",
+                            )}
+                          >
+                            {entry.content}
+                          </div>
                         </div>
-                  ) : entry.role === "system" ? (
-                    <div className="w-full text-center">
+                      </ReceiptCard>
+                    </div>,
+                  ];
+                }
+
+                return [
+                  ...entry.response.events.map((event, index) => (
+                    <div
+                      key={`${entry.id}-event-${index}`}
+                      className="w-full text-center"
+                    >
                       <div
                         className={textVariants({
                           size: "xs",
                           tone: "muted",
                         })}
                       >
-                        {entry.content}
+                        {getToolEventContent(event)}
                       </div>
                     </div>
-                  ) : (
-                    <ReceiptCard
-                      shadow="sm"
-                      radius="xl"
-                      tone={entry.role === "user" ? "warm" : "soft"}
-                      className="max-w-[90%] overflow-hidden"
-                    >
-                      <div className="p-3">
-                        <div className={textVariants({ size: "sm", tone: "muted", style: "caps" })}>
-                          {entry.role === "user" ? "You" : "AI"}
-                        </div>
-                        <div className={cn(textVariants({ size: "sm" }), "whitespace-pre-wrap")}>
-                          {entry.content}
-                        </div>
-                      </div>
-                    </ReceiptCard>
-                  )}
-                </div>
-              ))}
+                  )),
+                  <div key={entry.id} className="flex w-full justify-start">
+                    <div className="max-w-full sm:max-w-[90%]">
+                      {renderAssistantResponse(
+                        entry.response,
+                        (response) => {
+                          setPendingStructuralPreview(response);
+                        },
+                        (response) => {
+                          setPendingClaimsPreview(response);
+                        },
+                      )}
+                    </div>
+                  </div>,
+                ];
+              })}
 
-              {isSending && (
+              {chat.pending && (
                 <div className="flex justify-start">
                   <GradientRing
                     animate
                     radius="2xl"
-                    className="max-w-[90%] min-w-32"
+                    className="min-w-32 max-w-[90%]"
                     data-slot="ai-chat-loading-gradient"
                   >
-                    <ReceiptCard
-                      shadow="sm" radius="2xl">
+                    <ReceiptCard shadow="sm" radius="2xl">
                       <div className="p-3">
-                      <div
-                        className={textVariants({
-                          size: "sm",
-                          tone: "muted",
-                          style: "caps",
-                        })}
-                      >
-                        AI
-                      </div>
+                        <div
+                          className={textVariants({
+                            size: "sm",
+                            tone: "muted",
+                            style: "caps",
+                          })}
+                        >
+                          AI
+                        </div>
                         <div className={textVariants({ size: "sm", tone: "muted" })}>
                           {t("aiChatThinking")}
                         </div>
@@ -380,10 +423,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
             </div>
           </div>
 
-          <form
-            onSubmit={handleSubmit}
-            className="border-t border-border/40 px-4 py-4"
-          >
+          <form onSubmit={handleSubmit} className="border-t border-border/40 px-4 py-4">
             <InputGroup className="rounded-full border-border/60 bg-background shadow-sm">
               <InputGroupInput
                 value={message}
@@ -392,10 +432,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                 disabled={isSending}
               />
               <InputGroupAddon className="pr-0" align="inline-end">
-                <Button
-                  type="submit"
-                  disabled={isSending || !message.trim()}
-                >
+                <Button type="submit" disabled={isSending || chat.pending || !message.trim()}>
                   <Send className="h-4 w-4" />
                   {t("aiChatSend")}
                 </Button>
@@ -437,7 +474,10 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
               onClick={() => {
                 if (pendingStructuralPreview) {
                   replaceReceiptInForm(
-                    applyStructuralPreview(currentReceipt, pendingStructuralPreview.receipt),
+                    applyStructuralPreview(
+                      scenario.form.getValues() as Receipt,
+                      pendingStructuralPreview.receipt,
+                    ),
                   );
                 }
                 setPendingStructuralPreview(null);
@@ -449,13 +489,13 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
         </AlertDialogContent>
       </AlertDialog>
 
-    <AlertDialog
-      open={claimsConfirmOpen}
-      onOpenChange={(open) => {
-        if (!open) {
-          setPendingClaimsPreview(null);
-        }
-      }}
+      <AlertDialog
+        open={claimsConfirmOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingClaimsPreview(null);
+          }
+        }}
       >
         <AlertDialogContent className="sm:max-w-2xl">
           <AlertDialogHeader>
@@ -478,14 +518,14 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
             {pendingClaimsPreview && (
               <>
                 <AlertDialogAction
-                    onClick={() => {
-                      replaceReceiptInForm(
-                        applyClaimsPreviewAdd(
-                          scenario.form.getValues() as Receipt,
+                  onClick={() => {
+                    replaceReceiptInForm(
+                      applyClaimsPreviewAdd(
+                        scenario.form.getValues() as Receipt,
                         pendingClaimsPreview.positionClaims,
-                        ),
-                      );
-                      setPendingClaimsPreview(null);
+                      ),
+                    );
+                    setPendingClaimsPreview(null);
                   }}
                 >
                   {t("aiChatClaimsPreviewAdd")}

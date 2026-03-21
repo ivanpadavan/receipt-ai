@@ -17,8 +17,33 @@ const toolMock = vi.fn(
   }),
 );
 const findUniqueMock = vi.fn();
+const findChatUniqueMock = vi.fn();
+const upsertChatMock = vi.fn();
+const updateChatMock = vi.fn();
+const queryRawMock = vi.fn();
+let chatState: { history: unknown[]; pending: boolean } | null = null;
+const transactionMock = vi.fn((callback: (tx: unknown) => unknown) =>
+  callback({
+    $queryRaw: (...args: unknown[]) => queryRawMock(...args),
+    receiptChat: {
+      findUnique: (...args: unknown[]) => findChatUniqueMock(...args),
+      upsert: (...args: unknown[]) => upsertChatMock(...args),
+      update: (...args: unknown[]) => updateChatMock(...args),
+    },
+  }),
+);
 const errorWrapMock = vi.fn();
 const buildParticipantsMock = vi.fn();
+const channelMock = {
+  on: vi.fn().mockReturnThis(),
+  subscribe: vi.fn(function (statusCallback?: (status: string) => void) {
+    statusCallback?.("SUBSCRIBED");
+    return channelMock;
+  }),
+  unsubscribe: vi.fn().mockResolvedValue(undefined),
+};
+const serverSupabaseMock = vi.fn();
+const getUserMock = vi.fn();
 const consoleInfoMock = vi.spyOn(console, "info").mockImplementation(() => {});
 const randomUuidMock = vi.spyOn(globalThis.crypto, "randomUUID");
 
@@ -40,10 +65,21 @@ vi.mock("@langchain/openrouter", () => ({
 
 vi.mock("@/app/db", () => ({
   db: {
+    $transaction: (...args: unknown[]) => transactionMock(...args),
     receipt: {
       findUnique: (...args: unknown[]) => findUniqueMock(...args),
     },
+    receiptChat: {
+      findUnique: (...args: unknown[]) => findChatUniqueMock(...args),
+      upsert: (...args: unknown[]) => upsertChatMock(...args),
+      update: (...args: unknown[]) => updateChatMock(...args),
+    },
   },
+}));
+
+vi.mock("@/utils/supabase/server", () => ({
+  serverSupabase: (...args: unknown[]) => serverSupabaseMock(...args),
+  getUser: (...args: unknown[]) => getUserMock(...args),
 }));
 
 vi.mock("@/app/db-utils/build-participants", () => ({
@@ -90,10 +126,43 @@ describe("POST /api/receipt/[id]/chat", () => {
     toolMock.mockClear();
     structuredInvokeMock.mockReset();
     findUniqueMock.mockReset();
+    findChatUniqueMock.mockReset();
+    upsertChatMock.mockReset();
+    updateChatMock.mockReset();
+    queryRawMock.mockReset();
+    transactionMock.mockClear();
     errorWrapMock.mockReset();
     buildParticipantsMock.mockReset();
+    serverSupabaseMock.mockReset();
+    getUserMock.mockReset();
     consoleInfoMock.mockClear();
     randomUuidMock.mockReset();
+    chatState = {
+      history: [
+        {
+          id: "persisted-user-1",
+          role: "user",
+          participantId: "participant-1",
+          content: "Persisted question",
+        },
+        {
+          id: "persisted-assistant-1",
+          role: "assistant",
+          response: {
+            type: "question",
+            message: "Persisted answer",
+            events: [],
+          },
+        },
+      ],
+      pending: false,
+    };
+    serverSupabaseMock.mockResolvedValue({
+      channel: () => channelMock,
+    });
+    channelMock.on.mockClear();
+    channelMock.subscribe.mockClear();
+    channelMock.unsubscribe.mockClear();
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
     buildParticipantsMock.mockResolvedValue([
       {
@@ -103,13 +172,146 @@ describe("POST /api/receipt/[id]/chat", () => {
         kind: "REAL",
       },
     ]);
+    getUserMock.mockResolvedValue({
+      id: "participant-1",
+    });
+    findChatUniqueMock.mockImplementation(async () =>
+      chatState
+        ? {
+            history: chatState.history.map((entry) =>
+              typeof entry === "object" && entry !== null
+                ? { ...(entry as Record<string, unknown>) }
+                : entry,
+            ),
+            pending: chatState.pending,
+          }
+        : null,
+    );
+    upsertChatMock.mockImplementation(async ({ create, update }: any) => {
+      const nextChat = {
+        history: update.history,
+        pending: update.pending,
+      };
+      chatState = chatState ? nextChat : { history: create.history, pending: create.pending };
+      return chatState;
+    });
+    updateChatMock.mockImplementation(async ({ data }: any) => {
+      if (!chatState) {
+        throw new Error("Missing chat row");
+      }
+
+      chatState = {
+        ...chatState,
+        ...data,
+      };
+
+      return chatState;
+    });
+  });
+
+  it("streams the persisted chat state as SSE", async () => {
+    findUniqueMock.mockResolvedValue({
+      id: "receipt-1",
+      data: currentReceipt,
+    });
+    findChatUniqueMock.mockResolvedValueOnce({
+      history: [],
+      pending: false,
+    });
+    findChatUniqueMock.mockResolvedValueOnce({
+      history: [
+        {
+          id: "entry-1",
+          role: "user",
+          participantId: "participant-1",
+          content: "Hello",
+        },
+      ],
+      pending: true,
+    });
+
+    const { GET } = await import("../route");
+
+    const response = await GET(
+      new NextRequest("http://localhost/api/receipt/receipt-1/chat", {
+        method: "GET",
+      }),
+      {
+        params: Promise.resolve({ id: "receipt-1" }),
+      },
+    );
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error("Missing response body");
+    }
+
+    const first = await reader.read();
+    const second = await reader.read();
+
+    expect(Buffer.from(first.value ?? new Uint8Array()).toString("utf8")).toBe(
+      "data: connection established\n\n",
+    );
+    expect(JSON.parse(Buffer.from(second.value ?? new Uint8Array()).toString("utf8").slice("data: ".length))).toEqual({
+      history: [
+        {
+          id: "entry-1",
+          role: "user",
+          participantId: "participant-1",
+          content: "Hello",
+        },
+      ],
+      pending: true,
+    });
+
+    await reader.cancel();
+  });
+
+  it("returns 401 for unauthenticated SSE access", async () => {
+    getUserMock.mockRejectedValueOnce(new Error("no user"));
+    const { GET } = await import("../route");
+
+    const response = await GET(
+      new NextRequest("http://localhost/api/receipt/receipt-1/chat", {
+        method: "GET",
+      }),
+      {
+        params: Promise.resolve({ id: "receipt-1" }),
+      },
+    );
+
+    expect(response.status).toBe(401);
+    expect(findUniqueMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 403 for non-participant SSE access", async () => {
+    findUniqueMock.mockResolvedValue({
+      id: "receipt-1",
+      data: currentReceipt,
+    });
+    buildParticipantsMock.mockResolvedValueOnce([]);
+
+    const { GET } = await import("../route");
+
+    const response = await GET(
+      new NextRequest("http://localhost/api/receipt/receipt-1/chat", {
+        method: "GET",
+      }),
+      {
+        params: Promise.resolve({ id: "receipt-1" }),
+      },
+    );
+
+    expect(response.status).toBe(403);
   });
 
   it("loads the receipt context and returns the model preview response", async () => {
     randomUuidMock
+      .mockReturnValueOnce("generated-user-entry-id")
       .mockReturnValueOnce("generated-position-id")
       .mockReturnValueOnce("generated-fee-id")
-      .mockReturnValueOnce("generated-discount-id");
+      .mockReturnValueOnce("generated-discount-id")
+      .mockReturnValueOnce("generated-assistant-entry-id");
 
     const llmResponse = {
       type: "structural_preview" as const,
@@ -195,7 +397,7 @@ describe("POST /api/receipt/[id]/chat", () => {
             history: [
               {
                 role: "assistant",
-                content: "Previous answer",
+                content: "Ignored request history",
               },
             ],
           },
@@ -227,12 +429,150 @@ describe("POST /api/receipt/[id]/chat", () => {
     });
     expect(createAgentMock).toHaveBeenCalled();
     expect(agentInvokeMock).toHaveBeenCalledTimes(1);
-    expect(randomUuidMock).toHaveBeenCalledTimes(3);
+    expect(randomUuidMock).toHaveBeenCalledTimes(5);
     expect(prompt).toContain("Return the full structural preview without claims.");
     expect(prompt).toContain("new rows and modifiers omit `id`");
     expect(prompt).toContain('"currentUserParticipantId": "participant-1"');
     expect(prompt).toContain('"currentUserDisplayName": "Ivan"');
+    expect(prompt).toContain("USER: Persisted question");
+    expect(prompt).toContain("ASSISTANT: Persisted answer");
+    expect(prompt).not.toContain("Ignored request history");
+    expect(transactionMock).toHaveBeenCalledTimes(2);
+    expect(queryRawMock).toHaveBeenCalledTimes(2);
+    expect(findChatUniqueMock).toHaveBeenCalledTimes(2);
+    expect(upsertChatMock).toHaveBeenCalledWith({
+      where: { receiptId: "receipt-1" },
+      create: {
+        receiptId: "receipt-1",
+        history: [
+          {
+            id: "persisted-user-1",
+            role: "user",
+            participantId: "participant-1",
+            content: "Persisted question",
+          },
+          {
+            id: "persisted-assistant-1",
+            role: "assistant",
+            response: {
+              type: "question",
+              message: "Persisted answer",
+              events: [],
+            },
+          },
+          {
+            id: "generated-user-entry-id",
+            role: "user",
+            participantId: "participant-1",
+            content: "Show a structural preview",
+          },
+        ],
+        pending: true,
+      },
+      update: {
+        history: [
+          {
+            id: "persisted-user-1",
+            role: "user",
+            participantId: "participant-1",
+            content: "Persisted question",
+          },
+          {
+            id: "persisted-assistant-1",
+            role: "assistant",
+            response: {
+              type: "question",
+              message: "Persisted answer",
+              events: [],
+            },
+          },
+          {
+            id: "generated-user-entry-id",
+            role: "user",
+            participantId: "participant-1",
+            content: "Show a structural preview",
+          },
+        ],
+        pending: true,
+      },
+    });
+    expect(updateChatMock).toHaveBeenCalledWith({
+      where: { receiptId: "receipt-1" },
+      data: {
+        history: [
+          {
+            id: "persisted-user-1",
+            role: "user",
+            participantId: "participant-1",
+            content: "Persisted question",
+          },
+          {
+            id: "persisted-assistant-1",
+            role: "assistant",
+            response: {
+              type: "question",
+              message: "Persisted answer",
+              events: [],
+            },
+          },
+          {
+            id: "generated-user-entry-id",
+            role: "user",
+            participantId: "participant-1",
+            content: "Show a structural preview",
+          },
+          {
+            id: "generated-assistant-entry-id",
+            role: "assistant",
+            response: expectedResponse,
+          },
+        ],
+        pending: false,
+      },
+    });
     await expect(response.json()).resolves.toEqual(expectedResponse);
+  });
+
+  it("rejects non-participants before persisting chat history", async () => {
+    buildParticipantsMock.mockResolvedValueOnce([]);
+    findUniqueMock.mockResolvedValue({
+      id: "receipt-1",
+      data: currentReceipt,
+      imageUrls: [],
+    });
+    errorWrapMock.mockImplementation(
+      async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
+        callback({
+          session: { user: { id: "auth-user-1", user_metadata: { displayName: "Ivan" } } },
+          body: {
+            message: "Hello",
+            history: [],
+          },
+        }),
+    );
+
+    const { POST } = await import("../route");
+
+    const response = POST(
+      new NextRequest("http://localhost/api/receipt/receipt-1/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          message: "Hello",
+          history: [],
+        }),
+      }),
+      {
+        params: Promise.resolve({ id: "receipt-1" }),
+      },
+    );
+
+    await expect(response).rejects.toThrow("User is not a receipt participant");
+    expect(transactionMock).not.toHaveBeenCalled();
+    expect(queryRawMock).not.toHaveBeenCalled();
+    expect(findChatUniqueMock).not.toHaveBeenCalled();
+    expect(upsertChatMock).not.toHaveBeenCalled();
+    expect(updateChatMock).not.toHaveBeenCalled();
+    expect(agentInvokeMock).not.toHaveBeenCalled();
   });
 
   it("maps claims-only model output from positions into a full receipt preview", async () => {
@@ -298,6 +638,69 @@ describe("POST /api/receipt/[id]/chat", () => {
       },
       events: [],
     });
+    expect(upsertChatMock).toHaveBeenCalledTimes(1);
+    expect(updateChatMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects claims preview with unknown participant ids", async () => {
+    findUniqueMock.mockResolvedValue({
+      id: "receipt-1",
+      data: currentReceipt,
+      imageUrls: [],
+    });
+    agentInvokeMock.mockResolvedValue({
+      structuredResponse: {
+        type: "claims_preview",
+        positions: [
+          {
+            ...currentReceipt.positions[0],
+            claims: [
+              {
+                participantIds: ["unknown-participant"],
+                type: "quantity",
+                value: 1,
+              },
+            ],
+          },
+        ],
+      },
+    });
+    errorWrapMock.mockImplementation(
+      async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
+        callback({
+          session: { user: { id: "participant-1", user_metadata: { displayName: "Ivan" } } },
+          body: {
+            message: "Claim with unknown participant",
+            history: [],
+          },
+        }),
+    );
+
+    const { POST } = await import("../route");
+
+    const response = POST(
+      new NextRequest("http://localhost/api/receipt/receipt-1/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          message: "Claim with unknown participant",
+          history: [],
+        }),
+      }),
+      {
+        params: Promise.resolve({ id: "receipt-1" }),
+      },
+    );
+
+    await expect(response).rejects.toThrow("AI produced malformed request");
+    expect(upsertChatMock).toHaveBeenLastCalledWith({
+      where: { receiptId: "receipt-1" },
+      create: expect.objectContaining({
+        pending: false,
+      }),
+      update: expect.objectContaining({
+        pending: false,
+      }),
+    });
   });
 
   it("rejects claims preview when a position field changes", async () => {
@@ -345,6 +748,230 @@ describe("POST /api/receipt/[id]/chat", () => {
     );
 
     await expect(response).rejects.toThrow("AI produced malformed request");
+  });
+
+  it("resets pending when the LLM throws", async () => {
+    findUniqueMock.mockResolvedValue({
+      id: "receipt-1",
+      data: currentReceipt,
+      imageUrls: [],
+    });
+    agentInvokeMock.mockRejectedValueOnce(new Error("llm boom"));
+    errorWrapMock.mockImplementation(
+      async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
+        callback({
+          session: { user: { id: "participant-1", user_metadata: { displayName: "Ivan" } } },
+          body: {
+            message: "Trigger failure",
+            history: [],
+          },
+        }),
+    );
+
+    const { POST } = await import("../route");
+
+    const response = POST(
+      new NextRequest("http://localhost/api/receipt/receipt-1/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          message: "Trigger failure",
+          history: [],
+        }),
+      }),
+      {
+        params: Promise.resolve({ id: "receipt-1" }),
+      },
+    );
+
+    await expect(response).rejects.toThrow("llm boom");
+    expect(transactionMock).toHaveBeenCalledTimes(2);
+    expect(queryRawMock).toHaveBeenCalledTimes(2);
+    expect(upsertChatMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({ pending: true }),
+        update: expect.objectContaining({ pending: true }),
+      }),
+    );
+    expect(upsertChatMock).toHaveBeenLastCalledWith({
+      where: { receiptId: "receipt-1" },
+      create: {
+        receiptId: "receipt-1",
+        history: [
+          {
+            id: "persisted-user-1",
+            role: "user",
+            participantId: "participant-1",
+            content: "Persisted question",
+          },
+          {
+            id: "persisted-assistant-1",
+            role: "assistant",
+            response: {
+              type: "question",
+              message: "Persisted answer",
+              events: [],
+            },
+          },
+        ],
+        pending: false,
+      },
+      update: {
+        history: [
+          {
+            id: "persisted-user-1",
+            role: "user",
+            participantId: "participant-1",
+            content: "Persisted question",
+          },
+          {
+            id: "persisted-assistant-1",
+            role: "assistant",
+            response: {
+              type: "question",
+              message: "Persisted answer",
+              events: [],
+            },
+          },
+        ],
+        pending: false,
+      },
+    });
+  });
+
+  it("rejects a new turn while another turn is already pending", async () => {
+    chatState = {
+      history: [
+        {
+          id: "persisted-user-1",
+          role: "user",
+          participantId: "participant-1",
+          content: "Another in-flight question",
+        },
+      ],
+      pending: true,
+    };
+    findUniqueMock.mockResolvedValue({
+      id: "receipt-1",
+      data: currentReceipt,
+      imageUrls: [],
+    });
+    agentInvokeMock.mockRejectedValueOnce(new Error("llm boom"));
+    errorWrapMock.mockImplementation(
+      async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
+        callback({
+          session: { user: { id: "participant-1", user_metadata: { displayName: "Ivan" } } },
+          body: {
+            message: "Trigger failure",
+            history: [],
+          },
+        }),
+    );
+
+    const { POST } = await import("../route");
+
+    const response = POST(
+      new NextRequest("http://localhost/api/receipt/receipt-1/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          message: "Trigger failure",
+          history: [],
+        }),
+      }),
+      {
+        params: Promise.resolve({ id: "receipt-1" }),
+      },
+    );
+
+    await expect(response).rejects.toMatchObject({ status: 409 });
+    expect(updateChatMock).not.toHaveBeenCalled();
+    expect(agentInvokeMock).not.toHaveBeenCalled();
+  });
+
+  it("removes failed user turns from history and keeps later prompts clean", async () => {
+    chatState = {
+      history: [
+        {
+          id: "persisted-user-1",
+          role: "user",
+          participantId: "participant-1",
+          content: "Persisted question",
+        },
+        {
+          id: "persisted-assistant-1",
+          role: "assistant",
+          response: {
+            type: "question",
+            message: "Persisted answer",
+            events: [],
+          },
+        },
+      ],
+      pending: false,
+    };
+    findUniqueMock.mockResolvedValue({
+      id: "receipt-1",
+      data: currentReceipt,
+      imageUrls: [],
+    });
+    agentInvokeMock
+      .mockRejectedValueOnce(new Error("llm boom"))
+      .mockResolvedValueOnce({
+      structuredResponse: {
+        type: "question",
+        message: "Fresh answer",
+      },
+      });
+    errorWrapMock.mockImplementation(
+      async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
+        callback({
+          session: { user: { id: "participant-1", user_metadata: { displayName: "Ivan" } } },
+          body: {
+            message: "Fresh turn",
+            history: [],
+          },
+        }),
+    );
+
+    const { POST } = await import("../route");
+
+    const failedResponse = POST(
+      new NextRequest("http://localhost/api/receipt/receipt-1/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          message: "Broken turn",
+          history: [],
+        }),
+      }),
+      {
+        params: Promise.resolve({ id: "receipt-1" }),
+      },
+    );
+
+    await expect(failedResponse).rejects.toThrow("llm boom");
+
+    const response = await POST(
+      new NextRequest("http://localhost/api/receipt/receipt-1/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          message: "Fresh turn",
+          history: [],
+        }),
+      }),
+      {
+        params: Promise.resolve({ id: "receipt-1" }),
+      },
+    );
+
+    const prompt = String(
+      (agentInvokeMock.mock.calls.at(1) ?? [])[0]?.messages?.[0]?.content ?? "",
+    );
+
+    expect(prompt).not.toContain("Broken turn");
+    await expect(response.json()).resolves.toEqual({
+      type: "question",
+      message: "Fresh answer",
+      events: [],
+    });
   });
 
   it("rejects claims preview when positions are added or removed", async () => {
