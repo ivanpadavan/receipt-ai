@@ -2269,6 +2269,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
 
     it("renders a structural preview response in the chat dialog", async () => {
       const user = userEvent.setup();
+      await page.viewport(VIEWPORT_WIDTH, VIEWPORT_HEIGHT * 1.35);
       sendReceiptChatMessageMock.mockResolvedValueOnce({
         type: "structural_preview",
         receipt: {
@@ -2342,11 +2343,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       expect(screen.getAllByText(t("aiChatStructuralPreviewAdded")).length).toBeGreaterThan(0);
       expect(screen.getAllByText(t("aiChatStructuralPreviewRemoved")).length).toBeGreaterThan(0);
       expect(screen.getByRole("button", { name: t("aiChatApplyBtnText") })).toBeInTheDocument();
-      scrollContainer.scrollTop = 0;
       await expectCurrentScreenshot("ai-chat-structural-preview");
-
-      scrollContainer.scrollTop = scrollContainer.scrollHeight;
-      await expectCurrentScreenshot("ai-chat-structural-preview-modifiers");
     });
 
     it("opens a structural confirm modal and shows lost claim warnings", async () => {

@@ -309,9 +309,9 @@ AI chat это встроенный вторичный workflow поверх `Re
 
 Это важная продуктовая гарантия прозрачности: AI не “молча меняет чек”, а визуально объясняет, что именно будет переписано в форме.
 
-| | |
-| --- | --- |
-| ![ai-chat-structural-preview](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-preview-chromium.png) | ![ai-chat-structural-preview-modifiers](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-preview-modifiers-chromium.png) |
+![ai-chat-structural-preview](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-preview-chromium.png)
+
+Этот кадр специально снят на увеличенном viewport, чтобы верх и низ structural preview помещались в один экран без разрезания на две картинки.
 
 <details>
 <summary>Structural preview user stories</summary>
