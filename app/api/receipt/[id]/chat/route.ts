@@ -9,6 +9,7 @@ import { errorWrap } from "@/app/api/receipt/error-wrap";
 import validator from "@/app/api/receipt/[id]/chat/validator";
 import { db } from "@/app/db";
 import {
+  receiptChatLiveSchema,
   receiptChatPersistedSchema,
   receiptChatModelResponseSchema,
   receiptChatModelResponseSchemas,
@@ -298,6 +299,28 @@ function toApiResponse(
   });
 }
 
+function toLiveChat(
+  persisted: ReturnType<typeof receiptChatPersistedSchema.parse>,
+  participants: { id: string; displayName: string }[],
+) {
+  const displayNameByParticipantId = new Map(
+    participants.map((participant) => [participant.id, participant.displayName]),
+  );
+
+  return receiptChatLiveSchema.parse({
+    ...persisted,
+    history: persisted.history.map((entry) =>
+      entry.role === "user"
+        ? {
+            ...entry,
+            displayName:
+              displayNameByParticipantId.get(entry.participantId) ?? entry.participantId,
+          }
+        : entry,
+    ),
+  });
+}
+
 function validateClaimsPreviewParticipantIds(
   response: ReceiptChatResponse,
   participants: { id: string }[],
@@ -492,10 +515,11 @@ export async function GET(
       select: { history: true, pending: true },
     })) ?? {},
   );
+  const initialLiveChat = toLiveChat(initialChat, participants);
   const supabase = await serverSupabase();
 
   return createSseResponse(req, (stream) => {
-    const payload$ = new BehaviorSubject(initialChat);
+    const payload$ = new BehaviorSubject(initialLiveChat);
     const channelName = `topic:${receiptId}:chat`;
     const channel = supabase.channel(channelName);
     let syncSeq = 0;
@@ -508,9 +532,11 @@ export async function GET(
           select: { history: true, pending: true },
         })) ?? {},
       );
+      const latestParticipants = await buildParticipants(receiptId);
+      const nextLiveChat = toLiveChat(nextChat, latestParticipants);
 
       if (seq !== syncSeq) return;
-      payload$.next(nextChat);
+      payload$.next(nextLiveChat);
     };
 
     channel

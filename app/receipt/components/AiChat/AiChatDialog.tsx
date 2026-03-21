@@ -52,14 +52,14 @@ import {
   hasClaimsPreviewData,
   getClaimsPreviewStatus,
 } from "@/app/receipt/components/AiChat/claims-apply";
-import type { Receipt, ParticipantDTO } from "@/model/receipt/model";
+import type { Receipt } from "@/model/receipt/model";
 import type {
-  ReceiptChatHistoryEntry,
-  ReceiptChatPersisted,
+  ReceiptChatLive,
+  ReceiptChatLiveHistory,
   ReceiptChatResponse,
   ReceiptChatToolEvent,
 } from "@/model/receipt/schema-chat";
-import { receiptChatPersistedSchema } from "@/model/receipt/schema-chat";
+import { receiptChatLiveSchema } from "@/model/receipt/schema-chat";
 import { useOptimisticChatHistory } from "@/app/receipt/components/AiChat/useOptimisticChatHistory";
 
 interface AiChatDialogProps {
@@ -81,7 +81,7 @@ interface RequestHistoryEntry {
   content: string;
 }
 
-const EMPTY_CHAT: ReceiptChatPersisted = {
+const EMPTY_CHAT: ReceiptChatLive = {
   history: [],
   pending: false,
 };
@@ -116,17 +116,7 @@ function getAssistantTranscriptContent(
     : `${t("aiChatClaimsPreview")}: ${title} (${positionCount} ${t("positions")})`;
 }
 
-function getParticipantDisplayName(
-  participantId: string,
-  participants: ParticipantDTO[],
-) {
-  return (
-    participants.find((participant) => participant.id === participantId)
-      ?.displayName ?? participantId
-  );
-}
-
-function serializeChatHistory(history: ReceiptChatHistoryEntry[]): RequestHistoryEntry[] {
+function serializeChatHistory(history: ReceiptChatLiveHistory): RequestHistoryEntry[] {
   return history.flatMap((entry) => {
     if (entry.role === "user") {
       return [
@@ -209,7 +199,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   const chat = useSseResource({
     initialData: EMPTY_CHAT,
     url: `/api/receipt/${receiptId}/chat`,
-    schema: receiptChatPersistedSchema,
+    schema: receiptChatLiveSchema,
     connectionToastId: `receipt-chat-sse-${receiptId}`,
   });
   const {
@@ -353,7 +343,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                               style: "caps",
                             })}
                           >
-                            {getParticipantDisplayName(entry.participantId, participants)}
+                            {entry.displayName}
                           </div>
                           <div
                             className={cn(

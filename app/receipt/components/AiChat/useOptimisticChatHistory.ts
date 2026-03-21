@@ -1,21 +1,18 @@
 import { useMemo, useState } from "react";
 import type {
-  ReceiptChatHistoryEntry,
-  ReceiptChatPersisted,
+  ReceiptChatLive,
+  ReceiptChatLiveHistory,
 } from "@/model/receipt/schema-chat";
 import { useUser } from "@/context/AuthContext";
-import { useParticipantsStore } from "@/app/receipt/store/participants";
 
 interface OptimisticState {
-  entry: Extract<ReceiptChatHistoryEntry, { role: "user" }>;
+  entry: Extract<ReceiptChatLiveHistory[number], { role: "user" }>;
   baseHistoryLength: number;
 }
 
-export function useOptimisticChatHistory(chat: ReceiptChatPersisted) {
+export function useOptimisticChatHistory(chat: ReceiptChatLive) {
   const [optimisticState, setOptimisticState] = useState<OptimisticState | null>(null);
-  const participants = useParticipantsStore((state) => state.participants);
   const { user } = useUser();
-  const currentUserId = user.id;
 
   const reconciledOptimisticState = useMemo(() => {
     if (!optimisticState) return null;
@@ -30,7 +27,7 @@ export function useOptimisticChatHistory(chat: ReceiptChatPersisted) {
     return hasPersistedEcho ? null : optimisticState;
   }, [chat.history, optimisticState]);
 
-  const displayHistory: ReceiptChatHistoryEntry[] = reconciledOptimisticState
+  const displayHistory: ReceiptChatLiveHistory = reconciledOptimisticState
     ? [...chat.history, reconciledOptimisticState.entry]
     : chat.history;
 
@@ -40,22 +37,12 @@ export function useOptimisticChatHistory(chat: ReceiptChatPersisted) {
       return;
     }
 
-    const lastUserEntry = [...chat.history]
-      .reverse()
-      .find((entry) => entry.role === "user");
-    const currentUserParticipant = participants.find(
-      (participant) => participant.id === currentUserId,
-    );
-
     setOptimisticState({
       entry: {
         id: `optimistic-${crypto.randomUUID()}`,
         role: "user",
-        participantId:
-          currentUserParticipant?.id ??
-          currentUserId ??
-          lastUserEntry?.participantId ??
-          "unknown-user",
+        participantId: user.id,
+        displayName: user.user_metadata.displayName,
         content: content.trim(),
       },
       baseHistoryLength: chat.history.length,

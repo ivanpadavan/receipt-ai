@@ -101,6 +101,10 @@ export const receiptChatUserHistoryEntrySchema = z.object({
   content: z.string().min(1),
 });
 
+export const receiptChatUserLiveEntrySchema = receiptChatUserHistoryEntrySchema.extend({
+  displayName: z.string().min(1),
+});
+
 export const receiptChatAssistantHistoryEntrySchema = z.object({
   id: z.string(),
   role: z.literal("assistant"),
@@ -113,9 +117,19 @@ export const receiptChatHistoryEntrySchema = z.discriminatedUnion("role", [
 ]);
 
 export const receiptChatHistorySchema = z.array(receiptChatHistoryEntrySchema);
+export const receiptChatLiveHistoryEntrySchema = z.discriminatedUnion("role", [
+  receiptChatUserLiveEntrySchema,
+  receiptChatAssistantHistoryEntrySchema,
+]);
+export const receiptChatLiveHistorySchema = z.array(receiptChatLiveHistoryEntrySchema);
 
 export const receiptChatPersistedSchema = z.object({
   history: receiptChatHistorySchema.default([]),
+  pending: z.boolean().default(false),
+});
+
+export const receiptChatLiveSchema = z.object({
+  history: receiptChatLiveHistorySchema.default([]),
   pending: z.boolean().default(false),
 });
 
@@ -152,7 +166,9 @@ export const receiptChatModelResponseSchemas = [
 
 export type ReceiptChatHistoryEntry = z.infer<typeof receiptChatHistoryEntrySchema>;
 export type ReceiptChatHistory = z.infer<typeof receiptChatHistorySchema>;
+export type ReceiptChatLiveHistory = z.infer<typeof receiptChatLiveHistorySchema>;
 export type ReceiptChatPersisted = z.infer<typeof receiptChatPersistedSchema>;
+export type ReceiptChatLive = z.infer<typeof receiptChatLiveSchema>;
 export type ReceiptChatRequest = z.infer<typeof receiptChatRequestSchema>;
 export type ReceiptChatResponse = z.infer<typeof receiptChatResponseSchema>;
 export type ReceiptChatToolEvent = z.infer<typeof receiptChatToolEventSchema>;

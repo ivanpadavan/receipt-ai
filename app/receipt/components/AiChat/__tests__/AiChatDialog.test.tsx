@@ -9,8 +9,8 @@ import { Receipt } from "@/model/receipt/model";
 import { setLanguage, t } from "@/app/i18n/translations";
 import type { ReceiptState } from "@/app/receipt/[id]/useReceiptFormState";
 import type {
-  ReceiptChatHistoryEntry,
-  ReceiptChatPersisted,
+  ReceiptChatLiveHistory,
+  ReceiptChatLive,
   ReceiptChatResponse,
 } from "@/model/receipt/schema-chat";
 
@@ -55,7 +55,7 @@ function getLatestEventSource() {
   return source;
 }
 
-function emitChatState(state: ReceiptChatPersisted) {
+function emitChatState(state: ReceiptChatLive) {
   act(() => {
     getLatestEventSource().onmessage?.({
       data: JSON.stringify(state),
@@ -156,11 +156,13 @@ function createUserHistoryEntry(
   id: string,
   content: string,
   participantId = "participant-1",
-): ReceiptChatHistoryEntry {
+  displayName = "Alice",
+): Extract<ReceiptChatLiveHistory[number], { role: "user" }> {
   return {
     id,
     role: "user",
     participantId,
+    displayName,
     content,
   };
 }
@@ -168,7 +170,7 @@ function createUserHistoryEntry(
 function createAssistantHistoryEntry(
   id: string,
   response: ReceiptChatResponse,
-): ReceiptChatHistoryEntry {
+): Extract<ReceiptChatLiveHistory[number], { role: "assistant" }> {
   return {
     id,
     role: "assistant",
@@ -259,6 +261,9 @@ beforeEach(() => {
   useUserMock.mockReturnValue({
     user: {
       id: "participant-1",
+      user_metadata: {
+        displayName: "Alice",
+      },
     },
   });
   MockEventSource.instances = [];

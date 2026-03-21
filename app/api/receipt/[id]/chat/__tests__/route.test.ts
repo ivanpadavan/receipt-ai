@@ -248,16 +248,22 @@ describe("POST /api/receipt/[id]/chat", () => {
 
     const first = await reader.read();
     const second = await reader.read();
+    const third = await reader.read();
 
     expect(Buffer.from(first.value ?? new Uint8Array()).toString("utf8")).toBe(
       "data: connection established\n\n",
     );
     expect(JSON.parse(Buffer.from(second.value ?? new Uint8Array()).toString("utf8").slice("data: ".length))).toEqual({
+      history: [],
+      pending: false,
+    });
+    expect(JSON.parse(Buffer.from(third.value ?? new Uint8Array()).toString("utf8").slice("data: ".length))).toEqual({
       history: [
         {
           id: "entry-1",
           role: "user",
           participantId: "participant-1",
+          displayName: "Ivan",
           content: "Hello",
         },
       ],
