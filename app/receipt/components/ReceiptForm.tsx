@@ -2,7 +2,6 @@
 
 import { t, TranslationKey } from "@/app/i18n/translations";
 import { useReceiptFormState } from "@/app/receipt/[id]/useReceiptFormState";
-import { forceSync, useObservable } from "@/hooks/rx/useObservable";
 import {
   Receipt,
   ReceiptPosition,
@@ -19,21 +18,9 @@ import { SplittingSheet } from "@/app/receipt/components/SplittingSheet/Splittin
 import { ParticipantsSheet } from "@/app/receipt/components/ParticipantsSheet";
 import { SummaryScreen } from "@/app/receipt/components/SummaryScreen/SummaryScreen";
 import { AiChatDialog } from "@/app/receipt/components/AiChat";
-import {
-  distinctUntilChanged,
-  finalize,
-  fromEvent,
-  merge,
-  Observable,
-  retry,
-  startWith,
-  take,
-  timer,
-} from "rxjs";
 import { receiptWithParticipantsSchema } from "@/model/receipt/schema";
 import { Drawer } from "@/components/ui/drawer";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { isEqual } from "lodash-es";
 import { FormProvider, useWatch } from "react-hook-form";
 import { CardContent } from "@/components/ui/card";
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
@@ -65,6 +52,7 @@ import {
 import { cn } from "@/utils/cn";
 import { searchPositionsForDisplay } from "@/app/receipt/utils/search-positions";
 import { ReceiptFormContext } from "@/app/receipt/components/receipt-context";
+import { useSseResource } from "@/app/receipt/components/useSseResource";
 
 interface EditableReceiptFormProps {
   initialData: ReceiptWithParticipants;
@@ -75,77 +63,12 @@ const useReceiptWithUpdates = (
   initialData: ReceiptWithParticipants,
   receiptId: string,
 ) => {
-  return useObservable<Observable<ReceiptWithParticipants>>(
-    useMemo(() => {
-      let isDisconnected = false;
-      const connectionToastId = `receipt-sse-${receiptId}`;
-
-      const notifyDisconnected = () => {
-        if (isDisconnected) return;
-        isDisconnected = true;
-        toast.error(t("sseDisconnected"), {
-          id: connectionToastId,
-          duration: Infinity,
-        });
-      };
-
-      const notifyReconnected = () => {
-        if (!isDisconnected) return;
-        isDisconnected = false;
-        toast.dismiss(connectionToastId);
-        toast.success(t("sseReconnected"));
-      };
-
-      return new Observable<ReceiptWithParticipants>((handler) => {
-        if (typeof window === "undefined") {
-          handler.next(initialData);
-          handler.complete();
-          return;
-        }
-
-        const eventSource = new EventSource(`/api/receipt/${receiptId}`);
-
-        eventSource.onopen = () => {
-          notifyReconnected();
-        };
-
-        eventSource.onmessage = (event) => {
-          if (event.data === "connection established") return;
-          const { data, success } = receiptWithParticipantsSchema.safeParse(
-            JSON.parse(event.data),
-          );
-          if (success) {
-            handler.next(data);
-          }
-        };
-
-        eventSource.onerror = () => {
-          eventSource.close();
-          handler.error(new Error("sse disconnected"));
-        };
-
-        return () => {
-          eventSource.close();
-        };
-      }).pipe(
-        retry({
-          delay: (_error, retryCount) => {
-            notifyDisconnected();
-            const delayMs = Math.min(1000 * 2 ** (retryCount - 1), 10_000);
-            return merge(timer(delayMs), fromEvent(window, "online")).pipe(
-              take(1),
-            );
-          },
-        }),
-        startWith(initialData),
-        distinctUntilChanged(isEqual),
-        finalize(() => {
-          toast.dismiss(connectionToastId);
-        }),
-      );
-    }, [receiptId, initialData]),
-    forceSync,
-  );
+  return useSseResource({
+    initialData,
+    url: `/api/receipt/${receiptId}`,
+    schema: receiptWithParticipantsSchema,
+    connectionToastId: `receipt-sse-${receiptId}`,
+  });
 };
 
 interface ReceiptFormInnerProps {
