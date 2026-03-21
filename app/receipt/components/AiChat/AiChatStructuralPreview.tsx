@@ -290,8 +290,8 @@ export const AiChatStructuralPreview: React.FC<AiChatStructuralPreviewProps> = (
               title
             ) : (
               <>
-                <span className="line-through opacity-70">{currentTitle}</span>
-                <span className="ml-2">{title}</span>
+                <p className="line-through opacity-70">{currentTitle}</p>
+                <p className="ml-2">{title}</p>
               </>
             )}
           </div>
