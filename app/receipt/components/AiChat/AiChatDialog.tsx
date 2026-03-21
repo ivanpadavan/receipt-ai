@@ -344,11 +344,10 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                       >
                         <div className="p-3">
                           <div
-                            className={textVariants({
+                            className={cn(textVariants({
                               size: "sm",
                               tone: "muted",
-                              style: "caps",
-                            })}
+                            }), 'text-right')}
                           >
                             {entry.displayName}
                           </div>
