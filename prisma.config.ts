@@ -13,6 +13,9 @@ export default defineConfig({
   tables: {
     external: [
       "auth.audit_log_entries",
+      "auth.custom_oauth_providers",
+      "auth.webauthn_challenges",
+      "auth.webauthn_credentials",
       "auth.flow_state",
       "auth.identities",
       "auth.instances",
