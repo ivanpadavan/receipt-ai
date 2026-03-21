@@ -198,8 +198,6 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
         pendingClaimsPreview.response.positionClaims,
       )
     : "pending";
-  const claimsPreviewExpired = claimsPreviewStatus === "expired";
-  const claimsPreviewApplied = claimsPreviewStatus === "applied";
   const canReplaceClaims = pendingClaimsPreview && claimsPreviewStatus === "pending"
     ? canReplaceClaimsPreview(
         currentReceipt,
@@ -209,6 +207,13 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   const hasClaimsData = pendingClaimsPreview
     ? hasClaimsPreviewData(pendingClaimsPreview.response.positionClaims)
     : false;
+  const claimsConfirmOpen = pendingClaimsPreview !== null && claimsPreviewStatus === "pending";
+
+  useEffect(() => {
+    if (pendingClaimsPreview && claimsPreviewStatus !== "pending") {
+      setPendingClaimsPreview(null);
+    }
+  }, [claimsPreviewStatus, pendingClaimsPreview]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -455,30 +460,20 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
       </AlertDialog>
 
     <AlertDialog
-      open={pendingClaimsPreview !== null}
+      open={claimsConfirmOpen}
       onOpenChange={(open) => {
         if (!open) {
           setPendingClaimsPreview(null);
-          }
-        }}
+        }
+      }}
       >
         <AlertDialogContent className="sm:max-w-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {claimsPreviewExpired
-                ? t("aiChatClaimsPreviewExpiredTitle")
-                : claimsPreviewApplied
-                  ? t("aiChatClaimsPreviewConfirmTitle")
-                : t("aiChatClaimsPreviewConfirmTitle")}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {claimsPreviewExpired
-                ? t("aiChatClaimsPreviewExpiredText")
-                : t("aiChatClaimsPreviewConfirmText")}
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t("aiChatClaimsPreviewConfirmTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("aiChatClaimsPreviewConfirmText")}</AlertDialogDescription>
           </AlertDialogHeader>
 
-          {!claimsPreviewExpired && !claimsPreviewApplied && canReplaceClaims && (
+          {canReplaceClaims && (
             <AiChatLossWarningBlock
               title={t("aiChatClaimsPreviewLossesTitle")}
               description={t("aiChatClaimsPreviewLossesText")}
@@ -488,9 +483,9 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
 
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setPendingClaimsPreview(null)}>
-              {claimsPreviewExpired || claimsPreviewApplied ? t("close") : t("cancel")}
+              {t("cancel")}
             </AlertDialogCancel>
-            {!claimsPreviewExpired && !claimsPreviewApplied && pendingClaimsPreview && (
+            {pendingClaimsPreview && (
               <>
                 <AlertDialogAction
                   onClick={() => {

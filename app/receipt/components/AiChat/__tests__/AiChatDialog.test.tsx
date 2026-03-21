@@ -535,9 +535,10 @@ describe("AiChatDialog", () => {
 
     rerenderWithReceipt(expiredLiveReceipt);
 
-    const modalAfter = await screen.findByRole("alertdialog");
-    expect(within(modalAfter).getByText(/preview expired/i)).toBeInTheDocument();
-    expect(within(modalAfter).queryByRole("button", { name: /replace all/i })).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    });
+    expect(screen.getByText(/preview expired/i)).toBeInTheDocument();
   });
 
   it("hides the apply button when the claims preview is already applied", async () => {
