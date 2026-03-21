@@ -84,8 +84,8 @@ const ru = {
   aiChatPlaceholder: "Спросите AI про этот чек",
   aiChatSend: "Отправить",
   aiChatThinking: "Думаю...",
+  aiChatApplyBtnText: "Применить",
   aiChatStructuralPreview: "Предпросмотр структуры",
-  aiChatStructuralPreviewReviewChanges: "Проверить изменения",
   aiChatStructuralPreviewConfirmTitle: "Применить изменения структуры?",
   aiChatStructuralPreviewConfirmText:
     "Это заменит структуру чека на показанную в превью.",
@@ -96,7 +96,6 @@ const ru = {
   aiChatStructuralPreviewRemoved: "Удалено",
   aiChatStructuralPreviewChanged: "Изменено",
   aiChatClaimsPreview: "Предпросмотр распределений",
-  aiChatClaimsPreviewReviewChanges: "Проверить распределения",
   aiChatClaimsPreviewConfirmTitle: "Применить распределения?",
   aiChatClaimsPreviewConfirmText:
     "Выберите, как применить предложенные AI распределения к текущему чеку.",
@@ -154,7 +153,8 @@ const ru = {
   clearImage: "Очистить изображение",
   extractReceiptData: "Извлечь данные чека",
   uploadReceiptImage: "Загрузите изображение чека",
-  tapToSelectOrPaste: "Нажмите, чтобы выбрать из галереи или вставить из буфера",
+  tapToSelectOrPaste:
+    "Нажмите, чтобы выбрать из галереи или вставить из буфера",
   selectImageFileError: "Выберите файл изображения",
   fileReadError: "Не удалось прочитать файл. Попробуйте снова.",
   processingReceipt: "Обработка чека...",
@@ -165,8 +165,7 @@ const ru = {
   itemSingle: "позиция",
   itemPlural: "позиций",
   receiptNotFound: "Чек не найден",
-  receiptNotFoundBody:
-    "Чек не существует или у вас нет прав на его просмотр.",
+  receiptNotFoundBody: "Чек не существует или у вас нет прав на его просмотр.",
   returnHome: "Вернуться на главную",
   participantsEmpty: "Добавьте участников чека",
   newParticipantNamePlaceholder: "Имя нового участника",
@@ -183,18 +182,17 @@ const ru = {
     "Сумма должна совпадать с цена × количество",
   validationModifierValuePositive: "Значение должно быть больше 0",
   validationTotalPositive: "Итог должен быть больше 0",
-  validationGrandTotalPositive: "Итог с учетом скидок и сборов должен быть больше 0",
+  validationGrandTotalPositive:
+    "Итог с учетом скидок и сборов должен быть больше 0",
   validationTotalMismatchPrefix: "Итог",
   validationTotalMismatchSuffix: "не совпадает с суммой позиций",
   validationGrandTotalExpectedPrefix: "С учетом скидок и сборов должно быть",
   validationClaimedQuantityExceeds:
     "Распределенное количество больше количества позиции",
   validationClaimedAmountExceeds: "Распределенная сумма больше суммы позиции",
-  validationFinalGrandTotalMismatchPrefix:
-    "Итог с учетом скидок и сборов",
+  validationFinalGrandTotalMismatchPrefix: "Итог с учетом скидок и сборов",
   validationFinalGrandTotalMismatchSuffix: "не совпадает с расчетным значением",
-  validationReceiptNameMin:
-    "Название чека должно содержать минимум 3 символа",
+  validationReceiptNameMin: "Название чека должно содержать минимум 3 символа",
   validationReceiptNameMax:
     "Название чека должно содержать максимум 60 символов",
 };
@@ -289,7 +287,7 @@ const en: Translations = {
   aiChatSend: "Send",
   aiChatThinking: "Thinking...",
   aiChatStructuralPreview: "Structural preview",
-  aiChatStructuralPreviewReviewChanges: "Review changes",
+  aiChatApplyBtnText: "Apply",
   aiChatStructuralPreviewConfirmTitle: "Apply structural changes?",
   aiChatStructuralPreviewConfirmText:
     "This will replace the receipt structure with the previewed version.",
@@ -300,7 +298,6 @@ const en: Translations = {
   aiChatStructuralPreviewRemoved: "Removed",
   aiChatStructuralPreviewChanged: "Changed",
   aiChatClaimsPreview: "Claims preview",
-  aiChatClaimsPreviewReviewChanges: "Review distributions",
   aiChatClaimsPreviewConfirmTitle: "Apply claim distributions?",
   aiChatClaimsPreviewConfirmText:
     "Choose how to apply the AI-suggested claim distributions to the current receipt.",
@@ -393,14 +390,12 @@ const en: Translations = {
   validationGrandTotalExpectedPrefix: "Grand total should be",
   validationClaimedQuantityExceeds:
     "Claimed quantity is greater than position quantity",
-  validationClaimedAmountExceeds: "Claimed amount is greater than position total",
+  validationClaimedAmountExceeds:
+    "Claimed amount is greater than position total",
   validationFinalGrandTotalMismatchPrefix: "Final grand total",
-  validationFinalGrandTotalMismatchSuffix:
-    "doesn't match calculated value",
-  validationReceiptNameMin:
-    "Receipt name should contain at least 3 characters",
-  validationReceiptNameMax:
-    "Receipt name should contain at most 60 characters",
+  validationFinalGrandTotalMismatchSuffix: "doesn't match calculated value",
+  validationReceiptNameMin: "Receipt name should contain at least 3 characters",
+  validationReceiptNameMax: "Receipt name should contain at most 60 characters",
 };
 
 // Available languages

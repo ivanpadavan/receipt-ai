@@ -72,8 +72,8 @@ function DiffSection<T>({
   renderSummary,
   renderValue,
 }: {
-  title: string;
-  diffs: Array<DiffEntry<T>>;
+  title?: string;
+  diffs: DiffEntry<T>[];
   renderLabel: (entry: DiffEntry<T>) => string;
   renderSummary: (entry: DiffEntry<T>) => { current?: string; next?: string };
   renderValue: (entry: DiffEntry<T>) => { current?: string; next?: string };
@@ -84,14 +84,13 @@ function DiffSection<T>({
 
   return (
     <div className={stackGapVariants({ size: "xs" })}>
-      <div className={textVariants({ size: "sm", weight: "medium", tone: "muted" })}>
+      {title && (<div className={textVariants({ size: "sm", weight: "medium", tone: "muted" })}>
         {title}
-      </div>
+      </div>)}
       {diffs.map((entry) => {
         const label = renderLabel(entry);
         const summary = renderSummary(entry);
         const value = renderValue(entry);
-        const isChanged = entry.status !== "unchanged";
 
         return (
           <div
@@ -101,12 +100,18 @@ function DiffSection<T>({
               diffStatusStyles[entry.status],
             )}
           >
-            <div className={cn(rowVariants({ align: "center", justify: "between", width: "full" }), "gap-3")}>
+            <div
+              className={cn(
+                rowVariants({
+                  align: "center",
+                  justify: "between",
+                  width: "full",
+                }),
+                "gap-3",
+              )}
+            >
               <div className="min-w-0 flex-1 space-y-1">
                 <div className="flex items-center gap-2">
-                  <div className={textVariants({ size: "sm", weight: "semibold" })}>
-                    {label}
-                  </div>
                   {entry.status !== "unchanged" && (
                     <span
                       className={cn(
@@ -126,6 +131,11 @@ function DiffSection<T>({
                           : t("aiChatStructuralPreviewChanged")}
                     </span>
                   )}
+                  <div
+                    className={textVariants({ size: "sm", weight: "semibold" })}
+                  >
+                    {label}
+                  </div>
                 </div>
                 {(summary.current || summary.next) && (
                   <div className={textVariants({ size: "xs", tone: "muted" })}>
@@ -145,8 +155,10 @@ function DiffSection<T>({
                     ) : (
                       <span
                         className={cn(
-                          entry.status === "removed" && "line-through opacity-70",
-                          entry.status === "added" && "font-medium text-foreground",
+                          entry.status === "removed" &&
+                            "line-through opacity-70",
+                          entry.status === "added" &&
+                            "font-medium text-foreground",
                         )}
                       >
                         {summary.next ?? summary.current}
@@ -156,7 +168,12 @@ function DiffSection<T>({
                 )}
               </div>
               {(value.current || value.next) && (
-                <div className={cn("shrink-0 text-right", textVariants({ size: "sm", weight: "semibold" }))}>
+                <div
+                  className={cn(
+                    "shrink-0 text-right",
+                    textVariants({ size: "sm", weight: "semibold" }),
+                  )}
+                >
                   {entry.status === "changed" ? (
                     <div className="space-y-0.5">
                       {value.current && (
@@ -267,10 +284,7 @@ export const AiChatStructuralPreview: React.FC<AiChatStructuralPreviewProps> = (
       className="overflow-hidden"
     >
       <div className="p-4">
-        <div className={cn("mb-4", stackGapVariants({ size: "xs" }))}>
-          <div className={textVariants({ size: "sm", tone: "muted", style: "caps" })}>
-            {t("aiChatStructuralPreview")}
-          </div>
+        <div className={cn("mb-4", stackGapVariants({ size: "lg" }))}>
           <div className={textVariants({ size: "lg", weight: "semibold" })}>
             {currentTitle === title ? (
               title
@@ -292,10 +306,18 @@ export const AiChatStructuralPreview: React.FC<AiChatStructuralPreviewProps> = (
             }
             renderSummary={(entry) => {
               const current = entry.current
-                ? formatPositionSummary(entry.current, receiptCurrency, formatMoney)
+                ? formatPositionSummary(
+                    entry.current,
+                    receiptCurrency,
+                    formatMoney,
+                  )
                 : undefined;
               const next = entry.next
-                ? formatPositionSummary(entry.next, receiptCurrency, formatMoney)
+                ? formatPositionSummary(
+                    entry.next,
+                    receiptCurrency,
+                    formatMoney,
+                  )
                 : undefined;
               return { current, next };
             }}
@@ -318,18 +340,34 @@ export const AiChatStructuralPreview: React.FC<AiChatStructuralPreviewProps> = (
             }
             renderSummary={(entry) => ({
               current: entry.current
-                ? formatModifierSummary(entry.current, receiptCurrency, formatMoney)
+                ? formatModifierSummary(
+                    entry.current,
+                    receiptCurrency,
+                    formatMoney,
+                  )
                 : undefined,
               next: entry.next
-                ? formatModifierSummary(entry.next, receiptCurrency, formatMoney)
+                ? formatModifierSummary(
+                    entry.next,
+                    receiptCurrency,
+                    formatMoney,
+                  )
                 : undefined,
             })}
             renderValue={(entry) => ({
               current: entry.current
-                ? formatModifierSummary(entry.current, receiptCurrency, formatMoney)
+                ? formatModifierSummary(
+                    entry.current,
+                    receiptCurrency,
+                    formatMoney,
+                  )
                 : undefined,
               next: entry.next
-                ? formatModifierSummary(entry.next, receiptCurrency, formatMoney)
+                ? formatModifierSummary(
+                    entry.next,
+                    receiptCurrency,
+                    formatMoney,
+                  )
                 : undefined,
             })}
           />
@@ -342,18 +380,34 @@ export const AiChatStructuralPreview: React.FC<AiChatStructuralPreviewProps> = (
             }
             renderSummary={(entry) => ({
               current: entry.current
-                ? formatModifierSummary(entry.current, receiptCurrency, formatMoney)
+                ? formatModifierSummary(
+                    entry.current,
+                    receiptCurrency,
+                    formatMoney,
+                  )
                 : undefined,
               next: entry.next
-                ? formatModifierSummary(entry.next, receiptCurrency, formatMoney)
+                ? formatModifierSummary(
+                    entry.next,
+                    receiptCurrency,
+                    formatMoney,
+                  )
                 : undefined,
             })}
             renderValue={(entry) => ({
               current: entry.current
-                ? formatModifierSummary(entry.current, receiptCurrency, formatMoney)
+                ? formatModifierSummary(
+                    entry.current,
+                    receiptCurrency,
+                    formatMoney,
+                  )
                 : undefined,
               next: entry.next
-                ? formatModifierSummary(entry.next, receiptCurrency, formatMoney)
+                ? formatModifierSummary(
+                    entry.next,
+                    receiptCurrency,
+                    formatMoney,
+                  )
                 : undefined,
             })}
           />
@@ -364,18 +418,34 @@ export const AiChatStructuralPreview: React.FC<AiChatStructuralPreviewProps> = (
             renderLabel={() => t("total")}
             renderSummary={(entry) => ({
               current: entry.current
-                ? formatTotalsSummary(entry.current.total, receiptCurrency, formatMoney)
+                ? formatTotalsSummary(
+                    entry.current.total,
+                    receiptCurrency,
+                    formatMoney,
+                  )
                 : undefined,
               next: entry.next
-                ? formatTotalsSummary(entry.next.total, receiptCurrency, formatMoney)
+                ? formatTotalsSummary(
+                    entry.next.total,
+                    receiptCurrency,
+                    formatMoney,
+                  )
                 : undefined,
             })}
             renderValue={(entry) => ({
               current: entry.current
-                ? formatTotalsSummary(entry.current.grandTotal, receiptCurrency, formatMoney)
+                ? formatTotalsSummary(
+                    entry.current.grandTotal,
+                    receiptCurrency,
+                    formatMoney,
+                  )
                 : undefined,
               next: entry.next
-                ? formatTotalsSummary(entry.next.grandTotal, receiptCurrency, formatMoney)
+                ? formatTotalsSummary(
+                    entry.next.grandTotal,
+                    receiptCurrency,
+                    formatMoney,
+                  )
                 : undefined,
             })}
           />
@@ -389,15 +459,9 @@ export const AiChatStructuralPreview: React.FC<AiChatStructuralPreviewProps> = (
           )}
 
           {onApply && hasStructuralChanges && (
-            <div className="pt-1">
-              <Button
-                type="button"
-                onClick={onApply}
-                className="w-full rounded-full sm:w-auto"
-              >
-                {t("aiChatStructuralPreviewReviewChanges")}
-              </Button>
-            </div>
+            <Button type="button" onClick={onApply} className="w-full">
+              {t("aiChatApplyBtnText")}
+            </Button>
           )}
         </div>
       </div>

@@ -29,25 +29,15 @@ export const AiChatClaimsPreview: React.FC<AiChatClaimsPreviewProps> = ({
   return (
     <ReceiptCard shadow="sm" radius="xl" tone="soft" className="overflow-hidden">
       <div className={cn("p-4", stackGapVariants({ size: "sm" }))}>
-        <div className={stackGapVariants({ size: "xs" })}>
-          <div className={textVariants({ size: "sm", tone: "muted", style: "caps" })}>
-            {t("aiChatClaimsPreview")}
-          </div>
-        </div>
 
         <div className="-mx-4">
           <SummaryScreen receipt={previewReceipt} hideHeader />
         </div>
 
-        <div className="pt-1">
-          <Button
-            type="button"
-            onClick={onApply}
-            className="w-full rounded-full sm:w-auto"
-          >
-            {t("aiChatClaimsPreviewReviewChanges")}
-          </Button>
-        </div>
+        <Button type="button" onClick={onApply} className="w-full">
+          {t("aiChatApplyBtnText")}
+        </Button>
+
       </div>
     </ReceiptCard>
   );

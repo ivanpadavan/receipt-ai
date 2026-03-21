@@ -2250,7 +2250,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
 
       await user.click(
         screen.getByRole("button", {
-          name: t("aiChatStructuralPreviewReviewChanges"),
+          name: t("aiChatApplyBtnText"),
         }),
       );
       const modal = await screen.findByRole("alertdialog");
@@ -2341,7 +2341,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       expect(screen.getByText("Promo")).toBeInTheDocument();
       expect(screen.getAllByText(t("aiChatStructuralPreviewAdded")).length).toBeGreaterThan(0);
       expect(screen.getAllByText(t("aiChatStructuralPreviewRemoved")).length).toBeGreaterThan(0);
-      expect(screen.getByRole("button", { name: t("aiChatStructuralPreviewReviewChanges") })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: t("aiChatApplyBtnText") })).toBeInTheDocument();
       scrollContainer.scrollTop = 0;
       await expectCurrentScreenshot("ai-chat-structural-preview");
 
@@ -2408,7 +2408,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
         expect(screen.getByText("AI draft")).toBeInTheDocument();
       });
       expect(screen.getAllByText(t("aiChatStructuralPreviewRemoved")).length).toBeGreaterThan(0);
-      await user.click(screen.getByRole("button", { name: t("aiChatStructuralPreviewReviewChanges") }));
+      await user.click(screen.getByRole("button", { name: t("aiChatApplyBtnText") }));
 
       const modal = await screen.findByRole("alertdialog");
       expect(modal).toBeInTheDocument();
@@ -2438,7 +2438,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       expect(screen.getByText("Anton")).toBeInTheDocument();
       expect(screen.getByText("Polina")).toBeInTheDocument();
       expect(within(chatDialog).queryByText(t("total"))).not.toBeInTheDocument();
-      expect(screen.getByRole("button", { name: t("aiChatClaimsPreviewReviewChanges") })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: t("aiChatApplyBtnText") })).toBeInTheDocument();
       await expectCurrentScreenshot("ai-chat-claims-preview");
     });
   });
