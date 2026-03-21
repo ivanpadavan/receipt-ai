@@ -62,6 +62,17 @@ const receiptChatClaimModelSchema = z.object({
   "One proposed claim for a single existing receipt position. The model does not need to include claim ids.",
 );
 
+const receiptChatPositionWithClaimsModelSchema = positionAiSchema.extend({
+  id: z.string().describe(
+    "Existing position id from the current receipt. Keep the same id for matching positions.",
+  ),
+  claims: z.array(receiptChatClaimModelSchema).describe(
+    "Claims for this existing position. Only claims may differ from the original receipt position.",
+  ),
+}).describe(
+  "A receipt position with attached claims for claims_preview model output.",
+);
+
 const receiptChatPositionClaimsSchema = z.record(
   z.array(receiptChatClaimSchema),
 ).describe(
@@ -93,16 +104,11 @@ export const receiptChatStructuralPreviewModelResponseSchema = z.object({
 
 export const receiptChatClaimsPreviewModelResponseSchema = z.object({
   type: z.literal("claims_preview"),
-  receipt: receiptWithIdsSchema.extend({
-    positions: z.array(
-      positionAiSchema.extend({
-        id: z.string(),
-        claims: z.array(receiptChatClaimModelSchema),
-      }),
-    ),
-  }),
+  positions: z.array(receiptChatPositionWithClaimsModelSchema).describe(
+    "Positions from the current receipt with claims attached. The model must return the full positions array, in the same order and with the same ids as the original receipt. Only claims may differ.",
+  ),
 }).describe(
-  "Canonical claims preview response for the model. Return the full receipt again. Only claims may differ from the original receipt. Do not add or remove positions. Keep existing position ids stable.",
+  "Canonical claims preview response for the model. Return only positions, not the full receipt. Keep the same positions, ids, order, and item fields as the original receipt. Only claims may differ.",
 );
 
 export const receiptChatModelResponseSchema = z.discriminatedUnion("type", [

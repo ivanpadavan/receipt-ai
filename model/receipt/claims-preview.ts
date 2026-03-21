@@ -12,7 +12,7 @@ export type ReceiptClaimsPreviewSourcePosition = Omit<
   claims: Array<Omit<ReceiptPositionClaim, "id">>;
 };
 
-export type ReceiptClaimsPreviewSourceReceipt = Omit<Receipt, "positions"> & {
+export type ReceiptClaimsPreviewSourceReceipt = {
   positions: ReceiptClaimsPreviewSourcePosition[];
 };
 
@@ -81,20 +81,13 @@ export function reduceClaimsPreviewReceipt(
   currentReceipt: Receipt,
   nextReceipt: ReceiptClaimsPreviewSourceReceipt,
 ): ReceiptClaimsPreviewMap {
-  const currentPositionsById = new Map(
-    currentReceipt.positions.map((position) => [position.id, position] as const),
-  );
-  const nextPositionsById = new Map(
-    nextReceipt.positions.map((position) => [position.id, position] as const),
-  );
-
-  if (currentPositionsById.size !== nextPositionsById.size) {
+  if (currentReceipt.positions.length !== nextReceipt.positions.length) {
     throw new Error("AI produced malformed request");
   }
 
-  for (const position of currentReceipt.positions) {
-    const nextPosition = nextPositionsById.get(position.id);
-    if (!nextPosition) {
+  for (const [index, position] of currentReceipt.positions.entries()) {
+    const nextPosition = nextReceipt.positions[index];
+    if (!nextPosition || nextPosition.id !== position.id) {
       throw new Error("AI produced malformed request");
     }
 
@@ -108,19 +101,10 @@ export function reduceClaimsPreviewReceipt(
     }
   }
 
-  for (const position of nextReceipt.positions) {
-    if (!currentPositionsById.has(position.id)) {
-      throw new Error("AI produced malformed request");
-    }
-  }
-
   const positionClaims: ReceiptClaimsPreviewMap = {};
 
-  for (const position of currentReceipt.positions) {
-    const nextPosition = nextPositionsById.get(position.id);
-    if (!nextPosition) {
-      throw new Error("AI produced malformed request");
-    }
+  for (const [index, position] of currentReceipt.positions.entries()) {
+    const nextPosition = nextReceipt.positions[index]!;
 
     if (!comparePositionClaims(position.claims, nextPosition.claims)) {
       positionClaims[position.id] = nextPosition.claims.map(stripClaimId);

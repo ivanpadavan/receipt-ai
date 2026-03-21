@@ -235,7 +235,7 @@ describe("POST /api/receipt/[id]/chat", () => {
     await expect(response.json()).resolves.toEqual(expectedResponse);
   });
 
-  it("maps claims-only model output into a full receipt preview", async () => {
+  it("maps claims-only model output from positions into a full receipt preview", async () => {
     findUniqueMock.mockResolvedValue({
       id: "receipt-1",
       data: currentReceipt,
@@ -244,22 +244,18 @@ describe("POST /api/receipt/[id]/chat", () => {
     agentInvokeMock.mockResolvedValue({
       structuredResponse: {
         type: "claims_preview",
-        receipt: {
-          ...currentReceipt,
-          positions: [
-            {
-              ...currentReceipt.positions[0],
-              claims: [
-                {
-                  id: "claim-1",
-                  participantIds: ["participant-1"],
-                  type: "quantity",
-                  value: 1,
-                },
-              ],
-            },
-          ],
-        },
+        positions: [
+          {
+            ...currentReceipt.positions[0],
+            claims: [
+              {
+                participantIds: ["participant-1"],
+                type: "quantity",
+                value: 1,
+              },
+            ],
+          },
+        ],
       },
     });
     errorWrapMock.mockImplementation(
@@ -312,16 +308,13 @@ describe("POST /api/receipt/[id]/chat", () => {
     agentInvokeMock.mockResolvedValue({
       structuredResponse: {
         type: "claims_preview",
-        receipt: {
-          ...currentReceipt,
-          positions: [
-            {
-              ...currentReceipt.positions[0],
-              name: "Milk plus",
-              claims: [],
-            },
-          ],
-        },
+        positions: [
+          {
+            ...currentReceipt.positions[0],
+            name: "Milk plus",
+            claims: [],
+          },
+        ],
       },
     });
     errorWrapMock.mockImplementation(
@@ -362,20 +355,73 @@ describe("POST /api/receipt/[id]/chat", () => {
     agentInvokeMock.mockResolvedValue({
       structuredResponse: {
         type: "claims_preview",
-        receipt: {
-          ...currentReceipt,
-          positions: [
-            ...currentReceipt.positions,
-            {
-              id: "position-2",
-              name: "Bread",
-              price: 25,
-              quantity: 1,
-              overall: 25,
-              claims: [],
-            },
-          ],
+        positions: [
+          ...currentReceipt.positions,
+          {
+            id: "position-2",
+            name: "Bread",
+            price: 25,
+            quantity: 1,
+            overall: 25,
+            claims: [],
+          },
+        ],
+      },
+    });
+    errorWrapMock.mockImplementation(
+      async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
+        callback({
+          session: { user: { id: "participant-1", user_metadata: { displayName: "Ivan" } } },
+          body: {
+            message: "Change the claim",
+            history: [],
+          },
+        }),
+    );
+
+    const { POST } = await import("../route");
+
+    const response = POST(
+      new NextRequest("http://localhost/api/receipt/receipt-1/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          message: "Change the claim",
+          history: [],
+        }),
+      }),
+      {
+        params: Promise.resolve({ id: "receipt-1" }),
+      },
+    );
+
+    await expect(response).rejects.toThrow("AI produced malformed request");
+  });
+
+  it("rejects claims preview when positions are returned in a different order", async () => {
+    const twoPositionReceipt: Receipt = {
+      ...currentReceipt,
+      positions: [
+        currentReceipt.positions[0],
+        {
+          id: "position-2",
+          name: "Bread",
+          price: 25,
+          quantity: 1,
+          overall: 25,
+          claims: [],
         },
+      ],
+    };
+
+    findUniqueMock.mockResolvedValue({
+      id: "receipt-1",
+      data: twoPositionReceipt,
+      imageUrls: [],
+    });
+    agentInvokeMock.mockResolvedValue({
+      structuredResponse: {
+        type: "claims_preview",
+        positions: [twoPositionReceipt.positions[1], twoPositionReceipt.positions[0]],
       },
     });
     errorWrapMock.mockImplementation(

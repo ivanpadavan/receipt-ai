@@ -84,15 +84,15 @@ function buildReceiptChatPrompt({
     "Allowed response types:\n" +
     '- `question`: when clarification is required before making a preview. `message` must be plain text only.\n' +
     '- `structural_preview`: when you are proposing a changed receipt structure. Return the full structural preview without claims. Existing rows and modifiers must carry their current `id`; new rows and modifiers omit `id`.\n' +
-    '- `claims_preview`: when you are proposing how claims should be filled. Return the full receipt again. Only claims may differ from the original receipt.\n' +
+    '- `claims_preview`: when you are proposing how claims should be filled. Return only the `positions` array, not the full receipt. Keep the same position ids, order, and item fields as the original receipt. Only claims may differ.\n' +
     "You may call `get_receipt_images` if the original photos are needed.\n" +
     "For `question`, use only plain text with optional newline characters.\n" +
     "For `question`, do not use markdown, bullet lists, numbered lists, or JSON.\n" +
     "For `question`, keep the answer short and direct.\n" +
     "If the user asks for a count or a single fact, answer with that fact in the first sentence.\n" +
     "Keep unchanged fields from the current receipt when generating previews.\n" +
-    "For claims preview, keep the existing position ids, names, price, quantity, and overall unchanged.\n" +
-    "For claims preview, only claims may change.\n" +
+    "For claims preview, keep the existing positions unchanged except for claims.\n" +
+    "For claims preview, return only the positions array in the same order as the current receipt.\n" +
     "For claims preview, reference participants by `id`.\n" +
     "Use the provided participants list with display names when resolving who the user means.\n\n" +
     `Current user context:\n${JSON.stringify(
@@ -260,7 +260,9 @@ function toApiResponse(
     return receiptChatResponseSchema.parse(response);
   }
 
-  const positionClaims = reduceClaimsPreviewReceipt(receipt, response.receipt);
+  const positionClaims = reduceClaimsPreviewReceipt(receipt, {
+    positions: response.positions,
+  });
 
   return receiptChatResponseSchema.parse({
     type: "claims_preview",

@@ -56,34 +56,22 @@ describe("receipt chat schemas", () => {
     expect(
       receiptChatClaimsPreviewModelResponseSchema.safeParse({
         type: "claims_preview",
-        receipt: {
-          meta: {
-            title: "Lunch",
-            currencySymbol: "₽",
+        positions: [
+          {
+            id: "position-1",
+            name: "Burger",
+            price: 100,
+            quantity: 1,
+            overall: 100,
+            claims: [
+              {
+                participantIds: ["participant-1"],
+                type: "quantity",
+                value: 1,
+              },
+            ],
           },
-          positions: [
-            {
-              id: "position-1",
-              name: "Burger",
-              price: 100,
-              quantity: 1,
-              overall: 100,
-              claims: [
-                {
-                  participantIds: ["participant-1"],
-                  type: "quantity",
-                  value: 1,
-                },
-              ],
-            },
-          ],
-          fees: [],
-          discounts: [],
-          totals: {
-            total: 100,
-            grandTotal: 100,
-          },
-        },
+        ],
       }).success,
     ).toBe(true);
 
@@ -108,7 +96,15 @@ describe("receipt chat schemas", () => {
     expect(
       receiptChatClaimsPreviewModelResponseSchema.safeParse({
         type: "claims_preview",
-        receipt: {},
+        positions: [
+          {
+            name: "Burger",
+            price: 100,
+            quantity: 1,
+            overall: 100,
+            claims: [],
+          },
+        ],
       }).success,
     ).toBe(false);
   });
