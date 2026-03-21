@@ -12,17 +12,17 @@ const receiptChatValidator = {
   response: receiptChatResponseSchema,
 } satisfies ApiValidator;
 
-type JoinReceiptReplacePayload = {
+interface JoinReceiptReplacePayload {
   replaceParticipantId: string;
-};
+}
 
-type JoinReceiptProfilePayload = {
+interface JoinReceiptProfilePayload {
   profile: {
     displayName: string;
     avatarUrl?: string;
     avatarFile?: File;
   };
-};
+}
 
 type JoinReceiptPayload = JoinReceiptReplacePayload | JoinReceiptProfilePayload;
 

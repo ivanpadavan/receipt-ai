@@ -79,22 +79,25 @@ export const receiptTotalsSchema = z.object({
 
 export const createReceiptBaseSchema = <
   TPositionSchema extends ZodTypeAny,
-  TModifierSchema extends ZodTypeAny = typeof modifierSchema,
+  TModifierSchema extends ZodTypeAny,
 >(
   positionItemSchema: TPositionSchema,
-  modifierItemSchema?: TModifierSchema,
+  modifierItemSchema: TModifierSchema,
 ) =>
   z.object({
     meta: metaBaseSchema.describe(
       "Receipt metadata. Try to infer currencySymbol from the receipt when possible.",
     ),
     positions: z.array(positionItemSchema).describe("Array of items in the receipt"),
-    fees: z.array(modifierItemSchema ?? modifierSchema).describe("Array of modifiers that increase the total amount (e.g., tips, VAT)"),
-    discounts: z.array(modifierItemSchema ?? modifierSchema).describe("Array of modifiers that decrease the total amount (e.g., discounts)"),
+    fees: z.array(modifierItemSchema).describe("Array of modifiers that increase the total amount (e.g., tips, VAT)"),
+    discounts: z.array(modifierItemSchema).describe("Array of modifiers that decrease the total amount (e.g., discounts)"),
     totals: receiptTotalsSchema.describe("Total information including discounts and tips"),
   });
 
-export const receiptAiSchema = createReceiptBaseSchema(positionAiSchema).describe(
+export const receiptAiSchema = createReceiptBaseSchema(
+  positionAiSchema,
+  modifierSchema,
+).describe(
   "Structured data extracted from the receipt",
 );
 
