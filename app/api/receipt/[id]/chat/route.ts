@@ -365,6 +365,67 @@ function validateClaimsPreviewParticipantIds(
   }
 }
 
+const receiptChatSelect = {
+  history: true,
+  pending: true,
+} as const;
+
+type ReceiptChatStateUpdate = Pick<
+  z.infer<typeof receiptChatPersistedSchema>,
+  "history" | "pending"
+>;
+
+function chatWhere(receiptId: string, userId: string) {
+  return {
+    receiptId_userId: {
+      receiptId,
+      userId,
+    },
+  };
+}
+
+async function readReceiptChat(
+  client: Prisma.TransactionClient | typeof db,
+  receiptId: string,
+  userId: string,
+) {
+  return receiptChatPersistedSchema.parse(
+    (await client.receiptChat.findUnique({
+      where: chatWhere(receiptId, userId),
+      select: receiptChatSelect,
+    })) ?? {},
+  );
+}
+
+async function upsertReceiptChat(
+  client: Prisma.TransactionClient | typeof db,
+  receiptId: string,
+  userId: string,
+  data: ReceiptChatStateUpdate,
+) {
+  await client.receiptChat.upsert({
+    where: chatWhere(receiptId, userId),
+    create: {
+      receiptId,
+      userId,
+      ...data,
+    },
+    update: data,
+  });
+}
+
+async function updateReceiptChat(
+  client: Prisma.TransactionClient,
+  receiptId: string,
+  userId: string,
+  data: ReceiptChatStateUpdate,
+) {
+  await client.receiptChat.update({
+    where: chatWhere(receiptId, userId),
+    data,
+  });
+}
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -392,6 +453,7 @@ export async function POST(
           { status: 403 },
         );
       }
+      const chatOwnerId = session.user.id;
       const currentUserDisplayName =
         currentUserParticipant.displayName ??
         (typeof session.user.user_metadata?.displayName === "string"
@@ -404,12 +466,7 @@ export async function POST(
       );
 
       const chatHistory = await lockReceiptChatRow(receiptId, async (tx) => {
-        const currentChat = receiptChatPersistedSchema.parse(
-          (await tx.receiptChat.findUnique({
-            where: { receiptId },
-            select: { history: true, pending: true },
-          })) ?? {},
-        );
+        const currentChat = await readReceiptChat(tx, receiptId, chatOwnerId);
         if (currentChat.pending) {
           throw Object.assign(
             new Error("Another chat turn is already in flight"),
@@ -418,17 +475,9 @@ export async function POST(
         }
         const nextHistory = [...currentChat.history, userEntry];
 
-        await tx.receiptChat.upsert({
-          where: { receiptId },
-          create: {
-            receiptId,
-            history: nextHistory,
-            pending: true,
-          },
-          update: {
-            history: nextHistory,
-            pending: true,
-          },
+        await upsertReceiptChat(tx, receiptId, chatOwnerId, {
+          history: nextHistory,
+          pending: true,
         });
 
         return convertChatHistoryToLLM(nextHistory);
@@ -459,47 +508,26 @@ export async function POST(
         );
 
         await lockReceiptChatRow(receiptId, async (tx) => {
-          const currentChat = receiptChatPersistedSchema.parse(
-            (await tx.receiptChat.findUnique({
-              where: { receiptId },
-              select: { history: true, pending: true },
-            })) ?? {},
-          );
+          const currentChat = await readReceiptChat(tx, receiptId, chatOwnerId);
           const nextHistory = [...currentChat.history, assistantEntry];
 
-          await tx.receiptChat.update({
-            where: { receiptId },
-            data: {
-              history: nextHistory,
-              pending: false,
-            },
+          await updateReceiptChat(tx, receiptId, chatOwnerId, {
+            history: nextHistory,
+            pending: false,
           });
         });
 
         return NextResponse.json(responseJson);
       } catch (error) {
         await lockReceiptChatRow(receiptId, async (tx) => {
-          const currentChat = receiptChatPersistedSchema.parse(
-            (await tx.receiptChat.findUnique({
-              where: { receiptId },
-              select: { history: true, pending: true },
-            })) ?? {},
-          );
+          const currentChat = await readReceiptChat(tx, receiptId, chatOwnerId);
           const nextHistory = currentChat.history.filter(
             (entry) => entry.id !== userEntry.id,
           );
 
-          await tx.receiptChat.upsert({
-            where: { receiptId },
-            create: {
-              receiptId,
-              history: nextHistory,
-              pending: false,
-            },
-            update: {
-              history: nextHistory,
-              pending: false,
-            },
+          await upsertReceiptChat(tx, receiptId, chatOwnerId, {
+            history: nextHistory,
+            pending: false,
           });
         });
         throw error;
@@ -531,12 +559,7 @@ export async function GET(
     return new Response("Forbidden", { status: 403 });
   }
 
-  const initialChat = receiptChatPersistedSchema.parse(
-    (await db.receiptChat.findUnique({
-      where: { receiptId },
-      select: { history: true, pending: true },
-    })) ?? {},
-  );
+  const initialChat = await readReceiptChat(db, receiptId, user.id);
   const initialLiveChat = toLiveChat(initialChat, participants);
   const supabase = await serverSupabase();
 
@@ -548,12 +571,7 @@ export async function GET(
 
     const syncChatFromDb = async () => {
       const seq = ++syncSeq;
-      const nextChat = receiptChatPersistedSchema.parse(
-        (await db.receiptChat.findUnique({
-          where: { receiptId },
-          select: { history: true, pending: true },
-        })) ?? {},
-      );
+      const nextChat = await readReceiptChat(db, receiptId, user.id);
       const latestParticipants = await buildParticipants(receiptId);
       const nextLiveChat = toLiveChat(nextChat, latestParticipants);
 

@@ -20,19 +20,25 @@ model Receipt {
   data      Json
   realParticipants ReceiptUserParticipant[]
   mockParticipants ReceiptMockParticipant[]
-  chat      ReceiptChat?
+  chats     ReceiptChat[]
 
   @@schema("public")
 }
 
 model ReceiptChat {
-  receiptId  String   @id
+  receiptId  String
+  userId     String   @db.Uuid
   history    Json
   pending    Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   receipt Receipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  user    users   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([receiptId, userId])
+  @@index([receiptId])
+  @@index([userId])
 
   @@schema("public")
 }
@@ -73,6 +79,7 @@ model users {
 
   receipts Receipt[]
   receiptParticipants ReceiptUserParticipant[]
+  receiptChats ReceiptChat[]
 
   @@schema("auth")
 }
