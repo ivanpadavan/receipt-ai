@@ -258,6 +258,53 @@ describe("AiChatDialog", () => {
     expect(replaceReceiptInForm).toHaveBeenCalledTimes(1);
   });
 
+  it("hides review changes when the structural preview already matches the current receipt", async () => {
+    sendReceiptChatMessageMock.mockResolvedValueOnce({
+      type: "structural_preview",
+      receipt: {
+        meta: {
+          title: "Receipt",
+          currencySymbol: "₽",
+        },
+        positions: [
+          {
+            id: "pos-1",
+            name: "Burger",
+            price: 100,
+            quantity: 1,
+            overall: 100,
+          },
+        ],
+        fees: [],
+        discounts: [],
+        totals: {
+          total: 100,
+          grandTotal: 100,
+        },
+      },
+      events: [],
+    });
+
+    const user = userEvent.setup();
+
+    renderWithContext(<AiChatDialog receiptId="receipt-1" receiptTitle="Receipt" />);
+
+    await user.click(screen.getByRole("button", { name: /ai/i }));
+    await user.type(screen.getByPlaceholderText(/ask/i), "Show a structural preview");
+    await user.click(screen.getByRole("button", { name: /send/i }));
+
+    expect(await screen.findByText("Burger")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /review changes/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("Receipt").closest(".overflow-hidden")).toHaveClass(
+      "border-emerald-300/70",
+    );
+    expect(screen.getByText("Receipt").closest(".overflow-hidden")).toHaveClass(
+      "bg-emerald-50/60",
+    );
+  });
+
   it("renders question, structural preview, and distributions preview responses", async () => {
     sendReceiptChatMessageMock
       .mockResolvedValueOnce({

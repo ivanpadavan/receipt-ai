@@ -8,7 +8,7 @@ import { surfaceVariants } from "@/app/receipt/components/ui-styles";
 
 interface ReceiptCardProps extends React.HTMLAttributes<HTMLDivElement> {
   asChild?: boolean;
-  tone?: "default" | "soft" | "warm" | "warmStrong" | "danger";
+  tone?: "default" | "soft" | "warm" | "warmStrong" | "success" | "danger";
   shadow?: "none" | "sm" | "md" | "lg";
   interactive?: boolean;
   state?: "default" | "active";

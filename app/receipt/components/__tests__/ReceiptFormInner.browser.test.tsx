@@ -2155,6 +2155,90 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
   });
 
   describe("AI chat", () => {
+    it("renders a structural preview that adds one item and applies it", async () => {
+      const user = userEvent.setup();
+      await renderReceiptFormHarness({
+        receipt: validReceipt,
+        participants: joinedParticipants,
+      });
+
+      sendReceiptChatMessageMock.mockResolvedValueOnce({
+        type: "structural_preview",
+        receipt: {
+          meta: {
+            title: validReceipt.meta.title,
+            currencySymbol: validReceipt.meta.currencySymbol,
+          },
+          positions: [
+            {
+              id: validReceipt.positions[0].id,
+              name: validReceipt.positions[0].name,
+              price: validReceipt.positions[0].price,
+              quantity: validReceipt.positions[0].quantity,
+              overall: validReceipt.positions[0].overall,
+            },
+            {
+              id: validReceipt.positions[1].id,
+              name: validReceipt.positions[1].name,
+              price: validReceipt.positions[1].price,
+              quantity: validReceipt.positions[1].quantity,
+              overall: validReceipt.positions[1].overall,
+            },
+            {
+              id: validReceipt.positions[2].id,
+              name: validReceipt.positions[2].name,
+              price: validReceipt.positions[2].price,
+              quantity: validReceipt.positions[2].quantity,
+              overall: validReceipt.positions[2].overall,
+            },
+            {
+              id: "pos-juice",
+              name: "Juice",
+              price: 99,
+              quantity: 1,
+              overall: 99,
+            },
+          ],
+          fees: [],
+          discounts: [],
+          totals: {
+            total: 1420,
+            grandTotal: 1420,
+          },
+        },
+        events: [],
+      });
+
+      await user.click(getAiChatButton());
+      const prompt = screen.getByRole("textbox");
+      await user.type(prompt, "Add one juice");
+      await user.click(screen.getByRole("button", { name: t("aiChatSend") }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/^Juice$/)).toBeInTheDocument();
+      });
+
+      await expectCurrentScreenshot("ai-chat-structural-preview-added-one");
+
+      await user.click(
+        screen.getByRole("button", {
+          name: t("aiChatStructuralPreviewReviewChanges"),
+        }),
+      );
+      const modal = await screen.findByRole("alertdialog");
+      expect(modal).toBeInTheDocument();
+      await user.click(
+        within(modal).getByRole("button", {
+          name: t("apply"),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(screen.getAllByText(/^Juice$/).length).toBeGreaterThan(0);
+      });
+      await expectCurrentScreenshot("ai-chat-structural-preview-applied");
+    });
+
     it("renders a structural preview response in the chat dialog", async () => {
       const user = userEvent.setup();
       sendReceiptChatMessageMock.mockResolvedValueOnce({

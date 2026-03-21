@@ -196,7 +196,6 @@ function applyPositionDiffs(
       return [
         {
           ...entry.next,
-          id: createUuid(),
           claims: [],
         },
       ];

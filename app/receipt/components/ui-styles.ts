@@ -36,6 +36,7 @@ export const surfaceVariants = cva(
         soft: "bg-muted/30",
         warm: "bg-amber-50/60 border-amber-200/70",
         warmStrong: "bg-amber-50/60 border-amber-500 border-2",
+        success: "bg-emerald-50/60 border-emerald-300/70 text-emerald-950",
         danger: "bg-red-50 border-red-200 text-red-950",
       },
       shadow: {

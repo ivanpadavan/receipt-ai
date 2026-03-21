@@ -252,9 +252,20 @@ export const AiChatStructuralPreview: React.FC<AiChatStructuralPreviewProps> = (
     receiptCurrency,
     formatMoney,
   );
+  const hasStructuralChanges =
+    currentTitle !== title ||
+    positionDiffs.some((entry) => entry.status !== "unchanged") ||
+    feeDiffs.some((entry) => entry.status !== "unchanged") ||
+    discountDiffs.some((entry) => entry.status !== "unchanged") ||
+    totalDiffs.some((entry) => entry.status !== "unchanged");
 
   return (
-    <ReceiptCard shadow="sm" radius="xl" tone="soft" className="overflow-hidden">
+    <ReceiptCard
+      shadow="sm"
+      radius="xl"
+      tone={hasStructuralChanges ? "soft" : "success"}
+      className="overflow-hidden"
+    >
       <div className="p-4">
         <div className={cn("mb-4", stackGapVariants({ size: "xs" }))}>
           <div className={textVariants({ size: "sm", tone: "muted", style: "caps" })}>
@@ -377,7 +388,7 @@ export const AiChatStructuralPreview: React.FC<AiChatStructuralPreviewProps> = (
             />
           )}
 
-          {onApply && (
+          {onApply && hasStructuralChanges && (
             <div className="pt-1">
               <Button
                 type="button"
