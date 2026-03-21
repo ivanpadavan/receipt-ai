@@ -36,7 +36,7 @@ export const AiChatClaimsPreview: React.FC<AiChatClaimsPreviewProps> = ({
         </div>
 
         <div className="-mx-4">
-          <SummaryScreen receipt={previewReceipt} onBack={() => {}} hideHeader />
+          <SummaryScreen receipt={previewReceipt} hideHeader />
         </div>
 
         <div className="pt-1">

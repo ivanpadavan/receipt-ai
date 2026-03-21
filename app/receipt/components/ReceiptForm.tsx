@@ -1,10 +1,7 @@
 "use client";
 
 import { t, TranslationKey } from "@/app/i18n/translations";
-import {
-  ReceiptState,
-  useReceiptFormState,
-} from "@/app/receipt/[id]/useReceiptFormState";
+import { useReceiptFormState } from "@/app/receipt/[id]/useReceiptFormState";
 import { forceSync, useObservable } from "@/hooks/rx/useObservable";
 import {
   Receipt,
@@ -324,10 +321,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
             className={cn("mx-auto my-3 w-full max-w-3xl", receiptCardPadding)}
           >
             {scenarioType === "summary" ? (
-              <SummaryScreen
-                receipt={currentReceipt}
-                onBack={proceed}
-              />
+              <SummaryScreen receipt={currentReceipt} />
             ) : (
               <>
                 <div

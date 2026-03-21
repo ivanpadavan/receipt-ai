@@ -71,7 +71,7 @@ describe("SummaryScreen", () => {
 
   it("displays discount with correct formatting (minus sign)", () => {
     useParticipantsStore.setState({ participants });
-    render(<SummaryScreen receipt={mockReceipt} onBack={() => {}} />);
+    render(<SummaryScreen receipt={mockReceipt} />);
 
     // Alice claimed 100.
     // Final amount: 100 * 0.9 = 90.
@@ -119,7 +119,7 @@ describe("SummaryScreen", () => {
       fees: [{ id: "f1", name: "Service", value: 10 }],
     };
 
-    render(<SummaryScreen receipt={feeReceipt} onBack={() => {}} />);
+    render(<SummaryScreen receipt={feeReceipt} />);
 
     // Final: 110. Base: 100. Diff: +10.
     const breakdown = screen.getByText((content, element) => {
@@ -136,7 +136,7 @@ describe("SummaryScreen", () => {
 
   it("renders breakdown above the bold final amount", () => {
     useParticipantsStore.setState({ participants });
-    render(<SummaryScreen receipt={mockReceipt} onBack={() => {}} />);
+    render(<SummaryScreen receipt={mockReceipt} />);
 
     const participantCard = screen.getAllByText("Alice").at(-1)?.closest("div");
     const amountBlock = participantCard?.parentElement?.querySelector(".text-right");

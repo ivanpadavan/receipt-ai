@@ -270,6 +270,78 @@ action bar не просто панель кнопок, а главный пер
 - редактирование структуры данных;
 - работу в глубоком подрежиме распределения.
 
+### 5.6. AI chat
+
+AI chat это встроенный вторичный workflow поверх `ReceiptForm`, а не отдельный экран. Он запускается из `ReceiptActionBar` и открывается как `Dialog`-overlay поверх текущего состояния формы.
+
+Продуктовая роль AI-чата:
+
+- дать быстрый естественно-языковой вход в работу с чеком;
+- показывать предпросмотр AI-изменений до применения;
+- не скрывать, что именно AI предлагает изменить;
+- оставаться подчинённым основной форме, а не заменять её.
+
+Сейчас у AI-чата есть три пользовательских режима ответа:
+
+- обычный текстовый ответ (`question`);
+- `structural_preview` с diff относительно текущего чека;
+- `claims_preview` с распределениями по участникам.
+
+#### Entry point
+
+Кнопка AI находится в той же строке, что и название чека. Визуально она выделена радужной обводкой и читается как вход именно в чат, а не в “магическую автоправку”.
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-entrypoint-chromium.png)
+![ai-chat-entrypoint](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-entrypoint-chromium.png)
+
+#### Chat dialog
+
+После открытия пользователь получает отдельный диалог с историей сообщений, системными сообщениями про tool-events и полем ввода. Это overlay-режим: форма остаётся под ним, но сам чат не переводит экран в другой `scenario.type`.
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-dialog-open-chromium.png)
+![ai-chat-dialog-open](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-dialog-open-chromium.png)
+
+#### Structural preview
+
+`structural_preview` показывает не просто новый чек, а построчный diff с текущим состоянием:
+
+- новые строки подсвечены как `Добавлено`;
+- удалённые строки помечены как `Удалено`;
+- изменённые строки показывают старые значения зачёркнутыми и новые рядом.
+
+Это важная продуктовая гарантия прозрачности: AI не “молча меняет чек”, а визуально объясняет, что именно будет переписано в форме.
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-preview-chromium.png)
+![ai-chat-structural-preview](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-preview-chromium.png)
+
+<details>
+<summary>Дополнительный structural preview с modifiers и warning</summary>
+
+| Structural preview с modifiers | Confirm warning о возможной потере claims |
+| --- | --- |
+| ![ai-chat-structural-preview-modifiers](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-preview-modifiers-chromium.png) | ![ai-chat-structural-confirm-warning](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-confirm-warning-chromium.png) |
+
+[Скриншоты](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-preview-modifiers-chromium.png) и [warning state](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-confirm-warning-chromium.png)
+
+</details>
+
+#### Claims preview
+
+`claims_preview` работает иначе. Он не показывает новый summary-экран целиком, а строит participant-only preview распределений по текущему чеку. Верхний блок `total / remaining` намеренно скрыт: здесь важен именно ответ на вопрос “кому AI распределила позиции”, а не повторный итог всего экрана.
+
+Семантически это preview распределений, а не preview структуры.
+
+[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-claims-preview-chromium.png)
+![ai-chat-claims-preview](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-claims-preview-chromium.png)
+
+#### Продуктовые инварианты AI-чата
+
+- AI chat не заменяет основные режимы `validation / splitting / summary`, а живёт поверх них.
+- `structural_preview` и `claims_preview` подчиняются разным контрактам и не должны смешиваться.
+- structural flow обязан быть визуально объясним через diff.
+- claims flow обязан быть редуцируем к `Record<positionId, Claim[]>`, иначе это malformed AI response, а не новая форма данных.
+- tool-events вроде запроса исходных фото чека должны быть видимы пользователю как системные сообщения, а не скрытые внутренние шаги.
+
 ---
 
 ## 6. Каталог пользовательских сценариев

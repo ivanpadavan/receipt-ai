@@ -30,7 +30,6 @@ const summaryAmount = "whitespace-nowrap";
 
 interface SummaryScreenProps {
   receipt: Receipt;
-  onBack: () => void;
   hideHeader?: boolean;
 }
 
