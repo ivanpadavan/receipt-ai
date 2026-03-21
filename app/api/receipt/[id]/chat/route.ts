@@ -244,7 +244,7 @@ async function generateReceiptChatResponse({
 
   return {
     ...normalizedResponse,
-    events: [...events, ...normalizedResponse.events],
+    events,
   };
 }
 

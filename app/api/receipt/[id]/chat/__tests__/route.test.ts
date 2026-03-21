@@ -150,10 +150,10 @@ describe("POST /api/receipt/[id]/chat", () => {
           grandTotal: 130,
         },
       },
-      events: [],
     };
     const expectedResponse = {
       ...llmResponse,
+      events: [],
       receipt: {
         ...llmResponse.receipt,
         positions: [
@@ -254,7 +254,6 @@ describe("POST /api/receipt/[id]/chat", () => {
             },
           ],
         },
-        events: [],
       },
     });
     errorWrapMock.mockImplementation(
@@ -339,14 +338,12 @@ describe("POST /api/receipt/[id]/chat", () => {
         structuredResponse: {
           type: "question",
           message: "Intermediate answer should be replaced by the multimodal pass.",
-          events: [],
         },
       };
     });
     structuredInvokeMock.mockResolvedValue({
       type: "question",
       message: "I checked the original photos. Who had the borscht?",
-      events: [],
     });
     errorWrapMock.mockImplementation(
       async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
