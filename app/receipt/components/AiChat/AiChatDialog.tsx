@@ -20,10 +20,9 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
+import { GradientRing } from "@/app/receipt/components/ui/GradientRing";
 import { cn } from "@/utils/cn";
 import {
-  aiChatAnimatedRainbowGradientClass,
-  aiChatRainbowGradientClass,
   textVariants,
   stackGapVariants,
 } from "@/app/receipt/components/ui-styles";
@@ -265,32 +264,18 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          className={cn(
-            "relative isolate overflow-hidden rounded-full border border-transparent bg-transparent px-0 py-0 text-foreground shadow-none",
-          )}
-          aria-label={t("aiChat")}
-          title={t("aiChat")}
-        >
-          <span
-            aria-hidden
-            className={cn(
-              "absolute inset-0 rounded-full opacity-90",
-              aiChatRainbowGradientClass,
-            )}
-          />
-          <span
-            aria-hidden
-            className="absolute inset-[1px] rounded-full bg-background/95 backdrop-blur-md"
-          />
-          <span className="relative flex items-center gap-2 px-4 py-2 text-sm font-semibold">
+        <GradientRing asChild radius="full">
+          <Button
+            type="button"
+            variant="secondary"
+            aria-label={t("aiChat")}
+            title={t("aiChat")}
+          >
             <Sparkles className="h-4 w-4" />
             <Bot className="h-4 w-4" />
             <span>{t("aiChat")}</span>
-          </span>
-        </Button>
+          </Button>
+        </GradientRing>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-2xl p-0 overflow-hidden">
@@ -364,20 +349,14 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
 
               {isSending && (
                 <div className="flex justify-start">
-                  <div className="relative isolate max-w-[90%] min-w-32 overflow-hidden rounded-2xl p-px">
-                    <div
-                      data-slot="ai-chat-loading-gradient"
-                      aria-hidden
-                      className={cn(
-                        "absolute inset-0 rounded-2xl",
-                        aiChatAnimatedRainbowGradientClass,
-                      )}
-                    />
+                  <GradientRing
+                    animate
+                    radius="2xl"
+                    className="max-w-[90%] min-w-32"
+                    data-slot="ai-chat-loading-gradient"
+                  >
                     <ReceiptCard
-                      shadow="sm"
-                      radius="2xl"
-                      className="relative overflow-hidden border-0 bg-background/95 backdrop-blur-md"
-                    >
+                      shadow="sm" radius="2xl">
                       <div className="p-3">
                       <div
                         className={textVariants({
@@ -388,12 +367,12 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                       >
                         AI
                       </div>
-                      <div className={textVariants({ size: "sm", tone: "muted" })}>
-                        {t("aiChatThinking")}
-                      </div>
+                        <div className={textVariants({ size: "sm", tone: "muted" })}>
+                          {t("aiChatThinking")}
+                        </div>
                       </div>
                     </ReceiptCard>
-                  </div>
+                  </GradientRing>
                 </div>
               )}
 
