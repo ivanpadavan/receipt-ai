@@ -291,15 +291,13 @@ AI chat это встроенный вторичный workflow поверх `Re
 
 Кнопка AI находится в той же строке, что и название чека. Визуально она выделена радужной обводкой и читается как вход именно в чат, а не в “магическую автоправку”.
 
-[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-entrypoint-chromium.png)
-![ai-chat-entrypoint](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-entrypoint-chromium.png)
-
 #### Chat dialog
 
 После открытия пользователь получает отдельный диалог с историей сообщений, системными сообщениями про tool-events и полем ввода. Это overlay-режим: форма остаётся под ним, но сам чат не переводит экран в другой `scenario.type`.
 
-[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-dialog-open-chromium.png)
-![ai-chat-dialog-open](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-dialog-open-chromium.png)
+| | | |
+| --- | --- | --- |
+| ![ai-chat-entrypoint](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-entrypoint-chromium.png) | ![ai-chat-dialog-open](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-dialog-open-chromium.png) | ![ai-chat-waiting-response](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-waiting-response-chromium.png) |
 
 #### Structural preview
 

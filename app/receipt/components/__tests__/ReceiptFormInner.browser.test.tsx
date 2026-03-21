@@ -527,6 +527,9 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     await user.click(screen.getByRole("button", { name: t("aiChatSend") }));
 
     expect(screen.getByText(t("aiChatThinking"))).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog").querySelector('[data-slot="ai-chat-loading-gradient"]'),
+    ).not.toBeNull();
     await expectCurrentScreenshot("ai-chat-waiting-response");
 
     resolvePendingResponse?.({

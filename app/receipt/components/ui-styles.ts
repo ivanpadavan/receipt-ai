@@ -23,6 +23,12 @@ export const shadowTokens = {
   orange: "shadow-[0_14px_30px_rgba(249,115,22,0.36)]",
 };
 
+export const aiChatRainbowGradientClass =
+  "bg-[conic-gradient(from_180deg_at_50%_50%,#f97316,#facc15,#4ade80,#22d3ee,#818cf8,#f472b6,#f97316)]";
+
+export const aiChatAnimatedRainbowGradientClass =
+  "bg-[conic-gradient(from_var(--ai-gradient-angle)_at_50%_50%,#f97316,#facc15,#4ade80,#22d3ee,#818cf8,#f472b6,#f97316)] animate-[ai-gradient-spin_3s_linear_infinite]";
+
 // ── Surface ─────────────────────────────────────────────
 const iconCapsuleSurface =
   "border border-foreground/15 bg-white/48 shadow-[inset_0_1px_0_rgba(255,255,255,0.32)] backdrop-blur-md";

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Bot, Send, Sparkles } from "lucide-react";
+import { Bot, LoaderCircle, Send, Sparkles } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +21,12 @@ import {
 } from "@/components/ui/input-group";
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 import { cn } from "@/utils/cn";
-import { textVariants, stackGapVariants } from "@/app/receipt/components/ui-styles";
+import {
+  aiChatAnimatedRainbowGradientClass,
+  aiChatRainbowGradientClass,
+  textVariants,
+  stackGapVariants,
+} from "@/app/receipt/components/ui-styles";
 import { t } from "@/app/i18n/translations";
 import { apiClient } from "@/app/api-client";
 import { useMoneyFormatter, useReceiptState } from "@/app/receipt/components/receipt-context";
@@ -271,7 +276,10 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
         >
           <span
             aria-hidden
-            className="absolute inset-0 rounded-full bg-[conic-gradient(from_180deg_at_50%_50%,#f97316,#facc15,#4ade80,#22d3ee,#818cf8,#f472b6,#f97316)] opacity-90"
+            className={cn(
+              "absolute inset-0 rounded-full opacity-90",
+              aiChatRainbowGradientClass,
+            )}
           />
           <span
             aria-hidden
@@ -356,16 +364,36 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
 
               {isSending && (
                 <div className="flex justify-start">
-                  <ReceiptCard shadow="sm" radius="xl" tone="soft" className="overflow-hidden">
-                    <div className="p-3">
-                      <div className={textVariants({ size: "sm", tone: "muted", style: "caps" })}>
+                  <div className="relative isolate max-w-[90%] min-w-32 overflow-hidden rounded-2xl p-px">
+                    <div
+                      data-slot="ai-chat-loading-gradient"
+                      aria-hidden
+                      className={cn(
+                        "absolute inset-0 rounded-2xl",
+                        aiChatAnimatedRainbowGradientClass,
+                      )}
+                    />
+                    <ReceiptCard
+                      shadow="sm"
+                      radius="2xl"
+                      className="relative overflow-hidden border-0 bg-background/95 backdrop-blur-md"
+                    >
+                      <div className="p-3">
+                      <div
+                        className={textVariants({
+                          size: "sm",
+                          tone: "muted",
+                          style: "caps",
+                        })}
+                      >
                         AI
                       </div>
                       <div className={textVariants({ size: "sm", tone: "muted" })}>
                         {t("aiChatThinking")}
                       </div>
-                    </div>
-                  </ReceiptCard>
+                      </div>
+                    </ReceiptCard>
+                  </div>
                 </div>
               )}
 
