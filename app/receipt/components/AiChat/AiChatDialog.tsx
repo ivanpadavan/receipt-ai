@@ -14,7 +14,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 import { cn } from "@/utils/cn";
 import { textVariants, stackGapVariants } from "@/app/receipt/components/ui-styles";
@@ -371,21 +375,25 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
 
           <form
             onSubmit={handleSubmit}
-            className="border-t border-border/40 bg-background/95 px-4 py-4"
+            className="border-t border-border/40 px-4 py-4"
           >
-            <div className="flex items-end gap-3">
-              <Input
+            <InputGroup className="rounded-full border-border/60 bg-background shadow-sm">
+              <InputGroupInput
                 value={message}
                 onChange={(event) => setMessage(event.target.value)}
                 placeholder={t("aiChatPlaceholder")}
                 disabled={isSending}
-                className="h-11"
               />
-              <Button type="submit" disabled={isSending || !message.trim()}>
-                <Send className="h-4 w-4" />
-                {t("aiChatSend")}
-              </Button>
-            </div>
+              <InputGroupAddon className="pr-0" align="inline-end">
+                <Button
+                  type="submit"
+                  disabled={isSending || !message.trim()}
+                >
+                  <Send className="h-4 w-4" />
+                  {t("aiChatSend")}
+                </Button>
+              </InputGroupAddon>
+            </InputGroup>
           </form>
         </div>
       </DialogContent>
