@@ -52,7 +52,7 @@ import {
   hasClaimsPreviewData,
   getClaimsPreviewStatus,
 } from "@/app/receipt/components/AiChat/claims-apply";
-import type { Receipt } from "@/model/receipt/model";
+import  { Receipt, ReceiptNoId } from "@/model/receipt/model";
 import type {
   ReceiptChatLive,
   ReceiptChatLiveHistory,
@@ -96,7 +96,7 @@ function getToolEventContent(event: ReceiptChatToolEvent) {
 
 function getAssistantTranscriptContent(
   response: ReceiptChatResponse,
-  receiptSnapshot?: Receipt,
+  receiptSnapshot?: ReceiptNoId,
 ) {
   if (response.type === "question") {
     return response.message;
@@ -104,12 +104,12 @@ function getAssistantTranscriptContent(
 
   const title =
     response.type === "structural_preview"
-      ? response.receipt.meta.title ?? t("receipt")
-      : receiptSnapshot?.meta.title ?? t("receipt");
+      ? (response.receipt.meta.title ?? t("receipt"))
+      : (receiptSnapshot?.meta.title ?? t("receipt"));
   const positionCount =
     response.type === "structural_preview"
       ? response.receipt.positions.length
-      : receiptSnapshot?.positions.length ?? 0;
+      : (receiptSnapshot?.positions.length ?? 0);
 
   return response.type === "structural_preview"
     ? `${t("aiChatStructuralPreview")}: ${title} (${positionCount} ${t("positions")})`
@@ -117,14 +117,15 @@ function getAssistantTranscriptContent(
 }
 
 function serializeChatHistory(history: ReceiptChatLiveHistory): RequestHistoryEntry[] {
-  return history.flatMap((entry) => {
+  const serialized: RequestHistoryEntry[] = [];
+
+  for (const entry of history) {
     if (entry.role === "user") {
-      return [
-        {
-          role: "user" as const,
-          content: entry.content,
-        },
-      ];
+      serialized.push({
+        role: "user",
+        content: entry.content,
+      });
+      continue;
     }
 
     const receiptSnapshot =
@@ -134,13 +135,13 @@ function serializeChatHistory(history: ReceiptChatLiveHistory): RequestHistoryEn
           ? entry.response.receipt
           : undefined;
 
-    return [
-      {
-        role: "assistant" as const,
-        content: getAssistantTranscriptContent(entry.response, receiptSnapshot),
-      },
-    ];
-  });
+    serialized.push({
+      role: "assistant",
+      content: getAssistantTranscriptContent(entry.response, receiptSnapshot),
+    });
+  }
+
+  return serialized;
 }
 
 function renderAssistantResponse(
