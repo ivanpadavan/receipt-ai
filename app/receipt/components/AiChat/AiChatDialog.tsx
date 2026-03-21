@@ -317,8 +317,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
               {t("aiChat")}
             </DialogTitle>
             <DialogDescription className={textVariants({ size: "sm", tone: "muted" })}>
-              {receiptTitle ? `${receiptTitle} · ` : ""}
-              {t("aiChatPlaceholder")}
+              {receiptTitle}
             </DialogDescription>
           </DialogHeader>
 
