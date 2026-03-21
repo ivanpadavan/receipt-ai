@@ -272,7 +272,6 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
             title={t("aiChat")}
           >
             <Sparkles className="h-4 w-4" />
-            <Bot className="h-4 w-4" />
             <span>{t("aiChat")}</span>
           </Button>
         </GradientRing>
