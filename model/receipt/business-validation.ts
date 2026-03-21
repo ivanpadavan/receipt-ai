@@ -2,19 +2,15 @@ import { receiptAiSchema } from "@/model/receipt/schema-structural";
 import { receiptBusinessSchema } from "@/model/receipt/schema-business";
 import { z } from "zod";
 
-export type ReceiptBusinessValidationIssue = {
+export interface ReceiptBusinessValidationIssue {
   path: (string | number)[];
   message: string;
-};
-
-export function validateReceiptBusiness(value: z.infer<typeof receiptAiSchema>) {
-  return receiptBusinessSchema.safeParse(value);
 }
 
 export function getReceiptBusinessValidationIssues(
   value: z.infer<typeof receiptAiSchema>,
 ): ReceiptBusinessValidationIssue[] {
-  const validation = validateReceiptBusiness(value);
+  const validation = receiptBusinessSchema.safeParse((value);
   if (validation.success) {
     return [];
   }
