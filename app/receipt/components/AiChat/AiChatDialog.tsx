@@ -205,13 +205,14 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   const {
     chat: optimisticChat,
     setOptimisticMessage,
+    userJustSentAMessage
   } = useOptimisticChatHistory(chat);
   const displayHistory = optimisticChat.history;
   const chatPending = optimisticChat.pending;
 
   useEffect(() => {
     endRef.current?.scrollIntoView?.({ block: "end" });
-  }, [displayHistory, chatPending, pendingStructuralPreview, pendingClaimsPreview]);
+  }, [userJustSentAMessage]);
 
   const structuralWarnings = pendingStructuralPreview
     ? buildStructuralLossWarnings(

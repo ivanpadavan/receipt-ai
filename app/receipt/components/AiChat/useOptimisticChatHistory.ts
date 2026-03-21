@@ -55,5 +55,6 @@ export function useOptimisticChatHistory(chat: ReceiptChatLive) {
       history: displayHistory,
     },
     setOptimisticMessage,
+    userJustSentAMessage: optimisticState !== null
   };
 }
