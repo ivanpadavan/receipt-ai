@@ -2,32 +2,25 @@ import type { Receipt, ReceiptPositionClaim } from "@/model/receipt/model";
 
 export type ReceiptClaimsPreviewMap = Record<
   string,
-  Array<Omit<ReceiptPositionClaim, "id">>
+  Omit<ReceiptPositionClaim, "id">[]
 >;
 
 export type ReceiptClaimsPreviewSourcePosition = Omit<
   Receipt["positions"][number],
   "claims"
 > & {
-  claims: Array<Omit<ReceiptPositionClaim, "id">>;
+  claims: Omit<ReceiptPositionClaim, "id">[];
 };
 
-export type ReceiptClaimsPreviewSourceReceipt = {
+interface ReceiptClaimsPreviewSourceReceipt {
   positions: ReceiptClaimsPreviewSourcePosition[];
-};
+}
 
 function claimSemanticKey(
   claim: Omit<ReceiptPositionClaim, "id"> | ReceiptPositionClaim,
 ) {
   const participantIds = [...claim.participantIds].sort().join(",");
   return `${participantIds}\u0000${claim.type}\u0000${claim.value}`;
-}
-
-function stripClaimId(
-  claim: ReceiptPositionClaim | Omit<ReceiptPositionClaim, "id">,
-): Omit<ReceiptPositionClaim, "id"> {
-  const { id: _id, ...rest } = claim;
-  return rest;
 }
 
 function materializeClaim(
@@ -65,7 +58,7 @@ export function buildClaimsPreviewReceipt(
 
 function comparePositionClaims(
   currentClaims: ReceiptPositionClaim[],
-  nextClaims: ReceiptPositionClaim[],
+  nextClaims: (ReceiptPositionClaim | Omit<ReceiptPositionClaim, "id">)[],
 ) {
   if (currentClaims.length !== nextClaims.length) {
     return false;
@@ -104,10 +97,11 @@ export function reduceClaimsPreviewReceipt(
   const positionClaims: ReceiptClaimsPreviewMap = {};
 
   for (const [index, position] of currentReceipt.positions.entries()) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const nextPosition = nextReceipt.positions[index]!;
 
     if (!comparePositionClaims(position.claims, nextPosition.claims)) {
-      positionClaims[position.id] = nextPosition.claims.map(stripClaimId);
+      positionClaims[position.id] = nextPosition.claims;
     }
   }
 

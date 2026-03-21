@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ReceiptCard } from "@/app/receipt/components/ui/ReceiptCard";
 import { cn } from "@/utils/cn";
-import { textVariants, rowVariants, stackGapVariants } from "@/app/receipt/components/ui-styles";
+import { textVariants, stackGapVariants } from "@/app/receipt/components/ui-styles";
 import { t } from "@/app/i18n/translations";
 import { apiClient } from "@/app/api-client";
 import { useMoneyFormatter, useReceiptState } from "@/app/receipt/components/receipt-context";
@@ -45,13 +45,13 @@ import type {
 } from "@/model/receipt/schema-chat";
 import type { Receipt } from "@/model/receipt/model";
 
-type TranscriptEntry = {
+interface TranscriptEntry {
   id: string;
   role: "user" | "assistant" | "system";
   content: string;
   response?: ReceiptChatResponse;
   receiptSnapshot?: Receipt;
-};
+}
 
 function getToolEventContent(event: ReceiptChatToolEvent) {
   if (event.type === "requested_receipt_images") {

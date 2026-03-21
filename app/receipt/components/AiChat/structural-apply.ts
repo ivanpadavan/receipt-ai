@@ -12,17 +12,17 @@ export type StructuralPreviewReceipt = Extract<
 
 export type DiffStatus = "unchanged" | "added" | "removed" | "changed";
 
-export type DiffEntry<TCurrent, TNext = TCurrent> = {
+export interface DiffEntry<TCurrent, TNext = TCurrent> {
   index: number;
   status: DiffStatus;
   current?: TCurrent;
   next?: TNext;
-};
+}
 
-export type StructuralLossWarning = {
+export interface StructuralLossWarning {
   id: string;
   text: string;
-};
+}
 
 type ModifierPreview = StructuralPreviewReceipt["fees"][number];
 
@@ -41,7 +41,7 @@ function buildIdFirstDiffs<TCurrent extends { id: string }, TNext extends { id?:
   nextItems: TNext[],
   areEqual: (currentItem: TCurrent, nextItem: TNext) => boolean,
 ) {
-  const diffs: Array<DiffEntry<TCurrent, TNext>> = [];
+  const diffs: DiffEntry<TCurrent, TNext>[] = [];
   let nextIndex = 0;
 
   for (const current of currentItems) {
@@ -147,9 +147,19 @@ export function buildStructuralLossWarnings(
         entry.current !== undefined &&
         entry.current.claims.length > 0,
     )
-    .flatMap((entry) =>
-      entry.current.claims.map((claim, claimIndex) => {
-        const participantLabel = getParticipantNames(claim.participantIds, participants);
+    .flatMap((entry) => {
+      if (!entry.current) {
+        throw new Error('no current entry');
+      }
+      return entry.current.claims.map((claim, claimIndex) => {
+        if (!entry.current) {
+          throw new Error("no current entry");
+        }
+
+        const participantLabel = getParticipantNames(
+          claim.participantIds,
+          participants,
+        );
         const claimLabel =
           claim.type === "quantity"
             ? `${claim.value} ${t("pcs")}`
@@ -159,8 +169,8 @@ export function buildStructuralLossWarnings(
           id: `${entry.current.id}-${claim.id}-${claimIndex}`,
           text: `${participantLabel} — ${entry.current.name} ${claimLabel}`,
         };
-      }),
-    );
+      });
+    });
 }
 
 function applyPositionDiffs(

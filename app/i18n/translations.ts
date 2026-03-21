@@ -330,7 +330,6 @@ const en: Translations = {
   changeAvatar: "Change avatar",
   avatarUploadHint: "Click to choose a file or take a photo",
   takePhoto: "Take photo",
-  takeReceiptPhoto: "Capture receipt",
   cropAvatar: "Crop avatar",
   cropReceiptImage: "Crop receipt image",
   addReceiptImage: "Add image",
