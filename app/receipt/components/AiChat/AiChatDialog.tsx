@@ -303,7 +303,13 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
         </GradientRing>
       </DialogTrigger>
 
-      <DialogContent className="overflow-hidden p-0 sm:max-w-2xl">
+      <DialogContent
+        className="overflow-hidden p-0 sm:max-w-2xl"
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          endRef.current?.scrollIntoView?.({ block: "end" });
+        }}
+      >
         <div className="flex max-h-[80vh] min-h-[32rem] flex-col">
           <DialogHeader className="border-b border-border/40 px-6 py-5 text-left">
             <DialogTitle className={textVariants({ size: "lg", weight: "semibold" })}>
