@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   receiptChatClaimsPreviewModelResponseSchema,
+  receiptChatPersistedSchema,
   receiptChatRequestSchema,
   receiptChatResponseSchema,
 } from "@/model/receipt/schema-chat";
@@ -147,6 +148,31 @@ describe("receipt chat schemas", () => {
     expect(
       receiptChatRequestSchema.safeParse({
         message: "Change burger quantity to 2",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("parses persisted chat history with user and assistant entries", () => {
+    expect(
+      receiptChatPersistedSchema.safeParse({
+        history: [
+          {
+            id: "entry-user-1",
+            role: "user",
+            participantId: "participant-1",
+            content: "Who had the burger?",
+          },
+          {
+            id: "entry-assistant-1",
+            role: "assistant",
+            response: {
+              type: "question",
+              message: "Was it shared?",
+              events: [],
+            },
+          },
+        ],
+        pending: true,
       }).success,
     ).toBe(true);
   });
