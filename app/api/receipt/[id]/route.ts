@@ -6,12 +6,12 @@ import { errorWrap } from "@/app/api/receipt/error-wrap";
 import { getUser, serverSupabase } from "@/utils/supabase/server";
 import { buildParticipants } from "@/app/db-utils/build-participants";
 import { trackPresenceAndSync } from "@/app/api/receipt/[id]/trackPresenceAndSync";
+import { createSseResponse } from "@/app/api/receipt/sse";
 import type { ParticipantDTO } from "@/model/receipt/model";
 import type {
   Receipt,
   ReceiptMockParticipant,
   ReceiptUserParticipant,
-  users,
 } from "@/prisma/generated/prisma/client";
 import type {
   REALTIME_SUBSCRIBE_STATES,
@@ -24,13 +24,13 @@ import {
   combineLatest,
   distinctUntilChanged,
   EMPTY,
-  fromEvent,
   ignoreElements,
-  map, merge,
+  map,
+  merge,
   Observable,
   switchMap,
-  takeUntil,
 } from "rxjs";
+import { tap } from "rxjs/operators";
 
 export const runtime = "nodejs";
 
@@ -67,184 +67,154 @@ export async function GET(
 
   const supabase = await serverSupabase();
 
-  // Create SSE stream
-  const stream = new ReadableStream({
-    async start(controller) {
-      const encoder = new TextEncoder();
-      const heartbeat = setInterval(() => {
-        try {
-          controller.enqueue(encoder.encode(`: heartbeat\n\n`));
-        } catch {
-          // stream already closed
-        }
-      }, 20000);
+  return createSseResponse(req, (stream) => {
+    // Add this connection to the receipt's connection set
+    const channelName = `topic:${receiptId}`;
+    const channel = supabase.channel(channelName);
+    const currentUserIdPromise = getUser(supabase).then((user) => user.id);
+    const onlineUserIds$ = new BehaviorSubject<Set<string>>(new Set());
+    let syncSeq = 0;
 
-      // Add this connection to the receipt's connection set
-      const channelName = `topic:${receiptId}`;
-      const channel = supabase.channel(channelName);
-      const currentUserId = (await getUser(supabase)).id;
-      const onlineUserIds$ = new BehaviorSubject<Set<string>>(new Set());
-      let syncSeq = 0;
+    const syncPayloadFromDb = async () => {
+      const seq = ++syncSeq;
+      const [nextReceipt, nextParticipants] = await Promise.all([
+        db.receipt.findUnique({
+          where: { id: receiptId },
+          select: { data: true },
+        }),
+        buildParticipants(receiptId),
+      ]);
 
-      const syncPayloadFromDb = async () => {
-        const seq = ++syncSeq;
-        const [nextReceipt, nextParticipants] = await Promise.all([
-          db.receipt.findUnique({
-            where: { id: receiptId },
-            select: { data: true },
-          }),
-          buildParticipants(receiptId),
-        ]);
+      if (!nextReceipt || seq !== syncSeq) return;
 
-        if (!nextReceipt || seq !== syncSeq) return;
+      payload$.next({
+        receipt: nextReceipt.data,
+        participants: nextParticipants,
+      });
+    };
 
-        payload$.next({
-          receipt: nextReceipt.data,
-          participants: nextParticipants,
-        });
-      };
+    const syncPresenceState = () => {
+      const state = channel.presenceState() as RealtimePresenceState<{
+        userId?: string;
+      }>;
+      const nextOnlineUserIds = new Set<string>();
 
-      const syncPresenceState = () => {
-        const state = channel.presenceState() as RealtimePresenceState<{
-          userId?: string;
-        }>;
-        const nextOnlineUserIds = new Set<string>();
-
-        for (const presences of Object.values(state)) {
-          for (const presence of presences) {
-            if (presence.userId) {
-              nextOnlineUserIds.add(presence.userId);
-            }
+      for (const presences of Object.values(state)) {
+        for (const presence of presences) {
+          if (presence.userId) {
+            nextOnlineUserIds.add(presence.userId);
           }
         }
+      }
 
-        onlineUserIds$.next(nextOnlineUserIds);
-      };
+      onlineUserIds$.next(nextOnlineUserIds);
+    };
 
-      channel
-        .on("presence", { event: "sync" }, syncPresenceState)
-        .on("presence", { event: "join" }, syncPresenceState)
-        .on("presence", { event: "leave" }, syncPresenceState)
-        .on(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "Receipt",
-            filter: `id=eq.${receiptId}`,
-          },
-          async (_payload: RealtimePostgresUpdatePayload<Receipt>) => {
-            await syncPayloadFromDb();
-          },
-        )
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "ReceiptUserParticipant",
-            filter: `receiptId=eq.${receiptId}`,
-          },
-          async (
-            _payload: RealtimePostgresChangesPayload<ReceiptUserParticipant>,
-          ) => {
-            await syncPayloadFromDb();
-          },
-        )
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "ReceiptMockParticipant",
-            filter: `receiptId=eq.${receiptId}`,
-          },
-          async (
-            _payload: RealtimePostgresChangesPayload<ReceiptMockParticipant>,
-          ) => {
-            await syncPayloadFromDb();
-          },
-        )
-        .subscribe((status: REALTIME_SUBSCRIBE_STATES) => {
-          if (status !== "SUBSCRIBED") return;
-          void trackPresenceAndSync(channel, currentUserId, syncPresenceState);
+    channel
+      .on("presence", { event: "sync" }, syncPresenceState)
+      .on("presence", { event: "join" }, syncPresenceState)
+      .on("presence", { event: "leave" }, syncPresenceState)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "Receipt",
+          filter: `id=eq.${receiptId}`,
+        },
+        async () => {
+          await syncPayloadFromDb();
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "ReceiptUserParticipant",
+          filter: `receiptId=eq.${receiptId}`,
+        },
+        async () => {
+          await syncPayloadFromDb();
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "ReceiptMockParticipant",
+          filter: `receiptId=eq.${receiptId}`,
+        },
+        async () => {
+          await syncPayloadFromDb();
+        },
+      )
+      .subscribe((status: REALTIME_SUBSCRIBE_STATES) => {
+        if (status !== "SUBSCRIBED") return;
+        void currentUserIdPromise.then((currentUserId) =>
+          trackPresenceAndSync(channel, currentUserId, syncPresenceState),
+        );
+      });
+
+    const userUpdates$ = payload$.pipe(
+      map((it) => {
+        const userIds = it.participants
+          .filter((p) => p.kind === "REAL")
+          .map((p) => p.id)
+          .sort();
+
+        if (userIds.length === 0) return "";
+
+        const filter = `id=in.(${userIds.join(",")})`;
+        return filter;
+      }),
+      distinctUntilChanged(),
+      switchMap((filter) => {
+        if (!filter) return EMPTY;
+
+        return new Observable(() => {
+          const usersChannel = supabase.channel(`${channelName}:users`);
+          usersChannel
+            .on(
+              "postgres_changes",
+              {
+                event: "UPDATE",
+                schema: "auth",
+                table: "users",
+                filter,
+              },
+              async () => {
+                await syncPayloadFromDb();
+              },
+            )
+            .subscribe();
+
+          return () => {
+            void usersChannel.unsubscribe();
+          };
         });
+      }),
+      ignoreElements(),
+    );
 
-      const userUpdates$ = payload$.pipe(
-        map((it) => {
-          const userIds = it.participants
-            .filter((p) => p.kind === "REAL")
-            .map((p) => p.id)
-            .sort();
-
-          if (userIds.length === 0) return "";
-
-          const filter = `id=in.(${userIds.join(",")})`;
-          return filter;
-        }),
-        distinctUntilChanged(),
-        switchMap((filter) => {
-          if (!filter) return EMPTY;
-
-          return new Observable((s) => {
-            const usersChannel = supabase.channel(`${channelName}:users`);
-            usersChannel
-              .on(
-                "postgres_changes",
-                {
-                  event: "UPDATE",
-                  schema: "auth",
-                  table: "users",
-                  filter,
-                },
-                async (_payload: RealtimePostgresUpdatePayload<users>) => {
-                  await syncPayloadFromDb();
-                },
-              )
-              .subscribe();
-
-            return () => {
-              void usersChannel.unsubscribe();
-            };
-          });
-        }),
-        ignoreElements()
-      );
-
-      merge(combineLatest([payload$, onlineUserIds$]), userUpdates$)
-        .pipe(
-          map(([payload, onlineUserIds]) =>
-            withPresence(payload, onlineUserIds),
-          ),
-          distinctUntilChanged(isEqual),
-          takeUntil(fromEvent(req.signal, "abort")),
-        )
-        .subscribe({
-          next: (payload) => {
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify(payload)}\n\n`),
-            );
-          },
-          complete: () => {
-            try {
-              void channel.untrack();
-              clearInterval(heartbeat);
-              controller.close();
-              void channel.unsubscribe();
-            } catch {
-              // Already closed
-            }
-          },
-        });
-    },
-  });
-
-  return new Response(stream, {
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-    },
+    return merge(combineLatest([payload$, onlineUserIds$]), userUpdates$).pipe(
+      map(([payload, onlineUserIds]) => withPresence(payload, onlineUserIds)),
+      distinctUntilChanged(isEqual),
+      tap({
+        next: (payload) => {
+          stream.sendData(payload);
+        },
+        complete: () => {
+          try {
+            void channel.untrack();
+            void channel.unsubscribe();
+          } catch {
+            // Already closed
+          }
+        },
+      }),
+    );
   });
 }
 
