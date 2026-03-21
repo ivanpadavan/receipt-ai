@@ -26,7 +26,7 @@ import {
   reduceClaimsPreviewReceipt,
 } from "@/model/receipt/claims-preview";
 import {
-  buildPromptHistory,
+  convertChatHistoryToLLM,
   createAssistantChatEntry,
   createUserChatEntry,
 } from "@/app/api/receipt/[id]/chat/chat-history";
@@ -403,7 +403,7 @@ export async function POST(
         body.message,
       );
 
-      const promptHistory = await lockReceiptChatRow(receiptId, async (tx) => {
+      const chatHistory = await lockReceiptChatRow(receiptId, async (tx) => {
         const currentChat = receiptChatPersistedSchema.parse(
           (await tx.receiptChat.findUnique({
             where: { receiptId },
@@ -431,7 +431,7 @@ export async function POST(
           },
         });
 
-        return buildPromptHistory(nextHistory);
+        return convertChatHistoryToLLM(nextHistory);
       });
 
       try {
@@ -445,7 +445,7 @@ export async function POST(
           })),
           currentUserParticipantId: currentUserParticipant.id,
           currentUserDisplayName,
-          history: promptHistory,
+          history: chatHistory,
           message: body.message,
         });
 

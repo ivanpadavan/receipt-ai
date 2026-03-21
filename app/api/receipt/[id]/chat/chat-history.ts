@@ -33,7 +33,7 @@ export function createAssistantChatEntry(
   };
 }
 
-function convertChatHistoryToLLM(response: ReceiptChatResponse) {
+function convertChatMessageToLLM(response: ReceiptChatResponse) {
   if (response.type === "question") {
     return response.message;
   }
@@ -52,7 +52,7 @@ function convertChatHistoryToLLM(response: ReceiptChatResponse) {
     : `${t("aiChatClaimsPreview")}: ${title} (${positionCount} ${t("positions")})`;
 }
 
-export function buildPromptHistory(
+export function convertChatHistoryToLLM(
   history: ReceiptChatHistoryEntry[],
 ): ChatPromptHistoryEntry[] {
   return history.map((entry) => {
@@ -65,7 +65,7 @@ export function buildPromptHistory(
 
     return {
       role: "assistant",
-      content: convertChatHistoryToLLM(entry.response),
+      content: convertChatMessageToLLM(entry.response),
     };
   });
 }
