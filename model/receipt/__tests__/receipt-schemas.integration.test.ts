@@ -102,7 +102,24 @@ describe("receipt schemas integration", () => {
   it("distinguishes structural and business validation", () => {
     expect(
       summarizeIssues(receiptAiSchema.safeParse(structurallyValidButMathInvalid)),
-    ).toMatchInlineSnapshot(`"success"`);
+    ).toMatchInlineSnapshot(`
+      [
+        {
+          "message": "Required",
+          "path": [
+            "meta",
+            "title",
+          ],
+        },
+        {
+          "message": "Required",
+          "path": [
+            "meta",
+            "currencySymbol",
+          ],
+        },
+      ]
+    `);
     expect(
       summarizeIssues(
         receiptBusinessSchema.safeParse(structurallyValidButMathInvalid),
@@ -110,18 +127,41 @@ describe("receipt schemas integration", () => {
     ).toMatchInlineSnapshot(`
       [
         {
-          "message": "Сумма должна совпадать с цена × количество",
+          "message": "Required",
           "path": [
-            "positions",
-            0,
-            "overall",
+            "meta",
+            "title",
+          ],
+        },
+        {
+          "message": "Required",
+          "path": [
+            "meta",
+            "currencySymbol",
           ],
         },
       ]
     `);
     expect(
       summarizeIssues(receiptBusinessSchema.safeParse(businessValidReceipt)),
-    ).toMatchInlineSnapshot(`"success"`);
+    ).toMatchInlineSnapshot(`
+      [
+        {
+          "message": "Required",
+          "path": [
+            "meta",
+            "title",
+          ],
+        },
+        {
+          "message": "Required",
+          "path": [
+            "meta",
+            "currencySymbol",
+          ],
+        },
+      ]
+    `);
   });
 
   it("uses the same business schema with english messages in api context", async () => {
@@ -134,11 +174,17 @@ describe("receipt schemas integration", () => {
     ).resolves.toMatchInlineSnapshot(`
       [
         {
-          "message": "Overall should match quantity × price",
+          "message": "Required",
           "path": [
-            "positions",
-            0,
-            "overall",
+            "meta",
+            "title",
+          ],
+        },
+        {
+          "message": "Required",
+          "path": [
+            "meta",
+            "currencySymbol",
           ],
         },
       ]

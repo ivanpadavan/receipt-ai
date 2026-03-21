@@ -590,6 +590,13 @@ describe("AiChatDialog", () => {
             participantIds: ["participant-1"],
           },
         ],
+        "pos-2": [
+          {
+            type: "quantity",
+            value: 1,
+            participantIds: ["participant-1"],
+          },
+        ],
       },
       events: [],
     });
@@ -607,7 +614,8 @@ describe("AiChatDialog", () => {
 
     expect(await screen.findByText("Burger")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /apply/i })).not.toBeInTheDocument();
-    expect(screen.getByText("Soda", { selector: ".line-through" })).toBeInTheDocument();
+    expect(screen.getByText(t("aiChatClaimsPreviewExpiredTitle"))).toBeInTheDocument();
+    expect(screen.getByText(t("aiChatClaimsPreviewExpiredText"))).toBeInTheDocument();
     expect(screen.getByText("Burger").closest('div[class*="border-red-200"]')).toHaveClass(
       "border-red-200",
     );

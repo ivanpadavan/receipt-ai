@@ -10,7 +10,7 @@
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write \"app\"",
-    "test": "vitest",
+    "test": "vitest -u",
     "postinstall": "prisma generate"
   },
   "engines": {

@@ -133,7 +133,7 @@ describe("claims-apply", () => {
     ).toBe(true);
   });
 
-  it("preserves snapshot claims on positions omitted from positionClaims", () => {
+  it("clears claims on positions omitted from positionClaims", () => {
     const receipt: Receipt = {
       meta: { title: "Receipt", currencySymbol: "₽" },
       positions: [
@@ -189,7 +189,7 @@ describe("claims-apply", () => {
       type: "amount",
       value: 80,
     });
-    expect(previewReceipt.positions[1].claims).toEqual(receipt.positions[1].claims);
+    expect(previewReceipt.positions[1].claims).toEqual([]);
   });
 
   it("computes replace availability, warnings, and preview states", () => {
@@ -271,7 +271,6 @@ describe("claims-apply", () => {
         warningReceipt,
         positionClaims,
         participants,
-        "₽",
         (value) => `${value} ₽`,
       ),
     ).toEqual([
@@ -280,8 +279,8 @@ describe("claims-apply", () => {
         text: `Ivan — Burger 1 ${t("pcs")}`,
       },
     ]);
-    expect(isClaimsPreviewApplied(appliedReceipt, snapshotReceipt, positionClaims)).toBe(true);
-    expect(getClaimsPreviewStatus(appliedReceipt, snapshotReceipt, positionClaims)).toBe("applied");
+    expect(isClaimsPreviewApplied(appliedReceipt, positionClaims)).toBe(true);
+    expect(getClaimsPreviewStatus(appliedReceipt, positionClaims)).toBe("applied");
     expect(buildClaimsPreviewRemovedPositions(appliedReceipt, snapshotReceipt)).toHaveLength(0);
 
     const changedLiveReceipt: Receipt = {
@@ -295,7 +294,7 @@ describe("claims-apply", () => {
     };
 
     expect(buildClaimsPreviewRemovedPositions(changedLiveReceipt, snapshotReceipt)).toHaveLength(0);
-    expect(getClaimsPreviewStatus(changedLiveReceipt, snapshotReceipt, positionClaims)).toBe(
+    expect(getClaimsPreviewStatus(changedLiveReceipt, positionClaims)).toBe(
       "pending",
     );
 
@@ -306,6 +305,6 @@ describe("claims-apply", () => {
     };
 
     expect(buildClaimsPreviewRemovedPositions(expiredLiveReceipt, snapshotReceipt)).toHaveLength(1);
-    expect(getClaimsPreviewStatus(expiredLiveReceipt, snapshotReceipt, positionClaims)).toBe("expired");
+    expect(getClaimsPreviewStatus(expiredLiveReceipt, positionClaims)).toBe("expired");
   });
 });
