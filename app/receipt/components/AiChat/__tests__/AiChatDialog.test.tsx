@@ -282,11 +282,9 @@ describe("AiChatDialog", () => {
       })
       .mockResolvedValueOnce({
         type: "claims_preview",
-        receipt: createReceipt(),
         positionClaims: {
           "pos-1": [
             {
-              id: "claim-2",
               type: "amount",
               value: 100,
               participantIds: ["participant-1"],

@@ -56,33 +56,6 @@ describe("receipt chat schemas", () => {
     expect(
       receiptChatClaimsPreviewModelResponseSchema.safeParse({
         type: "claims_preview",
-        positionClaims: {
-          "position-1": [
-            {
-              id: "claim-1",
-              participantIds: ["participant-1"],
-              type: "quantity",
-              value: 1,
-            },
-          ],
-        },
-        events: [],
-      }).success,
-    ).toBe(true);
-
-    expect(
-      receiptChatResponseSchema.safeParse({
-        type: "claims_preview",
-        positionClaims: {
-          "position-1": [
-            {
-              id: "claim-1",
-              participantIds: ["participant-1"],
-              type: "quantity",
-              value: 1,
-            },
-          ],
-        },
         receipt: {
           meta: {
             title: "Lunch",
@@ -112,6 +85,22 @@ describe("receipt chat schemas", () => {
             grandTotal: 100,
           },
         },
+      }).success,
+    ).toBe(true);
+
+    expect(
+      receiptChatResponseSchema.safeParse({
+        type: "claims_preview",
+        positionClaims: {
+          "position-1": [
+            {
+              participantIds: ["participant-1"],
+              type: "quantity",
+              value: 1,
+            },
+          ],
+        },
+        events: [],
       }).success,
     ).toBe(true);
   });

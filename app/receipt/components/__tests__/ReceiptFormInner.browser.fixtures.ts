@@ -333,11 +333,16 @@ export const aiChatStructuralPreviewResponse: ReceiptChatResponse = {
 
 export const aiChatClaimsPreviewResponse: ReceiptChatResponse = {
   type: "claims_preview",
-  receipt: summaryBalancedReceipt,
   positionClaims: {
-    [summaryBalancedReceipt.positions[0].id]: summaryBalancedReceipt.positions[0].claims,
-    [summaryBalancedReceipt.positions[1].id]: summaryBalancedReceipt.positions[1].claims,
-    [summaryBalancedReceipt.positions[2].id]: summaryBalancedReceipt.positions[2].claims,
+    [summaryBalancedReceipt.positions[0].id]: summaryBalancedReceipt.positions[0].claims.map(
+      ({ id: _id, ...claim }) => claim,
+    ),
+    [summaryBalancedReceipt.positions[1].id]: summaryBalancedReceipt.positions[1].claims.map(
+      ({ id: _id, ...claim }) => claim,
+    ),
+    [summaryBalancedReceipt.positions[2].id]: summaryBalancedReceipt.positions[2].claims.map(
+      ({ id: _id, ...claim }) => claim,
+    ),
   },
 };
 

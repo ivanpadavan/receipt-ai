@@ -1,5 +1,7 @@
 import { z } from "zod";
-import { receiptSchema } from "@/model/receipt/schema-form";
+import {
+  receiptWithIdsAndClaimsSchema,
+} from "@/model/receipt/schema-form";
 import {
   receiptStructuralPreviewSchema,
   receiptWithIdsSchema,
@@ -58,7 +60,7 @@ export const receiptChatClaimsPreviewResponseSchema = receiptChatResponseMetadat
   type: z.literal("claims_preview"),
   positionClaims: receiptChatPositionClaimsSchema,
 }).describe(
-  "Claims preview returned to the client. `receipt` is the fully materialized preview used for rendering, while `positionClaims` is the canonical AI proposal keyed by existing receipt position ids.",
+  "Claims preview returned to the client. The client receives only `positionClaims` keyed by existing receipt position ids and builds the preview from the current receipt.",
 );
 
 export const receiptChatResponseSchema = z.discriminatedUnion("type", [
@@ -79,9 +81,9 @@ export const receiptChatStructuralPreviewModelResponseSchema = z.object({
 
 export const receiptChatClaimsPreviewModelResponseSchema = z.object({
   type: z.literal("claims_preview"),
-  positionClaims: receiptChatPositionClaimsSchema,
+  receipt: receiptWithIdsAndClaimsSchema,
 }).describe(
-  "Canonical claims-only response for the model. Return only `positionClaims`, keyed by existing `position.id`. Do not return receipt structure here. Use an empty object only when no claims can be proposed from the user's request.",
+  "Canonical claims preview response for the model. Return the full receipt again. Only claims may differ from the original receipt. Do not add or remove positions. Keep existing position ids stable.",
 );
 
 export const receiptChatModelResponseSchema = z.discriminatedUnion("type", [

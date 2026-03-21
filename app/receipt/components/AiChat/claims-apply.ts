@@ -9,6 +9,7 @@ import type { StructuralLossWarning } from "@/app/receipt/components/AiChat/stru
 type ClaimsPreviewResponse = Extract<ReceiptChatResponse, { type: "claims_preview" }>;
 
 type PositionClaimsMap = ClaimsPreviewResponse["positionClaims"];
+type IncomingClaim = PositionClaimsMap[string][number];
 
 function getParticipantNames(participantIds: string[], participants: ParticipantDTO[]) {
   return participantIds
@@ -24,7 +25,7 @@ function claimIdentityKey(claim: Pick<ReceiptPositionClaim, "participantIds" | "
   return `${participantIds}\u0000${claim.type}\u0000${claim.value}`;
 }
 
-function normalizeIncomingClaim(claim: ReceiptPositionClaim): ReceiptPositionClaim {
+function normalizeIncomingClaim(claim: IncomingClaim): ReceiptPositionClaim {
   return {
     ...claim,
     id: createUuid(),

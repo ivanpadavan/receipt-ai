@@ -76,13 +76,22 @@ type ClaimsPreviewResponse = Extract<
 
 const createId = () => crypto.randomUUID();
 
-function getAssistantTranscriptContent(response: ReceiptChatResponse) {
+function getAssistantTranscriptContent(
+  response: ReceiptChatResponse,
+  currentReceipt: Receipt,
+) {
   if (response.type === "question") {
     return response.message;
   }
 
-  const title = response.receipt.meta.title ?? t("receipt");
-  const positionCount = response.receipt.positions.length;
+  const title =
+    response.type === "structural_preview"
+      ? response.receipt.meta.title ?? t("receipt")
+      : currentReceipt.meta.title ?? t("receipt");
+  const positionCount =
+    response.type === "structural_preview"
+      ? response.receipt.positions.length
+      : currentReceipt.positions.length;
 
   return response.type === "structural_preview"
     ? `${t("aiChatStructuralPreview")}: ${title} (${positionCount} ${t("positions")})`
@@ -91,6 +100,7 @@ function getAssistantTranscriptContent(response: ReceiptChatResponse) {
 
 function renderAssistantResponse(
   response: ReceiptChatResponse,
+  currentReceipt: Receipt,
   onRequestStructuralApply: (response: StructuralPreviewResponse) => void,
   onRequestClaimsApply: (response: ClaimsPreviewResponse) => void,
 ) {
@@ -120,6 +130,7 @@ function renderAssistantResponse(
 
   return (
     <AiChatClaimsPreview
+      currentReceipt={currentReceipt}
       response={response}
       onApply={() => onRequestClaimsApply(response)}
     />
@@ -217,7 +228,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
           {
             id: createId(),
             role: "assistant" as const,
-            content: getAssistantTranscriptContent(response),
+            content: getAssistantTranscriptContent(response, currentReceipt),
             response,
           },
         ];
@@ -285,14 +296,14 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                     entry.role === "user" ? "justify-end" : "justify-start",
                   )}
                 >
-                  {entry.response ? (
-                    <div className="max-w-full sm:max-w-[90%]">
-                      {renderAssistantResponse(entry.response, (response) => {
+                      {entry.response ? (
+                        <div className="max-w-full sm:max-w-[90%]">
+                      {renderAssistantResponse(entry.response, currentReceipt, (response) => {
                         setPendingStructuralPreview(response);
                       }, (response) => {
                         setPendingClaimsPreview(response);
                       })}
-                    </div>
+                        </div>
                   ) : entry.role === "system" ? (
                     <div className="w-full text-center">
                       <div

@@ -7,19 +7,25 @@ import { SummaryScreen } from "@/app/receipt/components/SummaryScreen/SummaryScr
 import { stackGapVariants, textVariants } from "@/app/receipt/components/ui-styles";
 import { t } from "@/app/i18n/translations";
 import { cn } from "@/utils/cn";
+import { buildClaimsPreviewReceipt } from "@/model/receipt/claims-preview";
+import type { Receipt } from "@/model/receipt/model";
 import type { ReceiptChatResponse } from "@/model/receipt/schema-chat";
 
 type ClaimsPreviewResponse = Extract<ReceiptChatResponse, { type: "claims_preview" }>;
 
 interface AiChatClaimsPreviewProps {
+  currentReceipt: Receipt;
   response: ClaimsPreviewResponse;
   onApply: () => void;
 }
 
 export const AiChatClaimsPreview: React.FC<AiChatClaimsPreviewProps> = ({
+  currentReceipt,
   response,
   onApply,
 }) => {
+  const previewReceipt = buildClaimsPreviewReceipt(currentReceipt, response.positionClaims);
+
   return (
     <ReceiptCard shadow="sm" radius="xl" tone="soft" className="overflow-hidden">
       <div className={cn("p-4", stackGapVariants({ size: "sm" }))}>
@@ -30,7 +36,7 @@ export const AiChatClaimsPreview: React.FC<AiChatClaimsPreviewProps> = ({
         </div>
 
         <div className="-mx-4">
-          <SummaryScreen receipt={response.receipt} onBack={() => {}} hideHeader />
+          <SummaryScreen receipt={previewReceipt} onBack={() => {}} hideHeader />
         </div>
 
         <div className="pt-1">

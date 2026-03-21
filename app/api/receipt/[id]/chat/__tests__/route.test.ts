@@ -228,8 +228,8 @@ describe("POST /api/receipt/[id]/chat", () => {
     expect(createAgentMock).toHaveBeenCalled();
     expect(agentInvokeMock).toHaveBeenCalledTimes(1);
     expect(randomUuidMock).toHaveBeenCalledTimes(3);
-    expect(prompt).toContain("positionClaims: Record<string, claim[]>");
-    expect(prompt).toContain("Existing rows and modifiers must carry their current `id`");
+    expect(prompt).toContain("Return the full structural preview without claims.");
+    expect(prompt).toContain("new rows and modifiers omit `id`");
     expect(prompt).toContain('"currentUserParticipantId": "participant-1"');
     expect(prompt).toContain('"currentUserDisplayName": "Ivan"');
     await expect(response.json()).resolves.toEqual(expectedResponse);
@@ -244,13 +244,19 @@ describe("POST /api/receipt/[id]/chat", () => {
     agentInvokeMock.mockResolvedValue({
       structuredResponse: {
         type: "claims_preview",
-        positionClaims: {
-          "position-1": [
+        receipt: {
+          ...currentReceipt,
+          positions: [
             {
-              id: "claim-1",
-              participantIds: ["participant-1"],
-              type: "quantity",
-              value: 1,
+              ...currentReceipt.positions[0],
+              claims: [
+                {
+                  id: "claim-1",
+                  participantIds: ["participant-1"],
+                  type: "quantity",
+                  value: 1,
+                },
+              ],
             },
           ],
         },
@@ -287,31 +293,118 @@ describe("POST /api/receipt/[id]/chat", () => {
       positionClaims: {
         "position-1": [
           {
-            id: "claim-1",
             participantIds: ["participant-1"],
             type: "quantity",
             value: 1,
           },
         ],
       },
-      receipt: {
-        ...currentReceipt,
-        positions: [
-          {
-            ...currentReceipt.positions[0],
-            claims: [
-              {
-                id: "claim-1",
-                participantIds: ["participant-1"],
-                type: "quantity",
-                value: 1,
-              },
-            ],
-          },
-        ],
-      },
       events: [],
     });
+  });
+
+  it("rejects claims preview when a position field changes", async () => {
+    findUniqueMock.mockResolvedValue({
+      id: "receipt-1",
+      data: currentReceipt,
+      imageUrls: [],
+    });
+    agentInvokeMock.mockResolvedValue({
+      structuredResponse: {
+        type: "claims_preview",
+        receipt: {
+          ...currentReceipt,
+          positions: [
+            {
+              ...currentReceipt.positions[0],
+              name: "Milk plus",
+              claims: [],
+            },
+          ],
+        },
+      },
+    });
+    errorWrapMock.mockImplementation(
+      async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
+        callback({
+          session: { user: { id: "participant-1", user_metadata: { displayName: "Ivan" } } },
+          body: {
+            message: "Change the claim",
+            history: [],
+          },
+        }),
+    );
+
+    const { POST } = await import("../route");
+
+    const response = POST(
+      new NextRequest("http://localhost/api/receipt/receipt-1/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          message: "Change the claim",
+          history: [],
+        }),
+      }),
+      {
+        params: Promise.resolve({ id: "receipt-1" }),
+      },
+    );
+
+    await expect(response).rejects.toThrow("AI produced malformed request");
+  });
+
+  it("rejects claims preview when positions are added or removed", async () => {
+    findUniqueMock.mockResolvedValue({
+      id: "receipt-1",
+      data: currentReceipt,
+      imageUrls: [],
+    });
+    agentInvokeMock.mockResolvedValue({
+      structuredResponse: {
+        type: "claims_preview",
+        receipt: {
+          ...currentReceipt,
+          positions: [
+            ...currentReceipt.positions,
+            {
+              id: "position-2",
+              name: "Bread",
+              price: 25,
+              quantity: 1,
+              overall: 25,
+              claims: [],
+            },
+          ],
+        },
+      },
+    });
+    errorWrapMock.mockImplementation(
+      async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
+        callback({
+          session: { user: { id: "participant-1", user_metadata: { displayName: "Ivan" } } },
+          body: {
+            message: "Change the claim",
+            history: [],
+          },
+        }),
+    );
+
+    const { POST } = await import("../route");
+
+    const response = POST(
+      new NextRequest("http://localhost/api/receipt/receipt-1/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          message: "Change the claim",
+          history: [],
+        }),
+      }),
+      {
+        params: Promise.resolve({ id: "receipt-1" }),
+      },
+    );
+
+    await expect(response).rejects.toThrow("AI produced malformed request");
   });
 
   it("logs and exposes an event when the agent requests original receipt images", async () => {
