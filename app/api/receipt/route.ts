@@ -8,7 +8,7 @@ import { serverSupabase } from "@/utils/supabase/server";
 import { errorWrap } from "@/app/api/receipt/error-wrap";
 import { t, withLanguage } from "@/app/i18n/translations";
 import { HumanMessage } from "@langchain/core/messages";
-import { repairWithBusinessValidation } from "@/app/api/receipt/business-repair-chain";
+import { repairWithBusinessValidation } from "@/app/api/receipt/math-repair-chain";
 import { receiptImageInstructions } from "@/app/api/receipt/prompts";
 
 // Edge runtime is not compatible with Prisma, so we need to use the Node.js runtime

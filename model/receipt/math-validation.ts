@@ -1,16 +1,16 @@
 import { receiptAiSchema } from "@/model/receipt/schema-structural";
-import { receiptBusinessSchema } from "@/model/receipt/schema-business";
+import { receiptMathSchema } from "@/model/receipt/schema-math";
 import { z } from "zod";
 
-export interface ReceiptBusinessValidationIssue {
+export interface ReceiptMathValidationIssue {
   path: (string | number)[];
   message: string;
 }
 
 export function getReceiptBusinessValidationIssues(
   value: z.infer<typeof receiptAiSchema>,
-): ReceiptBusinessValidationIssue[] {
-  const validation = receiptBusinessSchema.safeParse((value);
+): ReceiptMathValidationIssue[] {
+  const validation = receiptMathSchema.safeParse(value);
   if (validation.success) {
     return [];
   }
@@ -22,7 +22,7 @@ export function getReceiptBusinessValidationIssues(
 }
 
 export function formatReceiptBusinessValidationIssues(
-  issues: ReceiptBusinessValidationIssue[],
+  issues: ReceiptMathValidationIssue[],
 ) {
   if (issues.length === 0) {
     return "";

@@ -4,7 +4,7 @@ import { getExpectedReceiptTotals } from "@/model/receipt/math";
 import { positionAiSchema, receiptAiSchema } from "@/model/receipt/schema-structural";
 import { z } from "zod";
 
-export const addPositionBusinessIssues = (
+export const addPositionMathIssues = (
   value: z.infer<typeof positionAiSchema>,
   context: z.RefinementCtx,
   pathPrefix: (string | number)[] = [],
@@ -19,7 +19,7 @@ export const addPositionBusinessIssues = (
   }
 };
 
-export const addReceiptTotalsBusinessIssues = (
+export const addReceiptTotalsMathIssues = (
   value: Pick<z.infer<typeof receiptAiSchema>, "positions" | "fees" | "discounts" | "totals">,
   context: z.RefinementCtx,
 ) => {
@@ -41,13 +41,13 @@ export const addReceiptTotalsBusinessIssues = (
   }
 };
 
-export const addReceiptBusinessIssues = (
+export const addReceiptMathIssues = (
   value: z.infer<typeof receiptAiSchema>,
   context: z.RefinementCtx,
 ) => {
   value.positions.forEach((position, index) => {
-    addPositionBusinessIssues(position, context, ["positions", index]);
+    addPositionMathIssues(position, context, ["positions", index]);
   });
 
-  addReceiptTotalsBusinessIssues(value, context);
+  addReceiptTotalsMathIssues(value, context);
 };

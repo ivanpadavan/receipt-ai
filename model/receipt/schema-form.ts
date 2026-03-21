@@ -11,9 +11,9 @@ import {
 } from "@/model/receipt/schema-structural";
 import { metaBaseSchema } from "@/model/receipt/schema-meta";
 import {
-  addPositionBusinessIssues,
-  addReceiptBusinessIssues,
-  addReceiptTotalsBusinessIssues,
+  addPositionMathIssues,
+  addReceiptMathIssues,
+  addReceiptTotalsMathIssues,
 } from "@/model/receipt/validation-helpers";
 import { z } from "zod";
 
@@ -39,7 +39,7 @@ export const receiptWithIdsAndClaimsSchema = createReceiptBaseSchema(
 
 export const receiptSchema = receiptWithIdsAndClaimsSchema
   .superRefine((value, context) => {
-    addReceiptBusinessIssues(
+    addReceiptMathIssues(
       {
         meta: value.meta,
         positions: value.positions.map(
@@ -68,7 +68,7 @@ export const editablePositionValidationSchema = z.any().superRefine(
       return;
     }
 
-    addPositionBusinessIssues(value, {
+    addPositionMathIssues(value, {
       addIssue: (issue) => context.addIssue(issue),
     } as z.RefinementCtx);
   },
@@ -103,7 +103,7 @@ export const createEditableTotalsSchema = (receipt: Receipt) =>
       return;
     }
 
-    addReceiptTotalsBusinessIssues(
+    addReceiptTotalsMathIssues(
       {
         positions: receipt.positions,
         fees: receipt.fees,

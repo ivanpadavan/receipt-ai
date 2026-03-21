@@ -4,7 +4,7 @@ import { z } from "zod";
 import {
   formatReceiptBusinessValidationIssues,
   getReceiptBusinessValidationIssues,
-} from "@/model/receipt/business-validation";
+} from "@/model/receipt/math-validation";
 import { receiptAiSchema } from "@/model/receipt/schema-structural";
 
 const businessRepairPrompt = PromptTemplate.fromTemplate(

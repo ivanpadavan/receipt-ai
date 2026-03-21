@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { withLanguage } from "@/app/i18n/translations";
-import { receiptBusinessSchema } from "@/model/receipt/schema-business";
+import { receiptMathSchema } from "@/model/receipt/schema-math";
 import {
   modifierSchema,
   positionAiSchema,
@@ -122,7 +122,7 @@ describe("receipt schemas integration", () => {
     `);
     expect(
       summarizeIssues(
-        receiptBusinessSchema.safeParse(structurallyValidButMathInvalid),
+        receiptMathSchema.safeParse(structurallyValidButMathInvalid),
       ),
     ).toMatchInlineSnapshot(`
       [
@@ -143,7 +143,7 @@ describe("receipt schemas integration", () => {
       ]
     `);
     expect(
-      summarizeIssues(receiptBusinessSchema.safeParse(businessValidReceipt)),
+      summarizeIssues(receiptMathSchema.safeParse(businessValidReceipt)),
     ).toMatchInlineSnapshot(`
       [
         {
@@ -168,7 +168,7 @@ describe("receipt schemas integration", () => {
     await expect(
       withLanguage("en", () =>
         summarizeIssues(
-          receiptBusinessSchema.safeParse(structurallyValidButMathInvalid),
+          receiptMathSchema.safeParse(structurallyValidButMathInvalid),
         ),
       ),
     ).resolves.toMatchInlineSnapshot(`

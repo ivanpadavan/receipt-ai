@@ -33,7 +33,7 @@ import {
 import { createSseResponse } from "@/app/api/receipt/sse";
 import { getUser, serverSupabase } from "@/utils/supabase/server";
 import { BehaviorSubject, distinctUntilChanged, finalize, tap } from "rxjs";
-import { repairWithBusinessValidation } from "@/app/api/receipt/business-repair-chain";
+import { repairWithBusinessValidation } from "@/app/api/receipt/math-repair-chain";
 import { receiptImageInstructions } from "@/app/api/receipt/prompts";
 
 export const runtime = "nodejs";
