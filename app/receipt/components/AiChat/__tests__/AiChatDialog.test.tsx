@@ -432,4 +432,50 @@ describe("AiChatDialog", () => {
     expect(screen.getByText("Burger")).toBeInTheDocument();
     expect(screen.queryByText("Fries")).not.toBeInTheDocument();
   });
+
+  it("evaluates claims preview confirm state against the live receipt", async () => {
+    sendReceiptChatMessageMock.mockResolvedValueOnce({
+      type: "claims_preview",
+      positionClaims: {
+        "pos-1": [
+          {
+            type: "amount",
+            value: 100,
+            participantIds: ["participant-1"],
+          },
+        ],
+      },
+      events: [],
+    });
+
+    const user = userEvent.setup();
+
+    const initialReceipt = createReceipt();
+    const expiredLiveReceipt = createReceipt({
+      positions: [],
+      totals: {
+        total: 0,
+        grandTotal: 0,
+      },
+    });
+
+    const { rerenderWithReceipt } = renderWithContext(
+      <AiChatDialog receiptId="receipt-1" receiptTitle="Receipt" />,
+      initialReceipt,
+    );
+
+    await user.click(screen.getByRole("button", { name: /ai/i }));
+    await user.type(screen.getByPlaceholderText(/ask/i), "Show distributions preview");
+    await user.click(screen.getByRole("button", { name: /send/i }));
+
+    await user.click(screen.getByRole("button", { name: /review distributions/i }));
+    const modalBefore = await screen.findByRole("alertdialog");
+    expect(within(modalBefore).getByRole("button", { name: /replace all/i })).toBeInTheDocument();
+
+    rerenderWithReceipt(expiredLiveReceipt);
+
+    const modalAfter = await screen.findByRole("alertdialog");
+    expect(within(modalAfter).getByText(/preview expired/i)).toBeInTheDocument();
+    expect(within(modalAfter).queryByRole("button", { name: /replace all/i })).not.toBeInTheDocument();
+  });
 });

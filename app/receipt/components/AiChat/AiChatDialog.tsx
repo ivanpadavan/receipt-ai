@@ -176,22 +176,22 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
     : [];
   const claimsReplaceWarnings = pendingClaimsPreview
     ? buildClaimsReplaceWarnings(
-        pendingClaimsPreview.receiptSnapshot,
+        currentReceipt,
         pendingClaimsPreview.response.positionClaims,
         participants,
-        pendingClaimsPreview.receiptSnapshot.meta.currencySymbol ?? currencySymbol,
+        currentReceipt.meta.currencySymbol ?? currencySymbol,
         formatMoney,
       )
     : [];
   const claimsPreviewExpired = pendingClaimsPreview
     ? isClaimsPreviewExpired(
-        pendingClaimsPreview.receiptSnapshot,
+        currentReceipt,
         pendingClaimsPreview.response.positionClaims,
       )
     : false;
   const canReplaceClaims = pendingClaimsPreview
     ? canReplaceClaimsPreview(
-        pendingClaimsPreview.receiptSnapshot,
+        currentReceipt,
         pendingClaimsPreview.response.positionClaims,
       )
     : false;
