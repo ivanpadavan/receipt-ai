@@ -311,17 +311,42 @@ AI chat это встроенный вторичный workflow поверх `Re
 
 Это важная продуктовая гарантия прозрачности: AI не “молча меняет чек”, а визуально объясняет, что именно будет переписано в форме.
 
-[Скриншот](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-preview-chromium.png)
-![ai-chat-structural-preview](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-preview-chromium.png)
+| | |
+| --- | --- |
+| ![ai-chat-structural-preview](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-preview-chromium.png) | ![ai-chat-structural-preview-modifiers](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-preview-modifiers-chromium.png) |
 
 <details>
-<summary>Дополнительный structural preview с modifiers и warning</summary>
+<summary>Structural preview user stories</summary>
 
-| Structural preview с modifiers | Confirm warning о возможной потере claims |
+### User story 1: AI предлагает добавить одну позицию и пользователь применяет structural preview
+
+**Цель пользователя**  
+Быстро принять простое структурное предложение от AI и сразу увидеть, что чек уже приведён к этому состоянию.
+
+**Что происходит**  
+AI предлагает добавить одну позицию. В preview новая строка явно подсвечивается как `Added`, а кнопка `Review changes` открывает подтверждение применения. После `Apply` изменения записываются в форму, и тот же structural preview больше не показывает diff как pending change: карточка становится зеленоватой, а кнопка `Review changes` исчезает.
+
+**Продуктовый смысл**  
+Structural preview должен быть одновременно прозрачным до применения и очевидно “схлопываться” в applied-state после применения. Пользователь не должен гадать, осталось ли ещё что-то применить.
+
+| AI предлагает добавить одну позицию | Structural preview после применения |
 | --- | --- |
-| ![ai-chat-structural-preview-modifiers](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-preview-modifiers-chromium.png) | ![ai-chat-structural-confirm-warning](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-confirm-warning-chromium.png) |
+| ![ai-chat-structural-preview-added-one](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-preview-added-one-chromium.png) | ![ai-chat-structural-preview-applied](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-preview-applied-chromium.png) |
 
-[Скриншоты](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-preview-modifiers-chromium.png) и [warning state](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-confirm-warning-chromium.png)
+[Скриншоты](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-preview-added-one-chromium.png) и [applied state](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-preview-applied-chromium.png)
+
+### User story 2: перед применением пользователь видит warning о потере claims
+
+**Цель пользователя**  
+Понять, что structural apply может затронуть уже распределённые позиции, и принять это осознанно.
+
+**Что происходит**  
+Если применение `structural_preview` приводит к потере уже вынесенных claims, confirmation step показывает warning-блок `Claims that may be lost` со списком конкретных потерь.
+
+**Продуктовый смысл**  
+Structural apply всегда разрешён, но не должен скрывать стоимость этого действия. Потери claims должны быть перечислены до подтверждения, а не после.
+
+![ai-chat-structural-confirm-warning](../../app/receipt/components/__tests__/__screenshots__/ReceiptFormInner.browser.test.tsx/ai-chat-structural-confirm-warning-chromium.png)
 
 </details>
 

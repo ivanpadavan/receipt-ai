@@ -2300,6 +2300,10 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
         expect(screen.getByText("AI draft")).toBeInTheDocument();
       });
       const chatDialog = screen.getByRole("dialog");
+      const scrollContainer = chatDialog.querySelector(".overflow-y-auto");
+      if (!(scrollContainer instanceof HTMLDivElement)) {
+        throw new Error("Expected AI chat scroll container");
+      }
       expect(screen.getAllByText("Bread").length).toBeGreaterThan(1);
       expect(screen.getByText("Juice")).toBeInTheDocument();
       expect(within(chatDialog).getAllByText("Butter").length).toBeGreaterThan(0);
@@ -2310,9 +2314,10 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       expect(screen.getAllByText(t("aiChatStructuralPreviewAdded")).length).toBeGreaterThan(0);
       expect(screen.getAllByText(t("aiChatStructuralPreviewRemoved")).length).toBeGreaterThan(0);
       expect(screen.getByRole("button", { name: t("aiChatStructuralPreviewReviewChanges") })).toBeInTheDocument();
+      scrollContainer.scrollTop = 0;
       await expectCurrentScreenshot("ai-chat-structural-preview");
 
-      screen.getByText(t("fees")).scrollIntoView({ block: "start" });
+      scrollContainer.scrollTop = scrollContainer.scrollHeight;
       await expectCurrentScreenshot("ai-chat-structural-preview-modifiers");
     });
 
