@@ -503,6 +503,15 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
 
   it("shows the AI chat entrypoint and opens the dialog", async () => {
     const user = userEvent.setup();
+    let resolvePendingResponse:
+      | ((value: { type: "question"; message: string; events: [] }) => void)
+      | undefined;
+    sendReceiptChatMessageMock.mockImplementationOnce(
+      () =>
+        new Promise<{ type: "question"; message: string; events: [] }>((resolve) => {
+          resolvePendingResponse = resolve;
+        }),
+    );
     await renderReceiptFormInner();
 
     expect(getAiChatButton()).toBeInTheDocument();
@@ -513,6 +522,22 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     expect(screen.getByRole("heading", { name: t("aiChat") })).toBeInTheDocument();
     expect(screen.getByText(t("aiChatEmpty"))).toBeInTheDocument();
     await expectCurrentScreenshot("ai-chat-dialog-open");
+
+    await user.type(screen.getByRole("textbox"), "What changed?");
+    await user.click(screen.getByRole("button", { name: t("aiChatSend") }));
+
+    expect(screen.getByText(t("aiChatThinking"))).toBeInTheDocument();
+    await expectCurrentScreenshot("ai-chat-waiting-response");
+
+    resolvePendingResponse?.({
+      type: "question",
+      message: "Nothing changed.",
+      events: [],
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText(t("aiChatThinking"))).not.toBeInTheDocument();
+    });
   });
 
   it("starts invalid receipts in review mode with disabled proceed", async () => {
