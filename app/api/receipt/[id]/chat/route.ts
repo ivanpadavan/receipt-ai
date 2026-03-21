@@ -33,11 +33,7 @@ import {
 import { createSseResponse } from "@/app/api/receipt/sse";
 import { getUser, serverSupabase } from "@/utils/supabase/server";
 import { BehaviorSubject, distinctUntilChanged, finalize, tap } from "rxjs";
-import {
-  buildRepairContext,
-  createBusinessRepairChain,
-  repairWithBusinessValidation,
-} from "@/app/api/receipt/business-repair-chain";
+import { repairWithBusinessValidation } from "@/app/api/receipt/business-repair-chain";
 import { receiptImageInstructions } from "@/app/api/receipt/prompts";
 
 export const runtime = "nodejs";
@@ -54,16 +50,6 @@ const structuredChatResponseModel = model.withStructuredOutput(
     name: "receipt_chat_response",
   },
 );
-
-const structuralPreviewRepairChain = createBusinessRepairChain(model, {
-  schema: receiptChatStructuralPreviewModelResponseSchema,
-  name: "receipt_chat_structural_preview_repair",
-  instructions:
-    "Keep response type = structural_preview.\n" +
-    "Return the full structural preview without claims.\n" +
-    "Preserve existing row/modifier ids where present.\n" +
-    "For new rows/modifiers, omit id.",
-});
 
 function formatHistory(
   history: { role: "user" | "assistant"; content: string }[],
@@ -111,9 +97,9 @@ function buildReceiptChatPrompt({
     "You are helping the user edit a receipt through chat.\n" +
     "Return exactly one structured response.\n" +
     "Allowed response types:\n" +
-    '- `question`: when clarification is required before making a preview. `message` must be plain text only.\n' +
-    '- `structural_preview`: when you are proposing a changed receipt structure. Return the full structural preview without claims. Existing rows and modifiers must carry their current `id`; new rows and modifiers omit `id`.\n' +
-    '- `claims_preview`: when you are proposing how claims should be filled. Return only the `positions` array, not the full receipt. Keep the same position ids, order, and item fields as the original receipt. Only claims may differ.\n' +
+    "- `question`: when clarification is required before making a preview. `message` must be plain text only.\n" +
+    "- `structural_preview`: when you are proposing a changed receipt structure. Return the full structural preview without claims. Existing rows and modifiers must carry their current `id`; new rows and modifiers omit `id`.\n" +
+    "- `claims_preview`: when you are proposing how claims should be filled. Return only the `positions` array, not the full receipt. Keep the same position ids, order, and item fields as the original receipt. Only claims may differ.\n" +
     "You may call `get_receipt_images` if the original photos are needed.\n" +
     "For `question`, use only plain text with optional newline characters.\n" +
     "For `question`, do not use markdown, bullet lists, numbered lists, or JSON.\n" +
@@ -135,6 +121,7 @@ function buildReceiptChatPrompt({
     `Current receipt JSON:\n${JSON.stringify(receipt, null, 2)}\n\n` +
     `Participants JSON:\n${JSON.stringify(participants, null, 2)}\n\n` +
     `Chat history:\n${formatHistory(history)}\n\n` +
+    `User got this receipt using images u can (but not must) query using provided tool and this prompt:\n${receiptImageInstructions}\n\n` +
     `Latest user message:\n${message}`
   );
 }
@@ -279,30 +266,20 @@ async function generateReceiptChatResponse({
   );
 
   if (structuredResponse.type === "structural_preview") {
-    structuredResponse = await repairWithBusinessValidation({
-      result: structuredResponse,
-      getReceipt: (value) => value.receipt,
-      setReceipt: (value, receipt) => ({
-        ...value,
-        receipt,
-      }),
-      repairChain: structuralPreviewRepairChain,
-      parseRepaired: (value) => value.receipt,
-      repairContext: buildRepairContext([
-        {
-          title: "Original receipt extraction prompt",
-          content: receiptImageInstructions,
-        },
-        {
-          title: "Original chat prompt",
-          content: prompt,
-        },
-      ]),
+    const repairedReceipt = await repairWithBusinessValidation({
+      receipt: structuredResponse.receipt,
+      model,
+      schema: receiptChatStructuralPreviewModelResponseSchema.shape.receipt,
+      prompt,
       telemetry: {
         label: "receipt_chat_structural_preview",
         meta: { receiptId },
       },
     });
+    structuredResponse = {
+      ...structuredResponse,
+      receipt: repairedReceipt,
+    };
   }
 
   const normalizedResponse =

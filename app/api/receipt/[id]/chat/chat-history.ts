@@ -3,16 +3,15 @@ import {
   formatReceiptBusinessValidationIssues,
   getReceiptBusinessValidationIssues,
 } from "@/model/receipt/business-validation";
-import type { Receipt } from "@/model/receipt/model";
 import type {
   ReceiptChatHistoryEntry,
   ReceiptChatResponse,
 } from "@/model/receipt/schema-chat";
 
-export type ChatPromptHistoryEntry = {
+export interface ChatPromptHistoryEntry {
   role: "user" | "assistant";
   content: string;
-};
+}
 
 export function createUserChatEntry(
   id: string,

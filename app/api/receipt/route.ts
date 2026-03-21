@@ -8,11 +8,7 @@ import { serverSupabase } from "@/utils/supabase/server";
 import { errorWrap } from "@/app/api/receipt/error-wrap";
 import { t, withLanguage } from "@/app/i18n/translations";
 import { HumanMessage } from "@langchain/core/messages";
-import {
-  buildRepairContext,
-  createBusinessRepairChain,
-  repairWithBusinessValidation,
-} from "@/app/api/receipt/business-repair-chain";
+import { repairWithBusinessValidation } from "@/app/api/receipt/business-repair-chain";
 import { receiptImageInstructions } from "@/app/api/receipt/prompts";
 
 // Edge runtime is not compatible with Prisma, so we need to use the Node.js runtime
@@ -26,16 +22,6 @@ const model = new ChatOpenRouter({
 
 const imageExtractor = model.withStructuredOutput(receiptAiSchema, {
   name: "receipt_data_extractor",
-});
-
-const fixErrorsChain = createBusinessRepairChain(model, {
-  schema: receiptAiSchema,
-  name: "receipt_data_extractor",
-  instructions:
-    "Keep these extraction rules while fixing:\n" +
-    "- skip positions with zero total cost\n" +
-    "- if a drink is priced by liters but is a single served item, normalize it to quantity 1 and set price = overall = line total\n" +
-    "- merge identical normalized positions by summing quantity and overall",
 });
 
 function appendIdsToArr<T>(v: T[]): (T & { id: string })[] {
@@ -114,17 +100,10 @@ export async function POST(req: NextRequest) {
 
       // Process the image
       const result = await repairWithBusinessValidation({
-        result: await analyzeImages(body.images),
-        getReceipt: (value) => value,
-        setReceipt: (_value, receipt) => receipt,
-        repairChain: fixErrorsChain,
-        parseRepaired: (value) => receiptAiSchema.parse(value),
-        repairContext: buildRepairContext([
-          {
-            title: "Original extraction instructions",
-            content: receiptImageInstructions,
-          },
-        ]),
+        receipt: await analyzeImages(body.images),
+        model,
+        schema: receiptAiSchema,
+        prompt: receiptImageInstructions,
         telemetry: {
           label: "receipt_parse",
         },

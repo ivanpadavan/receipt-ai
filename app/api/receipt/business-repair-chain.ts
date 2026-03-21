@@ -9,32 +9,15 @@ import { receiptAiSchema } from "@/model/receipt/schema-structural";
 
 const businessRepairPrompt = PromptTemplate.fromTemplate(
   "There is a structured receipt result: {result}\n" +
-    "{contextBlock}" +
+    "Original prompt:\n{prompt}\n" +
     "Business validation issues:\n{errors}\n" +
-    "Fix the result and return corrected structured output.\n" +
-    "{instructions}",
+    "Fix the result and return corrected structured output.",
 );
 
 export interface RepairPromptInput {
   result: unknown;
+  prompt: string;
   errors: string;
-  context?: string;
-}
-
-export interface RepairContextSection {
-  title: string;
-  content: string;
-}
-
-export function buildRepairContext(sections: RepairContextSection[]) {
-  return sections
-    .map((section) => ({
-      title: section.title.trim(),
-      content: section.content.trim(),
-    }))
-    .filter((section) => section.title.length > 0 && section.content.length > 0)
-    .map((section) => `${section.title}:\n${section.content}`)
-    .join("\n\n");
 }
 
 interface StructuredOutputInvoker {
@@ -48,45 +31,11 @@ export interface StructuredOutputModel {
   ) => StructuredOutputInvoker;
 }
 
-export function createBusinessRepairChain<TSchema extends z.ZodTypeAny>(
-  model: StructuredOutputModel,
-  params: {
-    schema: TSchema;
-    name: string;
-    instructions: string;
-  },
-) {
-  const outputModel = model.withStructuredOutput(params.schema, {
-    name: params.name,
-  });
-
-  return {
-    invoke: async (input: RepairPromptInput): Promise<z.infer<TSchema>> => {
-      const prompt = await businessRepairPrompt.format({
-        ...input,
-        contextBlock: input.context
-          ? `Original generation context:\n${input.context}\n`
-          : "",
-        instructions: params.instructions,
-      });
-      const raw = await outputModel.invoke(prompt);
-      return params.schema.parse(raw);
-    },
-  };
-}
-
-interface RepairWithBusinessValidationParams<TState, TRepairOutput> {
-  result: TState;
-  getReceipt: (value: TState) => z.infer<typeof receiptAiSchema>;
-  setReceipt: (
-    value: TState,
-    receipt: z.infer<typeof receiptAiSchema>,
-  ) => TState;
-  repairChain: {
-    invoke: (input: RepairPromptInput) => Promise<TRepairOutput>;
-  };
-  parseRepaired: (value: TRepairOutput) => z.infer<typeof receiptAiSchema>;
-  repairContext?: string;
+interface RepairWithBusinessValidationParams<TSchema extends z.ZodTypeAny> {
+  receipt: z.infer<typeof receiptAiSchema>;
+  model: StructuredOutputModel;
+  schema: TSchema;
+  prompt: string;
   telemetry?: {
     label: string;
     meta?: Record<string, string | number | boolean | null>;
@@ -94,16 +43,20 @@ interface RepairWithBusinessValidationParams<TState, TRepairOutput> {
   maxAttempts?: number;
 }
 
-export async function repairWithBusinessValidation<TState, TRepairOutput>({
-  result: initialResult,
-  getReceipt,
-  setReceipt,
-  repairChain,
-  parseRepaired,
-  repairContext,
+export async function repairWithBusinessValidation<
+  TSchema extends z.ZodTypeAny,
+>({
+  receipt: initialReceipt,
+  model,
+  schema,
+  prompt,
   telemetry,
   maxAttempts = 3,
-}: RepairWithBusinessValidationParams<TState, TRepairOutput>) {
+}: RepairWithBusinessValidationParams<TSchema>) {
+  const outputModel = model.withStructuredOutput(schema, {
+    name: "receipt_business_repair",
+  });
+
   const logTelemetry = (
     status: "no_issues" | "attempt" | "repaired" | "failed",
     details: Record<string, number> = {},
@@ -117,36 +70,38 @@ export async function repairWithBusinessValidation<TState, TRepairOutput>({
     });
   };
 
-  let result = initialResult;
+  let receipt = initialReceipt;
   let attempts = 0;
 
   while (attempts < maxAttempts) {
-    const issues = getReceiptBusinessValidationIssues(getReceipt(result));
+    const issues = getReceiptBusinessValidationIssues(receipt);
     if (issues.length === 0) {
       logTelemetry(attempts === 0 ? "no_issues" : "repaired", {
         attempts,
       });
-      return result;
+      return receipt;
     }
     logTelemetry("attempt", {
       attempt: attempts + 1,
       issueCount: issues.length,
     });
-
-    const repaired = await repairChain.invoke({
-      result,
-      errors: formatReceiptBusinessValidationIssues(issues),
-      context: repairContext,
+    const errors = formatReceiptBusinessValidationIssues(issues);
+    const repairPromptText = await businessRepairPrompt.format({
+      result: receipt,
+      prompt,
+      errors,
     });
-    result = setReceipt(result, parseRepaired(repaired));
+
+    const raw = await outputModel.invoke(repairPromptText);
+    receipt = receiptAiSchema.parse(schema.parse(raw));
     attempts++;
   }
 
-  const issues = getReceiptBusinessValidationIssues(getReceipt(result));
+  const issues = getReceiptBusinessValidationIssues(receipt);
   logTelemetry("failed", {
     attempts,
     issueCount: issues.length,
   });
 
-  return result;
+  return receipt;
 }
