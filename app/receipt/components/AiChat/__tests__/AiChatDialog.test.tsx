@@ -242,9 +242,9 @@ describe("AiChatDialog", () => {
     expect(screen.getByText("Fries")).toBeInTheDocument();
     expect(screen.getAllByText("Changed").length).toBeGreaterThan(1);
     expect(screen.getAllByText("Added").length).toBeGreaterThan(0);
-    expect(screen.getByRole("button", { name: /review changes/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /apply/i })).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /review changes/i }));
+    await user.click(screen.getByRole("button", { name: /apply/i }));
 
     const modal = await screen.findByRole("alertdialog");
     expect(modal).toBeInTheDocument();
@@ -258,7 +258,7 @@ describe("AiChatDialog", () => {
     expect(replaceReceiptInForm).toHaveBeenCalledTimes(1);
   });
 
-  it("hides review changes when the structural preview already matches the current receipt", async () => {
+  it("hides apply when the structural preview already matches the current receipt", async () => {
     sendReceiptChatMessageMock.mockResolvedValueOnce({
       type: "structural_preview",
       receipt: {
@@ -295,14 +295,14 @@ describe("AiChatDialog", () => {
 
     expect(await screen.findByText("Burger")).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: /review changes/i }),
+      screen.queryByRole("button", { name: /apply/i }),
     ).not.toBeInTheDocument();
-    expect(screen.getByText("Receipt").closest(".overflow-hidden")).toHaveClass(
-      "border-emerald-300/70",
-    );
-    expect(screen.getByText("Receipt").closest(".overflow-hidden")).toHaveClass(
-      "bg-emerald-50/60",
-    );
+    expect(
+      screen.getByText("Burger").closest('div[class*="border-emerald-300/70"]'),
+    ).toHaveClass("border-emerald-300/70");
+    expect(
+      screen.getByText("Burger").closest('div[class*="bg-emerald-50/60"]'),
+    ).toHaveClass("bg-emerald-50/60");
   });
 
   it("renders question, structural preview, and distributions preview responses", async () => {
@@ -339,6 +339,7 @@ describe("AiChatDialog", () => {
       })
       .mockResolvedValueOnce({
         type: "claims_preview",
+        receiptSnapshot: createStructuralWarningReceipt(),
         positionClaims: {
           "pos-1": [
             {
@@ -423,11 +424,17 @@ describe("AiChatDialog", () => {
   it("keeps claims preview transcript bubbles stable after the live receipt changes", async () => {
     sendReceiptChatMessageMock.mockResolvedValueOnce({
       type: "claims_preview",
+      receiptSnapshot: createReceipt({
+        meta: {
+          title: "Snapshot Receipt",
+          currencySymbol: "₽",
+        },
+      }),
       positionClaims: {
         "pos-1": [
           {
             type: "amount",
-            value: 100,
+            value: 90,
             participantIds: ["participant-1"],
           },
         ],
@@ -440,11 +447,13 @@ describe("AiChatDialog", () => {
     const initialReceipt = createReceipt({
       meta: {
         title: "Snapshot Receipt",
+        currencySymbol: "₽",
       },
     });
     const liveReceipt = createReceipt({
       meta: {
         title: "Live Receipt",
+        currencySymbol: "₽",
       },
       positions: [
         ...createReceipt().positions,
@@ -483,11 +492,12 @@ describe("AiChatDialog", () => {
   it("evaluates claims preview confirm state against the live receipt", async () => {
     sendReceiptChatMessageMock.mockResolvedValueOnce({
       type: "claims_preview",
+      receiptSnapshot: createReceipt(),
       positionClaims: {
         "pos-1": [
           {
             type: "amount",
-            value: 100,
+            value: 90,
             participantIds: ["participant-1"],
           },
         ],
@@ -499,6 +509,10 @@ describe("AiChatDialog", () => {
 
     const initialReceipt = createReceipt();
     const expiredLiveReceipt = createReceipt({
+      meta: {
+        title: "Receipt",
+        currencySymbol: "₽",
+      },
       positions: [],
       totals: {
         total: 0,
@@ -515,7 +529,7 @@ describe("AiChatDialog", () => {
     await user.type(screen.getByPlaceholderText(/ask/i), "Show distributions preview");
     await user.click(screen.getByRole("button", { name: /send/i }));
 
-    await user.click(screen.getByRole("button", { name: /review distributions/i }));
+    await user.click(screen.getByRole("button", { name: /apply/i }));
     const modalBefore = await screen.findByRole("alertdialog");
     expect(within(modalBefore).getByRole("button", { name: /replace all/i })).toBeInTheDocument();
 
@@ -524,5 +538,77 @@ describe("AiChatDialog", () => {
     const modalAfter = await screen.findByRole("alertdialog");
     expect(within(modalAfter).getByText(/preview expired/i)).toBeInTheDocument();
     expect(within(modalAfter).queryByRole("button", { name: /replace all/i })).not.toBeInTheDocument();
+  });
+
+  it("hides the apply button when the claims preview is already applied", async () => {
+    sendReceiptChatMessageMock.mockResolvedValueOnce({
+      type: "claims_preview",
+      receiptSnapshot: createReceipt(),
+      positionClaims: {
+        "pos-1": [
+          {
+            type: "amount",
+            value: 100,
+            participantIds: ["participant-1"],
+          },
+        ],
+      },
+      events: [],
+    });
+
+    const user = userEvent.setup();
+
+    renderWithContext(
+      <AiChatDialog receiptId="receipt-1" receiptTitle="Receipt" />,
+      createReceipt(),
+    );
+
+    await user.click(screen.getByRole("button", { name: /ai/i }));
+    await user.type(screen.getByPlaceholderText(/ask/i), "Show distributions preview");
+    await user.click(screen.getByRole("button", { name: /send/i }));
+
+    expect(await screen.findByText("Burger")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /apply/i })).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Burger").closest('div[class*="border-emerald-300/70"]'),
+    ).toHaveClass("border-emerald-300/70");
+    expect(
+      screen.getByText("Burger").closest('div[class*="bg-emerald-50/60"]'),
+    ).toHaveClass("bg-emerald-50/60");
+  });
+
+  it("hides the apply button and marks removed positions when the claims preview is expired", async () => {
+    sendReceiptChatMessageMock.mockResolvedValueOnce({
+      type: "claims_preview",
+      receiptSnapshot: createStructuralWarningReceipt(),
+      positionClaims: {
+        "pos-1": [
+          {
+            type: "amount",
+            value: 100,
+            participantIds: ["participant-1"],
+          },
+        ],
+      },
+      events: [],
+    });
+
+    const user = userEvent.setup();
+
+    renderWithContext(
+      <AiChatDialog receiptId="receipt-1" receiptTitle="Receipt" />,
+      createReceipt(),
+    );
+
+    await user.click(screen.getByRole("button", { name: /ai/i }));
+    await user.type(screen.getByPlaceholderText(/ask/i), "Show distributions preview");
+    await user.click(screen.getByRole("button", { name: /send/i }));
+
+    expect(await screen.findByText("Burger")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /apply/i })).not.toBeInTheDocument();
+    expect(screen.getByText("Soda", { selector: ".line-through" })).toBeInTheDocument();
+    expect(screen.getByText("Burger").closest('div[class*="border-red-200"]')).toHaveClass(
+      "border-red-200",
+    );
   });
 });

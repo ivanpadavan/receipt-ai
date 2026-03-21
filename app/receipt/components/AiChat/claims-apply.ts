@@ -10,6 +10,7 @@ type ClaimsPreviewResponse = Extract<ReceiptChatResponse, { type: "claims_previe
 
 type PositionClaimsMap = ClaimsPreviewResponse["positionClaims"];
 type IncomingClaim = PositionClaimsMap[string][number];
+export type ClaimsPreviewStatus = "pending" | "applied" | "expired";
 
 function getParticipantNames(participantIds: string[], participants: ParticipantDTO[]) {
   return participantIds
@@ -23,6 +24,18 @@ function getParticipantNames(participantIds: string[], participants: Participant
 function claimIdentityKey(claim: Pick<ReceiptPositionClaim, "participantIds" | "type" | "value">) {
   const participantIds = [...claim.participantIds].sort().join(",");
   return `${participantIds}\u0000${claim.type}\u0000${claim.value}`;
+}
+
+function arePositionFieldsEqual(
+  left: Receipt["positions"][number],
+  right: Receipt["positions"][number],
+) {
+  return (
+    left.name === right.name &&
+    left.price === right.price &&
+    left.quantity === right.quantity &&
+    left.overall === right.overall
+  );
 }
 
 function normalizeIncomingClaim(claim: IncomingClaim): ReceiptPositionClaim {
@@ -51,10 +64,67 @@ export function hasClaimsPreviewData(positionClaims: PositionClaimsMap) {
 
 export function isClaimsPreviewExpired(
   currentReceipt: Receipt,
+  receiptSnapshot: Receipt,
+) {
+  return buildClaimsPreviewRemovedPositions(currentReceipt, receiptSnapshot).length > 0;
+}
+
+export function buildClaimsPreviewRemovedPositions(
+  currentReceipt: Receipt,
+  receiptSnapshot: Receipt,
+) {
+  const currentPositionsById = new Map(
+    currentReceipt.positions.map((position) => [position.id, position]),
+  );
+
+  return receiptSnapshot.positions.filter((snapshotPosition) => {
+    const currentPosition = currentPositionsById.get(snapshotPosition.id);
+    return !currentPosition || !arePositionFieldsEqual(currentPosition, snapshotPosition);
+  });
+}
+
+export function isClaimsPreviewApplied(
+  currentReceipt: Receipt,
+  receiptSnapshot: Receipt,
   positionClaims: PositionClaimsMap,
 ) {
-  const existingPositionIds = new Set(currentReceipt.positions.map((position) => position.id));
-  return Object.keys(positionClaims).some((positionId) => !existingPositionIds.has(positionId));
+  const currentPositionsById = new Map(
+    currentReceipt.positions.map((position) => [position.id, position]),
+  );
+
+  return receiptSnapshot.positions.every((snapshotPosition) => {
+    const currentPosition = currentPositionsById.get(snapshotPosition.id);
+    if (!currentPosition || !arePositionFieldsEqual(currentPosition, snapshotPosition)) {
+      return false;
+    }
+
+    const previewClaims = positionClaims[snapshotPosition.id] ?? [];
+    if (previewClaims.length === 0) {
+      return true;
+    }
+
+    const currentClaimKeys = new Set(
+      currentPosition.claims.map((claim) => claimIdentityKey(claim)),
+    );
+
+    return previewClaims.every((claim) => currentClaimKeys.has(claimIdentityKey(claim)));
+  });
+}
+
+export function getClaimsPreviewStatus(
+  currentReceipt: Receipt,
+  receiptSnapshot: Receipt,
+  positionClaims: PositionClaimsMap,
+): ClaimsPreviewStatus {
+  if (isClaimsPreviewExpired(currentReceipt, receiptSnapshot)) {
+    return "expired";
+  }
+
+  if (isClaimsPreviewApplied(currentReceipt, receiptSnapshot, positionClaims)) {
+    return "applied";
+  }
+
+  return "pending";
 }
 
 export function canReplaceClaimsPreview(

@@ -78,6 +78,40 @@ describe("receipt chat schemas", () => {
     expect(
       receiptChatResponseSchema.safeParse({
         type: "claims_preview",
+        receiptSnapshot: {
+          meta: {
+            title: "Lunch",
+            currencySymbol: "₽",
+          },
+          positions: [
+            {
+              id: "position-1",
+              name: "Burger",
+              price: 100,
+              quantity: 1,
+              overall: 100,
+              claims: [],
+            },
+          ],
+          fees: [
+            {
+              id: "fee-1",
+              name: "Service",
+              value: 10,
+            },
+          ],
+          discounts: [
+            {
+              id: "discount-1",
+              name: "Promo",
+              value: 5,
+            },
+          ],
+          totals: {
+            total: 100,
+            grandTotal: 100,
+          },
+        },
         positionClaims: {
           "position-1": [
             {

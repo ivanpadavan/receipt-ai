@@ -286,6 +286,7 @@ describe("POST /api/receipt/[id]/chat", () => {
 
     await expect(response.json()).resolves.toEqual({
       type: "claims_preview",
+      receiptSnapshot: currentReceipt,
       positionClaims: {
         "position-1": [
           {

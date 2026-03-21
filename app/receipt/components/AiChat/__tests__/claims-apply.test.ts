@@ -4,8 +4,10 @@ import {
   applyClaimsPreviewAdd,
   applyClaimsPreviewReplace,
   buildClaimsReplaceWarnings,
+  buildClaimsPreviewRemovedPositions,
   canReplaceClaimsPreview,
-  isClaimsPreviewExpired,
+  getClaimsPreviewStatus,
+  isClaimsPreviewApplied,
 } from "@/app/receipt/components/AiChat/claims-apply";
 import type { Receipt } from "@/model/receipt/model";
 
@@ -130,8 +132,8 @@ describe("claims-apply", () => {
     ).toBe(true);
   });
 
-  it("computes replace availability, warnings, and expiration", () => {
-    const receipt: Receipt = {
+  it("computes replace availability, warnings, and preview states", () => {
+    const snapshotReceipt: Receipt = {
       meta: { title: "Receipt", currencySymbol: "₽" },
       positions: [
         {
@@ -154,6 +156,28 @@ describe("claims-apply", () => {
       discounts: [],
       totals: { total: 100, grandTotal: 100 },
     };
+    const liveReceipt: Receipt = {
+      ...snapshotReceipt,
+      positions: [
+        {
+          ...snapshotReceipt.positions[0],
+          claims: [
+            {
+              id: "live-claim-1",
+              participantIds: ["participant-1"],
+              type: "amount",
+              value: 80,
+            },
+            {
+              id: "live-claim-2",
+              participantIds: ["participant-1"],
+              type: "quantity",
+              value: 1,
+            },
+          ],
+        },
+      ],
+    };
     const positionClaims = {
       "pos-1": [
         {
@@ -165,10 +189,10 @@ describe("claims-apply", () => {
       ],
     };
 
-    expect(canReplaceClaimsPreview(receipt, positionClaims)).toBe(true);
+    expect(canReplaceClaimsPreview(liveReceipt, positionClaims)).toBe(true);
     expect(
       buildClaimsReplaceWarnings(
-        receipt,
+        liveReceipt,
         positionClaims,
         participants,
         "₽",
@@ -176,10 +200,21 @@ describe("claims-apply", () => {
       ),
     ).toEqual([
       {
-        id: "pos-1-claim-1-0",
+        id: "pos-1-live-claim-2-1",
         text: `Ivan — Burger 1 ${t("pcs")}`,
       },
     ]);
-    expect(isClaimsPreviewExpired(receipt, { "missing-pos": positionClaims["pos-1"] })).toBe(true);
+    expect(isClaimsPreviewApplied(liveReceipt, snapshotReceipt, positionClaims)).toBe(true);
+    expect(getClaimsPreviewStatus(liveReceipt, snapshotReceipt, positionClaims)).toBe("applied");
+    expect(buildClaimsPreviewRemovedPositions(liveReceipt, snapshotReceipt)).toHaveLength(0);
+
+    const expiredLiveReceipt: Receipt = {
+      ...snapshotReceipt,
+      positions: [],
+      totals: { total: 0, grandTotal: 0 },
+    };
+
+    expect(buildClaimsPreviewRemovedPositions(expiredLiveReceipt, snapshotReceipt)).toHaveLength(1);
+    expect(getClaimsPreviewStatus(expiredLiveReceipt, snapshotReceipt, positionClaims)).toBe("expired");
   });
 });

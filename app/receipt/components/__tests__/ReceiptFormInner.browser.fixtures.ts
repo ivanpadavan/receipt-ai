@@ -314,12 +314,14 @@ export const aiChatStructuralPreviewResponse: ReceiptChatResponse = {
     ],
     fees: [
       {
+        id: "fee-service",
         name: "Service",
         value: 15,
       },
     ],
     discounts: [
       {
+        id: "discount-promo",
         name: "Promo",
         value: 10,
       },
@@ -329,21 +331,41 @@ export const aiChatStructuralPreviewResponse: ReceiptChatResponse = {
       grandTotal: 205,
     },
   },
+  events: [],
 };
 
 export const aiChatClaimsPreviewResponse: ReceiptChatResponse = {
   type: "claims_preview",
+  receiptSnapshot: summaryBalancedReceipt,
   positionClaims: {
-    [summaryBalancedReceipt.positions[0].id]: summaryBalancedReceipt.positions[0].claims.map(
-      ({ id: _id, ...claim }) => claim,
-    ),
-    [summaryBalancedReceipt.positions[1].id]: summaryBalancedReceipt.positions[1].claims.map(
-      ({ id: _id, ...claim }) => claim,
-    ),
-    [summaryBalancedReceipt.positions[2].id]: summaryBalancedReceipt.positions[2].claims.map(
-      ({ id: _id, ...claim }) => claim,
-    ),
+    [summaryBalancedReceipt.positions[0].id]: [
+      {
+        participantIds: summaryBalancedReceipt.positions[0].claims[0].participantIds,
+        type: summaryBalancedReceipt.positions[0].claims[0].type,
+        value: summaryBalancedReceipt.positions[0].claims[0].value + 1,
+      },
+    ],
+    [summaryBalancedReceipt.positions[1].id]: [
+      {
+        participantIds: summaryBalancedReceipt.positions[1].claims[0].participantIds,
+        type: summaryBalancedReceipt.positions[1].claims[0].type,
+        value: summaryBalancedReceipt.positions[1].claims[0].value,
+      },
+      {
+        participantIds: summaryBalancedReceipt.positions[1].claims[1].participantIds,
+        type: summaryBalancedReceipt.positions[1].claims[1].type,
+        value: summaryBalancedReceipt.positions[1].claims[1].value,
+      },
+    ],
+    [summaryBalancedReceipt.positions[2].id]: [
+      {
+        participantIds: summaryBalancedReceipt.positions[2].claims[0].participantIds,
+        type: summaryBalancedReceipt.positions[2].claims[0].type,
+        value: summaryBalancedReceipt.positions[2].claims[0].value,
+      },
+    ],
   },
+  events: [],
 };
 
 export const summaryRemainingReceipt: Receipt = {

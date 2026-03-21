@@ -4,6 +4,7 @@ import {
   positionAiSchema,
   receiptWithIdsSchema,
 } from "@/model/receipt/schema-structural";
+import { receiptWithIdsAndClaimsSchema } from "@/model/receipt/schema-form";
 
 export const receiptChatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
@@ -81,9 +82,10 @@ const receiptChatPositionClaimsSchema = z.record(
 
 export const receiptChatClaimsPreviewResponseSchema = receiptChatResponseMetadataSchema.extend({
   type: z.literal("claims_preview"),
+  receiptSnapshot: receiptWithIdsAndClaimsSchema,
   positionClaims: receiptChatPositionClaimsSchema,
 }).describe(
-  "Claims preview returned to the client. The client receives only `positionClaims` keyed by existing receipt position ids and builds the preview from the current receipt.",
+  "Claims preview returned to the client. The client receives the live receipt snapshot plus only `positionClaims` keyed by existing receipt position ids and builds the preview from the snapshot.",
 );
 
 export const receiptChatResponseSchema = z.discriminatedUnion("type", [

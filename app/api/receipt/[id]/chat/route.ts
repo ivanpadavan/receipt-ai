@@ -266,6 +266,7 @@ function toApiResponse(
 
   return receiptChatResponseSchema.parse({
     type: "claims_preview",
+    receiptSnapshot: receipt,
     positionClaims,
     events: response.events,
   });
