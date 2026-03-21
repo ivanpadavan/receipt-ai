@@ -5,6 +5,7 @@ import { t } from "@/app/i18n/translations";
 import type { ParticipantDTO, Receipt, ReceiptPositionClaim } from "@/model/receipt/model";
 import type { ReceiptChatResponse } from "@/model/receipt/schema-chat";
 import type { StructuralLossWarning } from "@/app/receipt/components/AiChat/structural-apply";
+import { buildClaimsPreviewReceipt } from "@/model/receipt/claims-preview";
 
 type ClaimsPreviewResponse = Extract<ReceiptChatResponse, { type: "claims_preview" }>;
 
@@ -58,6 +59,20 @@ function claimTouchesParticipants(claim: ReceiptPositionClaim, participantIds: S
   return claim.participantIds.some((participantId) => participantIds.has(participantId));
 }
 
+function comparePositionClaims(
+  currentClaims: Array<ReceiptPositionClaim | Omit<ReceiptPositionClaim, "id">>,
+  nextClaims: Array<ReceiptPositionClaim | Omit<ReceiptPositionClaim, "id">>,
+) {
+  if (currentClaims.length !== nextClaims.length) {
+    return false;
+  }
+
+  const currentKeys = currentClaims.map(claimIdentityKey).sort();
+  const nextKeys = nextClaims.map(claimIdentityKey).sort();
+
+  return currentKeys.every((key, index) => key === nextKeys[index]);
+}
+
 export function hasClaimsPreviewData(positionClaims: PositionClaimsMap) {
   return Object.values(positionClaims).some((claims) => claims.length > 0);
 }
@@ -78,8 +93,7 @@ export function buildClaimsPreviewRemovedPositions(
   );
 
   return receiptSnapshot.positions.filter((snapshotPosition) => {
-    const currentPosition = currentPositionsById.get(snapshotPosition.id);
-    return !currentPosition || !arePositionFieldsEqual(currentPosition, snapshotPosition);
+    return !currentPositionsById.has(snapshotPosition.id);
   });
 }
 
@@ -88,26 +102,22 @@ export function isClaimsPreviewApplied(
   receiptSnapshot: Receipt,
   positionClaims: PositionClaimsMap,
 ) {
-  const currentPositionsById = new Map(
-    currentReceipt.positions.map((position) => [position.id, position]),
-  );
+  const previewReceipt = buildClaimsPreviewReceipt(receiptSnapshot, positionClaims);
 
-  return receiptSnapshot.positions.every((snapshotPosition) => {
-    const currentPosition = currentPositionsById.get(snapshotPosition.id);
-    if (!currentPosition || !arePositionFieldsEqual(currentPosition, snapshotPosition)) {
+  if (currentReceipt.positions.length !== previewReceipt.positions.length) {
+    return false;
+  }
+
+  return previewReceipt.positions.every((previewPosition, index) => {
+    const currentPosition = currentReceipt.positions[index];
+    if (!currentPosition || currentPosition.id !== previewPosition.id) {
       return false;
     }
 
-    const previewClaims = positionClaims[snapshotPosition.id] ?? [];
-    if (previewClaims.length === 0) {
-      return true;
-    }
-
-    const currentClaimKeys = new Set(
-      currentPosition.claims.map((claim) => claimIdentityKey(claim)),
+    return (
+      arePositionFieldsEqual(currentPosition, previewPosition) &&
+      comparePositionClaims(currentPosition.claims, previewPosition.claims)
     );
-
-    return previewClaims.every((claim) => currentClaimKeys.has(claimIdentityKey(claim)));
   });
 }
 

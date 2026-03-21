@@ -9,6 +9,7 @@ import {
   getClaimsPreviewStatus,
   isClaimsPreviewApplied,
 } from "@/app/receipt/components/AiChat/claims-apply";
+import { buildClaimsPreviewReceipt } from "@/model/receipt/claims-preview";
 import type { Receipt } from "@/model/receipt/model";
 
 const participants = [
@@ -132,6 +133,65 @@ describe("claims-apply", () => {
     ).toBe(true);
   });
 
+  it("preserves snapshot claims on positions omitted from positionClaims", () => {
+    const receipt: Receipt = {
+      meta: { title: "Receipt", currencySymbol: "₽" },
+      positions: [
+        {
+          id: "pos-1",
+          name: "Burger",
+          price: 100,
+          quantity: 1,
+          overall: 100,
+          claims: [
+            {
+              id: "claim-1",
+              participantIds: ["participant-1"],
+              type: "quantity",
+              value: 1,
+            },
+          ],
+        },
+        {
+          id: "pos-2",
+          name: "Soda",
+          price: 50,
+          quantity: 1,
+          overall: 50,
+          claims: [
+            {
+              id: "claim-2",
+              participantIds: ["participant-2"],
+              type: "amount",
+              value: 50,
+            },
+          ],
+        },
+      ],
+      fees: [],
+      discounts: [],
+      totals: { total: 150, grandTotal: 150 },
+    };
+
+    const previewReceipt = buildClaimsPreviewReceipt(receipt, {
+      "pos-1": [
+        {
+          participantIds: ["participant-1"],
+          type: "amount",
+          value: 80,
+        },
+      ],
+    });
+
+    expect(previewReceipt.positions[0].claims).toHaveLength(1);
+    expect(previewReceipt.positions[0].claims[0]).toMatchObject({
+      participantIds: ["participant-1"],
+      type: "amount",
+      value: 80,
+    });
+    expect(previewReceipt.positions[1].claims).toEqual(receipt.positions[1].claims);
+  });
+
   it("computes replace availability, warnings, and preview states", () => {
     const snapshotReceipt: Receipt = {
       meta: { title: "Receipt", currencySymbol: "₽" },
@@ -156,7 +216,7 @@ describe("claims-apply", () => {
       discounts: [],
       totals: { total: 100, grandTotal: 100 },
     };
-    const liveReceipt: Receipt = {
+    const warningReceipt: Receipt = {
       ...snapshotReceipt,
       positions: [
         {
@@ -178,6 +238,22 @@ describe("claims-apply", () => {
         },
       ],
     };
+    const appliedReceipt: Receipt = {
+      ...snapshotReceipt,
+      positions: [
+        {
+          ...snapshotReceipt.positions[0],
+          claims: [
+            {
+              id: "live-claim-1",
+              participantIds: ["participant-1"],
+              type: "amount",
+              value: 80,
+            },
+          ],
+        },
+      ],
+    };
     const positionClaims = {
       "pos-1": [
         {
@@ -189,10 +265,10 @@ describe("claims-apply", () => {
       ],
     };
 
-    expect(canReplaceClaimsPreview(liveReceipt, positionClaims)).toBe(true);
+    expect(canReplaceClaimsPreview(warningReceipt, positionClaims)).toBe(true);
     expect(
       buildClaimsReplaceWarnings(
-        liveReceipt,
+        warningReceipt,
         positionClaims,
         participants,
         "₽",
@@ -204,9 +280,24 @@ describe("claims-apply", () => {
         text: `Ivan — Burger 1 ${t("pcs")}`,
       },
     ]);
-    expect(isClaimsPreviewApplied(liveReceipt, snapshotReceipt, positionClaims)).toBe(true);
-    expect(getClaimsPreviewStatus(liveReceipt, snapshotReceipt, positionClaims)).toBe("applied");
-    expect(buildClaimsPreviewRemovedPositions(liveReceipt, snapshotReceipt)).toHaveLength(0);
+    expect(isClaimsPreviewApplied(appliedReceipt, snapshotReceipt, positionClaims)).toBe(true);
+    expect(getClaimsPreviewStatus(appliedReceipt, snapshotReceipt, positionClaims)).toBe("applied");
+    expect(buildClaimsPreviewRemovedPositions(appliedReceipt, snapshotReceipt)).toHaveLength(0);
+
+    const changedLiveReceipt: Receipt = {
+      ...snapshotReceipt,
+      positions: [
+        {
+          ...snapshotReceipt.positions[0],
+          name: "Burger XL",
+        },
+      ],
+    };
+
+    expect(buildClaimsPreviewRemovedPositions(changedLiveReceipt, snapshotReceipt)).toHaveLength(0);
+    expect(getClaimsPreviewStatus(changedLiveReceipt, snapshotReceipt, positionClaims)).toBe(
+      "pending",
+    );
 
     const expiredLiveReceipt: Receipt = {
       ...snapshotReceipt,
