@@ -14,17 +14,17 @@ import type { ReceiptChatResponse } from "@/model/receipt/schema-chat";
 type ClaimsPreviewResponse = Extract<ReceiptChatResponse, { type: "claims_preview" }>;
 
 interface AiChatClaimsPreviewProps {
-  currentReceipt: Receipt;
+  receiptSnapshot: Receipt;
   response: ClaimsPreviewResponse;
   onApply: () => void;
 }
 
 export const AiChatClaimsPreview: React.FC<AiChatClaimsPreviewProps> = ({
-  currentReceipt,
+  receiptSnapshot,
   response,
   onApply,
 }) => {
-  const previewReceipt = buildClaimsPreviewReceipt(currentReceipt, response.positionClaims);
+  const previewReceipt = buildClaimsPreviewReceipt(receiptSnapshot, response.positionClaims);
 
   return (
     <ReceiptCard shadow="sm" radius="xl" tone="soft" className="overflow-hidden">

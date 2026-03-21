@@ -5,6 +5,17 @@ export type ReceiptClaimsPreviewMap = Record<
   Array<Omit<ReceiptPositionClaim, "id">>
 >;
 
+export type ReceiptClaimsPreviewSourcePosition = Omit<
+  Receipt["positions"][number],
+  "claims"
+> & {
+  claims: Array<Omit<ReceiptPositionClaim, "id">>;
+};
+
+export type ReceiptClaimsPreviewSourceReceipt = Omit<Receipt, "positions"> & {
+  positions: ReceiptClaimsPreviewSourcePosition[];
+};
+
 function claimSemanticKey(
   claim: Omit<ReceiptPositionClaim, "id"> | ReceiptPositionClaim,
 ) {
@@ -12,7 +23,9 @@ function claimSemanticKey(
   return `${participantIds}\u0000${claim.type}\u0000${claim.value}`;
 }
 
-function stripClaimId(claim: ReceiptPositionClaim): Omit<ReceiptPositionClaim, "id"> {
+function stripClaimId(
+  claim: ReceiptPositionClaim | Omit<ReceiptPositionClaim, "id">,
+): Omit<ReceiptPositionClaim, "id"> {
   const { id: _id, ...rest } = claim;
   return rest;
 }
@@ -66,7 +79,7 @@ function comparePositionClaims(
 
 export function reduceClaimsPreviewReceipt(
   currentReceipt: Receipt,
-  nextReceipt: Receipt,
+  nextReceipt: ReceiptClaimsPreviewSourceReceipt,
 ): ReceiptClaimsPreviewMap {
   const currentPositionsById = new Map(
     currentReceipt.positions.map((position) => [position.id, position] as const),

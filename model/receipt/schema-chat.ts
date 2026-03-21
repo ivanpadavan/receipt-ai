@@ -1,9 +1,7 @@
 import { z } from "zod";
 import {
-  receiptWithIdsAndClaimsSchema,
-} from "@/model/receipt/schema-form";
-import {
   receiptStructuralPreviewSchema,
+  positionAiSchema,
   receiptWithIdsSchema,
 } from "@/model/receipt/schema-structural";
 
@@ -50,6 +48,20 @@ const receiptChatClaimSchema = z.object({
   "One proposed claim for a single existing receipt position.",
 );
 
+const receiptChatClaimModelSchema = z.object({
+  participantIds: z.array(z.string()).describe(
+    "Participant ids that should own this claim. Every id in this array must come from the provided participants list. Use the current user participant id when the user refers to themselves.",
+  ),
+  type: z.enum(["quantity", "amount"]).describe(
+    "How the claim value should be interpreted. Use `quantity` when splitting item units, pieces, drinks, or fractional item quantities. Use `amount` when assigning a money amount directly.",
+  ),
+  value: z.number().describe(
+    "Numeric claim value for the selected type. For `quantity`, this is the claimed unit count or fractional quantity for that position. For `amount`, this is the claimed money amount in receipt currency, not a percentage.",
+  ),
+}).describe(
+  "One proposed claim for a single existing receipt position. The model does not need to include claim ids.",
+);
+
 const receiptChatPositionClaimsSchema = z.record(
   z.array(receiptChatClaimSchema),
 ).describe(
@@ -81,7 +93,14 @@ export const receiptChatStructuralPreviewModelResponseSchema = z.object({
 
 export const receiptChatClaimsPreviewModelResponseSchema = z.object({
   type: z.literal("claims_preview"),
-  receipt: receiptWithIdsAndClaimsSchema,
+  receipt: receiptWithIdsSchema.extend({
+    positions: z.array(
+      positionAiSchema.extend({
+        id: z.string(),
+        claims: z.array(receiptChatClaimModelSchema),
+      }),
+    ),
+  }),
 }).describe(
   "Canonical claims preview response for the model. Return the full receipt again. Only claims may differ from the original receipt. Do not add or remove positions. Keep existing position ids stable.",
 );

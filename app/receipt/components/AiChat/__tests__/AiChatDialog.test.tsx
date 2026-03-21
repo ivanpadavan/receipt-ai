@@ -109,41 +109,51 @@ function createStructuralWarningReceipt(): Receipt {
 
 function renderWithContext(ui: React.ReactElement, receipt: Receipt = createReceipt()) {
   const replaceReceiptInForm = vi.fn();
-  const formState = {
-    scenario: {
-      type: "summary",
-      canEdit: {
-        positionForm: false,
-        modifierForm: false,
-        totalsForm: false,
-      },
-      form: {
-        getValues: (path?: string) => {
-          if (!path) return receipt;
-          if (path === "meta.currencySymbol") return receipt.meta.currencySymbol;
-          return undefined;
+  const buildFormState = (nextReceipt: Receipt) =>
+    ({
+      scenario: {
+        type: "summary",
+        canEdit: {
+          positionForm: false,
+          modifierForm: false,
+          totalsForm: false,
+        },
+        form: {
+          getValues: (path?: string) => {
+            if (!path) return nextReceipt;
+            if (path === "meta.currencySymbol") return nextReceipt.meta.currencySymbol;
+            return undefined;
+          },
         },
       },
-    },
-    openEditModal: vi.fn(),
-    proceed: vi.fn(),
-    canProceed: true,
-    editModalProps: {
-      splitting: null,
-      editing: null,
-    },
-    replaceReceiptInForm,
-  } as unknown as ReceiptState;
+      openEditModal: vi.fn(),
+      proceed: vi.fn(),
+      canProceed: true,
+      editModalProps: {
+        splitting: null,
+        editing: null,
+      },
+      replaceReceiptInForm,
+    }) as unknown as ReceiptState;
 
-  const renderResult = render(
-    <ReceiptFormContext.Provider value={formState}>
-      {ui}
-    </ReceiptFormContext.Provider>,
-  );
+  const renderWithReceipt = (nextReceipt: Receipt) =>
+    render(
+      <ReceiptFormContext.Provider value={buildFormState(nextReceipt)}>
+        {ui}
+      </ReceiptFormContext.Provider>,
+    );
+
+  const renderResult = renderWithReceipt(receipt);
 
   return {
     ...renderResult,
     replaceReceiptInForm,
+    rerenderWithReceipt: (nextReceipt: Receipt) =>
+      renderResult.rerender(
+        <ReceiptFormContext.Provider value={buildFormState(nextReceipt)}>
+          {ui}
+        </ReceiptFormContext.Provider>,
+      ),
   };
 }
 
@@ -361,5 +371,65 @@ describe("AiChatDialog", () => {
         ]),
       }),
     );
+  });
+
+  it("keeps claims preview transcript bubbles stable after the live receipt changes", async () => {
+    sendReceiptChatMessageMock.mockResolvedValueOnce({
+      type: "claims_preview",
+      positionClaims: {
+        "pos-1": [
+          {
+            type: "amount",
+            value: 100,
+            participantIds: ["participant-1"],
+          },
+        ],
+      },
+      events: [],
+    });
+
+    const user = userEvent.setup();
+
+    const initialReceipt = createReceipt({
+      meta: {
+        title: "Snapshot Receipt",
+      },
+    });
+    const liveReceipt = createReceipt({
+      meta: {
+        title: "Live Receipt",
+      },
+      positions: [
+        ...createReceipt().positions,
+        {
+          id: "pos-2",
+          name: "Fries",
+          price: 50,
+          quantity: 1,
+          overall: 50,
+          claims: [],
+        },
+      ],
+      totals: {
+        total: 150,
+        grandTotal: 150,
+      },
+    });
+
+    const { rerenderWithReceipt } = renderWithContext(
+      <AiChatDialog receiptId="receipt-1" receiptTitle="Receipt" />,
+      initialReceipt,
+    );
+
+    await user.click(screen.getByRole("button", { name: /ai/i }));
+    await user.type(screen.getByPlaceholderText(/ask/i), "Show distributions preview");
+    await user.click(screen.getByRole("button", { name: /send/i }));
+
+    expect(await screen.findByText("Burger")).toBeInTheDocument();
+
+    rerenderWithReceipt(liveReceipt);
+
+    expect(screen.getByText("Burger")).toBeInTheDocument();
+    expect(screen.queryByText("Fries")).not.toBeInTheDocument();
   });
 });

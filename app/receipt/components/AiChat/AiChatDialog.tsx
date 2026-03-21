@@ -50,6 +50,7 @@ type TranscriptEntry = {
   role: "user" | "assistant" | "system";
   content: string;
   response?: ReceiptChatResponse;
+  receiptSnapshot?: Receipt;
 };
 
 function getToolEventContent(event: ReceiptChatToolEvent) {
@@ -78,7 +79,7 @@ const createId = () => crypto.randomUUID();
 
 function getAssistantTranscriptContent(
   response: ReceiptChatResponse,
-  currentReceipt: Receipt,
+  receiptSnapshot: Receipt,
 ) {
   if (response.type === "question") {
     return response.message;
@@ -87,11 +88,11 @@ function getAssistantTranscriptContent(
   const title =
     response.type === "structural_preview"
       ? response.receipt.meta.title ?? t("receipt")
-      : currentReceipt.meta.title ?? t("receipt");
+      : receiptSnapshot.meta.title ?? t("receipt");
   const positionCount =
     response.type === "structural_preview"
       ? response.receipt.positions.length
-      : currentReceipt.positions.length;
+      : receiptSnapshot.positions.length;
 
   return response.type === "structural_preview"
     ? `${t("aiChatStructuralPreview")}: ${title} (${positionCount} ${t("positions")})`
@@ -100,9 +101,9 @@ function getAssistantTranscriptContent(
 
 function renderAssistantResponse(
   response: ReceiptChatResponse,
-  currentReceipt: Receipt,
+  receiptSnapshot: Receipt,
   onRequestStructuralApply: (response: StructuralPreviewResponse) => void,
-  onRequestClaimsApply: (response: ClaimsPreviewResponse) => void,
+  onRequestClaimsApply: (response: ClaimsPreviewResponse, receiptSnapshot: Receipt) => void,
 ) {
   if (response.type === "question") {
     return (
@@ -130,9 +131,9 @@ function renderAssistantResponse(
 
   return (
     <AiChatClaimsPreview
-      currentReceipt={currentReceipt}
+      receiptSnapshot={receiptSnapshot}
       response={response}
-      onApply={() => onRequestClaimsApply(response)}
+      onApply={() => onRequestClaimsApply(response, receiptSnapshot)}
     />
   );
 }
@@ -150,7 +151,13 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   const [pendingStructuralPreview, setPendingStructuralPreview] =
     useState<StructuralPreviewResponse | null>(null);
   const [pendingClaimsPreview, setPendingClaimsPreview] =
-    useState<ClaimsPreviewResponse | null>(null);
+    useState<
+      | {
+          response: ClaimsPreviewResponse;
+          receiptSnapshot: Receipt;
+        }
+      | null
+    >(null);
   const endRef = useRef<HTMLDivElement | null>(null);
   const currentReceipt = scenario.form.getValues() as Receipt;
 
@@ -169,21 +176,27 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
     : [];
   const claimsReplaceWarnings = pendingClaimsPreview
     ? buildClaimsReplaceWarnings(
-        currentReceipt,
-        pendingClaimsPreview.positionClaims,
+        pendingClaimsPreview.receiptSnapshot,
+        pendingClaimsPreview.response.positionClaims,
         participants,
-        currentReceipt.meta.currencySymbol ?? currencySymbol,
+        pendingClaimsPreview.receiptSnapshot.meta.currencySymbol ?? currencySymbol,
         formatMoney,
       )
     : [];
   const claimsPreviewExpired = pendingClaimsPreview
-    ? isClaimsPreviewExpired(currentReceipt, pendingClaimsPreview.positionClaims)
+    ? isClaimsPreviewExpired(
+        pendingClaimsPreview.receiptSnapshot,
+        pendingClaimsPreview.response.positionClaims,
+      )
     : false;
   const canReplaceClaims = pendingClaimsPreview
-    ? canReplaceClaimsPreview(currentReceipt, pendingClaimsPreview.positionClaims)
+    ? canReplaceClaimsPreview(
+        pendingClaimsPreview.receiptSnapshot,
+        pendingClaimsPreview.response.positionClaims,
+      )
     : false;
   const hasClaimsData = pendingClaimsPreview
-    ? hasClaimsPreviewData(pendingClaimsPreview.positionClaims)
+    ? hasClaimsPreviewData(pendingClaimsPreview.response.positionClaims)
     : false;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -214,6 +227,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
           )
           .map(({ role, content }) => ({ role, content })),
       });
+      const receiptSnapshot = scenario.form.getValues() as Receipt;
 
       setMessages((current) => {
         const toolEvents = (response.events ?? []).map((event: ReceiptChatToolEvent) => ({
@@ -228,8 +242,9 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
           {
             id: createId(),
             role: "assistant" as const,
-            content: getAssistantTranscriptContent(response, currentReceipt),
+            content: getAssistantTranscriptContent(response, receiptSnapshot),
             response,
+            receiptSnapshot,
           },
         ];
       });
@@ -298,10 +313,10 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                 >
                       {entry.response ? (
                         <div className="max-w-full sm:max-w-[90%]">
-                      {renderAssistantResponse(entry.response, currentReceipt, (response) => {
+                      {renderAssistantResponse(entry.response, entry.receiptSnapshot ?? currentReceipt, (response) => {
                         setPendingStructuralPreview(response);
-                      }, (response) => {
-                        setPendingClaimsPreview(response);
+                      }, (response, receiptSnapshot) => {
+                        setPendingClaimsPreview({ response, receiptSnapshot });
                       })}
                         </div>
                   ) : entry.role === "system" ? (
@@ -460,7 +475,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                     replaceReceiptInForm(
                       applyClaimsPreviewAdd(
                         scenario.form.getValues() as Receipt,
-                        pendingClaimsPreview.positionClaims,
+                        pendingClaimsPreview.response.positionClaims,
                       ),
                     );
                     setPendingClaimsPreview(null);
@@ -474,7 +489,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                       replaceReceiptInForm(
                         applyClaimsPreviewReplace(
                           scenario.form.getValues() as Receipt,
-                          pendingClaimsPreview.positionClaims,
+                          pendingClaimsPreview.response.positionClaims,
                         ),
                       );
                       setPendingClaimsPreview(null);

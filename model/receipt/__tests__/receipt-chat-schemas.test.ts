@@ -70,7 +70,6 @@ describe("receipt chat schemas", () => {
               overall: 100,
               claims: [
                 {
-                  id: "claim-1",
                   participantIds: ["participant-1"],
                   type: "quantity",
                   value: 1,
