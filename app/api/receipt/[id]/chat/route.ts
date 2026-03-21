@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Prisma } from "@/prisma/generated/prisma/client";
 import { ChatOpenRouter } from "@langchain/openrouter";
 import { HumanMessage } from "@langchain/core/messages";
 import { createAgent, tool } from "langchain";
@@ -13,6 +14,7 @@ import {
   receiptChatPersistedSchema,
   receiptChatModelResponseSchema,
   receiptChatModelResponseSchemas,
+  receiptChatStructuralPreviewModelResponseSchema,
   receiptChatResponseSchema,
   type ReceiptChatResponse,
   type ReceiptChatToolEvent,
@@ -31,6 +33,12 @@ import {
 import { createSseResponse } from "@/app/api/receipt/sse";
 import { getUser, serverSupabase } from "@/utils/supabase/server";
 import { BehaviorSubject, distinctUntilChanged, finalize, tap } from "rxjs";
+import {
+  buildRepairContext,
+  createBusinessRepairChain,
+  repairWithBusinessValidation,
+} from "@/app/api/receipt/business-repair-chain";
+import { receiptImageInstructions } from "@/app/api/receipt/prompts";
 
 export const runtime = "nodejs";
 
@@ -46,6 +54,16 @@ const structuredChatResponseModel = model.withStructuredOutput(
     name: "receipt_chat_response",
   },
 );
+
+const structuralPreviewRepairChain = createBusinessRepairChain(model, {
+  schema: receiptChatStructuralPreviewModelResponseSchema,
+  name: "receipt_chat_structural_preview_repair",
+  instructions:
+    "Keep response type = structural_preview.\n" +
+    "Return the full structural preview without claims.\n" +
+    "Preserve existing row/modifier ids where present.\n" +
+    "For new rows/modifiers, omit id.",
+});
 
 function formatHistory(
   history: { role: "user" | "assistant"; content: string }[],
@@ -134,9 +152,9 @@ function assignMissingIds<T extends { id?: string }>(items: T[]) {
 
 async function lockReceiptChatRow<T>(
   receiptId: string,
-  callback: (tx: any) => Promise<T>,
+  callback: (tx: Prisma.TransactionClient) => Promise<T>,
 ) {
-  return db.$transaction(async (tx: any) => {
+  return db.$transaction(async (tx: Prisma.TransactionClient) => {
     await tx.$queryRaw`
       SELECT 1
       FROM public."Receipt"
@@ -256,9 +274,36 @@ async function generateReceiptChatResponse({
     throw error;
   }
 
-  const structuredResponse = receiptChatModelResponseSchema.parse(
+  let structuredResponse = receiptChatModelResponseSchema.parse(
     result.structuredResponse,
   );
+
+  if (structuredResponse.type === "structural_preview") {
+    structuredResponse = await repairWithBusinessValidation({
+      result: structuredResponse,
+      getReceipt: (value) => value.receipt,
+      setReceipt: (value, receipt) => ({
+        ...value,
+        receipt,
+      }),
+      repairChain: structuralPreviewRepairChain,
+      parseRepaired: (value) => value.receipt,
+      repairContext: buildRepairContext([
+        {
+          title: "Original receipt extraction prompt",
+          content: receiptImageInstructions,
+        },
+        {
+          title: "Original chat prompt",
+          content: prompt,
+        },
+      ]),
+      telemetry: {
+        label: "receipt_chat_structural_preview",
+        meta: { receiptId },
+      },
+    });
+  }
 
   const normalizedResponse =
     structuredResponse.type === "structural_preview"

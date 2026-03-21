@@ -1,4 +1,8 @@
 import { t } from "@/app/i18n/translations";
+import {
+  formatReceiptBusinessValidationIssues,
+  getReceiptBusinessValidationIssues,
+} from "@/model/receipt/business-validation";
 import type { Receipt } from "@/model/receipt/model";
 import type {
   ReceiptChatHistoryEntry,
@@ -39,18 +43,20 @@ function getAssistantChatContent(response: ReceiptChatResponse) {
     return response.message;
   }
 
-  const title =
-    response.type === "structural_preview"
-      ? response.receipt.meta.title ?? t("receipt")
-      : response.receiptSnapshot.meta.title ?? t("receipt");
-  const positionCount =
-    response.type === "structural_preview"
-      ? response.receipt.positions.length
-      : response.receiptSnapshot.positions.length;
+  if (response.type === "structural_preview") {
+    const title = response.receipt.meta.title ?? t("receipt");
+    const positionCount = response.receipt.positions.length;
+    const issues = getReceiptBusinessValidationIssues(response.receipt);
+    const formattedIssues = formatReceiptBusinessValidationIssues(issues);
 
-  return response.type === "structural_preview"
-    ? `${t("aiChatStructuralPreview")}: ${title} (${positionCount} ${t("positions")})`
-    : `${t("aiChatClaimsPreview")}: ${title} (${positionCount} ${t("positions")})`;
+    return formattedIssues.length === 0
+      ? `${t("aiChatStructuralPreview")}: ${title} (${positionCount} ${t("positions")})`
+      : `${t("aiChatStructuralPreview")}: ${title} (${positionCount} ${t("positions")})\nBusiness validation issues:\n${formattedIssues}`;
+  }
+
+  const title = response.receiptSnapshot.meta.title ?? t("receipt");
+  const positionCount = response.receiptSnapshot.positions.length;
+  return `${t("aiChatClaimsPreview")}: ${title} (${positionCount} ${t("positions")})`;
 }
 
 export function buildPromptHistory(

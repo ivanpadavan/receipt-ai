@@ -1,28 +1,22 @@
-import { receiptAiSchema, receiptBusinessSchema } from "@/model/receipt/schema";
+import { receiptAiSchema } from "@/model/receipt/schema";
 import { Receipt, ReceiptNoId } from "@/model/receipt/model";
 import { NextRequest, NextResponse } from "next/server";
 import { ChatOpenRouter } from "@langchain/openrouter";
-import { PromptTemplate } from "@langchain/core/prompts";
 import { db } from "@/app/db";
 import postValidator from "@/app/api-client/receipt/post";
 import { serverSupabase } from "@/utils/supabase/server";
 import { errorWrap } from "@/app/api/receipt/error-wrap";
 import { t, withLanguage } from "@/app/i18n/translations";
 import { HumanMessage } from "@langchain/core/messages";
+import {
+  buildRepairContext,
+  createBusinessRepairChain,
+  repairWithBusinessValidation,
+} from "@/app/api/receipt/business-repair-chain";
+import { receiptImageInstructions } from "@/app/api/receipt/prompts";
 
 // Edge runtime is not compatible with Prisma, so we need to use the Node.js runtime
 export const runtime = "nodejs";
-
-const imageInstructions =
-  "Analyze the receipt images and extract the structured data.\n" +
-  "Treat all provided images as parts of the same receipt.\n" +
-  "Extract all paid items, prices, quantities, and totals.\n" +
-  "Items can have titles with line breaks. Don't miss data due to line break in the receipt. Carefully analyze start and end of position title.\n" +
-  "Skip free giveaway or complimentary positions with zero total cost. Do not include positions whose overall is 0 in the output.\n" +
-  "If a drink line is priced by liters but represents a single served item, simplify it to pieces: use quantity 1, use the line total as the item price and overall, and keep the poured volume in the name when helpful.\n" +
-  "After normalization, merge identical positions into one line when they have the same normalized name and unit price. Sum their quantity and overall.\n" +
-  "Identify any modifiers that increase the total (like tips, VAT, service fees) and modifiers that decrease the total (like discounts, promotions).\n" +
-  "Format the data according to the specified schema and keep totals consistent with the paid positions and modifiers.";
 
 const model = new ChatOpenRouter({
   temperature: 1,
@@ -34,19 +28,15 @@ const imageExtractor = model.withStructuredOutput(receiptAiSchema, {
   name: "receipt_data_extractor",
 });
 
-const fixErrorsPrompt = PromptTemplate.fromTemplate(
-  `There as result of reciept parsing: {result}. There are errors: {errors}. Fix them.
-Keep these extraction rules while fixing:
-- skip positions with zero total cost
-- if a drink is priced by liters but is a single served item, normalize it to quantity 1 and set price = overall = line total
-- merge identical normalized positions by summing quantity and overall`,
-);
-
-const fixErrorsChain = fixErrorsPrompt.pipe(
-  model.withStructuredOutput(receiptAiSchema, {
-    name: "receipt_data_extractor",
-  }),
-);
+const fixErrorsChain = createBusinessRepairChain(model, {
+  schema: receiptAiSchema,
+  name: "receipt_data_extractor",
+  instructions:
+    "Keep these extraction rules while fixing:\n" +
+    "- skip positions with zero total cost\n" +
+    "- if a drink is priced by liters but is a single served item, normalize it to quantity 1 and set price = overall = line total\n" +
+    "- merge identical normalized positions by summing quantity and overall",
+});
 
 function appendIdsToArr<T>(v: T[]): (T & { id: string })[] {
   return v.map((v) => ({ ...v, id: crypto.randomUUID() }));
@@ -98,7 +88,7 @@ async function analyzeImages(images: string[]) {
       content: [
         {
           type: "text",
-          text: imageInstructions,
+          text: receiptImageInstructions,
         },
         ...images.map((image) => ({
           type: "image_url" as const,
@@ -123,21 +113,22 @@ export async function POST(req: NextRequest) {
       );
 
       // Process the image
-      let result = await analyzeImages(body.images);
-
-      let i = 0;
-      while (i < 3) {
-        const validation = receiptBusinessSchema.safeParse(result);
-        if (!validation.success) {
-          result = await fixErrorsChain.invoke({
-            result,
-            errors: validation.error,
-          });
-          i++;
-        } else {
-          break;
-        }
-      }
+      const result = await repairWithBusinessValidation({
+        result: await analyzeImages(body.images),
+        getReceipt: (value) => value,
+        setReceipt: (_value, receipt) => receipt,
+        repairChain: fixErrorsChain,
+        parseRepaired: (value) => receiptAiSchema.parse(value),
+        repairContext: buildRepairContext([
+          {
+            title: "Original extraction instructions",
+            content: receiptImageInstructions,
+          },
+        ]),
+        telemetry: {
+          label: "receipt_parse",
+        },
+      });
 
       // Save the receipt to the database
       const receipt = await db.receipt.create({

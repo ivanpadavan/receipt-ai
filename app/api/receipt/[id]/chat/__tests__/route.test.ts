@@ -34,7 +34,11 @@ const transactionMock = vi.fn((callback: (tx: unknown) => unknown) =>
 );
 const errorWrapMock = vi.fn();
 const buildParticipantsMock = vi.fn();
-const channelMock = {
+const channelMock: {
+  on: ReturnType<typeof vi.fn>;
+  subscribe: ReturnType<typeof vi.fn>;
+  unsubscribe: ReturnType<typeof vi.fn>;
+} = {
   on: vi.fn().mockReturnThis(),
   subscribe: vi.fn(function (statusCallback?: (status: string) => void) {
     statusCallback?.("SUBSCRIBED");
@@ -44,7 +48,7 @@ const channelMock = {
 };
 const serverSupabaseMock = vi.fn();
 const getUserMock = vi.fn();
-const consoleInfoMock = vi.spyOn(console, "info").mockImplementation(() => {});
+const consoleInfoMock = vi.spyOn(console, "info").mockImplementation(() => undefined);
 const randomUuidMock = vi.spyOn(globalThis.crypto, "randomUUID");
 
 vi.mock("langchain", () => ({
@@ -65,7 +69,7 @@ vi.mock("@langchain/openrouter", () => ({
 
 vi.mock("@/app/db", () => ({
   db: {
-    $transaction: (...args: unknown[]) => transactionMock(...args),
+    $transaction: (callback: (tx: unknown) => unknown) => transactionMock(callback),
     receipt: {
       findUnique: (...args: unknown[]) => findUniqueMock(...args),
     },
@@ -187,15 +191,18 @@ describe("POST /api/receipt/[id]/chat", () => {
           }
         : null,
     );
-    upsertChatMock.mockImplementation(async ({ create, update }: any) => {
+    upsertChatMock.mockImplementation(
+      async ({ create, update }: { create: { history: unknown[]; pending: boolean }; update: { history: unknown[]; pending: boolean } }) => {
       const nextChat = {
         history: update.history,
         pending: update.pending,
       };
       chatState = chatState ? nextChat : { history: create.history, pending: create.pending };
       return chatState;
-    });
-    updateChatMock.mockImplementation(async ({ data }: any) => {
+      },
+    );
+    updateChatMock.mockImplementation(
+      async ({ data }: { data: { history?: unknown[]; pending?: boolean } }) => {
       if (!chatState) {
         throw new Error("Missing chat row");
       }
@@ -206,7 +213,8 @@ describe("POST /api/receipt/[id]/chat", () => {
       };
 
       return chatState;
-    });
+      },
+    );
   });
 
   it("streams the persisted chat state as SSE", async () => {
@@ -537,6 +545,174 @@ describe("POST /api/receipt/[id]/chat", () => {
       },
     });
     await expect(response.json()).resolves.toEqual(expectedResponse);
+  });
+
+  it("feeds structural preview math issues back into llm prompt history", async () => {
+    chatState = {
+      history: [
+        {
+          id: "persisted-user-1",
+          role: "user",
+          participantId: "participant-1",
+          content: "Please adjust receipt",
+        },
+        {
+          id: "persisted-assistant-1",
+          role: "assistant",
+          response: {
+            type: "structural_preview",
+            receipt: {
+              ...currentReceipt,
+              positions: [
+                {
+                  ...currentReceipt.positions[0],
+                  overall: 999,
+                },
+              ],
+              totals: {
+                total: 1,
+                grandTotal: 2,
+              },
+            },
+            events: [],
+          },
+        },
+      ],
+      pending: false,
+    };
+    findUniqueMock.mockResolvedValue({
+      id: "receipt-1",
+      data: currentReceipt,
+      imageUrls: [],
+    });
+    agentInvokeMock.mockResolvedValue({
+      structuredResponse: {
+        type: "question",
+        message: "Need one clarification",
+      },
+    });
+    errorWrapMock.mockImplementation(
+      async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
+        callback({
+          session: { user: { id: "participant-1", user_metadata: { displayName: "Ivan" } } },
+          body: {
+            message: "Continue",
+            history: [],
+          },
+        }),
+    );
+
+    const { POST } = await import("../route");
+
+    await POST(
+      new NextRequest("http://localhost/api/receipt/receipt-1/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          message: "Continue",
+          history: [],
+        }),
+      }),
+      {
+        params: Promise.resolve({ id: "receipt-1" }),
+      },
+    );
+
+    const prompt = String(
+      (agentInvokeMock.mock.calls.at(0) ?? [])[0]?.messages?.[0]?.content ?? "",
+    );
+
+    expect(prompt).toContain("ASSISTANT: aiChatStructuralPreview");
+    expect(prompt).toContain("Business validation issues:");
+    expect(prompt).toContain("positions.0.overall");
+    expect(prompt).toContain("validationOverallMatchesQuantityPrice");
+    expect(prompt).toContain("totals.total");
+    expect(prompt).toContain("totals.grandTotal");
+  });
+
+  it("retries structural preview in the same request when business validation fails", async () => {
+    randomUuidMock
+      .mockReturnValueOnce("generated-user-entry-id")
+      .mockReturnValueOnce("generated-assistant-entry-id");
+    findUniqueMock.mockResolvedValue({
+      id: "receipt-1",
+      data: currentReceipt,
+      imageUrls: [],
+    });
+    agentInvokeMock
+      .mockResolvedValueOnce({
+        structuredResponse: {
+          type: "structural_preview",
+          receipt: {
+            ...currentReceipt,
+            positions: [
+              {
+                ...currentReceipt.positions[0],
+                overall: 999,
+              },
+            ],
+            totals: {
+              total: 1,
+              grandTotal: 2,
+            },
+          },
+        },
+      });
+    structuredInvokeMock.mockResolvedValueOnce({
+      type: "structural_preview",
+      receipt: currentReceipt,
+    });
+    errorWrapMock.mockImplementation(
+      async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
+        callback({
+          session: { user: { id: "participant-1", user_metadata: { displayName: "Ivan" } } },
+          body: {
+            message: "Show a structural preview",
+            history: [],
+          },
+        }),
+    );
+
+    const { POST } = await import("../route");
+
+    const response = await POST(
+      new NextRequest("http://localhost/api/receipt/receipt-1/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          message: "Show a structural preview",
+          history: [],
+        }),
+      }),
+      {
+        params: Promise.resolve({ id: "receipt-1" }),
+      },
+    );
+
+    const secondPrompt = String(
+      (structuredInvokeMock.mock.calls.at(0) ?? [])[0] ?? "",
+    );
+
+    expect(agentInvokeMock).toHaveBeenCalledTimes(1);
+    expect(structuredInvokeMock).toHaveBeenCalledTimes(1);
+    expect(secondPrompt).toContain("Business validation issues:");
+    expect(secondPrompt).toContain("Original receipt extraction prompt:");
+    expect(secondPrompt).toContain("Analyze the receipt images and extract the structured data.");
+    expect(secondPrompt).toContain("positions.0.overall");
+    expect(secondPrompt).toContain("totals.total");
+    expect(secondPrompt).toContain("totals.grandTotal");
+    await expect(response.json()).resolves.toEqual({
+      type: "structural_preview",
+      receipt: {
+        ...currentReceipt,
+        positions: currentReceipt.positions.map((position) => ({
+          id: position.id,
+          name: position.name,
+          price: position.price,
+          quantity: position.quantity,
+          overall: position.overall,
+        })),
+      },
+      events: [],
+    });
   });
 
   it("rejects non-participants before persisting chat history", async () => {
@@ -1099,10 +1275,10 @@ describe("POST /api/receipt/[id]/chat", () => {
     agentInvokeMock.mockImplementation(async () => {
       const [{ tools }] = (createAgentMock.mock.calls.at(-1) ?? []) as unknown as [
         {
-          tools: Array<{
+          tools: {
             name: string;
             invoke: (input: Record<string, never>) => Promise<unknown>;
-          }>;
+          }[];
         },
       ];
       await tools[0].invoke({});
