@@ -111,7 +111,7 @@ function renderAssistantResponse(
   response: ReceiptChatResponse,
   receiptSnapshot: Receipt,
   onRequestStructuralApply: (response: StructuralPreviewResponse) => void,
-  onRequestClaimsApply: (response: ClaimsPreviewResponse, receiptSnapshot: Receipt) => void,
+  onRequestClaimsApply: (response: ClaimsPreviewResponse) => void,
 ) {
   if (response.type === "question") {
     return (
@@ -139,9 +139,8 @@ function renderAssistantResponse(
 
   return (
     <AiChatClaimsPreview
-      receiptSnapshot={receiptSnapshot}
       response={response}
-      onApply={() => onRequestClaimsApply(response, receiptSnapshot)}
+      onApply={() => onRequestClaimsApply(response)}
     />
   );
 }
@@ -159,13 +158,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   const [pendingStructuralPreview, setPendingStructuralPreview] =
     useState<StructuralPreviewResponse | null>(null);
   const [pendingClaimsPreview, setPendingClaimsPreview] =
-    useState<
-      | {
-          response: ClaimsPreviewResponse;
-          receiptSnapshot: Receipt;
-        }
-      | null
-    >(null);
+    useState<ClaimsPreviewResponse | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
   const currentReceipt = scenario.form.getValues() as Receipt;
 
@@ -185,7 +178,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   const claimsReplaceWarnings = pendingClaimsPreview
     ? buildClaimsReplaceWarnings(
         currentReceipt,
-        pendingClaimsPreview.response.positionClaims,
+        pendingClaimsPreview.positionClaims,
         participants,
         currentReceipt.meta.currencySymbol ?? currencySymbol,
         formatMoney,
@@ -194,18 +187,18 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   const claimsPreviewStatus = pendingClaimsPreview
     ? getClaimsPreviewStatus(
         currentReceipt,
-        pendingClaimsPreview.response.receiptSnapshot,
-        pendingClaimsPreview.response.positionClaims,
+        pendingClaimsPreview.receiptSnapshot,
+        pendingClaimsPreview.positionClaims,
       )
     : "pending";
   const canReplaceClaims = pendingClaimsPreview && claimsPreviewStatus === "pending"
     ? canReplaceClaimsPreview(
         currentReceipt,
-        pendingClaimsPreview.response.positionClaims,
+        pendingClaimsPreview.positionClaims,
       )
     : false;
   const hasClaimsData = pendingClaimsPreview
-    ? hasClaimsPreviewData(pendingClaimsPreview.response.positionClaims)
+    ? hasClaimsPreviewData(pendingClaimsPreview.positionClaims)
     : false;
   const claimsConfirmOpen = pendingClaimsPreview !== null && claimsPreviewStatus === "pending";
 
@@ -322,8 +315,8 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                         <div className="max-w-full sm:max-w-[90%]">
                       {renderAssistantResponse(entry.response, entry.receiptSnapshot ?? currentReceipt, (response) => {
                         setPendingStructuralPreview(response);
-                      }, (response, receiptSnapshot) => {
-                        setPendingClaimsPreview({ response, receiptSnapshot });
+                      }, (response) => {
+                        setPendingClaimsPreview(response);
                       })}
                         </div>
                   ) : entry.role === "system" ? (
@@ -488,14 +481,14 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
             {pendingClaimsPreview && (
               <>
                 <AlertDialogAction
-                  onClick={() => {
-                    replaceReceiptInForm(
-                      applyClaimsPreviewAdd(
-                        scenario.form.getValues() as Receipt,
-                        pendingClaimsPreview.response.positionClaims,
-                      ),
-                    );
-                    setPendingClaimsPreview(null);
+                    onClick={() => {
+                      replaceReceiptInForm(
+                        applyClaimsPreviewAdd(
+                          scenario.form.getValues() as Receipt,
+                        pendingClaimsPreview.positionClaims,
+                        ),
+                      );
+                      setPendingClaimsPreview(null);
                   }}
                 >
                   {t("aiChatClaimsPreviewAdd")}
@@ -506,7 +499,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                       replaceReceiptInForm(
                         applyClaimsPreviewReplace(
                           scenario.form.getValues() as Receipt,
-                          pendingClaimsPreview.response.positionClaims,
+                          pendingClaimsPreview.positionClaims,
                         ),
                       );
                       setPendingClaimsPreview(null);

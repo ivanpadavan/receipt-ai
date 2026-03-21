@@ -20,19 +20,18 @@ import { useMoneyFormatter, useReceiptState } from "@/app/receipt/components/rec
 type ClaimsPreviewResponse = Extract<ReceiptChatResponse, { type: "claims_preview" }>;
 
 interface AiChatClaimsPreviewProps {
-  receiptSnapshot: Receipt;
   response: ClaimsPreviewResponse;
   onApply: () => void;
 }
 
 export const AiChatClaimsPreview: React.FC<AiChatClaimsPreviewProps> = ({
-  receiptSnapshot,
   response,
   onApply,
 }) => {
   const { currencySymbol, formatMoney } = useMoneyFormatter();
   const { scenario } = useReceiptState();
   const currentReceipt = scenario.form.getValues() as Receipt;
+  const receiptSnapshot = response.receiptSnapshot;
   const previewReceipt = buildClaimsPreviewReceipt(receiptSnapshot, response.positionClaims);
   const removedPositions = buildClaimsPreviewRemovedPositions(currentReceipt, receiptSnapshot);
   const previewStatus = getClaimsPreviewStatus(
