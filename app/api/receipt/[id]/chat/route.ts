@@ -81,15 +81,13 @@ async function createReceiptImageUrls(imageUrls: string[]) {
 function buildReceiptChatPrompt({
   receipt,
   participants,
-  currentUserParticipantId,
-  currentUserDisplayName,
+  currentUser,
   history,
   message,
 }: {
   receipt: Receipt;
   participants: { id: string; displayName: string }[];
-  currentUserParticipantId: string | null;
-  currentUserDisplayName: string | null;
+  currentUser: { id: string; displayName: string };
   history: { role: "user" | "assistant"; content: string }[];
   message: string;
 }) {
@@ -110,14 +108,7 @@ function buildReceiptChatPrompt({
     "For claims preview, return only the positions array in the same order as the current receipt.\n" +
     "For claims preview, reference participants by `id`.\n" +
     "Use the provided participants list with display names when resolving who the user means.\n\n" +
-    `Current user context:\n${JSON.stringify(
-      {
-        currentUserParticipantId,
-        currentUserDisplayName,
-      },
-      null,
-      2,
-    )}\n\n` +
+    `Current user context:\n${JSON.stringify(currentUser, null, 2,)}\n\n` +
     `Current receipt JSON:\n${JSON.stringify(receipt, null, 2)}\n\n` +
     `Participants JSON:\n${JSON.stringify(participants, null, 2)}\n\n` +
     `Chat history:\n${formatHistory(history)}\n\n` +
@@ -158,8 +149,7 @@ async function generateReceiptChatResponse({
   receipt,
   imageUrls,
   participants,
-  currentUserParticipantId,
-  currentUserDisplayName,
+  currentUser,
   history,
   message,
 }: {
@@ -167,8 +157,7 @@ async function generateReceiptChatResponse({
   receipt: Receipt;
   imageUrls: string[];
   participants: { id: string; displayName: string }[];
-  currentUserParticipantId: string | null;
-  currentUserDisplayName: string | null;
+  currentUser: { id: string; displayName: string };
   history: { role: "user" | "assistant"; content: string }[];
   message: string;
 }) {
@@ -206,8 +195,7 @@ async function generateReceiptChatResponse({
   const prompt = buildReceiptChatPrompt({
     receipt,
     participants,
-    currentUserParticipantId,
-    currentUserDisplayName,
+    currentUser,
     history,
     message,
   });
@@ -323,20 +311,15 @@ function toApiResponse(
 
 function toLiveChat(
   persisted: ReturnType<typeof receiptChatPersistedSchema.parse>,
-  participants: { id: string; displayName: string }[],
+  displayName: string,
 ) {
-  const displayNameByParticipantId = new Map(
-    participants.map((participant) => [participant.id, participant.displayName]),
-  );
-
   return receiptChatLiveSchema.parse({
     ...persisted,
     history: persisted.history.map((entry) =>
       entry.role === "user"
         ? {
             ...entry,
-            displayName:
-              displayNameByParticipantId.get(entry.participantId) ?? entry.participantId,
+            displayName,
           }
         : entry,
     ),
@@ -434,6 +417,10 @@ export async function POST(
 
   return withLanguage("en", () =>
     errorWrap(req, validator, async ({ session, body }) => {
+      if (!session.user) {
+        throw Object.assign(new Error("Unauthorized"), { status: 401 });
+      }
+
       const receipt = await db.receipt.findUnique({
         where: { id: receiptId },
         select: { data: true, imageUrls: true },
@@ -443,30 +430,17 @@ export async function POST(
         throw Object.assign(new Error("Receipt not found"), { status: 404 });
       }
 
-      const participants = await buildParticipants(receiptId);
-      const currentUserParticipant = participants.find(
-        (participant) => participant.id === session.user.id,
-      );
-      if (!currentUserParticipant) {
-        throw Object.assign(
-          new Error("User is not a receipt participant"),
-          { status: 403 },
-        );
-      }
-      const chatOwnerId = session.user.id;
-      const currentUserDisplayName =
-        currentUserParticipant.displayName ??
-        (typeof session.user.user_metadata?.displayName === "string"
-          ? session.user.user_metadata.displayName
-          : null);
+      const currentUserId = session.user.id;
+      const currentUserDisplayName = session.user.user_metadata.displayName;
+
       const userEntry = createUserChatEntry(
         crypto.randomUUID(),
-        currentUserParticipant.id,
+        session.user.id,
         body.message,
       );
 
       const chatHistory = await lockReceiptChatRow(receiptId, async (tx) => {
-        const currentChat = await readReceiptChat(tx, receiptId, chatOwnerId);
+        const currentChat = await readReceiptChat(tx, receiptId, currentUserId);
         if (currentChat.pending) {
           throw Object.assign(
             new Error("Another chat turn is already in flight"),
@@ -475,7 +449,7 @@ export async function POST(
         }
         const nextHistory = [...currentChat.history, userEntry];
 
-        await upsertReceiptChat(tx, receiptId, chatOwnerId, {
+        await upsertReceiptChat(tx, receiptId, currentUserId, {
           history: nextHistory,
           pending: true,
         });
@@ -484,16 +458,17 @@ export async function POST(
       });
 
       try {
+        const participants = await buildParticipants(receiptId);
+
         const response = await generateReceiptChatResponse({
           receiptId,
           receipt: receipt.data as Receipt,
           imageUrls: receipt.imageUrls,
-          participants: participants.map((participant) => ({
-            id: participant.id,
-            displayName: participant.displayName,
-          })),
-          currentUserParticipantId: currentUserParticipant.id,
-          currentUserDisplayName,
+          participants,
+          currentUser: {
+            id: currentUserId,
+            displayName: currentUserDisplayName
+          },
           history: chatHistory,
           message: body.message,
         });
@@ -508,10 +483,10 @@ export async function POST(
         );
 
         await lockReceiptChatRow(receiptId, async (tx) => {
-          const currentChat = await readReceiptChat(tx, receiptId, chatOwnerId);
+          const currentChat = await readReceiptChat(tx, receiptId, currentUserId);
           const nextHistory = [...currentChat.history, assistantEntry];
 
-          await updateReceiptChat(tx, receiptId, chatOwnerId, {
+          await updateReceiptChat(tx, receiptId, currentUserId, {
             history: nextHistory,
             pending: false,
           });
@@ -520,12 +495,12 @@ export async function POST(
         return NextResponse.json(responseJson);
       } catch (error) {
         await lockReceiptChatRow(receiptId, async (tx) => {
-          const currentChat = await readReceiptChat(tx, receiptId, chatOwnerId);
+          const currentChat = await readReceiptChat(tx, receiptId, currentUserId);
           const nextHistory = currentChat.history.filter(
             (entry) => entry.id !== userEntry.id,
           );
 
-          await upsertReceiptChat(tx, receiptId, chatOwnerId, {
+          await upsertReceiptChat(tx, receiptId, currentUserId, {
             history: nextHistory,
             pending: false,
           });
@@ -554,13 +529,9 @@ export async function GET(
   if (!receipt) {
     return new Response("Receipt not found", { status: 404 });
   }
-  const participants = await buildParticipants(receiptId);
-  if (!participants.some((participant) => participant.id === user.id)) {
-    return new Response("Forbidden", { status: 403 });
-  }
 
   const initialChat = await readReceiptChat(db, receiptId, user.id);
-  const initialLiveChat = toLiveChat(initialChat, participants);
+  const initialLiveChat = toLiveChat(initialChat, user.user_metadata.displayName);
   const supabase = await serverSupabase();
 
   return createSseResponse(req, (stream) => {
@@ -572,8 +543,7 @@ export async function GET(
     const syncChatFromDb = async () => {
       const seq = ++syncSeq;
       const nextChat = await readReceiptChat(db, receiptId, user.id);
-      const latestParticipants = await buildParticipants(receiptId);
-      const nextLiveChat = toLiveChat(nextChat, latestParticipants);
+      const nextLiveChat = toLiveChat(nextChat, user.user_metadata.displayName);
 
       if (seq !== syncSeq) return;
       payload$.next(nextLiveChat);
