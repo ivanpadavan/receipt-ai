@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { serverSupabase } from "@/utils/supabase/server";
 import { User } from "@supabase/supabase-js";
-import { db } from "@/app/db";
 
 const getUserMetadata = (user: User): User["user_metadata"] => {
   const identity = user?.identities?.find((i) => i.provider !== "anonymous");
@@ -24,6 +23,11 @@ const getUserMetadata = (user: User): User["user_metadata"] => {
   return { displayName, avatarUrl };
 };
 
+function parseJwt(token: string): Record<string, unknown> {
+  return JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
+}
+
+
 export async function POST(request: Request) {
   // 1. Получаем ID Token от Google с клиента
   const body = await request.json().catch(() => ({}));
@@ -35,10 +39,14 @@ export async function POST(request: Request) {
 
   const supabase = await serverSupabase();
 
+  const nonceAttampt = parseJwt(token).nonce;
+  const nonce = typeof nonceAttampt === 'string' ? nonceAttampt : void 0;
+
   const { data: linkData, error: linkError } = await supabase.auth.linkIdentity(
     {
       provider: "google",
-      token: token,
+      token,
+      nonce,
     },
   );
 
@@ -61,7 +69,8 @@ export async function POST(request: Request) {
   const { data: signInData, error: signInError } =
     await supabase.auth.signInWithIdToken({
       provider: "google",
-      token: token,
+      token,
+      nonce,
     });
 
   if (signInError) {
