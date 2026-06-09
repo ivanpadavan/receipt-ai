@@ -9,7 +9,6 @@ const withStructuredOutputMock = vi.fn(() => ({
 const uploadMock = vi.fn();
 const createMock = vi.fn();
 const errorWrapMock = vi.fn();
-const validateReceiptBusinessMock = vi.fn();
 const getReceiptBusinessValidationIssuesMock = vi.fn();
 const formatReceiptBusinessValidationIssuesMock = vi.fn();
 
@@ -48,9 +47,7 @@ vi.mock("@/app/i18n/translations", () => ({
   withLanguage: (_language: string, callback: () => unknown) => callback(),
 }));
 
-vi.mock("@/model/receipt/business-validation", () => ({
-  validateReceiptBusiness: (...args: unknown[]) =>
-    validateReceiptBusinessMock(...args),
+vi.mock("@/model/receipt/math-validation", () => ({
   getReceiptBusinessValidationIssues: (...args: unknown[]) =>
     getReceiptBusinessValidationIssuesMock(...args),
   formatReceiptBusinessValidationIssues: (...args: unknown[]) =>
@@ -64,10 +61,8 @@ describe("POST /api/receipt", () => {
     uploadMock.mockReset();
     createMock.mockReset();
     errorWrapMock.mockReset();
-    validateReceiptBusinessMock.mockReset();
     getReceiptBusinessValidationIssuesMock.mockReset();
     formatReceiptBusinessValidationIssuesMock.mockReset();
-    validateReceiptBusinessMock.mockReturnValue({ success: true });
     getReceiptBusinessValidationIssuesMock.mockReturnValue([]);
     formatReceiptBusinessValidationIssuesMock.mockReturnValue("");
   });

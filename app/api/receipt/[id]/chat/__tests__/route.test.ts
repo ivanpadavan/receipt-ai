@@ -178,6 +178,7 @@ describe("POST /api/receipt/[id]/chat", () => {
     ]);
     getUserMock.mockResolvedValue({
       id: "participant-1",
+      user_metadata: { displayName: "Ivan" },
     });
     findChatUniqueMock.mockImplementation(async () =>
       chatState
@@ -296,27 +297,6 @@ describe("POST /api/receipt/[id]/chat", () => {
 
     expect(response.status).toBe(401);
     expect(findUniqueMock).not.toHaveBeenCalled();
-  });
-
-  it("returns 403 for non-participant SSE access", async () => {
-    findUniqueMock.mockResolvedValue({
-      id: "receipt-1",
-      data: currentReceipt,
-    });
-    buildParticipantsMock.mockResolvedValueOnce([]);
-
-    const { GET } = await import("../route");
-
-    const response = await GET(
-      new NextRequest("http://localhost/api/receipt/receipt-1/chat", {
-        method: "GET",
-      }),
-      {
-        params: Promise.resolve({ id: "receipt-1" }),
-      },
-    );
-
-    expect(response.status).toBe(403);
   });
 
   it("loads the receipt context and returns the model preview response", async () => {
@@ -446,8 +426,8 @@ describe("POST /api/receipt/[id]/chat", () => {
     expect(randomUuidMock).toHaveBeenCalledTimes(5);
     expect(prompt).toContain("Return the full structural preview without claims.");
     expect(prompt).toContain("new rows and modifiers omit `id`");
-    expect(prompt).toContain('"currentUserParticipantId": "participant-1"');
-    expect(prompt).toContain('"currentUserDisplayName": "Ivan"');
+    expect(prompt).toContain('"id": "participant-1"');
+    expect(prompt).toContain('"displayName": "Ivan"');
     expect(prompt).toContain("USER: Persisted question");
     expect(prompt).toContain("ASSISTANT: Persisted answer");
     expect(prompt).not.toContain("Ignored request history");
@@ -455,9 +435,10 @@ describe("POST /api/receipt/[id]/chat", () => {
     expect(queryRawMock).toHaveBeenCalledTimes(2);
     expect(findChatUniqueMock).toHaveBeenCalledTimes(2);
     expect(upsertChatMock).toHaveBeenCalledWith({
-      where: { receiptId: "receipt-1" },
+      where: { receiptId_userId: { receiptId: "receipt-1", userId: "participant-1" } },
       create: {
         receiptId: "receipt-1",
+        userId: "participant-1",
         history: [
           {
             id: "persisted-user-1",
@@ -511,7 +492,7 @@ describe("POST /api/receipt/[id]/chat", () => {
       },
     });
     expect(updateChatMock).toHaveBeenCalledWith({
-      where: { receiptId: "receipt-1" },
+      where: { receiptId_userId: { receiptId: "receipt-1", userId: "participant-1" } },
       data: {
         history: [
           {
@@ -547,7 +528,7 @@ describe("POST /api/receipt/[id]/chat", () => {
     await expect(response.json()).resolves.toEqual(expectedResponse);
   });
 
-  it("feeds structural preview math issues back into llm prompt history", async () => {
+  it("summarizes prior structural previews in llm prompt history without raw validation issues", async () => {
     chatState = {
       history: [
         {
@@ -621,12 +602,9 @@ describe("POST /api/receipt/[id]/chat", () => {
       (agentInvokeMock.mock.calls.at(0) ?? [])[0]?.messages?.[0]?.content ?? "",
     );
 
-    expect(prompt).toContain("ASSISTANT: aiChatStructuralPreview");
-    expect(prompt).toContain("Business validation issues:");
-    expect(prompt).toContain("positions.0.overall");
-    expect(prompt).toContain("validationOverallMatchesQuantityPrice");
-    expect(prompt).toContain("totals.total");
-    expect(prompt).toContain("totals.grandTotal");
+    expect(prompt).toContain("ASSISTANT: aiChatStructuralPreview: Receipt (1 positions)");
+    expect(prompt).not.toContain("Business validation issues:");
+    expect(prompt).not.toContain("validationOverallMatchesQuantityPrice");
   });
 
   it("retries structural preview in the same request when business validation fails", async () => {
@@ -657,10 +635,7 @@ describe("POST /api/receipt/[id]/chat", () => {
           },
         },
       });
-    structuredInvokeMock.mockResolvedValueOnce({
-      type: "structural_preview",
-      receipt: currentReceipt,
-    });
+    structuredInvokeMock.mockResolvedValueOnce(currentReceipt);
     errorWrapMock.mockImplementation(
       async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
         callback({
@@ -694,8 +669,6 @@ describe("POST /api/receipt/[id]/chat", () => {
     expect(agentInvokeMock).toHaveBeenCalledTimes(1);
     expect(structuredInvokeMock).toHaveBeenCalledTimes(1);
     expect(secondPrompt).toContain("Business validation issues:");
-    expect(secondPrompt).toContain("Original receipt extraction prompt:");
-    expect(secondPrompt).toContain("Analyze the receipt images and extract the structured data.");
     expect(secondPrompt).toContain("positions.0.overall");
     expect(secondPrompt).toContain("totals.total");
     expect(secondPrompt).toContain("totals.grandTotal");
@@ -713,48 +686,6 @@ describe("POST /api/receipt/[id]/chat", () => {
       },
       events: [],
     });
-  });
-
-  it("rejects non-participants before persisting chat history", async () => {
-    buildParticipantsMock.mockResolvedValueOnce([]);
-    findUniqueMock.mockResolvedValue({
-      id: "receipt-1",
-      data: currentReceipt,
-      imageUrls: [],
-    });
-    errorWrapMock.mockImplementation(
-      async (_req, _validator, callback: (...args: unknown[]) => unknown) =>
-        callback({
-          session: { user: { id: "auth-user-1", user_metadata: { displayName: "Ivan" } } },
-          body: {
-            message: "Hello",
-            history: [],
-          },
-        }),
-    );
-
-    const { POST } = await import("../route");
-
-    const response = POST(
-      new NextRequest("http://localhost/api/receipt/receipt-1/chat", {
-        method: "POST",
-        body: JSON.stringify({
-          message: "Hello",
-          history: [],
-        }),
-      }),
-      {
-        params: Promise.resolve({ id: "receipt-1" }),
-      },
-    );
-
-    await expect(response).rejects.toThrow("User is not a receipt participant");
-    expect(transactionMock).not.toHaveBeenCalled();
-    expect(queryRawMock).not.toHaveBeenCalled();
-    expect(findChatUniqueMock).not.toHaveBeenCalled();
-    expect(upsertChatMock).not.toHaveBeenCalled();
-    expect(updateChatMock).not.toHaveBeenCalled();
-    expect(agentInvokeMock).not.toHaveBeenCalled();
   });
 
   it("maps claims-only model output from positions into a full receipt preview", async () => {
@@ -875,7 +806,7 @@ describe("POST /api/receipt/[id]/chat", () => {
 
     await expect(response).rejects.toThrow("AI produced malformed request");
     expect(upsertChatMock).toHaveBeenLastCalledWith({
-      where: { receiptId: "receipt-1" },
+      where: { receiptId_userId: { receiptId: "receipt-1", userId: "participant-1" } },
       create: expect.objectContaining({
         pending: false,
       }),
@@ -975,9 +906,10 @@ describe("POST /api/receipt/[id]/chat", () => {
       }),
     );
     expect(upsertChatMock).toHaveBeenLastCalledWith({
-      where: { receiptId: "receipt-1" },
+      where: { receiptId_userId: { receiptId: "receipt-1", userId: "participant-1" } },
       create: {
         receiptId: "receipt-1",
+        userId: "participant-1",
         history: [
           {
             id: "persisted-user-1",

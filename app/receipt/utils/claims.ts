@@ -142,23 +142,3 @@ export const setMyQuantity = (
     ],
   };
 };
-
-export const comparePositionsByFillState = (
-  left: ReceiptPosition,
-  right: ReceiptPosition,
-) =>
-  Number(isPositionFilledAndValid(left)) -
-  Number(isPositionFilledAndValid(right));
-
-export const sortPositionsForDisplay = <T extends ReceiptPosition>(
-  positions: T[],
-) =>
-  positions
-    .map((position, originalIndex) => ({ position, originalIndex }))
-    .sort((left, right) => {
-      const byFill = comparePositionsByFillState(
-        left.position,
-        right.position,
-      );
-      return byFill !== 0 ? byFill : left.originalIndex - right.originalIndex;
-    });

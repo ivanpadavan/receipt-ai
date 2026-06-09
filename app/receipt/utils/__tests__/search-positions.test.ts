@@ -37,11 +37,11 @@ describe("searchPositionsForDisplay", () => {
     },
   ];
 
-  it("returns all positions in display order when query is empty", () => {
+  it("returns all positions in original order when query is empty", () => {
     expect(searchPositionsForDisplay(positions, "")).toEqual([
+      { position: positions[0], originalIndex: 0 },
       { position: positions[1], originalIndex: 1 },
       { position: positions[2], originalIndex: 2 },
-      { position: positions[0], originalIndex: 0 },
     ]);
   });
 
@@ -53,8 +53,8 @@ describe("searchPositionsForDisplay", () => {
 
   it("matches single-character queries by substring", () => {
     expect(searchPositionsForDisplay(positions, "m")).toEqual([
-      { position: positions[2], originalIndex: 2 },
       { position: positions[0], originalIndex: 0 },
+      { position: positions[2], originalIndex: 2 },
     ]);
   });
 
