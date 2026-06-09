@@ -366,12 +366,57 @@ async function openSearch(user: ReturnType<typeof userEvent.setup>) {
   return screen.findByRole("textbox");
 }
 
+function getRowButtonByLabel(rowAnchor: HTMLElement, label: string) {
+  const row = rowAnchor.closest<HTMLElement>("[data-position-row]");
+  return requireElement(
+    row
+      ? Array.from(row.querySelectorAll<HTMLButtonElement>("button")).find(
+          (button) => button.getAttribute("aria-label") === label,
+        )
+      : undefined,
+    `row button "${label}" for "${rowAnchor.textContent ?? ""}" should be present`,
+  );
+}
+
+function getOpenDetailsButtonForRow(rowAnchor: HTMLElement) {
+  return getRowButtonByLabel(rowAnchor, t("openDetails"));
+}
+
+function getInlineCheckboxForRow(rowAnchor: HTMLElement) {
+  const row = rowAnchor.closest<HTMLElement>("[data-position-row]");
+  return requireElement(
+    row?.querySelector<HTMLElement>('[role="checkbox"]') ?? undefined,
+    `inline checkbox for "${rowAnchor.textContent ?? ""}" should be present`,
+  );
+}
+
+function getInlineQuantityForRow(rowAnchor: HTMLElement) {
+  const row = rowAnchor.closest<HTMLElement>("[data-position-row]");
+  return requireElement(
+    row?.querySelector<HTMLElement>('[data-testid="quantity-stepper-value"]') ??
+      undefined,
+    `inline quantity for "${rowAnchor.textContent ?? ""}" should be present`,
+  );
+}
+
+async function expandInlineShareFor(
+  user: ReturnType<typeof userEvent.setup>,
+  fragment: string,
+) {
+  await user.click(getPositionButtonByText(fragment));
+  await waitFor(() => {
+    expect(getInlineCheckboxForRow(getPositionButtonByText(fragment))).toBeInTheDocument();
+  });
+}
+
 async function openSplittingSheetFor(
   user: ReturnType<typeof userEvent.setup>,
   fragment: string,
 ) {
+  // In splitting mode the row toggles the inline editor; the dedicated
+  // "more" icon opens the full sheet.
   const positionButton = getPositionButtonByText(fragment);
-  await user.click(positionButton);
+  await user.click(getOpenDetailsButtonForRow(positionButton));
   await screen.findByRole("heading", { name: fragment });
 }
 
@@ -1216,7 +1261,11 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     await user.type(searchInput, "milk");
 
     // Act
-    await user.click(getInteractiveButtonByFragments(["Milk", formatMoneyFromModel(801)]));
+    await user.click(
+      getOpenDetailsButtonForRow(
+        getInteractiveButtonByFragments(["Milk", formatMoneyFromModel(801)]),
+      ),
+    );
 
     // Assert
     expect(screen.getByRole("heading", { name: "Milk" })).toBeInTheDocument();
@@ -1617,6 +1666,124 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
       expect(screen.queryByRole("heading", { name: "Bread" })).not.toBeInTheDocument();
     });
     await expectCurrentScreenshot("splitting-sheet-closed");
+  });
+
+  it("expands the inline share editor in the row instead of opening the sheet", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: partiallyDistributedReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await expandInlineShareFor(user, "Bread");
+
+    // Assert
+    expect(screen.queryByRole("heading", { name: "Bread" })).not.toBeInTheDocument();
+    const breadRow = getPositionButtonByText("Bread");
+    expect(getInlineCheckboxForRow(breadRow)).toBeInTheDocument();
+    expect(getInlineQuantityForRow(breadRow)).toHaveTextContent("0");
+    await expectCurrentScreenshot("splitting-inline-expanded");
+  });
+
+  it("increments the current user's share with the inline stepper", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: partiallyDistributedReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await expandInlineShareFor(user, "Bread");
+    await user.click(getRowButtonByLabel(getPositionButtonByText("Bread"), t("increase")));
+
+    // Assert
+    await waitFor(() => {
+      expect(getInlineQuantityForRow(getPositionButtonByText("Bread"))).toHaveTextContent("1");
+    });
+    expect(getRowButtonByLabel(getPositionButtonByText("Bread"), t("increase"))).toBeDisabled();
+    await expectCurrentScreenshot("splitting-inline-stepper-incremented");
+  });
+
+  it("claims the whole remaining position with the inline checkbox", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: partiallyDistributedReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await expandInlineShareFor(user, "Bread");
+    await user.click(getInlineCheckboxForRow(getPositionButtonByText("Bread")));
+
+    // Assert
+    await waitFor(() => {
+      expect(getInlineCheckboxForRow(getPositionButtonByText("Bread"))).toHaveAttribute(
+        "aria-checked",
+        "true",
+      );
+    });
+    expect(getInlineQuantityForRow(getPositionButtonByText("Bread"))).toHaveTextContent("1");
+    await expectCurrentScreenshot("splitting-inline-claim-all");
+  });
+
+  it("unclaims the current user's share with the inline checkbox", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: quantityMaxSwitchReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await expandInlineShareFor(user, "Bread");
+    expect(getInlineQuantityForRow(getPositionButtonByText("Bread"))).toHaveTextContent("1");
+    await user.click(getInlineCheckboxForRow(getPositionButtonByText("Bread")));
+
+    // Assert
+    await waitFor(() => {
+      expect(getInlineQuantityForRow(getPositionButtonByText("Bread"))).toHaveTextContent("0");
+    });
+    expect(getRowButtonByLabel(getPositionButtonByText("Bread"), t("decrease"))).toBeDisabled();
+    await expectCurrentScreenshot("splitting-inline-unclaim");
+  });
+
+  it("disables inline controls when the position is fully claimed by others", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: fullyDistributedReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await expandInlineShareFor(user, "Bread");
+
+    // Assert
+    const breadRow = getPositionButtonByText("Bread");
+    expect(getInlineCheckboxForRow(breadRow)).toBeDisabled();
+    expect(getRowButtonByLabel(breadRow, t("increase"))).toBeDisabled();
+    expect(getInlineQuantityForRow(breadRow)).toHaveTextContent("0");
+    await expectCurrentScreenshot("splitting-inline-fully-claimed-by-others");
+  });
+
+  it("opens the full splitting sheet from the inline row's more button", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await renderReceiptFormInner({
+      receipt: partiallyDistributedReceipt,
+      participants: splittingParticipants,
+    });
+
+    // Act
+    await openSplittingSheetFor(user, "Bread");
+
+    // Assert
+    expect(screen.getByRole("heading", { name: "Bread" })).toBeInTheDocument();
+    await expectCurrentScreenshot("splitting-inline-more-opens-sheet");
   });
 });
 
@@ -2024,7 +2191,7 @@ describe.each<Language>(["ru", "en"])("Receipt flow (%s)", (language) => {
     await renderReceiptFormHarness({ receipt: overClaimedReceipt });
 
     // Act
-    await user.click(await findInteractiveButtonByText("Bread"));
+    await user.click(getOpenDetailsButtonForRow(await findInteractiveButtonByText("Bread")));
     await user.click(screen.getAllByRole("button", { name: t("edit") })[0]);
 
     const quantityInput = screen.getAllByRole("spinbutton")[1];

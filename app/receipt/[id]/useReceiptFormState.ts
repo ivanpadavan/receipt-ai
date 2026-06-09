@@ -126,6 +126,7 @@ export interface ReceiptState {
   canProceed: boolean;
   editModalProps: EditModalPropsByView;
   replaceReceiptInForm: (nextReceipt: Receipt) => void;
+  updatePosition: (index: number, next: ReceiptPosition) => void;
 }
 
 // ============================================================================
@@ -634,6 +635,17 @@ export function useReceiptFormState(
     [discountsField, feesField, positionsField, setValue, trigger],
   );
 
+  // Inline position mutation (used by the in-list share editor). Mirrors the
+  // splitting sheet's onSave path so auto-calc, auto-save and revalidation all
+  // fire identically.
+  const updatePosition = useCallback(
+    (index: number, next: ReceiptPosition) => {
+      positionsField.update(index, next);
+      trigger();
+    },
+    [positionsField, trigger],
+  );
+
   // -------------------------------------------------------------------------
   // 8. Return state
   // -------------------------------------------------------------------------
@@ -648,5 +660,6 @@ export function useReceiptFormState(
     openEditModal,
     editModalProps,
     replaceReceiptInForm,
+    updatePosition,
   };
 }

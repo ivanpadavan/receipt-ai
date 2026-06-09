@@ -13,8 +13,11 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { MoreVertical } from "lucide-react";
 import { EditingDialog } from "@/app/receipt/components/EdititngSheet/EditingDialog";
 import { SplittingSheet } from "@/app/receipt/components/SplittingSheet/SplittingSheet";
+import { InlinePositionShare } from "@/app/receipt/components/InlinePositionShare";
+import { Button } from "@/components/ui/button";
 import { ParticipantsSheet } from "@/app/receipt/components/ParticipantsSheet";
 import { SummaryScreen } from "@/app/receipt/components/SummaryScreen/SummaryScreen";
 import { AiChatDialog } from "@/app/receipt/components/AiChat";
@@ -96,6 +99,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
   const [participantsSheetMounted, setParticipantsSheetMounted] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [openPositionId, setOpenPositionId] = useState<string | null>(null);
   const openParticipantsSheet = useCallback(() => {
     setParticipantsSheetMounted(true);
     setParticipantsModalOpen(true);
@@ -165,6 +169,13 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
       setIsSearchOpen(false);
     }
   }, [scenarioType]);
+
+  // Collapse the inline share editor when the list is refiltered, so a hidden
+  // row never stays "open".
+  const handleSearchQueryChange = useCallback((query: string) => {
+    setSearchQuery(query);
+    setOpenPositionId(null);
+  }, []);
 
   return (
     <ReceiptFormContext.Provider value={formState}>
@@ -310,6 +321,132 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                       hasQuantityError ||
                       hasOverallError ||
                       hasClaimsError;
+                    const rowContent = (
+                      <CardContent
+                        className={rowContentPaddingVariants({
+                          density: "tight",
+                        })}
+                      >
+                        <div
+                          className={cn(
+                            rowVariants({
+                              align: "center",
+                              width: "full",
+                            }),
+                            inlineGapVariants({ size: "md" }),
+                            hasRowNumberError ? "text-destructive" : "",
+                          )}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p
+                              className={cn(
+                                "truncate",
+                                textVariants({ weight: "semibold" }),
+                              )}
+                            >
+                              {field.name}
+                            </p>
+                            <p
+                              className={textVariants({
+                                size: "xs",
+                                tone: "muted",
+                              })}
+                            >
+                              <span
+                                className={dangerToneVariants({
+                                  tone: hasPriceError ? "danger" : "default",
+                                })}
+                              >
+                                {formatMoney(field.price, currencySymbol)}
+                              </span>{" "}
+                              x{" "}
+                              <span
+                                className={dangerToneVariants({
+                                  tone: hasQuantityError ? "danger" : "default",
+                                })}
+                              >
+                                {field.quantity}
+                              </span>
+                            </p>
+                          </div>
+                          <span
+                            className={cn(
+                              pillVariants({
+                                tone: hasQuantityError ? "danger" : "neutral",
+                                radius: "lg",
+                              }),
+                            )}
+                          >
+                            {field.quantity}x
+                          </span>
+                          <span
+                            className={dangerToneVariants({
+                              base: "baseSemibold",
+                              tone: hasOverallError ? "danger" : "default",
+                            })}
+                          >
+                            {formatMoney(field.overall, currencySymbol)}
+                          </span>
+                        </div>
+                        <DistributionBar data={field} className="mt-2 h-1" />
+                      </CardContent>
+                    );
+
+                    // Splitting mode: tapping the row expands the inline share
+                    // editor; a dedicated "more" icon opens the full sheet.
+                    if (scenarioType === "splitting") {
+                      const expanded = openPositionId === field.id;
+                      return (
+                        <ReceiptCard
+                          key={field.id}
+                          shadow="md"
+                          radius="2xl"
+                          state={expanded ? "active" : "default"}
+                          className="overflow-hidden"
+                        >
+                          <div data-position-row>
+                            <div className={rowVariants({ align: "stretch" })}>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setOpenPositionId((current) =>
+                                    current === field.id ? null : field.id,
+                                  )
+                                }
+                                aria-expanded={expanded}
+                                className="block min-w-0 flex-1 text-left"
+                              >
+                                {rowContent}
+                              </button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                aria-label={t("openDetails")}
+                                title={t("openDetails")}
+                                className="mr-1 self-center text-muted-foreground"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  openEditModal({
+                                    type: "position",
+                                    index: originalIndex,
+                                  });
+                                }}
+                              >
+                                <MoreVertical className="h-5 w-5" />
+                              </Button>
+                            </div>
+                            {expanded && (
+                              <InlinePositionShare
+                                position={field}
+                                index={originalIndex}
+                              />
+                            )}
+                          </div>
+                        </ReceiptCard>
+                      );
+                    }
+
                     return (
                       <ReceiptCard
                         asChild
@@ -317,9 +454,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                         shadow={canEdit.positionForm ? "md" : "sm"}
                         interactive={!!canEdit.positionForm}
                         radius="2xl"
-                        className={cn(
-                          "overflow-hidden",
-                        )}
+                        className={cn("overflow-hidden")}
                       >
                         <button
                           type="button"
@@ -332,83 +467,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
                           }
                           className={cn("block w-full text-left")}
                         >
-                          <CardContent
-                            className={rowContentPaddingVariants({
-                              density: "tight",
-                            })}
-                          >
-                            <div
-                              className={cn(
-                                rowVariants({
-                                  align: "center",
-                                  width: "full",
-                                }),
-                                inlineGapVariants({ size: "md" }),
-                                hasRowNumberError ? "text-destructive" : "",
-                              )}
-                            >
-                              <div className="min-w-0 flex-1">
-                                <p
-                                  className={cn(
-                                    "truncate",
-                                    textVariants({ weight: "semibold" }),
-                                  )}
-                                >
-                                  {field.name}
-                                </p>
-                                <p
-                                  className={textVariants({
-                                    size: "xs",
-                                    tone: "muted",
-                                  })}
-                                >
-                                  <span
-                                    className={dangerToneVariants({
-                                      tone: hasPriceError
-                                        ? "danger"
-                                        : "default",
-                                    })}
-                                  >
-                                    {formatMoney(field.price, currencySymbol)}
-                                  </span>{" "}
-                                  x{" "}
-                                  <span
-                                    className={dangerToneVariants({
-                                      tone: hasQuantityError
-                                        ? "danger"
-                                        : "default",
-                                    })}
-                                  >
-                                    {field.quantity}
-                                  </span>
-                                </p>
-                              </div>
-                              <span
-                                className={cn(
-                                  pillVariants({
-                                    tone: hasQuantityError
-                                      ? "danger"
-                                      : "neutral",
-                                    radius: "lg",
-                                  }),
-                                )}
-                              >
-                                {field.quantity}x
-                              </span>
-                              <span
-                                className={dangerToneVariants({
-                                  base: "baseSemibold",
-                                  tone: hasOverallError ? "danger" : "default",
-                                })}
-                              >
-                                {formatMoney(field.overall, currencySymbol)}
-                              </span>
-                            </div>
-                            <DistributionBar
-                              data={field}
-                              className="mt-2 h-1"
-                            />
-                          </CardContent>
+                          {rowContent}
                         </button>
                       </ReceiptCard>
                     );
@@ -532,7 +591,7 @@ export const ReceiptFormInner: React.FC<ReceiptFormInnerProps> = ({
             <SearchBar
               isOpen={isSearchOpen}
               searchQuery={searchQuery}
-              onSearchQueryChange={setSearchQuery}
+              onSearchQueryChange={handleSearchQueryChange}
               onRequestClose={() => setIsSearchOpen(false)}
             />
           ) : null}
